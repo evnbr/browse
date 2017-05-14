@@ -14,6 +14,7 @@
 		A97CB07A1EC53DCD005DDBD1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A97CB0781EC53DCD005DDBD1 /* LaunchScreen.storyboard */; };
 		A97CB0851EC53DCD005DDBD1 /* browseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97CB0841EC53DCD005DDBD1 /* browseTests.swift */; };
 		A97CB0901EC53DCD005DDBD1 /* browseUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97CB08F1EC53DCD005DDBD1 /* browseUITests.swift */; };
+		A9E4859D1EC8D7BE0021D155 /* WebViewColorFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E4859C1EC8D7BE0021D155 /* WebViewColorFetcher.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,6 +48,7 @@
 		A97CB08B1EC53DCD005DDBD1 /* browseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = browseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A97CB08F1EC53DCD005DDBD1 /* browseUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = browseUITests.swift; sourceTree = "<group>"; };
 		A97CB0911EC53DCD005DDBD1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A9E4859C1EC8D7BE0021D155 /* WebViewColorFetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebViewColorFetcher.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +101,7 @@
 			children = (
 				A97CB06F1EC53DCD005DDBD1 /* AppDelegate.swift */,
 				A97CB0711EC53DCD005DDBD1 /* ViewController.swift */,
+				A9E4859C1EC8D7BE0021D155 /* WebViewColorFetcher.swift */,
 				A97CB0731EC53DCD005DDBD1 /* Main.storyboard */,
 				A97CB0761EC53DCD005DDBD1 /* Assets.xcassets */,
 				A97CB0781EC53DCD005DDBD1 /* LaunchScreen.storyboard */,
@@ -193,6 +196,7 @@
 				TargetAttributes = {
 					A97CB06B1EC53DCC005DDBD1 = {
 						CreatedOnToolsVersion = 8.2;
+						DevelopmentTeam = DJXSN639VG;
 						ProvisioningStyle = Automatic;
 					};
 					A97CB07F1EC53DCD005DDBD1 = {
@@ -261,6 +265,7 @@
 			files = (
 				A97CB0721EC53DCD005DDBD1 /* ViewController.swift in Sources */,
 				A97CB0701EC53DCD005DDBD1 /* AppDelegate.swift in Sources */,
+				A9E4859D1EC8D7BE0021D155 /* WebViewColorFetcher.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -412,9 +417,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = DJXSN639VG;
 				INFOPLIST_FILE = browse/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = evn.browse;
+				PRODUCT_BUNDLE_IDENTIFIER = evn.browser;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 			};
@@ -424,9 +430,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = DJXSN639VG;
 				INFOPLIST_FILE = browse/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = evn.browse;
+				PRODUCT_BUNDLE_IDENTIFIER = evn.browser;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 			};
@@ -505,6 +512,7 @@
 				A97CB0961EC53DCD005DDBD1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		A97CB0971EC53DCD005DDBD1 /* Build configuration list for PBXNativeTarget "browseTests" */ = {
 			isa = XCConfigurationList;
@@ -513,6 +521,7 @@
 				A97CB0991EC53DCD005DDBD1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		A97CB09A1EC53DCD005DDBD1 /* Build configuration list for PBXNativeTarget "browseUITests" */ = {
 			isa = XCConfigurationList;
@@ -521,6 +530,7 @@
 				A97CB09C1EC53DCD005DDBD1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
