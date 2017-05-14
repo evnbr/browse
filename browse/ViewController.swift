@@ -33,6 +33,8 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
     var backButton: UIBarButtonItem!
     var forwardButton: UIBarButtonItem!
     var urlButton: UIBarButtonItem!
+    
+    var colorFetcher: WebViewColorFetcher!
 
     override func loadView() {
         super.loadView()
@@ -114,6 +116,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         webView.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal;
 
 
+        colorFetcher = WebViewColorFetcher(webView)
         
         let colorUpdateTimer = Timer.scheduledTimer(
             timeInterval: 0.5,
@@ -122,7 +125,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
             userInfo: nil,
             repeats: true
         )
-        RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
+//        RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
 
     }
     
@@ -259,37 +262,6 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         self.present(avc, animated: true, completion: nil)
     }
 
-    func getColorAt(x: CGFloat, y: CGFloat) -> UIColor {
-        var pixel: [CUnsignedChar] = [0, 0, 0, 0]
-        let colorSpace : CGColorSpace = CGColorSpaceCreateDeviceRGB();
-        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
-        
-        let context = CGContext(
-            data: &pixel,
-            width: 1,
-            height: 1,
-            bitsPerComponent: 8,
-            bytesPerRow: 4,
-            space: colorSpace,
-            bitmapInfo: bitmapInfo.rawValue
-        )
-        
-        context!.translateBy(x: -x, y: -y )
-        
-        UIGraphicsPushContext(context!);
-        webView.drawHierarchy(in: webView.bounds, afterScreenUpdates: true)
-        UIGraphicsPopContext();
-        
-        let color = CGColor(colorSpace: colorSpace, components: [
-            CGFloat(pixel[0])/255.0,
-            CGFloat(pixel[1])/255.0,
-            CGFloat(pixel[2])/255.0,
-            CGFloat(pixel[3])/255.0,
-        ])
-        
-        let uiColor = UIColor(cgColor: color!)
-        return uiColor
-    }
     
     func getCSSColor(done: @escaping (_ color: UIColor) -> Void) {
         let js = "(function() { var bodyColor = getComputedStyle(document.body).backgroundColor; if (bodyColor !== \"rgba(0, 0, 0, 0)\") return bodyColor; else return getComputedStyle(document.documentElement).backgroundColor; })()"
@@ -309,7 +281,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
     func updateStatusBarColor() {
         // ---
         // Status bar — Using color at top
-        let colorAtTop = getColorAt(x: 5, y: 5)
+        let colorAtTop = colorFetcher.getColorAt(x: 5, y: 5)
         
         self.statusBack.backgroundColor = colorAtTop
         webView.backgroundColor = colorAtTop
@@ -321,7 +293,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         
         // ---
         // Toolbar — Using color at bottom
-        let colorAtBottom = getColorAt(x: 5, y: webView.bounds.size.height - 5)
+        let colorAtBottom = colorFetcher.getColorAt(x: 5, y: webView.bounds.size.height - 5)
         
         navigationController?.toolbar.barTintColor = colorAtBottom
         navigationController?.toolbar.tintColor = colorAtBottom.isLight()
