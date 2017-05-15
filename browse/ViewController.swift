@@ -8,6 +8,7 @@
 
 import UIKit
 import WebKit
+import OnePasswordExtension
 
 extension UIColor
 {
@@ -101,14 +102,14 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         backButton = UIBarButtonItem(barButtonSystemItem: .rewind, target: webView, action: #selector(webView.goBack))
         forwardButton = UIBarButtonItem(barButtonSystemItem: .fastForward, target: webView, action: #selector(webView.goForward))
         
-        let bookmarks = UIBarButtonItem(barButtonSystemItem: .bookmarks, target: self, action: #selector(bookmarksSheet))
+        let bookmarks = UIBarButtonItem(barButtonSystemItem: .bookmarks, target: self, action: #selector(displayBookmarks))
         let share = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(displayShareSheet))
+        let pwd = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(displayPassword))
         urlButton = UIBarButtonItem(title: "URL...", style: .plain, target: self, action: #selector(askURL))
-//        let color = UIBarButtonItem(title: "Color", style: .plain, target: self, action: #selector(updateStatusBarColor))
         
 
         
-        toolbarItems = [backButton, forwardButton, flex, urlButton, flex, share, bookmarks]
+        toolbarItems = [backButton, forwardButton, flex, urlButton, flex, pwd, share, bookmarks]
         navigationController?.isToolbarHidden = false
         navigationController?.toolbar.isTranslucent = false
         navigationController?.toolbar.barTintColor = .clear
@@ -162,7 +163,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         // Dispose of any resources that can be recreated.
     }
 
-    func bookmarksSheet() {
+    func displayBookmarks() {
         let ac = UIAlertController(title: "Open page…", message: nil, preferredStyle: .actionSheet)
         
         let bookmarks : Array<String> = [
@@ -387,6 +388,15 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         }
         return nil
     }
+    
+    func displayPassword() {
+        OnePasswordExtension.shared().fillItem(intoWebView: self.webView, for: self, sender: nil, showOnlyLogins: false) { (success, error) -> Void in
+            if success == false {
+                print("Failed to fill into webview: <\(error)>")
+            }
+        }
+    }
+    
     
     // this handles target=_blank links by opening them in the same view
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
