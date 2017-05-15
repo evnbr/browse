@@ -21,6 +21,20 @@ extension UIColor
         
         return (r * 299 + g * 587 + b * 114 ) < 700
     }
+    
+    static func average(_ colors : Array<UIColor>) -> UIColor {
+        let components : Array<Array<CGFloat>> = colors.map { $0.cgColor.components! }
+        
+        let count = CGFloat(colors.count)
+        let r = ( components.reduce(0) { $0 + $1[0] } ) / count
+        let g = ( components.reduce(0) { $0 + $1[1] } ) / count
+        let b = ( components.reduce(0) { $0 + $1[2] } ) / count
+        let a = ( components.reduce(0) { $0 + $1[3] } ) / count
+        
+        let avgColor = CGColor(colorSpace: colors[0].cgColor.colorSpace!, components: [r,g,b,a])!
+        
+        return UIColor(cgColor: avgColor)
+    }
 }
 
 
@@ -62,8 +76,8 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let url = URL(string: "https://www.hackingwithswift.com")!
-        webView.load(URLRequest(url: url))
+        goToText("fonts.google.com")
+        
         webView.allowsBackForwardNavigationGestures = true
         
         progressView = UIProgressView(progressViewStyle: .default)
@@ -97,8 +111,9 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         toolbarItems = [backButton, forwardButton, flex, urlButton, flex, share, bookmarks]
         navigationController?.isToolbarHidden = false
         navigationController?.toolbar.isTranslucent = false
-        navigationController?.toolbar.barTintColor = UIColor.black
-        navigationController?.toolbar.tintColor = UIColor.white
+        navigationController?.toolbar.barTintColor = .clear
+        navigationController?.toolbar.tintColor = .white
+//        navigationController?.toolbar.setBackgroundImage(UIImage(), forToolbarPosition: .any, barMetrics: .default)
 
         
         let rect = CGRect(
@@ -111,22 +126,31 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         self.view?.addSubview(statusBack)
         
 
+
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         webView.scrollView.contentInset = .zero
-        webView.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal;
+        webView.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
+        
+//        statusBack.backgroundColor = UIColor.clear
+//        webView.scrollView.layer.masksToBounds = false
+//        let blurEffect = UIBlurEffect(style: UIBlurEffectStyle.light)
+//        let blurEffectView = UIVisualEffectView(effect: blurEffect)
+//        blurEffectView.frame = statusBack.bounds
+//        blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+//        statusBack.addSubview(blurEffectView)
 
 
         colorFetcher = WebViewColorFetcher(webView)
         
         let colorUpdateTimer = Timer.scheduledTimer(
-            timeInterval: 0.5,
+            timeInterval: 0.4,
             target: self,
             selector: #selector(self.updateStatusBarColor),
             userInfo: nil,
             repeats: true
         )
-//        RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
-
+        colorUpdateTimer.tolerance = 0.2
+        // RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -140,14 +164,21 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
 
     func bookmarksSheet() {
         let ac = UIAlertController(title: "Open page…", message: nil, preferredStyle: .actionSheet)
-        ac.addAction(UIAlertAction(title: "apple.com", style: .default, handler: openPage))
-        ac.addAction(UIAlertAction(title: "google.com", style: .default, handler: openPage))
-        ac.addAction(UIAlertAction(title: "maps.google.com", style: .default, handler: openPage))
-        ac.addAction(UIAlertAction(title: "plus.google.com", style: .default, handler: openPage))
-        ac.addAction(UIAlertAction(title: "wikipedia.org", style: .default, handler: openPage))
-        ac.addAction(UIAlertAction(title: "theoutline.com", style: .default, handler: openPage))
-        ac.addAction(UIAlertAction(title: "twitter.com", style: .default, handler: openPage))
+        
+        let bookmarks : Array<String> = [
+            "apple.com",
+            "fonts.google.com",
+            "flights.google.com",
+            "maps.google.com",
+            "plus.google.com",
+            "wikipedia.org",
+            "theoutline.com",
+        ]
+        
+        bookmarks.forEach() { item in ac.addAction(UIAlertAction(title: item, style: .default, handler: openPage)) }
+        
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
         present(ac, animated: true)
     }
     
@@ -279,11 +310,34 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
     }
     
     func updateStatusBarColor() {
-        // ---
-        // Status bar — Using color at top
-        let colorAtTop = colorFetcher.getColorAt(x: 5, y: 5)
         
-        self.statusBack.backgroundColor = colorAtTop
+//        if webView.scrollView.isDragging {
+//            return
+//        }
+        
+        let colorAtTopLeft = colorFetcher.getColorAt(x: 5, y: 1)
+        let colorAtTopMid = colorFetcher.getColorAt(x: webView.bounds.size.width / 2, y: 1)
+        let colorAtTopRight = colorFetcher.getColorAt(x: webView.bounds.size.width - 5, y: 1)
+
+        let colorAtTop = UIColor.average([colorAtTopLeft, colorAtTopMid, colorAtTopRight])
+        
+        let colorAtBottomLeft = colorFetcher.getColorAt(
+            x: 5,
+            y: webView.bounds.size.height - 2)
+        let colorAtBottomRight = colorFetcher.getColorAt(
+            x: webView.bounds.size.width - 5,
+            y: webView.bounds.size.height - 2)
+
+        let colorAtBottom = UIColor.average([colorAtBottomLeft, colorAtBottomRight])
+        
+        statusBack.layer.removeAllAnimations()
+        navigationController?.toolbar.layer.removeAllAnimations()
+
+        UIView.animate(withDuration: 0.2) {
+            self.statusBack.backgroundColor = colorAtTop
+            self.navigationController?.toolbar.barTintColor = colorAtBottom
+            self.navigationController?.toolbar.layoutIfNeeded()
+        }
         webView.backgroundColor = colorAtTop
         webView.scrollView.backgroundColor = colorAtTop
         
@@ -291,11 +345,6 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
             ? .lightContent
             : .default
         
-        // ---
-        // Toolbar — Using color at bottom
-        let colorAtBottom = colorFetcher.getColorAt(x: 5, y: webView.bounds.size.height - 5)
-        
-        navigationController?.toolbar.barTintColor = colorAtBottom
         navigationController?.toolbar.tintColor = colorAtBottom.isLight()
             ? UIColor.white
             : UIColor.darkText
@@ -303,15 +352,6 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
             ? UIColor.white.withAlphaComponent(0.2)
             : UIColor.black.withAlphaComponent(0.08)
 
-        // ---
-        // Toolbar — Using CSS background color
-
-//        getCSSColor( done: {(bodyColor) in
-//            self.navigationController?.toolbar.barTintColor = bodyColor
-//            self.navigationController?.toolbar.tintColor = bodyColor.isLight()
-//                ? UIColor.white
-//                : UIColor.darkText
-//        })
     }
     
     
@@ -361,9 +401,9 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
             forwardButton.tintColor = webView.canGoForward ? nil : UIColor.clear
             
             // TODO this is probably expensive
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                self.updateStatusBarColor()
-            }
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+//                self.updateStatusBarColor()
+//            }
         }
         else if keyPath == "isLoading" {
             print("loading change")
@@ -375,15 +415,15 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
             if (webView.title != "" && webView.title != title) {
                 title = webView.title
                 print("Title change: \(title!)")
-                updateStatusBarColor()
+//                updateStatusBarColor()
             }
         }
         else if keyPath == "url" {
             // catches custom navigation
             // TODO this is probably expensive
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                self.updateStatusBarColor()
-            }
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+//                self.updateStatusBarColor()
+//            }
         }
     }
 

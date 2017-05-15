@@ -13,14 +13,13 @@ class WebViewColorFetcher {
     
     var webView: WKWebView!
     var context: CGContext!
-    var colorSpace: CGColorSpace!
     var pixel: [CUnsignedChar]
 
     init(_ wv : WKWebView) {
         webView = wv
         
         pixel = [0, 0, 0, 0]
-        colorSpace = CGColorSpaceCreateDeviceRGB();
+        let colorSpace = CGColorSpaceCreateDeviceRGB();
         let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
         
         context = CGContext(
@@ -46,15 +45,12 @@ class WebViewColorFetcher {
         context!.translateBy(x: x, y: y ) // Reset transform because context reused
 
         
-        let color = CGColor(colorSpace: colorSpace, components: [
-                CGFloat(pixel[0])/255.0,
-                CGFloat(pixel[1])/255.0,
-                CGFloat(pixel[2])/255.0,
-                CGFloat(pixel[3])/255.0,
-            ])
+        let color = UIColor( colorLiteralRed: Float(pixel[0])/255.0,
+                             green:           Float(pixel[1])/255.0,
+                             blue:            Float(pixel[2])/255.0,
+                             alpha:           Float(pixel[3])/255.0 )
         
-        let uiColor = UIColor(cgColor: color!)
-        return uiColor
+        return color
     }
 
     
