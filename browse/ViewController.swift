@@ -188,21 +188,13 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
     }
     
 
-    func getDisplayURL() -> String {
-        var displayURL : String = (webView.url?.host)!
-        if displayURL.hasPrefix("www.") {
-            let index = displayURL.index(displayURL.startIndex, offsetBy: 4)
-            displayURL = displayURL.substring(from: index)
-        }
-        return displayURL
-    }
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
-        urlButton.title = getDisplayURL()
+        urlButton.title = getDisplayTitle()
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        urlButton.title = getDisplayURL()
+        urlButton.title = getDisplayTitle()
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
         updateStatusBarColor()
@@ -255,6 +247,30 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         }
 
     }
+    
+    func getDisplayTitle() -> String {
+
+        let url = webView.url!
+        let absolute : String = url.absoluteString
+        let google = "https://www.google.com/search?"
+        
+        if absolute.hasPrefix(google) {
+            guard let components = URLComponents(string: absolute) else { return "?" }
+            let queryParam : String = (components.queryItems?.first(where: { $0.name == "q" })?.value)!
+            let search : String = queryParam.replacingOccurrences(of: "+", with: " ")
+            return "🔍 \(search)"
+        }
+        
+        let host : String = url.host!
+        if host.hasPrefix("www.") {
+            let index = host.index(host.startIndex, offsetBy: 4)
+            return host.substring(from: index)
+        }
+        else {
+            return host
+        }
+    }
+
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
         textField.selectAll(nil)
