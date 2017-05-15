@@ -44,6 +44,12 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
     var webView: WKWebView!
     var statusBack: UIView!
     
+    var statusBackInner: UIView!
+    var toolBarInner: UIView!
+    
+    var colorAtTop: UIColor = UIColor.clear
+    var colorAtBottom: UIColor = UIColor.clear
+    
     var progressView: UIProgressView!
     var backButton: UIBarButtonItem!
     var forwardButton: UIBarButtonItem!
@@ -81,6 +87,8 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         
         webView.allowsBackForwardNavigationGestures = true
         
+        let toolbar : UIToolbar = (navigationController?.toolbar)!
+        
         progressView = UIProgressView(progressViewStyle: .default)
         progressView.frame = CGRect(
             origin: CGPoint(x: 0, y: 21),
@@ -90,7 +98,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         progressView.progressTintColor = UIColor.white.withAlphaComponent(0.3)
         progressView.transform = progressView.transform.scaledBy(x: 1, y: 22)
 
-        self.navigationController?.toolbar.addSubview(progressView)
+        toolbar.addSubview(progressView)
 
 
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
@@ -111,9 +119,9 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         
         toolbarItems = [backButton, forwardButton, flex, urlButton, flex, pwd, share, bookmarks]
         navigationController?.isToolbarHidden = false
-        navigationController?.toolbar.isTranslucent = false
-        navigationController?.toolbar.barTintColor = .clear
-        navigationController?.toolbar.tintColor = .white
+        toolbar.isTranslucent = false
+        toolbar.barTintColor = .clear
+        toolbar.tintColor = .white
 //        navigationController?.toolbar.setBackgroundImage(UIImage(), forToolbarPosition: .any, barMetrics: .default)
 
         
@@ -139,6 +147,22 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
 //        blurEffectView.frame = statusBack.bounds
 //        blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 //        statusBack.addSubview(blurEffectView)
+        
+        statusBackInner = UIView()
+        statusBackInner.frame = statusBack.bounds
+        statusBackInner.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        statusBackInner.backgroundColor = .red
+        statusBack.addSubview(statusBackInner)
+        statusBack.clipsToBounds = true
+        
+        toolBarInner = UIView()
+        toolBarInner.frame = toolbar.bounds
+        toolBarInner.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        toolBarInner.backgroundColor = .cyan
+        toolbar.addSubview(toolBarInner)
+        toolbar.sendSubview(toBack: toolBarInner)
+        toolbar.clipsToBounds = true
+
 
 
         colorFetcher = WebViewColorFetcher(webView)
@@ -336,7 +360,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         let colorAtTopMid = colorFetcher.getColorAt(x: webView.bounds.size.width / 2, y: 1)
         let colorAtTopRight = colorFetcher.getColorAt(x: webView.bounds.size.width - 5, y: 1)
 
-        let colorAtTop = UIColor.average([colorAtTopLeft, colorAtTopMid, colorAtTopRight])
+        let newColorAtTop = UIColor.average([colorAtTopLeft, colorAtTopMid, colorAtTopRight])
         
         let colorAtBottomLeft = colorFetcher.getColorAt(
             x: 5,
@@ -345,16 +369,38 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
             x: webView.bounds.size.width - 5,
             y: webView.bounds.size.height - 2)
 
-        let colorAtBottom = UIColor.average([colorAtBottomLeft, colorAtBottomRight])
+        let newColorAtBottom = UIColor.average([colorAtBottomLeft, colorAtBottomRight])
         
         statusBack.layer.removeAllAnimations()
         navigationController?.toolbar.layer.removeAllAnimations()
 
-        UIView.animate(withDuration: 0.2) {
-            self.statusBack.backgroundColor = colorAtTop
-            self.navigationController?.toolbar.barTintColor = colorAtBottom
+        if !colorAtTop.isEqual(newColorAtTop) {
+            statusBackInner.transform = statusBackInner.transform.translatedBy(x: 0, y: 20)
+            statusBackInner.backgroundColor = newColorAtTop
+        }
+        if !colorAtBottom.isEqual(newColorAtBottom) {
+            toolBarInner.transform = toolBarInner.transform.translatedBy(x: 0, y: -40)
+            toolBarInner.backgroundColor = newColorAtBottom
+        }
+        
+        UIView.animate(withDuration: 0.3, animations: {
+            if !self.colorAtTop.isEqual(newColorAtTop) {
+                self.statusBackInner.transform = self.statusBackInner.transform.translatedBy(x: 0, y: -20)
+            }
+            if !self.colorAtBottom.isEqual(newColorAtBottom) {
+                self.toolBarInner.transform = self.toolBarInner.transform.translatedBy(x: 0, y: 40)
+            }
+            
+        }) { (completed) in
+            self.statusBack.backgroundColor = self.colorAtTop
+
+            self.navigationController?.toolbar.barTintColor = self.colorAtBottom
             self.navigationController?.toolbar.layoutIfNeeded()
         }
+        
+        colorAtTop = newColorAtTop
+        colorAtBottom = newColorAtBottom
+
         webView.backgroundColor = colorAtTop
         webView.scrollView.backgroundColor = colorAtTop
         
