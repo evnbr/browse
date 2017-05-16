@@ -107,17 +107,25 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.url), options: .new, context: nil)
 
         let flex = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        backButton = UIBarButtonItem(barButtonSystemItem: .rewind, target: webView, action: #selector(webView.goBack))
-        forwardButton = UIBarButtonItem(barButtonSystemItem: .fastForward, target: webView, action: #selector(webView.goForward))
+        let space = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
+        let negSpace = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
         
-        let bookmarks = UIBarButtonItem(barButtonSystemItem: .bookmarks, target: self, action: #selector(displayBookmarks))
+        backButton = UIBarButtonItem(image: UIImage(named: "back"), style: .plain, target: webView, action: #selector(webView.goBack))
+        forwardButton = UIBarButtonItem(image: UIImage(named: "fwd"), style: .plain, target: webView, action: #selector(webView.goForward))
+        backButton.width = 40.0
+        forwardButton.width = 40.0
+        space.width = 12.0
+        negSpace.width = -12.0
+        
+        
+//        let bookmarks = UIBarButtonItem(barButtonSystemItem: .bookmarks, target: self, action: #selector(displayBookmarks))
         let share = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(displayShareSheet))
         let pwd = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(displayPassword))
         urlButton = UIBarButtonItem(title: "URL...", style: .plain, target: self, action: #selector(askURL))
         
 
         
-        toolbarItems = [backButton, forwardButton, flex, urlButton, flex, pwd, share, bookmarks]
+        toolbarItems = [negSpace, backButton, forwardButton, flex, urlButton, flex, pwd, share, negSpace]
         navigationController?.isToolbarHidden = false
         toolbar.isTranslucent = false
         toolbar.barTintColor = .clear
@@ -300,17 +308,21 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
     func textFieldDidBeginEditing(_ textField: UITextField) {
         textField.selectAll(nil)
     }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        self.dismiss(animated: true, completion: nil)
+        self.goToText(textField.text!)
+        return true
+    }
 
     
     func askURL() {
         let alertController = UIAlertController(title: "Where to?", message: "Current: \(title!)", preferredStyle: .alert)
         
-        let confirmAction = UIAlertAction(title: "Go", style: .default) { (_) in
-            if let field = alertController.textFields?[0] {
-                self.goToText(field.text!)
-            } else {
-                // user did not fill field
-            }
+        
+        let bookmarksAction = UIAlertAction(title: "Bookmarks", style: .default) { (_) in
+            self.displayBookmarks()
         }
         
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (_) in }
@@ -323,7 +335,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
             textField.delegate = self
         }
         
-        alertController.addAction(confirmAction)
+        alertController.addAction(bookmarksAction)
         alertController.addAction(cancelAction)
         
         self.present(alertController, animated: true, completion: nil)
@@ -484,6 +496,11 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         }
         else if keyPath == "title" {
 //             catches custom navigation
+            backButton.isEnabled = webView.canGoBack
+            forwardButton.isEnabled = webView.canGoForward
+            forwardButton.tintColor = webView.canGoForward ? nil : UIColor.clear
+
+            
             if (webView.title != "" && webView.title != title) {
                 title = webView.title
                 print("Title change: \(title!)")
@@ -491,6 +508,11 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
             }
         }
         else if keyPath == "url" {
+            
+            backButton.isEnabled = webView.canGoBack
+            forwardButton.isEnabled = webView.canGoForward
+            forwardButton.tintColor = webView.canGoForward ? nil : UIColor.clear
+
             // catches custom navigation
             // TODO this is probably expensive
 //            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
