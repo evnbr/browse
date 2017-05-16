@@ -81,26 +81,30 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.title), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.url), options: .new, context: nil)
 
+        
+        backButton = UIBarButtonItem(image: UIImage(named: "back"), style: .plain, target: webView, action: #selector(webView.goBack))
+        forwardButton = UIBarButtonItem(image: UIImage(named: "fwd"), style: .plain, target: webView, action: #selector(webView.goForward))
+        let actionButton = UIBarButtonItem(image: UIImage(named: "tab"), style: .plain, target: self, action: #selector(displayShareSheet))
+
+        backButton.width = 40.0
+        forwardButton.width = 40.0
+        actionButton.width = 40.0
+
         let flex = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let space = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
         let negSpace = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
         
-        backButton = UIBarButtonItem(image: UIImage(named: "back"), style: .plain, target: webView, action: #selector(webView.goBack))
-        forwardButton = UIBarButtonItem(image: UIImage(named: "fwd"), style: .plain, target: webView, action: #selector(webView.goForward))
-        backButton.width = 40.0
-        forwardButton.width = 40.0
         space.width = 12.0
         negSpace.width = -12.0
         
         
 //        let bookmarks = UIBarButtonItem(barButtonSystemItem: .bookmarks, target: self, action: #selector(displayBookmarks))
-        let share = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(displayShareSheet))
         let pwd = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(displayPassword))
         urlButton = UIBarButtonItem(title: "URL...", style: .plain, target: self, action: #selector(askURL))
         
 
         
-        toolbarItems = [negSpace, backButton, forwardButton, flex, urlButton, flex, pwd, share, negSpace]
+        toolbarItems = [negSpace, backButton, forwardButton, flex, urlButton, flex, actionButton, negSpace]
         navigationController?.isToolbarHidden = false
         toolbar.isTranslucent = false
         toolbar.barTintColor = .clear
