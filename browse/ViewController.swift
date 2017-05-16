@@ -155,14 +155,38 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         colorFetcher = WebViewColorFetcher(webView)
         
         let colorUpdateTimer = Timer.scheduledTimer(
-            timeInterval: 0.5,
+            timeInterval: 0.6,
             target: self,
             selector: #selector(self.updateStatusBarColor),
             userInfo: nil,
             repeats: true
         )
-        colorUpdateTimer.tolerance = 0.2
+        colorUpdateTimer.tolerance = 0.1
 //        RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
+    }
+    
+    func blendColors(_ left : UIColor, _ right : UIColor) -> UIColor {
+        let rgbBlack : UIColor = UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: 1)
+        let rgbWhite : UIColor = UIColor(colorLiteralRed: 1, green: 1, blue: 1, alpha: 1)
+
+        if left.difference(from: right) < 1.5 {
+            return UIColor.average([left, right])
+        }
+        else if left.difference(from: rgbWhite) < 0.3 {
+            return left
+        }
+        else if right.difference(from: rgbWhite) < 0.3 {
+            return right
+        }
+        else if left.difference(from: rgbBlack) < 0.3 {
+            return left
+        }
+        else if right.difference(from: rgbWhite) < 0.3 {
+            return right
+        }
+        else {
+            return rgbBlack
+        }
     }
     
     func updateStatusBarColor() {
@@ -170,30 +194,18 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         //        if webView.scrollView.isDragging {
         //            return
         //        }
-        
-        let colorAtTopLeft = self.colorFetcher.getColorAt(x: 5, y: 1)
-        let colorAtTopRight = self.colorFetcher.getColorAt(x: self.webView.bounds.size.width - 5, y: 1)
-        
-        let colorAtBottomLeft = self.colorFetcher.getColorAt(
-            x: 5,
-            y: self.webView.bounds.size.height - 2)
-        let colorAtBottomRight = self.colorFetcher.getColorAt(
-            x: self.webView.bounds.size.width - 5,
-            y: self.webView.bounds.size.height - 2)
+        let rgbBlack : UIColor = UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: 1)
 
+        let size = self.webView.bounds.size
         
-            
-        let newColorAtTop : UIColor = UIColor.average([colorAtTopLeft, colorAtTopRight])
-        let newColorAtBottom : UIColor = UIColor.average([colorAtBottomLeft, colorAtBottomRight])
+        let colorAtTopLeft     = self.colorFetcher.getColorAt( x: 5,                y: 1 )
+        let colorAtTopRight    = self.colorFetcher.getColorAt( x: size.width - 5,   y: 1 )
         
-        let topChange = self.colorAtTop.difference(from: newColorAtTop)
-        let bottomChange = self.colorAtBottom.difference(from: newColorAtBottom)
+        let colorAtBottomLeft  = self.colorFetcher.getColorAt( x: 2,                y: size.height - 2 )
+        let colorAtBottomRight = self.colorFetcher.getColorAt( x: size.width - 2,   y: size.height - 2 )
         
-        colorDiffs.addSample(value:    topChange > 0.3 ? 1 : 0)
-        colorDiffs.addSample(value: bottomChange > 0.3 ? 1 : 0)
-        let isFrantic : Bool = colorDiffs.sum > 7
-//        print("isFrantic : \(colorDiffs.sum)")
-        
+        let newColorAtTop : UIColor    = blendColors(colorAtTopLeft, colorAtTopRight)
+        let newColorAtBottom : UIColor = blendColors(colorAtBottomLeft, colorAtBottomRight)
 
         self.statusBack.layer.removeAllAnimations()
         self.toolbar.layer.removeAllAnimations()
@@ -207,8 +219,15 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
             self.toolbarInner.backgroundColor = newColorAtBottom
         }
         
+        let topChange = self.colorAtTop.difference(from: newColorAtTop)
+        let bottomChange = self.colorAtBottom.difference(from: newColorAtBottom)
+
+        
+        colorDiffs.addSample(value:    topChange > 0.3 ? 1 : 0)
+        colorDiffs.addSample(value: bottomChange > 0.3 ? 1 : 0)
+        
+        let isFrantic : Bool = colorDiffs.sum > 7
         if isFrantic {
-            let rgbBlack : UIColor = UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: 1)
 
             self.statusBack.backgroundColor = rgbBlack
             self.toolbar.barTintColor = rgbBlack
@@ -225,7 +244,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
                 if !self.colorAtTop.isEqual(newColorAtTop) {
                     if !throttleTop && topChange > 0.4 {
                         self.statusBackInner.transform = CGAffineTransform.identity
-                        self.statusBack.backgroundColor = self.colorAtTop.darken(0.5)
+                        self.statusBack.backgroundColor = self.colorAtTop // .darken(0.5)
                         self.lastTopTransitionTime = CACurrentMediaTime()
                     } else {
                         self.statusBack.backgroundColor = newColorAtTop
@@ -234,7 +253,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
                 if !self.colorAtBottom.isEqual(newColorAtBottom) {
                     if !throttleBottom && bottomChange > 0.4 {
                         self.toolbarInner.transform = CGAffineTransform.identity
-                        self.toolbar.barTintColor = self.colorAtBottom.darken(0.5) // 50% blend
+                        self.toolbar.barTintColor = self.colorAtBottom //.darken(0.5) // 50% blend
                         self.toolbar.layoutIfNeeded()
                         self.lastBottomTransitionTime = CACurrentMediaTime()
                     } else {
@@ -439,38 +458,6 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         }
     }
 
-    func getCSSColor(done: @escaping (_ color: UIColor) -> Void) {
-        let js = "(function() { var bodyColor = getComputedStyle(document.body).backgroundColor; if (bodyColor !== \"rgba(0, 0, 0, 0)\") return bodyColor; else return getComputedStyle(document.documentElement).backgroundColor; })()"
-        
-        webView.evaluateJavaScript(js) { (result, error) in
-            if error != nil {
-                // print("JS Error: \(error!)")
-            }
-            else {
-                // print("Computed BG: \(result!)")
-                let bodyColor : UIColor = self.makeColor(fromCSS: result as! String)!
-                done(bodyColor)
-            }
-        }
-    }
-    
-    
-    func makeColor(fromCSS str: String) -> UIColor! {
-        if str.hasPrefix("rgba(") || str.hasPrefix("rgb(") {
-            let parts = str.components(separatedBy: NSCharacterSet.decimalDigits.inverted)
-            let values : Array<Float> = parts.filter {
-                if let _ = Float($0) { return true }
-                else { return false }
-            }.map { Float($0)! }
-            return UIColor(
-                colorLiteralRed: values[0] / 255.0,
-                green: values[1] / 255.0,
-                blue: values[2] / 255.0,
-                alpha: 1
-            )
-        }
-        return nil
-    }
     
     // this handles target=_blank links by opening them in the same view
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
