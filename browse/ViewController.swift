@@ -10,35 +10,6 @@ import UIKit
 import WebKit
 import OnePasswordExtension
 
-extension UIColor
-{
-    func isLight() -> Bool
-    {
-        let components : Array<CGFloat> = self.cgColor.components!
-        
-        let r = components[0]
-        let g = components[1]
-        let b = components[2]
-        
-        return (r * 299 + g * 587 + b * 114 ) < 700
-    }
-    
-    static func average(_ colors : Array<UIColor>) -> UIColor {
-        let components : Array<Array<CGFloat>> = colors.map { $0.cgColor.components! }
-        
-        let count = CGFloat(colors.count)
-        let r = ( components.reduce(0) { $0 + $1[0] } ) / count
-        let g = ( components.reduce(0) { $0 + $1[1] } ) / count
-        let b = ( components.reduce(0) { $0 + $1[2] } ) / count
-        let a = ( components.reduce(0) { $0 + $1[3] } ) / count
-        
-        let avgColor = CGColor(colorSpace: colors[0].cgColor.colorSpace!, components: [r,g,b,a])!
-        
-        return UIColor(cgColor: avgColor)
-    }
-}
-
-
 class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITextFieldDelegate {
     
     var webView: WKWebView!
