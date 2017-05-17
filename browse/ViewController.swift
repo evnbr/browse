@@ -14,8 +14,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
     
     var webView: WKWebView!
     
-    var statusBack: UIView!
-    var statusBackInner: UIView!
+    var statusBar: ColorStatusBar!
     
     var toolbar: UIToolbar!
     var toolbarInner: UIView!
@@ -67,7 +66,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         webView.allowsBackForwardNavigationGestures = true
         
         toolbar = setUpToolbar()
-        let statusBar = setupStatusBar()
+        statusBar = ColorStatusBar()
         
         self.view?.addSubview(statusBar)
 
@@ -93,7 +92,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         let colorUpdateTimer = Timer.scheduledTimer(
             timeInterval: 0.6,
             target: self,
-            selector: #selector(self.updateStatusBarColor),
+            selector: #selector(self.updateInterfaceColor),
             userInfo: nil,
             repeats: true
         )
@@ -170,41 +169,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         return toolbar
     }
     
-    func setupStatusBar() -> UIView {
-        let rect = CGRect(
-            origin: CGPoint(x: 0, y: 0),
-            size:CGSize(width: UIScreen.main.bounds.size.width, height:20)
-        )
-        let statusBar = UIView.init(frame: rect)
-        statusBar.autoresizingMask = [.flexibleWidth]
-        statusBar.backgroundColor = UIColor.black
-        
-        statusBack = UIView.init(frame: rect)
-        statusBack.autoresizingMask = [.flexibleWidth]
-        statusBack.backgroundColor = UIColor.black
-        statusBar.addSubview(statusBack)
-        
-        //        statusBar.backgroundColor = UIColor.clear
-        //        statusBack.alpha = 0.8
-        //        webView.scrollView.layer.masksToBounds = false
-        //        let blurEffect = UIBlurEffect(style: UIBlurEffectStyle.light)
-        //        let blurEffectView = UIVisualEffectView(effect: blurEffect)
-        //        blurEffectView.frame = statusBack.bounds
-        //        blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        //        statusBar.addSubview(blurEffectView)
-        
-        statusBackInner = UIView()
-        statusBackInner.frame = statusBack.bounds
-        statusBackInner.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        statusBackInner.backgroundColor = .red
-        statusBack.addSubview(statusBackInner)
-        statusBack.clipsToBounds = true
-        
-        return statusBar
-    }
-
-    
-    func updateStatusBarColor() {
+    func updateInterfaceColor() {
         
         if self.isPanning {
             return
@@ -214,12 +179,12 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         let newColorAtBottom = colorFetcher.getColorAtBottom()
 
 
-        self.statusBack.layer.removeAllAnimations()
+        self.statusBar.back.layer.removeAllAnimations()
         self.toolbar.layer.removeAllAnimations()
         
         if !self.colorAtTop.isEqual(newColorAtTop) {
-            self.statusBackInner.transform = CGAffineTransform.identity.translatedBy(x: 0, y: 20)
-            self.statusBackInner.backgroundColor = newColorAtTop
+            self.statusBar.inner.transform = CGAffineTransform.identity.translatedBy(x: 0, y: 20)
+            self.statusBar.inner.backgroundColor = newColorAtTop
         }
         if !self.colorAtBottom.isEqual(newColorAtBottom) {
             self.toolbarInner.transform = CGAffineTransform.identity.translatedBy(x: 0, y: -48)
@@ -236,7 +201,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         let isFrantic : Bool = colorDiffs.sum > 7
         if isFrantic {
 
-            self.statusBack.backgroundColor = UIColor.black
+            self.statusBar.back.backgroundColor = UIColor.black
             self.toolbar.barTintColor = UIColor.black
             self.toolbar.layoutIfNeeded()
             
@@ -250,11 +215,11 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
             UIView.animate(withDuration: 0.4, delay: 0, options: .curveEaseOut, animations: {
                 if !self.colorAtTop.isEqual(newColorAtTop) {
                     if !throttleTop && topChange > 0.4 {
-                        self.statusBackInner.transform = CGAffineTransform.identity
-                        self.statusBack.backgroundColor = self.colorAtTop // .darken(0.5)
+                        self.statusBar.inner.transform = CGAffineTransform.identity
+                        self.statusBar.back.backgroundColor = self.colorAtTop // .darken(0.5)
                         self.lastTopTransitionTime = CACurrentMediaTime()
                     } else {
-                        self.statusBack.backgroundColor = newColorAtTop
+                        self.statusBar.back.backgroundColor = newColorAtTop
                     }
                     UIApplication.shared.statusBarStyle = newColorAtTop.isLight()
                         ? .lightContent
@@ -276,7 +241,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
                 }
             }) { (completed) in
                 if (completed) {
-                    self.statusBack.backgroundColor = newColorAtTop
+                    self.statusBar.back.backgroundColor = newColorAtTop
                     self.toolbar.barTintColor = newColorAtBottom
                     self.toolbar.layoutIfNeeded()
                 }
@@ -524,7 +489,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
             // catches custom navigation
             // TODO this is probably expensive
 //            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-//                self.updateStatusBarColor()
+//                self.updateInterfaceColor()
 //            }
         }
     }
