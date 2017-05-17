@@ -33,6 +33,69 @@ class WebViewColorFetcher {
         )
         
     }
+        
+    func blendColors(_ colors: UIColor...) -> UIColor {
+        let average : UIColor = UIColor.average(colors)
+        
+        // Remove outliers
+        let blendable : Array<UIColor> = colors.filter({$0.difference(from: average) < 0.5})
+        
+        if blendable.count > 0 {
+            return UIColor.average(blendable)
+        }
+        else {
+            let distribution : Float = colors.map({$0.difference(from: average)}).reduce(0, +)
+            if distribution < 3 {
+                return average
+            }
+            for c in colors {
+                if c.difference(from: UIColor.white) < 0.3 {
+                    return c
+                }
+            }
+            for c in colors {
+                if c.difference(from: UIColor.black) < 0.3 {
+                    return c
+                }
+            }
+            return UIColor.black
+        }
+    }
+    
+    func getColorAtTop() -> UIColor {
+        let size = self.webView.bounds.size
+        
+        let colorAtTopLeft     = getColorAt( x: 5,                y: 1 )
+        let colorAtTopRight    = getColorAt( x: size.width - 5,   y: 1 )
+        
+        return blendColors(colorAtTopLeft, colorAtTopRight)
+    }
+    
+    func getColorAtBottom() -> UIColor {
+        let size = self.webView.bounds.size
+
+        let colorAtBottomLeft    = getColorAt( x: 2,                y: size.height - 2 )
+        let colorAtBottomRight   = getColorAt( x: size.width - 2,   y: size.height - 2 )
+        
+        if colorAtBottomLeft.difference(from: colorAtBottomRight) < 1 {
+            return blendColors(
+                colorAtBottomLeft,
+                colorAtBottomRight
+            )
+        }
+        else {
+            let colorAtBottomLeftUp  = getColorAt( x: 2,                y: size.height - 24 )
+            let colorAtBottomRightUp = getColorAt( x: size.width - 2,   y: size.height - 24 )
+            
+            return blendColors(
+                colorAtBottomLeftUp,
+                colorAtBottomLeft,
+                colorAtBottomRightUp,
+                colorAtBottomRight
+            )
+        }
+    }
+
     
     func getColorAt(x: CGFloat, y: CGFloat) -> UIColor {
         

@@ -165,47 +165,16 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
 //        RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
     }
     
-    func blendColors(_ left : UIColor, _ right : UIColor) -> UIColor {
-        let rgbBlack : UIColor = UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: 1)
-        let rgbWhite : UIColor = UIColor(colorLiteralRed: 1, green: 1, blue: 1, alpha: 1)
-
-        if left.difference(from: right) < 1.5 {
-            return UIColor.average([left, right])
-        }
-        else if left.difference(from: rgbWhite) < 0.3 {
-            return left
-        }
-        else if right.difference(from: rgbWhite) < 0.3 {
-            return right
-        }
-        else if left.difference(from: rgbBlack) < 0.3 {
-            return left
-        }
-        else if right.difference(from: rgbWhite) < 0.3 {
-            return right
-        }
-        else {
-            return rgbBlack
-        }
-    }
     
     func updateStatusBarColor() {
         
         //        if webView.scrollView.isDragging {
         //            return
         //        }
-        let rgbBlack : UIColor = UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: 1)
 
-        let size = self.webView.bounds.size
-        
-        let colorAtTopLeft     = self.colorFetcher.getColorAt( x: 5,                y: 1 )
-        let colorAtTopRight    = self.colorFetcher.getColorAt( x: size.width - 5,   y: 1 )
-        
-        let colorAtBottomLeft  = self.colorFetcher.getColorAt( x: 2,                y: size.height - 2 )
-        let colorAtBottomRight = self.colorFetcher.getColorAt( x: size.width - 2,   y: size.height - 2 )
-        
-        let newColorAtTop : UIColor    = blendColors(colorAtTopLeft, colorAtTopRight)
-        let newColorAtBottom : UIColor = blendColors(colorAtBottomLeft, colorAtBottomRight)
+        let newColorAtTop    = colorFetcher.getColorAtTop()
+        let newColorAtBottom = colorFetcher.getColorAtBottom()
+
 
         self.statusBack.layer.removeAllAnimations()
         self.toolbar.layer.removeAllAnimations()
@@ -229,8 +198,8 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         let isFrantic : Bool = colorDiffs.sum > 7
         if isFrantic {
 
-            self.statusBack.backgroundColor = rgbBlack
-            self.toolbar.barTintColor = rgbBlack
+            self.statusBack.backgroundColor = UIColor.black
+            self.toolbar.barTintColor = UIColor.black
             self.toolbar.layoutIfNeeded()
             
             UIApplication.shared.statusBarStyle = .lightContent
@@ -249,8 +218,14 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
                     } else {
                         self.statusBack.backgroundColor = newColorAtTop
                     }
+                    UIApplication.shared.statusBarStyle = newColorAtTop.isLight()
+                        ? .lightContent
+                        : .default
                 }
                 if !self.colorAtBottom.isEqual(newColorAtBottom) {
+                    self.toolbar.tintColor = newColorAtBottom.isLight()
+                        ? UIColor.white
+                        : UIColor.darkText
                     if !throttleBottom && bottomChange > 0.4 {
                         self.toolbarInner.transform = CGAffineTransform.identity
                         self.toolbar.barTintColor = self.colorAtBottom //.darken(0.5) // 50% blend
@@ -267,19 +242,16 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
                     self.toolbar.barTintColor = newColorAtBottom
                     self.toolbar.layoutIfNeeded()
                 }
+                else {
+                    print("Animation interrupted!")
+                }
             }
     
             
             self.webView.backgroundColor = newColorAtTop
             self.webView.scrollView.backgroundColor = newColorAtTop
             
-            UIApplication.shared.statusBarStyle = newColorAtTop.isLight()
-                ? .lightContent
-                : .default
             
-            self.toolbar.tintColor = newColorAtBottom.isLight()
-                ? UIColor.white
-                : UIColor.darkText
             self.progressView.progressTintColor = newColorAtBottom.isLight()
                 ? UIColor.white.withAlphaComponent(0.2)
                 : UIColor.black.withAlphaComponent(0.08)
