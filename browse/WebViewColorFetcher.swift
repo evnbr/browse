@@ -40,12 +40,13 @@ class WebViewColorFetcher {
         // Remove outliers
         let blendable : Array<UIColor> = colors.filter({$0.difference(from: average) < 0.5})
         
-        if blendable.count > 0 {
+        if blendable.count > 1 {
+
             return UIColor.average(blendable)
         }
         else {
             let distribution : Float = colors.map({$0.difference(from: average)}).reduce(0, +)
-            if distribution < 3 {
+            if distribution < Float(colors.count) * 1.0 {
                 return average
             }
             for c in colors {

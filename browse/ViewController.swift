@@ -10,7 +10,7 @@ import UIKit
 import WebKit
 import OnePasswordExtension
 
-class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITextFieldDelegate {
+class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITextFieldDelegate, UIGestureRecognizerDelegate {
     
     var webView: WKWebView!
     
@@ -22,8 +22,12 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
     
     var colorAtTop: UIColor = UIColor.clear
     var colorAtBottom: UIColor = UIColor.clear
+    
     var lastTopTransitionTime : CFTimeInterval = 0.0
     var lastBottomTransitionTime : CFTimeInterval = 0.0
+    
+    var isPanning : Bool = false
+    
     var colorDiffs : Sampler = Sampler(period: 12)
     
     var progressView: UIProgressView!
@@ -62,95 +66,27 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         goToText("fonts.google.com")
         webView.allowsBackForwardNavigationGestures = true
         
-        toolbar = (navigationController?.toolbar)!
+        toolbar = setUpToolbar()
+        let statusBar = setupStatusBar()
         
-        progressView = UIProgressView(progressViewStyle: .default)
-        progressView.frame = CGRect(
-            origin: CGPoint(x: 0, y: 21),
-            size:CGSize(width: UIScreen.main.bounds.size.width, height:4)
-        )
-        progressView.trackTintColor = UIColor.white.withAlphaComponent(0)
-        progressView.progressTintColor = UIColor.white.withAlphaComponent(0.3)
-        progressView.transform = progressView.transform.scaledBy(x: 1, y: 22)
-
-        toolbar.addSubview(progressView)
-
+        self.view?.addSubview(statusBar)
 
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.isLoading), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.title), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.url), options: .new, context: nil)
 
-        
-        backButton = UIBarButtonItem(image: UIImage(named: "back"), style: .plain, target: webView, action: #selector(webView.goBack))
-        forwardButton = UIBarButtonItem(image: UIImage(named: "fwd"), style: .plain, target: webView, action: #selector(webView.goForward))
-        let actionButton = UIBarButtonItem(image: UIImage(named: "tab"), style: .plain, target: self, action: #selector(displayShareSheet))
-
-        backButton.width = 40.0
-        forwardButton.width = 40.0
-        actionButton.width = 40.0
-
-        let flex = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let space = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
-        let negSpace = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
-        
-        space.width = 12.0
-        negSpace.width = -12.0
-        
-        
-//        let bookmarks = UIBarButtonItem(barButtonSystemItem: .bookmarks, target: self, action: #selector(displayBookmarks))
-        let pwd = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(displayPassword))
-        urlButton = UIBarButtonItem(title: "URL...", style: .plain, target: self, action: #selector(askURL))
-        
-
-        
-        toolbarItems = [negSpace, backButton, forwardButton, flex, urlButton, flex, actionButton, negSpace]
-        navigationController?.isToolbarHidden = false
-        toolbar.isTranslucent = false
-        toolbar.barTintColor = .clear
-        toolbar.tintColor = .white
-//        toolbar.setBackgroundImage(UIImage(), forToolbarPosition: .any, barMetrics: .default)
-
-        
-        let rect = CGRect(
-            origin: CGPoint(x: 0, y: 0),
-            size:CGSize(width: UIScreen.main.bounds.size.width, height:20)
-        )
-        statusBack = UIView.init(frame: rect)
-        statusBack.autoresizingMask = [.flexibleWidth]
-        statusBack.backgroundColor = UIColor.black
-        self.view?.addSubview(statusBack)
-        
-
 
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         webView.scrollView.contentInset = .zero
         webView.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
-        
-//        statusBack.backgroundColor = UIColor.clear
-//        webView.scrollView.layer.masksToBounds = false
-//        let blurEffect = UIBlurEffect(style: UIBlurEffectStyle.light)
-//        let blurEffectView = UIVisualEffectView(effect: blurEffect)
-//        blurEffectView.frame = statusBack.bounds
-//        blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-//        statusBack.addSubview(blurEffectView)
-        
-        statusBackInner = UIView()
-        statusBackInner.frame = statusBack.bounds
-        statusBackInner.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        statusBackInner.backgroundColor = .red
-        statusBack.addSubview(statusBackInner)
-        statusBack.clipsToBounds = true
-        
-        toolbarInner = UIView()
-        toolbarInner.frame = toolbar.bounds
-        toolbarInner.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        toolbarInner.backgroundColor = .cyan
-        toolbar.addSubview(toolbarInner)
-        toolbar.sendSubview(toBack: toolbarInner)
-        toolbar.clipsToBounds = true
 
-
+        
+        // Detect panning to prevent status bar firing on js-implemented scrolling, like maps and pagers
+        let touchRecognizer = UIPanGestureRecognizer()
+        touchRecognizer.delegate = self
+        touchRecognizer.addTarget(self, action: #selector(self.onWebviewPan))
+        webView.scrollView.addGestureRecognizer(touchRecognizer)
 
         colorFetcher = WebViewColorFetcher(webView)
         
@@ -166,11 +102,113 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
     }
     
     
+    
+    func onWebviewPan(gestureRecognizer:UIGestureRecognizer) {
+        if gestureRecognizer.state == UIGestureRecognizerState.began {
+            self.isPanning = true
+        }
+        else if gestureRecognizer.state == UIGestureRecognizerState.ended {
+            self.isPanning = false
+        }
+    }
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+    
+    func setUpToolbar() -> UIToolbar {
+        
+        let toolbar = (navigationController?.toolbar)!
+        
+        progressView = UIProgressView(progressViewStyle: .default)
+        progressView.frame = CGRect(
+            origin: CGPoint(x: 0, y: 21),
+            size:CGSize(width: UIScreen.main.bounds.size.width, height:4)
+        )
+        progressView.trackTintColor = UIColor.white.withAlphaComponent(0)
+        progressView.progressTintColor = UIColor.white.withAlphaComponent(0.3)
+        progressView.transform = progressView.transform.scaledBy(x: 1, y: 22)
+        
+        toolbar.addSubview(progressView)
+        
+        backButton = UIBarButtonItem(image: UIImage(named: "back"), style: .plain, target: webView, action: #selector(webView.goBack))
+        forwardButton = UIBarButtonItem(image: UIImage(named: "fwd"), style: .plain, target: webView, action: #selector(webView.goForward))
+        let actionButton = UIBarButtonItem(image: UIImage(named: "tab"), style: .plain, target: self, action: #selector(displayShareSheet))
+        
+        backButton.width = 40.0
+        forwardButton.width = 40.0
+        actionButton.width = 40.0
+        
+        let flex = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        let space = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
+        let negSpace = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
+        
+        space.width = 12.0
+        negSpace.width = -12.0
+        
+        
+        //        let bookmarks = UIBarButtonItem(barButtonSystemItem: .bookmarks, target: self, action: #selector(displayBookmarks))
+        let pwd = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(displayPassword))
+        urlButton = UIBarButtonItem(title: "URL...", style: .plain, target: self, action: #selector(askURL))
+        
+        
+        
+        toolbarItems = [negSpace, backButton, forwardButton, flex, urlButton, flex, actionButton, negSpace]
+        navigationController?.isToolbarHidden = false
+        toolbar.isTranslucent = false
+        toolbar.barTintColor = .clear
+        toolbar.tintColor = .white
+        //        toolbar.setBackgroundImage(UIImage(), forToolbarPosition: .any, barMetrics: .default)
+        
+        toolbarInner = UIView()
+        toolbarInner.frame = toolbar.bounds
+        toolbarInner.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        toolbarInner.backgroundColor = .cyan
+        toolbar.addSubview(toolbarInner)
+        toolbar.sendSubview(toBack: toolbarInner)
+        toolbar.clipsToBounds = true
+        
+        return toolbar
+    }
+    
+    func setupStatusBar() -> UIView {
+        let rect = CGRect(
+            origin: CGPoint(x: 0, y: 0),
+            size:CGSize(width: UIScreen.main.bounds.size.width, height:20)
+        )
+        let statusBar = UIView.init(frame: rect)
+        statusBar.autoresizingMask = [.flexibleWidth]
+        statusBar.backgroundColor = UIColor.black
+        
+        statusBack = UIView.init(frame: rect)
+        statusBack.autoresizingMask = [.flexibleWidth]
+        statusBack.backgroundColor = UIColor.black
+        statusBar.addSubview(statusBack)
+        
+        //        statusBar.backgroundColor = UIColor.clear
+        //        statusBack.alpha = 0.8
+        //        webView.scrollView.layer.masksToBounds = false
+        //        let blurEffect = UIBlurEffect(style: UIBlurEffectStyle.light)
+        //        let blurEffectView = UIVisualEffectView(effect: blurEffect)
+        //        blurEffectView.frame = statusBack.bounds
+        //        blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        //        statusBar.addSubview(blurEffectView)
+        
+        statusBackInner = UIView()
+        statusBackInner.frame = statusBack.bounds
+        statusBackInner.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        statusBackInner.backgroundColor = .red
+        statusBack.addSubview(statusBackInner)
+        statusBack.clipsToBounds = true
+        
+        return statusBar
+    }
+
+    
     func updateStatusBarColor() {
         
-        //        if webView.scrollView.isDragging {
-        //            return
-        //        }
+        if self.isPanning {
+            return
+        }
 
         let newColorAtTop    = colorFetcher.getColorAtTop()
         let newColorAtBottom = colorFetcher.getColorAtBottom()
@@ -250,7 +288,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
             
             self.webView.backgroundColor = newColorAtTop
             self.webView.scrollView.backgroundColor = newColorAtTop
-            
+            self.view.backgroundColor = newColorAtTop
             
             self.progressView.progressTintColor = newColorAtBottom.isLight()
                 ? UIColor.white.withAlphaComponent(0.2)
@@ -406,7 +444,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         alertController.addTextField { (textField) in
             textField.text = self.webView.url?.absoluteString
             textField.placeholder = "www.example.com"
-            textField.keyboardType = UIKeyboardType.URL
+            textField.keyboardType = UIKeyboardType.webSearch
             textField.returnKeyType = .go
             textField.delegate = self
         }
