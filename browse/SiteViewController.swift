@@ -10,7 +10,7 @@ import UIKit
 import WebKit
 import OnePasswordExtension
 
-class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITextFieldDelegate, UIGestureRecognizerDelegate {
+class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITextFieldDelegate, UIGestureRecognizerDelegate {
     
     var webView: WKWebView!
     
@@ -35,6 +35,8 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
     var urlButton: UIBarButtonItem!
     
     var colorFetcher: WebViewColorFetcher!
+    
+    var bookmarksController : BookmarksViewController!
 
     override func loadView() {
         super.loadView()
@@ -67,6 +69,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         
         toolbar = setUpToolbar()
         statusBar = ColorStatusBar()
+        bookmarksController = BookmarksViewController()
         
         self.view?.addSubview(statusBar)
 
@@ -217,7 +220,6 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
                 if !self.colorAtTop.isEqual(newColorAtTop) {
                     if !throttleTop && topChange > 0.4 {
                         self.statusBar.inner.transform = CGAffineTransform.identity
-                        self.statusBar.back.backgroundColor = self.colorAtTop // .darken(0.5)
                         self.lastTopTransitionTime = CACurrentMediaTime()
                     } else {
                         self.statusBar.back.backgroundColor = newColorAtTop
@@ -232,7 +234,6 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
                         : UIColor.darkText
                     if !throttleBottom && bottomChange > 0.4 {
                         self.toolbarInner.transform = CGAffineTransform.identity
-                        self.toolbar.barTintColor = self.colorAtBottom //.darken(0.5) // 50% blend
                         self.toolbar.layoutIfNeeded()
                         self.lastBottomTransitionTime = CACurrentMediaTime()
                     } else {
@@ -264,7 +265,6 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         self.colorAtTop = newColorAtTop
         self.colorAtBottom = newColorAtBottom
 
-
     }
 
     
@@ -279,24 +279,28 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
     }
 
     func displayBookmarks() {
-        let ac = UIAlertController(title: "Open page…", message: nil, preferredStyle: .actionSheet)
-        
-        let bookmarks : Array<String> = [
-            "apple.com",
-            "fonts.google.com",
-            "flights.google.com",
-            "maps.google.com",
-            "plus.google.com",
-            "wikipedia.org",
-            "theoutline.com",
-            "corndog.love",
-        ]
-        
-        bookmarks.forEach() { item in ac.addAction(UIAlertAction(title: item, style: .default, handler: openPage)) }
-        
-        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+//        let ac = UIAlertController(title: "Open page…", message: nil, preferredStyle: .actionSheet)
+//        
+//        let bookmarks : Array<String> = [
+//            "apple.com",
+//            "fonts.google.com",
+//            "flights.google.com",
+//            "maps.google.com",
+//            "plus.google.com",
+//            "wikipedia.org",
+//            "theoutline.com",
+//            "corndog.love",
+//        ]
+//        
+//        bookmarks.forEach() { item in ac.addAction(UIAlertAction(title: item, style: .default, handler: openPage)) }
+//        
+//        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
 
-        present(ac, animated: true)
+        
+        let navigationController = UINavigationController(rootViewController: bookmarksController)
+        bookmarksController.sender = self
+
+        present(navigationController, animated: true)
     }
     
     func openPage(action: UIAlertAction) {

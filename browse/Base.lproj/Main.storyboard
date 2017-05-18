@@ -9,10 +9,10 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--View Controller-->
+        <!--Site View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="browse" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="BYZ-38-t0r" customClass="SiteViewController" customModule="browse" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="y3c-jy-aDJ"/>
                         <viewControllerLayoutGuide type="bottom" id="wfy-db-euE"/>
@@ -26,14 +26,14 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1076" y="137.18140929535232"/>
+            <point key="canvasLocation" x="849" y="791"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="T7b-b2-CvI">
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="YjM-9m-8ec" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" hidden="YES" contentMode="scaleToFill" misplaced="YES" id="DDE-T3-lql">
+                    <navigationBar key="navigationBar" hidden="YES" contentMode="scaleToFill" id="DDE-T3-lql">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
