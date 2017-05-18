@@ -49,7 +49,7 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
         table.delegate = self
         self.view.addSubview(table)
     }
-    
+        
     func dismissSelf() {
         self.dismiss(animated: true, completion: nil)
     }
@@ -57,7 +57,7 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if sender != nil {
             dismissSelf()
-            sender.goToText(bookmarks[indexPath.row])
+            sender.navigateToText(bookmarks[indexPath.row])
             table.deselectRow(at: indexPath, animated: true)
         }
     }

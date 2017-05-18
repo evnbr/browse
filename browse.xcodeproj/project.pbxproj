@@ -12,6 +12,8 @@
 		A908F04E1ECD60CD00A74241 /* BookmarksViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */; };
 		A94FE41F1ECA5A7400ED48DB /* UIColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */; };
 		A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE4201ECA661700ED48DB /* Sampler.swift */; };
+		A961847E1ECD8FBB00EF3A6F /* SearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A961847D1ECD8FBB00EF3A6F /* SearchViewController.swift */; };
+		A96184801ECE2F4500EF3A6F /* SearchTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = A961847F1ECE2F4500EF3A6F /* SearchTransition.swift */; };
 		A97CB0701EC53DCD005DDBD1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97CB06F1EC53DCD005DDBD1 /* AppDelegate.swift */; };
 		A97CB0721EC53DCD005DDBD1 /* SiteViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97CB0711EC53DCD005DDBD1 /* SiteViewController.swift */; };
 		A97CB0751EC53DCD005DDBD1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A97CB0731EC53DCD005DDBD1 /* Main.storyboard */; };
@@ -53,6 +55,8 @@
 		A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarksViewController.swift; sourceTree = "<group>"; };
 		A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIColorExtensions.swift; sourceTree = "<group>"; };
 		A94FE4201ECA661700ED48DB /* Sampler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sampler.swift; sourceTree = "<group>"; };
+		A961847D1ECD8FBB00EF3A6F /* SearchViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchViewController.swift; sourceTree = "<group>"; };
+		A961847F1ECE2F4500EF3A6F /* SearchTransition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchTransition.swift; sourceTree = "<group>"; };
 		A97CB06C1EC53DCD005DDBD1 /* browse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = browse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A97CB06F1EC53DCD005DDBD1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A97CB0711EC53DCD005DDBD1 /* SiteViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiteViewController.swift; sourceTree = "<group>"; };
@@ -150,6 +154,8 @@
 				A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */,
 				A908F04B1ECD03B800A74241 /* ColorStatusBar.swift */,
 				A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */,
+				A961847D1ECD8FBB00EF3A6F /* SearchViewController.swift */,
+				A961847F1ECE2F4500EF3A6F /* SearchTransition.swift */,
 				A97CB06F1EC53DCD005DDBD1 /* AppDelegate.swift */,
 				A97CB0711EC53DCD005DDBD1 /* SiteViewController.swift */,
 				A94FE4201ECA661700ED48DB /* Sampler.swift */,
@@ -464,6 +470,8 @@
 			files = (
 				A908F04E1ECD60CD00A74241 /* BookmarksViewController.swift in Sources */,
 				A97CB0721EC53DCD005DDBD1 /* SiteViewController.swift in Sources */,
+				A96184801ECE2F4500EF3A6F /* SearchTransition.swift in Sources */,
+				A961847E1ECD8FBB00EF3A6F /* SearchViewController.swift in Sources */,
 				A908F04C1ECD03B800A74241 /* ColorStatusBar.swift in Sources */,
 				A97CB0701EC53DCD005DDBD1 /* AppDelegate.swift in Sources */,
 				A9E4859D1EC8D7BE0021D155 /* WebViewColorFetcher.swift in Sources */,

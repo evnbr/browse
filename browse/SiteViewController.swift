@@ -37,6 +37,9 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
     var colorFetcher: WebViewColorFetcher!
     
     var bookmarksController : BookmarksViewController!
+    var searchController : SearchViewController!
+
+    var interactionController: UIPercentDrivenInteractiveTransition?
 
     override func loadView() {
         super.loadView()
@@ -64,12 +67,14 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        goToText("fonts.google.com")
+        navigateToText("fonts.google.com")
         webView.allowsBackForwardNavigationGestures = true
         
         toolbar = setUpToolbar()
         statusBar = ColorStatusBar()
+        
         bookmarksController = BookmarksViewController()
+        searchController = SearchViewController()
         
         self.view?.addSubview(statusBar)
 
@@ -151,7 +156,9 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         
         
 //        let pwd = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(displayPassword))
-        urlButton = UIBarButtonItem(title: "URL...", style: .plain, target: self, action: #selector(askURL))
+        //        urlButton = UIBarButtonItem(title: "URL...", style: .plain, target: self, action: #selector(askURL))
+        
+        urlButton = UIBarButtonItem(title: "URL...", style: .plain, target: self, action: #selector(displaySearch))
         
         
         
@@ -279,29 +286,23 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
     }
 
     func displayBookmarks() {
-//        let ac = UIAlertController(title: "Open page…", message: nil, preferredStyle: .actionSheet)
-//        
-//        let bookmarks : Array<String> = [
-//            "apple.com",
-//            "fonts.google.com",
-//            "flights.google.com",
-//            "maps.google.com",
-//            "plus.google.com",
-//            "wikipedia.org",
-//            "theoutline.com",
-//            "corndog.love",
-//        ]
-//        
-//        bookmarks.forEach() { item in ac.addAction(UIAlertAction(title: item, style: .default, handler: openPage)) }
-//        
-//        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-
         
         let navigationController = UINavigationController(rootViewController: bookmarksController)
         bookmarksController.sender = self
 
         present(navigationController, animated: true)
     }
+    
+    func displaySearch() {
+        
+        searchController.modalPresentationStyle = .overCurrentContext
+        searchController.senderVC = self
+
+        searchController.transitioningDelegate = self
+
+        present(searchController, animated: true)
+    }
+
     
     func openPage(action: UIAlertAction) {
         let url = URL(string: "https://" + action.title!)!
@@ -342,7 +343,7 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         self.present(alert, animated: true, completion: nil)
     }
     
-    func goToText(_ text: String) {
+    func navigateToText(_ text: String) {
         // TODO: More robust url detection
         if text.range(of:".") != nil{
             if (text.hasPrefix("http://") || text.hasPrefix("https://")) {
@@ -396,33 +397,8 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         self.dismiss(animated: true, completion: nil)
-        self.goToText(textField.text!)
+        self.navigateToText(textField.text!)
         return true
-    }
-
-    
-    func askURL() {
-        let alertController = UIAlertController(title: "Where to?", message: "Current: \(title!)", preferredStyle: .alert)
-        
-        
-        let bookmarksAction = UIAlertAction(title: "Bookmarks", style: .default) { (_) in
-            self.displayBookmarks()
-        }
-        
-        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (_) in }
-        
-        alertController.addTextField { (textField) in
-            textField.text = self.webView.url?.absoluteString
-            textField.placeholder = "www.example.com"
-            textField.keyboardType = UIKeyboardType.webSearch
-            textField.returnKeyType = .go
-            textField.delegate = self
-        }
-        
-        alertController.addAction(bookmarksAction)
-        alertController.addAction(cancelAction)
-        
-        self.present(alertController, animated: true, completion: nil)
     }
 
     func displayShareSheet() {
