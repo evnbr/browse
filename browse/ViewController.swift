@@ -131,11 +131,13 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         
         backButton = UIBarButtonItem(image: UIImage(named: "back"), style: .plain, target: webView, action: #selector(webView.goBack))
         forwardButton = UIBarButtonItem(image: UIImage(named: "fwd"), style: .plain, target: webView, action: #selector(webView.goForward))
-        let actionButton = UIBarButtonItem(image: UIImage(named: "tab"), style: .plain, target: self, action: #selector(displayShareSheet))
+        let actionButton = UIBarButtonItem(image: UIImage(named: "action"), style: .plain, target: self, action: #selector(displayShareSheet))
+        let tabButton = UIBarButtonItem(image: UIImage(named: "tab"), style: .plain, target: self, action: #selector(displayBookmarks))
         
         backButton.width = 40.0
         forwardButton.width = 40.0
         actionButton.width = 40.0
+        tabButton.width = 40.0
         
         let flex = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let space = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
@@ -145,13 +147,12 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         negSpace.width = -12.0
         
         
-        //        let bookmarks = UIBarButtonItem(barButtonSystemItem: .bookmarks, target: self, action: #selector(displayBookmarks))
-        let pwd = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(displayPassword))
+//        let pwd = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(displayPassword))
         urlButton = UIBarButtonItem(title: "URL...", style: .plain, target: self, action: #selector(askURL))
         
         
         
-        toolbarItems = [negSpace, backButton, forwardButton, flex, urlButton, flex, actionButton, negSpace]
+        toolbarItems = [negSpace, backButton, forwardButton, flex, urlButton, flex, actionButton, tabButton, negSpace]
         navigationController?.isToolbarHidden = false
         toolbar.isTranslucent = false
         toolbar.barTintColor = .clear
@@ -352,9 +353,9 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITe
         else {
             let query = text.addingPercentEncoding(
                 withAllowedCharacters: .urlHostAllowed)!
-//            let duck = "https://duckduckgo.com/?q="
-            let goog = "https://www.google.com/search?q="
-            let url = URL(string: goog + query)!
+//            let searchURL = "https://duckduckgo.com/?q="
+            let searchURL = "https://www.google.com/search?q="
+            let url = URL(string: searchURL + query)!
             self.webView.load(URLRequest(url: url))
         }
 
