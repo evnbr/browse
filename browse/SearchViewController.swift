@@ -41,9 +41,9 @@ class SearchViewController: UIViewController, UITextViewDelegate, UIGestureRecog
         
         panel = UIView(frame: CGRect(
             x: 0,
-            y: 200,
+            y: 300,
             width: UIScreen.main.bounds.width,
-            height: 200
+            height: 600
         ))
         panel.backgroundColor = UIColor.white
         panel.tag = SearchViewController.PANEL_TAG
@@ -86,12 +86,11 @@ class SearchViewController: UIViewController, UITextViewDelegate, UIGestureRecog
         textView.textContainerInset = UIEdgeInsetsMake(12, 12, 12, 12)
         textView.contentInset = .zero
         
-        var frame = panel.frame
-        frame.size.height = textView.frame.size.height + 100
-        panel.frame = frame
+//        var frame = panel.frame
+//        frame.size.height = textView.frame.size.height + 100
+//        panel.frame = frame
         //        textView.scrollRangeToVisible(NSMakeRange(0, 0))
     }
-
     
     func dismissSelf() {
         self.dismiss(animated: true, completion: nil)
@@ -105,6 +104,13 @@ class SearchViewController: UIViewController, UITextViewDelegate, UIGestureRecog
     
     override func viewWillAppear(_ animated: Bool) {
         textView.text = senderVC.webView.url?.absoluteString
+        panel.backgroundColor = senderVC.colorAtBottom
+        panel.tintColor = senderVC.toolbar.tintColor
+        textView.textColor = senderVC.toolbar.tintColor
+        
+        textView.keyboardAppearance = senderVC.colorAtBottom.isLight() ? .dark : .light
+        
+        updateSize()
         if !textView.isFirstResponder {
             textView.becomeFirstResponder()
         }

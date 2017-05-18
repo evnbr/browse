@@ -39,6 +39,7 @@ class AnimationController: NSObject, UIViewControllerAnimatedTransitioning {
         let toView = transitionContext.viewController(forKey: UITransitionContextViewControllerKey.to)!.view
         
         let detailView = self.isPresenting ? toView : fromView
+//        let rootView = self.isPresenting ? fromView : toView
         
         if self.isPresenting {
             containerView.addSubview(toView!)
@@ -47,8 +48,10 @@ class AnimationController: NSObject, UIViewControllerAnimatedTransitioning {
 //            containerView.insertSubview(toView!, belowSubview: fromView!)
 //        }
         
+        let shiftY = self.originFrame.origin.y - 200
         let openedTransform = CGAffineTransform.identity
-        let closedTransform = CGAffineTransform.identity.translatedBy(x: 0, y: self.originFrame.origin.y)
+        let closedTransform = CGAffineTransform.identity.translatedBy(x: 0, y: shiftY)
+//        let shiftedMain = CGAffineTransform.identity.translatedBy(x: 0, y: -shiftY)
         
         for view in (detailView?.subviews)! {
             if view.tag == SearchViewController.PANEL_TAG {
@@ -66,7 +69,8 @@ class AnimationController: NSObject, UIViewControllerAnimatedTransitioning {
             }
         }
 
-        UIView.animate(withDuration: self.duration, animations: { () -> Void in
+        UIView.animate(withDuration: self.duration, animations: {
+//            rootView?.transform = self.isPresenting ? shiftedMain : CGAffineTransform.identity
             
             for view in (detailView?.subviews)! {
                 if view.tag == SearchViewController.PANEL_TAG {
@@ -97,7 +101,7 @@ extension SiteViewController: UIViewControllerTransitioningDelegate {
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         return AnimationController(withDuration: 0.4, forTransitionType: .Dismissing, originFrame: self.toolbar.frame)
     }
-    
+
     func interactionControllerForDismissal(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
         return self.interactionController
     }
