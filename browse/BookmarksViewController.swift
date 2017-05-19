@@ -22,7 +22,7 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
         "corndog.love",
     ]
     
-    var sender : SiteViewController!
+    var sender : WebViewController!
 
     
     private var table: UITableView!

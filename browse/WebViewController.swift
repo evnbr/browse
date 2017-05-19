@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  WebViewController.swift
 //  browse
 //
 //  Created by Evan Brooks on 5/11/17.
@@ -25,7 +25,7 @@ extension URL {
     }
 }
 
-class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITextFieldDelegate, UIGestureRecognizerDelegate {
+class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITextFieldDelegate, UIGestureRecognizerDelegate {
     
     var webView: WKWebView!
     var isPanning : Bool = false
@@ -92,7 +92,7 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
     
     var editableURL : String {
         get {
-            let url = webView.url!
+            guard let url = webView.url else { return "" }
             
             if isSearching { return searchQuery }
             else { return url.absoluteString }
@@ -118,6 +118,10 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         webView = WKWebView(frame: rect, configuration: config)
         webView.navigationDelegate = self
         webView.uiDelegate = self  // req'd for target=_blank override
+        webView.allowsBackForwardNavigationGestures = true
+        webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        webView.scrollView.contentInset = .zero
+        webView.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
 
         view.addSubview(webView)
     }
@@ -126,36 +130,28 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        navigateToText("fonts.google.com")
-        webView.allowsBackForwardNavigationGestures = true
-        
         toolbar = setUpToolbar()
         statusBar = ColorStatusBarView()
-        searchView = SearchView()
-        searchView.senderVC = self
+        view.addSubview(statusBar)
+
+        searchView = SearchView(for: self)
         
         scrim = UIButton(frame: UIScreen.main.bounds)
         scrim.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         scrim.backgroundColor = UIColor.black.withAlphaComponent(0.4)
         scrim.addTarget(self, action: #selector(hideSearch), for: .primaryActionTriggered)
         scrim.alpha = 0
-        
-        bookmarksController = BookmarksViewController()
-//        searchController = SearchViewController()
-        
-        view.addSubview(statusBar)
         view.addSubview(scrim)
 
+        bookmarksController = BookmarksViewController()
+        
+
+        colorFetcher = WebViewColorFetcher(webView)
 
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.isLoading), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.title), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.url), options: .new, context: nil)
-
-
-        webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        webView.scrollView.contentInset = .zero
-        webView.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
 
         
         // Detect panning to prevent status bar firing on js-implemented scrolling, like maps and pagers
@@ -164,7 +160,6 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         touchRecognizer.addTarget(self, action: #selector(self.onWebviewPan))
         webView.scrollView.addGestureRecognizer(touchRecognizer)
 
-        colorFetcher = WebViewColorFetcher(webView)
         
         let colorUpdateTimer = Timer.scheduledTimer(
             timeInterval: 0.6,
@@ -176,7 +171,7 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         colorUpdateTimer.tolerance = 0.1
 //        RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
         
-        
+        navigateToText("fonts.google.com")
     }
     
     
@@ -384,7 +379,7 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         let back = self.backButton.value(forKey: "view") as! UIView
         let tab = self.tabButton.value(forKey: "view") as! UIView
 
-        UIView.animate(withDuration: 0.3, delay: 0, options: UIViewAnimationOptions.curveEaseOut, animations: {
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
             self.scrim.alpha = 1
             
             url.transform  = CGAffineTransform(translationX: -30, y: -100)

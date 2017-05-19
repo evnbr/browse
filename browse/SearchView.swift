@@ -11,17 +11,19 @@ import UIKit
 
 class SearchView: UIView, UITextViewDelegate {
     
-    var senderVC : SiteViewController!
+    var siteController : WebViewController!
     var textView : UITextView!
     var cancel   : UIButton!
     
-    init() {
+    init(for siteVC: WebViewController) {
         super.init(frame: CGRect(
             x: 0,
             y: 300,
             width: UIScreen.main.bounds.width,
             height: 600
         ))
+        
+        siteController = siteVC
         
         backgroundColor = UIColor.white
         
@@ -40,7 +42,7 @@ class SearchView: UIView, UITextViewDelegate {
 
         textView.delegate = self
         textView.isScrollEnabled = false
-        textView.layer.cornerRadius = 5.0
+//        textView.layer.cornerRadius = 5.0
         
         textView.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(textView)
@@ -62,21 +64,19 @@ class SearchView: UIView, UITextViewDelegate {
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-8-[text]-\(margin)-|", options: [], metrics: nil, views: ["text": self.textView]))
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-8-[text]-8-|", options: [], metrics: nil, views: ["text": self.textView]))
 
-        
         updateSize()
-        
     }
     
     func updateSize() {
         let fixedWidth = textView.frame.size.width
+        
         textView.textContainerInset = UIEdgeInsetsMake(5, 6, 5, 6)
-        textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
+        textView.contentInset = .zero
+
         let newSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
         var newFrame = textView.frame
         newFrame.size = CGSize(width: max(newSize.width, fixedWidth), height: newSize.height)
         textView.frame = newFrame;
-        
-        textView.contentInset = .zero
         
         var frame = self.frame
         frame.size.height = textView.frame.size.height + 16
@@ -86,9 +86,7 @@ class SearchView: UIView, UITextViewDelegate {
     }
     
     override public var intrinsicContentSize: CGSize {
-        get {
-            return frame.size
-        }
+        get { return frame.size }
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -106,6 +104,7 @@ class SearchView: UIView, UITextViewDelegate {
             self.cancel.transform = .identity
         })
     }
+    
     func textViewDidEndEditing(_ textView: UITextView) {
         textView.transform = .identity
         textView.alpha = 1
@@ -123,24 +122,23 @@ class SearchView: UIView, UITextViewDelegate {
     }
     
     func hide() {
-        senderVC.hideSearch()
+        siteController.hideSearch()
     }
     
     
-    
     func prepareToShow() {
-        textView.text = senderVC.editableURL
+        textView.text = siteController.editableURL
         
-        self.backgroundColor = senderVC.colorAtBottom
-        self.tintColor = senderVC.toolbar.tintColor
-        textView.textColor = senderVC.toolbar.tintColor
+        self.backgroundColor = siteController.colorAtBottom
+        self.tintColor = siteController.toolbar.tintColor
+        textView.textColor = siteController.toolbar.tintColor
         
-        textView.keyboardAppearance = senderVC.colorAtBottom.isLight ? .dark : .light
-        textView.placeholderColor = senderVC.colorAtBottom.isLight
+        textView.keyboardAppearance = siteController.colorAtBottom.isLight ? .dark : .light
+        textView.placeholderColor = siteController.colorAtBottom.isLight
             ? UIColor.white.withAlphaComponent(0.4)
             : UIColor.black.withAlphaComponent(0.2)
 
-//        textView.backgroundColor = senderVC.colorAtBottom.isLight()
+//        textView.backgroundColor = siteController.colorAtBottom.isLight()
 //            ? UIColor.white.withAlphaComponent(0.1)
 //            : UIColor.black.withAlphaComponent(0.08)
 
@@ -150,9 +148,9 @@ class SearchView: UIView, UITextViewDelegate {
     
     
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-        if(text == "\n") {
+        if text == "\n" {
             hide()
-            senderVC.navigateToText(textView.text!)
+            siteController.navigateToText(textView.text!)
             return false
         }
         return true
