@@ -70,8 +70,8 @@ class SearchView: UIView, UITextViewDelegate {
     func updateSize() {
         let fixedWidth = textView.frame.size.width
         textView.textContainerInset = UIEdgeInsetsMake(5, 6, 5, 6)
-        textView.sizeThatFits(CGSize(width: fixedWidth, height: CGFloat.greatestFiniteMagnitude))
-        let newSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: CGFloat.greatestFiniteMagnitude))
+        textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
+        let newSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
         var newFrame = textView.frame
         newFrame.size = CGSize(width: max(newSize.width, fixedWidth), height: newSize.height)
         textView.frame = newFrame;
@@ -81,10 +81,8 @@ class SearchView: UIView, UITextViewDelegate {
         var frame = self.frame
         frame.size.height = textView.frame.size.height + 16
         self.frame = frame
-//        textView.reloadInputViews()
         
         textView.invalidateIntrinsicContentSize()
-        //        textView.scrollRangeToVisible(NSMakeRange(0, 0))
     }
     
     override public var intrinsicContentSize: CGSize {
@@ -93,33 +91,30 @@ class SearchView: UIView, UITextViewDelegate {
         }
     }
 
-    
-    
-
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
     func textViewDidBeginEditing(_ textView: UITextView) {
-        textView.transform = CGAffineTransform.identity.translatedBy(x: 40, y: 0)
+        textView.transform = CGAffineTransform(translationX: 20, y: 0)
         textView.alpha = 0
-        cancel.transform = CGAffineTransform.identity.translatedBy(x: 60, y: 0)
+        cancel.transform = CGAffineTransform(translationX: 60, y: 0)
 
         UIView.animate(withDuration: 0.3, animations: {
-            textView.transform = CGAffineTransform.identity
+            textView.transform = .identity
             textView.alpha = 1
-            self.cancel.transform = CGAffineTransform.identity
+            self.cancel.transform = .identity
         })
     }
     func textViewDidEndEditing(_ textView: UITextView) {
-        textView.transform = CGAffineTransform.identity
+        textView.transform = .identity
         textView.alpha = 1
-        cancel.transform = CGAffineTransform.identity
+        cancel.transform = .identity
 
         UIView.animate(withDuration: 0.3, animations: {
-            textView.transform = CGAffineTransform.identity.translatedBy(x: 40, y: 0)
+            textView.transform = CGAffineTransform(translationX: 20, y: 0)
             textView.alpha = 0
-            self.cancel.transform = CGAffineTransform.identity.translatedBy(x: 60, y: 0)
+            self.cancel.transform = CGAffineTransform(translationX: 60, y: 0)
         })
     }
 
@@ -133,14 +128,15 @@ class SearchView: UIView, UITextViewDelegate {
     
     
     
-    func updateAppearance() {
-        textView.text = senderVC.webView.url?.absoluteString
+    func prepareToShow() {
+        textView.text = senderVC.editableURL
+        
         self.backgroundColor = senderVC.colorAtBottom
         self.tintColor = senderVC.toolbar.tintColor
         textView.textColor = senderVC.toolbar.tintColor
         
-        textView.keyboardAppearance = senderVC.colorAtBottom.isLight() ? .dark : .light
-        textView.placeholderColor = senderVC.colorAtBottom.isLight()
+        textView.keyboardAppearance = senderVC.colorAtBottom.isLight ? .dark : .light
+        textView.placeholderColor = senderVC.colorAtBottom.isLight
             ? UIColor.white.withAlphaComponent(0.4)
             : UIColor.black.withAlphaComponent(0.2)
 

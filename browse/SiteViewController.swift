@@ -10,39 +10,48 @@ import UIKit
 import WebKit
 import OnePasswordExtension
 
+extension URL {
+    var displayHost : String {
+        get {
+            let host : String = self.host!
+            if host.hasPrefix("www.") {
+                let index = host.index(host.startIndex, offsetBy: 4)
+                return host.substring(from: index)
+            }
+            else {
+                return host
+            }
+        }
+    }
+}
+
 class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITextFieldDelegate, UIGestureRecognizerDelegate {
     
     var webView: WKWebView!
+    var isPanning : Bool = false
+    
+    var searchView: SearchView!
+    var scrim: UIButton!
+    
+    var colorFetcher: WebViewColorFetcher!
+    var colorAtTop: UIColor = UIColor.clear
+    var colorAtBottom: UIColor = UIColor.clear
+    var colorDiffs : Sampler = Sampler(period: 12)
+    var lastTopTransitionTime : CFTimeInterval = 0.0
+    var lastBottomTransitionTime : CFTimeInterval = 0.0
     
     var statusBar: ColorStatusBarView!
     
     var toolbar: UIToolbar!
     var toolbarInner: UIView!
-    
-    var searchView: SearchView!
-    var scrim: UIButton!
-    
-    var colorAtTop: UIColor = UIColor.clear
-    var colorAtBottom: UIColor = UIColor.clear
-    
-    var lastTopTransitionTime : CFTimeInterval = 0.0
-    var lastBottomTransitionTime : CFTimeInterval = 0.0
-    
-    var isPanning : Bool = false
-    
-    var colorDiffs : Sampler = Sampler(period: 12)
-    
+
     var progressView: UIProgressView!
     var backButton: UIBarButtonItem!
     var forwardButton: UIBarButtonItem!
     var tabButton: UIBarButtonItem!
     var urlButton: UIBarButtonItem!
     
-    var colorFetcher: WebViewColorFetcher!
-    
     var bookmarksController : BookmarksViewController!
-
-    var interactionController: UIPercentDrivenInteractiveTransition?
 
     
     // http://stackoverflow.com/questions/19764293/inputaccessoryview-docked-at-bottom/23880574#23880574
@@ -52,6 +61,42 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
     
     override var inputAccessoryView:UIView{
         get { return searchView }
+    }
+    
+    
+    var displayTitle : String {
+        get {
+            let url = webView.url!
+            if isSearching { return makeDisplaySearch(searchQuery) }
+            else { return url.displayHost }
+        }
+    }
+    
+    var isSearching : Bool {
+        get {
+            let url = webView.url!
+            let searchURL = "https://www.google.com/search?"
+            return url.absoluteString.hasPrefix(searchURL)
+        }
+    }
+    
+    var searchQuery : String {
+        get {
+            let url = webView.url!
+            guard let components = URLComponents(string: url.absoluteString) else { return "?" }
+            let queryParam : String = (components.queryItems?.first(where: { $0.name == "q" })?.value)!
+            let withoutPlus : String = queryParam.replacingOccurrences(of: "+", with: " ")
+            return withoutPlus
+        }
+    }
+    
+    var editableURL : String {
+        get {
+            let url = webView.url!
+            
+            if isSearching { return searchQuery }
+            else { return url.absoluteString }
+        }
     }
 
     override func loadView() {
@@ -205,14 +250,6 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         return toolbar
     }
     
-    func handleLongPress(gestureReconizer: UILongPressGestureRecognizer) {
-        print("ong pres")
-        if gestureReconizer.state == UIGestureRecognizerState.ended {
-            displayShareSheet()
-        }
-    }
-
-    
     
     func updateInterfaceColor() {
         
@@ -228,11 +265,11 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         self.toolbar.layer.removeAllAnimations()
         
         if !self.colorAtTop.isEqual(newColorAtTop) {
-            self.statusBar.inner.transform = CGAffineTransform.identity.translatedBy(x: 0, y: 20)
+            self.statusBar.inner.transform = CGAffineTransform(translationX: 0, y: 20)
             self.statusBar.inner.backgroundColor = newColorAtTop
         }
         if !self.colorAtBottom.isEqual(newColorAtBottom) {
-            self.toolbarInner.transform = CGAffineTransform.identity.translatedBy(x: 0, y: -48)
+            self.toolbarInner.transform = CGAffineTransform(translationX: 0, y: -48)
             self.toolbarInner.backgroundColor = newColorAtBottom
         }
         
@@ -246,12 +283,12 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         let isFrantic : Bool = colorDiffs.sum > 7
         if isFrantic {
 
-            self.statusBar.back.backgroundColor = UIColor.black
-            self.toolbar.barTintColor = UIColor.black
+            self.statusBar.back.backgroundColor = .black
+            self.toolbar.barTintColor = .black
             self.toolbar.layoutIfNeeded()
             
             UIApplication.shared.statusBarStyle = .lightContent
-            self.toolbar.tintColor = UIColor.white
+            self.toolbar.tintColor = .white
         }
         else {
             let throttleTop = CACurrentMediaTime() - self.lastTopTransitionTime < 1.0
@@ -260,21 +297,17 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
             UIView.animate(withDuration: 0.4, delay: 0, options: .curveEaseOut, animations: {
                 if !self.colorAtTop.isEqual(newColorAtTop) {
                     if !throttleTop && topChange > 0.4 {
-                        self.statusBar.inner.transform = CGAffineTransform.identity
+                        self.statusBar.inner.transform = .identity
                         self.lastTopTransitionTime = CACurrentMediaTime()
                     } else {
                         self.statusBar.back.backgroundColor = newColorAtTop
                     }
-                    UIApplication.shared.statusBarStyle = newColorAtTop.isLight()
-                        ? .lightContent
-                        : .default
+                    UIApplication.shared.statusBarStyle = newColorAtTop.isLight ? .lightContent : .default
                 }
                 if !self.colorAtBottom.isEqual(newColorAtBottom) {
-                    self.toolbar.tintColor = newColorAtBottom.isLight()
-                        ? UIColor.white
-                        : UIColor.darkText
+                    self.toolbar.tintColor = newColorAtBottom.isLight ? .white : .darkText
                     if !throttleBottom && bottomChange > 0.4 {
-                        self.toolbarInner.transform = CGAffineTransform.identity
+                        self.toolbarInner.transform = .identity
                         self.toolbar.layoutIfNeeded()
                         self.lastBottomTransitionTime = CACurrentMediaTime()
                     } else {
@@ -298,7 +331,7 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
             self.webView.scrollView.backgroundColor = newColorAtTop
             self.view.backgroundColor = newColorAtTop
             
-            self.progressView.progressTintColor = newColorAtBottom.isLight()
+            self.progressView.progressTintColor = newColorAtBottom.isLight
                 ? UIColor.white.withAlphaComponent(0.2)
                 : UIColor.black.withAlphaComponent(0.08)
         }
@@ -334,16 +367,19 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         let back = self.backButton.value(forKey: "view") as! UIView
         let tab = self.tabButton.value(forKey: "view") as! UIView
 
-        UIView.animate(withDuration: 0.3, delay: 0, options: UIViewAnimationOptions.curveEaseOut, animations: {
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
             self.scrim.alpha = 0
 
-            url.transform  = CGAffineTransform.identity
-            back.transform = CGAffineTransform.identity
-            tab.transform  = CGAffineTransform.identity
+            url.transform  = .identity
+            back.transform = .identity
+            tab.transform  = .identity
         })
     }
     
     func displaySearch() {
+        
+        searchView.prepareToShow()
+
         let url = self.urlButton.value(forKey: "view") as! UIView
         let back = self.backButton.value(forKey: "view") as! UIView
         let tab = self.tabButton.value(forKey: "view") as! UIView
@@ -351,13 +387,12 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         UIView.animate(withDuration: 0.3, delay: 0, options: UIViewAnimationOptions.curveEaseOut, animations: {
             self.scrim.alpha = 1
             
-            url.transform  = CGAffineTransform.identity.translatedBy(x: -20, y: -100)
-            back.transform = CGAffineTransform.identity.translatedBy(x: -50, y: 0)
-            tab.transform  = CGAffineTransform.identity.translatedBy(x: 50, y: 0)
+            url.transform  = CGAffineTransform(translationX: -30, y: -100)
+            back.transform = CGAffineTransform(translationX: 0, y: -50)
+            tab.transform  = CGAffineTransform(translationX: 0, y: -50)
             
         })
         
-        searchView.updateAppearance()
         self.becomeFirstResponder()
         searchView.textView.becomeFirstResponder()
         searchView.textView.selectAll(nil) // if not nil, will show actions
@@ -372,11 +407,11 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
-        urlButton.title = getDisplayTitle()
+        urlButton.title = self.displayTitle
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        urlButton.title = getDisplayTitle()
+        urlButton.title = self.displayTitle
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
     }
@@ -387,7 +422,7 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
             print("Cancelled")
             return
         }
-        let alert = UIAlertController(title: "Failed Nav", message: error.localizedDescription, preferredStyle: UIAlertControllerStyle.alert)
+        let alert = UIAlertController(title: "Failed Nav", message: error.localizedDescription, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.default, handler: nil))
         self.present(alert, animated: true, completion: nil)
     }
@@ -398,7 +433,7 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
             return
         }
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
-        let alert = UIAlertController(title: "Failed Provisional Nav", message: error.localizedDescription, preferredStyle: UIAlertControllerStyle.alert)
+        let alert = UIAlertController(title: "Failed Provisional Nav", message: error.localizedDescription, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.default, handler: nil))
         self.present(alert, animated: true, completion: nil)
     }
@@ -409,12 +444,12 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         if ( text.range(of:".") != nil && text.range(of:" ") == nil ) {
             if (text.hasPrefix("http://") || text.hasPrefix("https://")) {
                 let url = URL(string: text)!
-                if let btn = urlButton { btn.title = getSiteTitle(url) }
+                if let btn = urlButton { btn.title = url.displayHost }
                 self.webView.load(URLRequest(url: url))
             }
             else {
                 let url = URL(string: "http://" + text)!
-                if let btn = urlButton { btn.title = getSiteTitle(url) }
+                if let btn = urlButton { btn.title = url.displayHost }
                 self.webView.load(URLRequest(url: url))
             }
         }
@@ -426,7 +461,7 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
             let url = URL(string: searchURL + query)!
             
             if let btn = urlButton {
-                btn.title = getSearchTitle(text)
+                btn.title = makeDisplaySearch(text)
             }
 
             self.webView.load(URLRequest(url: url))
@@ -434,37 +469,9 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
 
     }
     
-    func getDisplayTitle() -> String {
-
-        let url = webView.url!
-        let absolute : String = url.absoluteString
-        let searchURL = "https://www.google.com/search?"
-        
-        if absolute.hasPrefix(searchURL) {
-            guard let components = URLComponents(string: absolute) else { return "?" }
-            let queryParam : String = (components.queryItems?.first(where: { $0.name == "q" })?.value)!
-            let search : String = queryParam.replacingOccurrences(of: "+", with: " ")
-            return getSearchTitle(search)
-        }
-        
-        return getSiteTitle(url)
-    }
-    
-    func getSearchTitle(_ query: String) -> String {
+    func makeDisplaySearch(_ query: String) -> String {
         return "🔍 \(query)"
     }
-    
-    func getSiteTitle(_ url: URL) -> String {
-        let host : String = url.host!
-        if host.hasPrefix("www.") {
-            let index = host.index(host.startIndex, offsetBy: 4)
-            return host.substring(from: index)
-        }
-        else {
-            return host
-        }
-    }
-
     
     func displayShareSheet() {
         let avc = UIActivityViewController(activityItems: [webView.url!], applicationActivities: nil)
@@ -496,7 +503,7 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
             progressView.setProgress(Float(webView.estimatedProgress), animated: isIncreasing)
             
             if (webView.estimatedProgress >= 1.0) {
-                UIView.animate(withDuration: 0.3, delay: 0.3, options: UIViewAnimationOptions.curveEaseOut, animations: { 
+                UIView.animate(withDuration: 0.3, delay: 0.3, options: .curveEaseOut, animations: {
                     self.progressView.progress = 1.0
                     self.progressView.alpha = 0
                 }, completion: { (finished) in
@@ -506,13 +513,11 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
             
             backButton.isEnabled = webView.canGoBack
             forwardButton.isEnabled = webView.canGoForward
-            forwardButton.tintColor = webView.canGoForward ? nil : UIColor.clear
+            forwardButton.tintColor = webView.canGoForward ? nil : .clear
             
         }
         else if keyPath == "isLoading" {
             print("loading change")
-            //            backButton.isEnabled = webView.canGoBack
-            //            forwardButton.isEnabled = webView.canGoForward
         }
         else if keyPath == "title" {
 //             catches custom navigation
@@ -530,13 +535,8 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
             
             backButton.isEnabled = webView.canGoBack
             forwardButton.isEnabled = webView.canGoForward
-            forwardButton.tintColor = webView.canGoForward ? nil : UIColor.clear
+            forwardButton.tintColor = webView.canGoForward ? nil : .clear
 
-            // catches custom navigation
-            // TODO this is probably expensive
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-//                self.updateInterfaceColor()
-//            }
         }
     }
 

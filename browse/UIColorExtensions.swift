@@ -31,14 +31,16 @@ public extension UIColor
         return [0,0,0,1]
     }
     
-    func isLight() -> Bool {
-        let components = self.getRGB()
-        
-        let r = components[0]
-        let g = components[1]
-        let b = components[2]
-        
-        return (r * 299 + g * 587 + b * 114 ) < 600
+    var isLight : Bool {
+        get {
+            let components = self.getRGB()
+            
+            let r = components[0]
+            let g = components[1]
+            let b = components[2]
+            
+            return (r * 299 + g * 587 + b * 114 ) < 600
+        }
     }
     
     static func average(_ colors : UIColor...) -> UIColor {
