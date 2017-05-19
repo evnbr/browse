@@ -35,6 +35,7 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
     var progressView: UIProgressView!
     var backButton: UIBarButtonItem!
     var forwardButton: UIBarButtonItem!
+    var tabButton: UIBarButtonItem!
     var urlButton: UIBarButtonItem!
     
     var colorFetcher: WebViewColorFetcher!
@@ -129,6 +130,8 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         )
         colorUpdateTimer.tolerance = 0.1
 //        RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
+        
+        
     }
     
     
@@ -163,7 +166,7 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         backButton = UIBarButtonItem(image: UIImage(named: "back"), style: .plain, target: webView, action: #selector(webView.goBack))
         forwardButton = UIBarButtonItem(image: UIImage(named: "fwd"), style: .plain, target: webView, action: #selector(webView.goForward))
         let actionButton = UIBarButtonItem(image: UIImage(named: "action"), style: .plain, target: self, action: #selector(displayShareSheet))
-        let tabButton = UIBarButtonItem(image: UIImage(named: "tab"), style: .plain, target: self, action: #selector(displayBookmarks))
+        tabButton = UIBarButtonItem(image: UIImage(named: "tab"), style: .plain, target: self, action: #selector(displayBookmarks))
         
         backButton.width = 40.0
         forwardButton.width = 40.0
@@ -181,11 +184,10 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
 //        let pwd = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(displayPassword))
         //        urlButton = UIBarButtonItem(title: "URL...", style: .plain, target: self, action: #selector(askURL))
         
-        urlButton = UIBarButtonItem(title: "URL...", style: .plain, target: self, action: #selector(displaySearch))
+        urlButton = UIBarButtonItem(title: "Where to?", style: .plain, target: self, action: #selector(displaySearch))
         
         
-        
-        toolbarItems = [negSpace, backButton, forwardButton, flex, urlButton, flex, actionButton, tabButton, negSpace]
+        toolbarItems = [negSpace, backButton, forwardButton, flex, urlButton, flex, tabButton, negSpace]
         navigationController?.isToolbarHidden = false
         toolbar.isTranslucent = false
         toolbar.barTintColor = .clear
@@ -195,13 +197,22 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         toolbarInner = UIView()
         toolbarInner.frame = toolbar.bounds
         toolbarInner.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        toolbarInner.backgroundColor = .cyan
+        toolbarInner.backgroundColor = .white
         toolbar.addSubview(toolbarInner)
         toolbar.sendSubview(toBack: toolbarInner)
         toolbar.clipsToBounds = true
         
         return toolbar
     }
+    
+    func handleLongPress(gestureReconizer: UILongPressGestureRecognizer) {
+        print("ong pres")
+        if gestureReconizer.state == UIGestureRecognizerState.ended {
+            displayShareSheet()
+        }
+    }
+
+    
     
     func updateInterfaceColor() {
         
@@ -319,27 +330,37 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         searchView.textView.resignFirstResponder()
         self.resignFirstResponder()
 
+        let url = self.urlButton.value(forKey: "view") as! UIView
+        let back = self.backButton.value(forKey: "view") as! UIView
+        let tab = self.tabButton.value(forKey: "view") as! UIView
+
         UIView.animate(withDuration: 0.3, delay: 0, options: UIViewAnimationOptions.curveEaseOut, animations: {
             self.scrim.alpha = 0
+
+            url.transform  = CGAffineTransform.identity
+            back.transform = CGAffineTransform.identity
+            tab.transform  = CGAffineTransform.identity
         })
     }
     
     func displaySearch() {
-        
-//        searchController.modalPresentationStyle = .overCurrentContext
-//        searchController.senderVC = self
-//
-//        searchController.transitioningDelegate = self
-//
-//        present(searchController, animated: false)
-        
+        let url = self.urlButton.value(forKey: "view") as! UIView
+        let back = self.backButton.value(forKey: "view") as! UIView
+        let tab = self.tabButton.value(forKey: "view") as! UIView
+
         UIView.animate(withDuration: 0.3, delay: 0, options: UIViewAnimationOptions.curveEaseOut, animations: {
             self.scrim.alpha = 1
+            
+            url.transform  = CGAffineTransform.identity.translatedBy(x: -20, y: -100)
+            back.transform = CGAffineTransform.identity.translatedBy(x: -50, y: 0)
+            tab.transform  = CGAffineTransform.identity.translatedBy(x: 50, y: 0)
+            
         })
         
         searchView.updateAppearance()
         self.becomeFirstResponder()
         searchView.textView.becomeFirstResponder()
+        searchView.textView.selectAll(nil) // if not nil, will show actions
     }
 
     
@@ -384,13 +405,16 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
     
     func navigateToText(_ text: String) {
         // TODO: More robust url detection
+
         if ( text.range(of:".") != nil && text.range(of:" ") == nil ) {
             if (text.hasPrefix("http://") || text.hasPrefix("https://")) {
                 let url = URL(string: text)!
+                if let btn = urlButton { btn.title = getSiteTitle(url) }
                 self.webView.load(URLRequest(url: url))
             }
             else {
                 let url = URL(string: "http://" + text)!
+                if let btn = urlButton { btn.title = getSiteTitle(url) }
                 self.webView.load(URLRequest(url: url))
             }
         }
@@ -400,6 +424,11 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
 //            let searchURL = "https://duckduckgo.com/?q="
             let searchURL = "https://www.google.com/search?q="
             let url = URL(string: searchURL + query)!
+            
+            if let btn = urlButton {
+                btn.title = getSearchTitle(text)
+            }
+
             self.webView.load(URLRequest(url: url))
         }
 
@@ -409,15 +438,23 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
 
         let url = webView.url!
         let absolute : String = url.absoluteString
-        let google = "https://www.google.com/search?"
+        let searchURL = "https://www.google.com/search?"
         
-        if absolute.hasPrefix(google) {
+        if absolute.hasPrefix(searchURL) {
             guard let components = URLComponents(string: absolute) else { return "?" }
             let queryParam : String = (components.queryItems?.first(where: { $0.name == "q" })?.value)!
             let search : String = queryParam.replacingOccurrences(of: "+", with: " ")
-            return "🔍 \(search)"
+            return getSearchTitle(search)
         }
         
+        return getSiteTitle(url)
+    }
+    
+    func getSearchTitle(_ query: String) -> String {
+        return "🔍 \(query)"
+    }
+    
+    func getSiteTitle(_ url: URL) -> String {
         let host : String = url.host!
         if host.hasPrefix("www.") {
             let index = host.index(host.startIndex, offsetBy: 4)

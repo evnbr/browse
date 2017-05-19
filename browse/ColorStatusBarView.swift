@@ -41,7 +41,7 @@ class ColorStatusBarView : UIView {
         inner = UIView()
         inner.frame = back.bounds
         inner.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        inner.backgroundColor = .red
+        inner.backgroundColor = .white
         back.addSubview(inner)
         back.clipsToBounds = true
     }

@@ -13,6 +13,7 @@ class SearchView: UIView, UITextViewDelegate {
     
     var senderVC : SiteViewController!
     var textView : UITextView!
+    var cancel   : UIButton!
     
     init() {
         super.init(frame: CGRect(
@@ -26,48 +27,59 @@ class SearchView: UIView, UITextViewDelegate {
         
         textView = UITextView()
         textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 100)
-        textView.inputAccessoryView = self
+        textView.placeholder = "Where to?"
         
-        textView.backgroundColor = UIColor.black.withAlphaComponent(0.04)
+        textView.backgroundColor = UIColor.clear
         textView.font = UIFont(descriptor: .preferredFontDescriptor(withTextStyle: .body), size: 17)
         textView.text = "Test"
+        
         textView.keyboardType = UIKeyboardType.webSearch
         textView.returnKeyType = .go
+        textView.inputAccessoryView = self
+        textView.autocorrectionType = .no
+
         textView.delegate = self
         textView.isScrollEnabled = false
+        textView.layer.cornerRadius = 5.0
         
         textView.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(textView)
 
+        cancel = UIButton(type: .system)
+        cancel.setTitle("Cancel", for: .normal)
+        cancel.addTarget(self, action: #selector(hide), for: .primaryActionTriggered)
+        cancel.sizeToFit()
+        let cancelOrigin = CGPoint(
+            x: self.frame.size.width - cancel.frame.size.width - 12,
+            y: self.frame.size.height - cancel.frame.size.height - 8
+        )
+        cancel.frame = CGRect(origin: cancelOrigin, size: cancel.frame.size)
+        self.addSubview(cancel)
+        cancel.autoresizingMask = [.flexibleLeftMargin, .flexibleTopMargin]
+        
         self.autoresizingMask = UIViewAutoresizing.flexibleHeight
-
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[textView]|", options: [], metrics: nil, views: ["textView": self.textView]))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[textView]|", options: [], metrics: nil, views: ["textView": self.textView]))
+        let margin = Int(cancel.frame.size.width) + 28
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-8-[text]-\(margin)-|", options: [], metrics: nil, views: ["text": self.textView]))
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-8-[text]-8-|", options: [], metrics: nil, views: ["text": self.textView]))
 
         
         updateSize()
         
-//        let cancel = UIButton(type: .system)
-//        cancel.setTitle("Cancel", for: .normal)
-//        cancel.addTarget(self, action: #selector(hide), for: .primaryActionTriggered)
-//        cancel.frame = CGRect(x: 12, y: 12, width: 80, height: 80)
-//        cancel.sizeToFit()
-//        self.addSubview(cancel)
     }
     
     func updateSize() {
         let fixedWidth = textView.frame.size.width
+        textView.textContainerInset = UIEdgeInsetsMake(5, 6, 5, 6)
         textView.sizeThatFits(CGSize(width: fixedWidth, height: CGFloat.greatestFiniteMagnitude))
         let newSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: CGFloat.greatestFiniteMagnitude))
         var newFrame = textView.frame
         newFrame.size = CGSize(width: max(newSize.width, fixedWidth), height: newSize.height)
         textView.frame = newFrame;
         
-        textView.textContainerInset = UIEdgeInsetsMake(12, 12, 12, 12)
         textView.contentInset = .zero
         
         var frame = self.frame
-        frame.size.height = textView.frame.size.height + 12
+        frame.size.height = textView.frame.size.height + 16
         self.frame = frame
 //        textView.reloadInputViews()
         
@@ -90,16 +102,24 @@ class SearchView: UIView, UITextViewDelegate {
     
     func textViewDidBeginEditing(_ textView: UITextView) {
         textView.transform = CGAffineTransform.identity.translatedBy(x: 40, y: 0)
+        textView.alpha = 0
+        cancel.transform = CGAffineTransform.identity.translatedBy(x: 60, y: 0)
 
         UIView.animate(withDuration: 0.3, animations: {
-            textView.transform = CGAffineTransform.identity.translatedBy(x: 0, y: 0)
+            textView.transform = CGAffineTransform.identity
+            textView.alpha = 1
+            self.cancel.transform = CGAffineTransform.identity
         })
     }
     func textViewDidEndEditing(_ textView: UITextView) {
-        textView.transform = CGAffineTransform.identity.translatedBy(x: 0, y: 0)
+        textView.transform = CGAffineTransform.identity
+        textView.alpha = 1
+        cancel.transform = CGAffineTransform.identity
 
         UIView.animate(withDuration: 0.3, animations: {
             textView.transform = CGAffineTransform.identity.translatedBy(x: 40, y: 0)
+            textView.alpha = 0
+            self.cancel.transform = CGAffineTransform.identity.translatedBy(x: 60, y: 0)
         })
     }
 
@@ -120,7 +140,14 @@ class SearchView: UIView, UITextViewDelegate {
         textView.textColor = senderVC.toolbar.tintColor
         
         textView.keyboardAppearance = senderVC.colorAtBottom.isLight() ? .dark : .light
-        
+        textView.placeholderColor = senderVC.colorAtBottom.isLight()
+            ? UIColor.white.withAlphaComponent(0.4)
+            : UIColor.black.withAlphaComponent(0.2)
+
+//        textView.backgroundColor = senderVC.colorAtBottom.isLight()
+//            ? UIColor.white.withAlphaComponent(0.1)
+//            : UIColor.black.withAlphaComponent(0.08)
+
         updateSize()
     }
     

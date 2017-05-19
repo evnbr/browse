@@ -7,6 +7,7 @@ target 'browse' do
 
   # Pods for browse
   pod '1PasswordExtension', '~> 1.8.4'
+  pod 'UITextView+Placeholder', '~> 1.2'
 
   target 'browseTests' do
     inherit! :search_paths

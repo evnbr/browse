@@ -1,12 +1,15 @@
 PODS:
   - 1PasswordExtension (1.8.4)
+  - UITextView+Placeholder (1.2.0)
 
 DEPENDENCIES:
   - 1PasswordExtension (~> 1.8.4)
+  - UITextView+Placeholder (~> 1.2)
 
 SPEC CHECKSUMS:
   1PasswordExtension: e775a29310c65851e5a6cec1afc349ab4e334e47
+  UITextView+Placeholder: 77680995fcdd07c3f52ec92fe1150874a2ac89ff
 
-PODFILE CHECKSUM: f059e578d10ae4ac4713e2a46054dcbb0a01b43c
+PODFILE CHECKSUM: 5a65abd64f60ecb5a8a22a8a5b18ba99c3511511
 
 COCOAPODS: 1.2.1
