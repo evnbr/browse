@@ -14,10 +14,13 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
     
     var webView: WKWebView!
     
-    var statusBar: ColorStatusBar!
+    var statusBar: ColorStatusBarView!
     
     var toolbar: UIToolbar!
     var toolbarInner: UIView!
+    
+    var searchView: SearchView!
+    var scrim: UIButton!
     
     var colorAtTop: UIColor = UIColor.clear
     var colorAtBottom: UIColor = UIColor.clear
@@ -37,9 +40,18 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
     var colorFetcher: WebViewColorFetcher!
     
     var bookmarksController : BookmarksViewController!
-    var searchController : SearchViewController!
 
     var interactionController: UIPercentDrivenInteractiveTransition?
+
+    
+    // http://stackoverflow.com/questions/19764293/inputaccessoryview-docked-at-bottom/23880574#23880574
+    override var canBecomeFirstResponder : Bool {
+        return true
+    }
+    
+    override var inputAccessoryView:UIView{
+        get { return searchView }
+    }
 
     override func loadView() {
         super.loadView()
@@ -63,6 +75,7 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
 
         view.addSubview(webView)
     }
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -71,12 +84,22 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         webView.allowsBackForwardNavigationGestures = true
         
         toolbar = setUpToolbar()
-        statusBar = ColorStatusBar()
+        statusBar = ColorStatusBarView()
+        searchView = SearchView()
+        searchView.senderVC = self
+        
+        scrim = UIButton(frame: UIScreen.main.bounds)
+        scrim.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+        scrim.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+        scrim.addTarget(self, action: #selector(hideSearch), for: .primaryActionTriggered)
+        scrim.alpha = 0
         
         bookmarksController = BookmarksViewController()
-        searchController = SearchViewController()
+//        searchController = SearchViewController()
         
-        self.view?.addSubview(statusBar)
+        view.addSubview(statusBar)
+        view.addSubview(scrim)
+
 
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.isLoading), options: .new, context: nil)
@@ -273,11 +296,10 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         self.colorAtBottom = newColorAtBottom
 
     }
-
-    
     
     override func viewDidAppear(_ animated: Bool) {
         webView.scrollView.contentInset = .zero
+        self.resignFirstResponder()
     }
 
     override func didReceiveMemoryWarning() {
@@ -293,14 +315,31 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
         present(navigationController, animated: true)
     }
     
+    func hideSearch() {
+        searchView.textView.resignFirstResponder()
+        self.resignFirstResponder()
+
+        UIView.animate(withDuration: 0.3, delay: 0, options: UIViewAnimationOptions.curveEaseOut, animations: {
+            self.scrim.alpha = 0
+        })
+    }
+    
     func displaySearch() {
         
-        searchController.modalPresentationStyle = .overCurrentContext
-        searchController.senderVC = self
-
-        searchController.transitioningDelegate = self
-
-        present(searchController, animated: true)
+//        searchController.modalPresentationStyle = .overCurrentContext
+//        searchController.senderVC = self
+//
+//        searchController.transitioningDelegate = self
+//
+//        present(searchController, animated: false)
+        
+        UIView.animate(withDuration: 0.3, delay: 0, options: UIViewAnimationOptions.curveEaseOut, animations: {
+            self.scrim.alpha = 1
+        })
+        
+        searchView.updateAppearance()
+        self.becomeFirstResponder()
+        searchView.textView.becomeFirstResponder()
     }
 
     
@@ -345,7 +384,7 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
     
     func navigateToText(_ text: String) {
         // TODO: More robust url detection
-        if text.range(of:".") != nil{
+        if ( text.range(of:".") != nil && text.range(of:" ") == nil ) {
             if (text.hasPrefix("http://") || text.hasPrefix("https://")) {
                 let url = URL(string: text)!
                 self.webView.load(URLRequest(url: url))
@@ -390,17 +429,6 @@ class SiteViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, 
     }
 
     
-    func textFieldDidBeginEditing(_ textField: UITextField) {
-        textField.selectAll(nil)
-    }
-    
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        self.dismiss(animated: true, completion: nil)
-        self.navigateToText(textField.text!)
-        return true
-    }
-
     func displayShareSheet() {
         let avc = UIActivityViewController(activityItems: [webView.url!], applicationActivities: nil)
         self.present(avc, animated: true, completion: nil)

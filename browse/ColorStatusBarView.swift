@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-class ColorStatusBar : UIView {
+class ColorStatusBarView : UIView {
     var inner : UIView!
     var back : UIView!
     
