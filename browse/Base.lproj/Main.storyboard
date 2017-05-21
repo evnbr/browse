@@ -28,10 +28,10 @@
             </objects>
             <point key="canvasLocation" x="849" y="791"/>
         </scene>
-        <!--Navigation Controller-->
+        <!--Web Navigation Controller-->
         <scene sceneID="T7b-b2-CvI">
             <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="YjM-9m-8ec" sceneMemberID="viewController">
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="YjM-9m-8ec" customClass="WebNavigationController" customModule="browse" customModuleProvider="target" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" hidden="YES" contentMode="scaleToFill" id="DDE-T3-lql">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>

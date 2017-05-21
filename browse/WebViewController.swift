@@ -52,8 +52,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     var scrim: UIButton!
     
     var colorFetcher: WebViewColorFetcher!
-    var colorAtTop: UIColor = UIColor.clear
-    var colorAtBottom: UIColor = UIColor.clear
+    var colorAtTop: UIColor = UIColor.white
+    var colorAtBottom: UIColor = UIColor.white
     var colorDiffs : Sampler = Sampler(period: 12)
     var lastTopTransitionTime : CFTimeInterval = 0.0
     var lastBottomTransitionTime : CFTimeInterval = 0.0
@@ -71,7 +71,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     
     var bookmarksController : BookmarksViewController!
 
-    
+    // MARK: - Derived properties
+
     // This enables docked inputaccessory and long-press edit menu
     // http://stackoverflow.com/questions/19764293/inputaccessoryview-docked-at-bottom/23880574#23880574
     override var canBecomeFirstResponder : Bool {
@@ -81,12 +82,28 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         get { return searchView }
     }
     
-    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        get {
+            return colorAtTop.isLight ? .lightContent : .default
+        }
+    }
+
     var displayTitle : String {
         get {
             let url = webView.url!
             if isSearching { return makeDisplaySearch(url.searchQuery) }
-            else { return url.displayHost }
+            else { return displayURL }
+        }
+    }
+    
+    var displayURL : String {
+        get {
+            let url = webView.url!
+            if webView.hasOnlySecureContent {
+                return "🔒 \(url.displayHost)"
+            } else {
+                return url.displayHost
+            }
         }
     }
     
@@ -106,6 +123,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             else { return url.absoluteString }
         }
     }
+    
+    // MARK: - Lifecycle
 
     override func loadView() {
         super.loadView()
@@ -185,30 +204,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         navigateToText("fonts.google.com")
     }
     
-    
-//    var longPressBeginTime : TimeInterval
-    func longPressURL(recognizer: UIGestureRecognizer) {
-        if recognizer.state == .began {
-            displayURLMenu()
-            recognizer.isEnabled = false
-            recognizer.isEnabled = true
-            urlButton.isEnabled = false
-            urlButton.isEnabled = true
-        }
-    }
-    
-    
-    func onWebviewPan(gestureRecognizer:UIGestureRecognizer) {
-        if gestureRecognizer.state == UIGestureRecognizerState.began {
-            self.isPanning = true
-        }
-        else if gestureRecognizer.state == UIGestureRecognizerState.ended {
-            self.isPanning = false
-        }
-    }
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        return true
-    }
     
     func setUpToolbar() -> UIToolbar {
         
@@ -297,6 +292,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         colorDiffs.addSample(value:    topChange > 0.3 ? 1 : 0)
         colorDiffs.addSample(value: bottomChange > 0.3 ? 1 : 0)
         
+        self.colorAtTop = newColorAtTop
+        self.colorAtBottom = newColorAtBottom
+        
+        
         let isFrantic : Bool = colorDiffs.sum > 7
         if isFrantic {
 
@@ -304,7 +303,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             self.toolbar.barTintColor = .black
             self.toolbar.layoutIfNeeded()
             
-            UIApplication.shared.statusBarStyle = .lightContent
+            // UIApplication.shared.statusBarStyle = .lightContent
             self.toolbar.tintColor = .white
         }
         else {
@@ -312,16 +311,17 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             let throttleBottom = CACurrentMediaTime() - self.lastBottomTransitionTime < 1.0
 
             UIView.animate(withDuration: 0.4, delay: 0, options: .curveEaseOut, animations: {
-                if !self.colorAtTop.isEqual(newColorAtTop) {
+                if !(topChange == 0) {
                     if !throttleTop && topChange > 0.4 {
                         self.statusBar.inner.transform = .identity
                         self.lastTopTransitionTime = CACurrentMediaTime()
                     } else {
                         self.statusBar.back.backgroundColor = newColorAtTop
                     }
-                    UIApplication.shared.statusBarStyle = newColorAtTop.isLight ? .lightContent : .default
+                    self.setNeedsStatusBarAppearanceUpdate()
+                    // UIApplication.shared.statusBarStyle = newColorAtTop.isLight ? .lightContent : .default
                 }
-                if !self.colorAtBottom.isEqual(newColorAtBottom) {
+                if !(bottomChange == 0) {
                     self.toolbar.tintColor = newColorAtBottom.isLight ? .white : .darkText
                     if !throttleBottom && bottomChange > 0.4 {
                         self.toolbarInner.transform = .identity
@@ -353,9 +353,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
                 : UIColor.black.withAlphaComponent(0.08)
         }
         
-        self.colorAtTop = newColorAtTop
-        self.colorAtBottom = newColorAtBottom
-
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -366,6 +363,32 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    // MARK: - Gestures
+    
+    func longPressURL(recognizer: UIGestureRecognizer) {
+        if recognizer.state == .began {
+            displayURLMenu()
+            recognizer.isEnabled = false
+            recognizer.isEnabled = true
+        }
+    }
+    
+    
+    func onWebviewPan(gestureRecognizer:UIGestureRecognizer) {
+        if gestureRecognizer.state == UIGestureRecognizerState.began {
+            self.isPanning = true
+        }
+        else if gestureRecognizer.state == UIGestureRecognizerState.ended {
+            self.isPanning = false
+        }
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+
+    // MARK: - Actions
 
     func displayBookmarks() {
         
@@ -458,13 +481,70 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             tab.transform  = .identity
         })
     }
+    
+    func makeDisplaySearch(_ query: String) -> String {
+        if query.characters.count > 28 {
+            let index = query.index(query.startIndex, offsetBy: 28)
+            let trimmed = query.substring(to: index)
+            return "🔍 \(trimmed)..."
+        }
+        else {
+            return "🔍 \(query)"
+        }
+    }
+    
+    func displayShareSheet() {
+        let avc = UIActivityViewController(activityItems: [webView.url!], applicationActivities: nil)
+        self.resignFirstResponder() // without this, action sheet dismiss animation won't go all the way
+        self.present(avc, animated: true, completion: nil)
+    }
+    
+    func displayPassword() {
+        OnePasswordExtension.shared().fillItem(intoWebView: self.webView, for: self, sender: nil, showOnlyLogins: true) { (success, error) -> Void in
+            if success == false {
+                print("Failed to fill into webview: <\(String(describing: error))>")
+            }
+        }
+    }
 
+
+    // MARK: - Webview State
     
     func openPage(action: UIAlertAction) {
         let url = URL(string: "https://" + action.title!)!
         webView.load(URLRequest(url: url))
     }
     
+    func navigateToText(_ text: String) {
+        // TODO: More robust url detection
+        
+        if ( text.range(of:".") != nil && text.range(of:" ") == nil ) {
+            if (text.hasPrefix("http://") || text.hasPrefix("https://")) {
+                let url = URL(string: text)!
+                if let btn = urlButton { btn.title = url.displayHost }
+                self.webView.load(URLRequest(url: url))
+            }
+            else {
+                let url = URL(string: "http://" + text)!
+                if let btn = urlButton { btn.title = url.displayHost }
+                self.webView.load(URLRequest(url: url))
+            }
+        }
+        else {
+            let query = text.addingPercentEncoding(
+                withAllowedCharacters: .urlHostAllowed)!
+            //            let searchURL = "https://duckduckgo.com/?q="
+            let searchURL = "https://www.google.com/search?q="
+            let url = URL(string: searchURL + query)!
+            
+            if let btn = urlButton {
+                btn.title = makeDisplaySearch(text)
+            }
+            
+            self.webView.load(URLRequest(url: url))
+        }
+        
+    }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
@@ -499,54 +579,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         self.present(alert, animated: true, completion: nil)
     }
     
-    func navigateToText(_ text: String) {
-        // TODO: More robust url detection
-
-        if ( text.range(of:".") != nil && text.range(of:" ") == nil ) {
-            if (text.hasPrefix("http://") || text.hasPrefix("https://")) {
-                let url = URL(string: text)!
-                if let btn = urlButton { btn.title = url.displayHost }
-                self.webView.load(URLRequest(url: url))
-            }
-            else {
-                let url = URL(string: "http://" + text)!
-                if let btn = urlButton { btn.title = url.displayHost }
-                self.webView.load(URLRequest(url: url))
-            }
-        }
-        else {
-            let query = text.addingPercentEncoding(
-                withAllowedCharacters: .urlHostAllowed)!
-//            let searchURL = "https://duckduckgo.com/?q="
-            let searchURL = "https://www.google.com/search?q="
-            let url = URL(string: searchURL + query)!
-            
-            if let btn = urlButton {
-                btn.title = makeDisplaySearch(text)
-            }
-
-            self.webView.load(URLRequest(url: url))
-        }
-
-    }
-    
-    func makeDisplaySearch(_ query: String) -> String {
-        return "🔍 \(query)"
-    }
-    
-    func displayShareSheet() {
-        let avc = UIActivityViewController(activityItems: [webView.url!], applicationActivities: nil)
-        self.present(avc, animated: true, completion: nil)
-    }
-
-    func displayPassword() {
-        OnePasswordExtension.shared().fillItem(intoWebView: self.webView, for: self, sender: nil, showOnlyLogins: true) { (success, error) -> Void in
-            if success == false {
-                print("Failed to fill into webview: <\(String(describing: error))>")
-            }
-        }
-    }
-
     
     // this handles target=_blank links by opening them in the same view
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
