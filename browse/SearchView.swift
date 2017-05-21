@@ -11,11 +11,21 @@ import UIKit
 
 class SearchView: UIView, UITextViewDelegate {
     
-    var siteController : WebViewController!
-    var textView : UITextView!
+    var webViewController : WebViewController!
+    var textView : SearchTextView!
     var cancel   : UIButton!
     
-    init(for siteVC: WebViewController) {
+    var isEnabled : Bool {
+        get {
+            return self.isUserInteractionEnabled
+        }
+        set {
+            self.alpha = newValue ? 1 : 0
+            self.isUserInteractionEnabled = newValue
+        }
+    }
+    
+    init(for vc: WebViewController) {
         super.init(frame: CGRect(
             x: 0,
             y: 300,
@@ -23,11 +33,12 @@ class SearchView: UIView, UITextViewDelegate {
             height: 600
         ))
         
-        siteController = siteVC
+        webViewController = vc
         
-        backgroundColor = UIColor.white
-        
-        textView = UITextView()
+        self.backgroundColor = UIColor.white
+        self.isEnabled = false
+
+        textView = SearchTextView()
         textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 100)
         textView.placeholder = "Where to?"
         
@@ -94,6 +105,8 @@ class SearchView: UIView, UITextViewDelegate {
     }
     
     func textViewDidBeginEditing(_ textView: UITextView) {
+        self.isEnabled = true
+        
         textView.transform = CGAffineTransform(translationX: 20, y: 0)
         textView.alpha = 0
         cancel.transform = CGAffineTransform(translationX: 60, y: 0)
@@ -114,6 +127,8 @@ class SearchView: UIView, UITextViewDelegate {
             textView.transform = CGAffineTransform(translationX: 20, y: 0)
             textView.alpha = 0
             self.cancel.transform = CGAffineTransform(translationX: 60, y: 0)
+        }, completion: { completed in
+            self.isEnabled = false
         })
     }
 
@@ -122,19 +137,19 @@ class SearchView: UIView, UITextViewDelegate {
     }
     
     func hide() {
-        siteController.hideSearch()
+        webViewController.hideSearch()
     }
     
     
     func prepareToShow() {
-        textView.text = siteController.editableURL
+        textView.text = webViewController.editableURL
         
-        self.backgroundColor = siteController.colorAtBottom
-        self.tintColor = siteController.toolbar.tintColor
-        textView.textColor = siteController.toolbar.tintColor
+        self.backgroundColor = webViewController.colorAtBottom
+        self.tintColor = webViewController.toolbar.tintColor
+        textView.textColor = webViewController.toolbar.tintColor
         
-        textView.keyboardAppearance = siteController.colorAtBottom.isLight ? .dark : .light
-        textView.placeholderColor = siteController.colorAtBottom.isLight
+        textView.keyboardAppearance = webViewController.colorAtBottom.isLight ? .dark : .light
+        textView.placeholderColor = webViewController.colorAtBottom.isLight
             ? UIColor.white.withAlphaComponent(0.4)
             : UIColor.black.withAlphaComponent(0.2)
 
@@ -150,7 +165,7 @@ class SearchView: UIView, UITextViewDelegate {
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
         if text == "\n" {
             hide()
-            siteController.navigateToText(textView.text!)
+            webViewController.navigateToText(textView.text!)
             return false
         }
         return true

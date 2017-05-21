@@ -20,6 +20,7 @@
 		A97CB07A1EC53DCD005DDBD1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A97CB0781EC53DCD005DDBD1 /* LaunchScreen.storyboard */; };
 		A97CB0851EC53DCD005DDBD1 /* browseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97CB0841EC53DCD005DDBD1 /* browseTests.swift */; };
 		A97CB0901EC53DCD005DDBD1 /* browseUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97CB08F1EC53DCD005DDBD1 /* browseUITests.swift */; };
+		A9B3176A1ED134CD00C71EBE /* SearchTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B317691ED134CD00C71EBE /* SearchTextView.swift */; };
 		A9E4859D1EC8D7BE0021D155 /* WebViewColorFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E4859C1EC8D7BE0021D155 /* WebViewColorFetcher.swift */; };
 		E7FD11F16B9CF60BCBD3DD19 /* Pods_browseTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C40CC59AFABD40322DFCDDD7 /* Pods_browseTests.framework */; };
 		F64D20A87990C82DA660E905 /* Pods_browse.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7CBD4E92318735B3DA34E02 /* Pods_browse.framework */; };
@@ -69,6 +70,7 @@
 		A97CB08B1EC53DCD005DDBD1 /* browseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = browseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A97CB08F1EC53DCD005DDBD1 /* browseUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = browseUITests.swift; sourceTree = "<group>"; };
 		A97CB0911EC53DCD005DDBD1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A9B317691ED134CD00C71EBE /* SearchTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchTextView.swift; sourceTree = "<group>"; };
 		A9E4859C1EC8D7BE0021D155 /* WebViewColorFetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebViewColorFetcher.swift; sourceTree = "<group>"; };
 		C40CC59AFABD40322DFCDDD7 /* Pods_browseTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_browseTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAFEEFBF73AF0DFBC3AD7745 /* Pods-browse.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-browse.debug.xcconfig"; path = "Pods/Target Support Files/Pods-browse/Pods-browse.debug.xcconfig"; sourceTree = "<group>"; };
@@ -155,6 +157,7 @@
 				A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */,
 				A97CB0711EC53DCD005DDBD1 /* WebViewController.swift */,
 				A96184811ECEA39200EF3A6F /* SearchView.swift */,
+				A9B317691ED134CD00C71EBE /* SearchTextView.swift */,
 				A9446E9A1ECEBFC40082B4D9 /* Bridging-Header.h */,
 				A97CB06F1EC53DCD005DDBD1 /* AppDelegate.swift */,
 				A94FE4201ECA661700ED48DB /* Sampler.swift */,
@@ -474,6 +477,7 @@
 				A97CB0701EC53DCD005DDBD1 /* AppDelegate.swift in Sources */,
 				A9E4859D1EC8D7BE0021D155 /* WebViewColorFetcher.swift in Sources */,
 				A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */,
+				A9B3176A1ED134CD00C71EBE /* SearchTextView.swift in Sources */,
 				A94FE41F1ECA5A7400ED48DB /* UIColorExtensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -23,7 +23,25 @@ extension URL {
             }
         }
     }
+    var searchQuery : String {
+        get {
+            guard let components = URLComponents(string: self.absoluteString) else { return "?" }
+            let queryParam : String = (components.queryItems?.first(where: { $0.name == "q" })?.value)!
+            let withoutPlus : String = queryParam.replacingOccurrences(of: "+", with: " ")
+            return withoutPlus
+        }
+    }
 }
+
+fileprivate extension UIBarButtonItem {
+    var view: UIView? {
+        return value(forKey: "view") as? UIView
+    }
+    func addGestureRecognizer(_ gestureRecognizer: UIGestureRecognizer) {
+        view?.addGestureRecognizer(gestureRecognizer)
+    }
+}
+
 
 class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITextFieldDelegate, UIGestureRecognizerDelegate {
     
@@ -54,11 +72,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     var bookmarksController : BookmarksViewController!
 
     
+    // This enables docked inputaccessory and long-press edit menu
     // http://stackoverflow.com/questions/19764293/inputaccessoryview-docked-at-bottom/23880574#23880574
     override var canBecomeFirstResponder : Bool {
         return true
     }
-    
     override var inputAccessoryView:UIView{
         get { return searchView }
     }
@@ -67,7 +85,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     var displayTitle : String {
         get {
             let url = webView.url!
-            if isSearching { return makeDisplaySearch(searchQuery) }
+            if isSearching { return makeDisplaySearch(url.searchQuery) }
             else { return url.displayHost }
         }
     }
@@ -80,21 +98,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         }
     }
     
-    var searchQuery : String {
-        get {
-            let url = webView.url!
-            guard let components = URLComponents(string: url.absoluteString) else { return "?" }
-            let queryParam : String = (components.queryItems?.first(where: { $0.name == "q" })?.value)!
-            let withoutPlus : String = queryParam.replacingOccurrences(of: "+", with: " ")
-            return withoutPlus
-        }
-    }
-    
     var editableURL : String {
         get {
             guard let url = webView.url else { return "" }
             
-            if isSearching { return searchQuery }
+            if isSearching { return url.searchQuery }
             else { return url.absoluteString }
         }
     }
@@ -160,6 +168,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         touchRecognizer.addTarget(self, action: #selector(self.onWebviewPan))
         webView.scrollView.addGestureRecognizer(touchRecognizer)
 
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
+        toolbar.addGestureRecognizer(longPress)
+
         
         let colorUpdateTimer = Timer.scheduledTimer(
             timeInterval: 0.6,
@@ -174,6 +185,17 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         navigateToText("fonts.google.com")
     }
     
+    
+//    var longPressBeginTime : TimeInterval
+    func longPressURL(recognizer: UIGestureRecognizer) {
+        if recognizer.state == .began {
+            displayURLMenu()
+            recognizer.isEnabled = false
+            recognizer.isEnabled = true
+            urlButton.isEnabled = false
+            urlButton.isEnabled = true
+        }
+    }
     
     
     func onWebviewPan(gestureRecognizer:UIGestureRecognizer) {
@@ -338,7 +360,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     
     override func viewDidAppear(_ animated: Bool) {
         webView.scrollView.contentInset = .zero
-        self.resignFirstResponder()
     }
 
     override func didReceiveMemoryWarning() {
@@ -354,24 +375,51 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         present(navigationController, animated: true)
     }
     
-    func hideSearch() {
-        searchView.textView.resignFirstResponder()
-        self.resignFirstResponder()
+    func displayURLMenu() {
+        if !isFirstResponder {
+            UIView.setAnimationsEnabled(false)
+            self.becomeFirstResponder()
+            UIView.setAnimationsEnabled(true)
+        }
+        DispatchQueue.main.async {
+            UIMenuController.shared.setTargetRect(self.toolbar.frame, in: self.view)
+            let copy : UIMenuItem = UIMenuItem(title: "Copy", action: #selector(self.copyURL))
+            let pasteAndGo : UIMenuItem = UIMenuItem(title: "Paste and Go", action: #selector(self.pasteURLAndGo))
+            let share : UIMenuItem = UIMenuItem(title: "Share", action: #selector(self.displayShareSheet))
+            UIMenuController.shared.menuItems = [ copy, pasteAndGo, share ]
+            UIMenuController.shared.setMenuVisible(true, animated: true)
+        }
+    }
+    
+    func copyURL() {
+        UIPasteboard.general.string = self.editableURL
+    }
+    
+    func pasteURLAndGo() {
+        hideSearch()
+        if let str = UIPasteboard.general.string {
+            navigateToText(str)
+        }
+    }
 
-        let url = self.urlButton.value(forKey: "view") as! UIView
-        let back = self.backButton.value(forKey: "view") as! UIView
-        let tab = self.tabButton.value(forKey: "view") as! UIView
-
-        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
-            self.scrim.alpha = 0
-
-            url.transform  = .identity
-            back.transform = .identity
-            tab.transform  = .identity
-        })
+    override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+        if !isFirstResponder && action != #selector(pasteURLAndGo) {
+            return false
+        }
+        switch action {
+        case #selector(copyURL):
+            return true
+        case #selector(pasteURLAndGo):
+            return UIPasteboard.general.hasStrings
+        case #selector(displayShareSheet):
+            return true
+        default:
+            return false
+        }
     }
     
     func displaySearch() {
+        guard !UIMenuController.shared.isMenuVisible else { return }
         
         searchView.prepareToShow()
 
@@ -391,6 +439,24 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         self.becomeFirstResponder()
         searchView.textView.becomeFirstResponder()
         searchView.textView.selectAll(nil) // if not nil, will show actions
+    }
+
+    
+    func hideSearch() {
+        searchView.textView.resignFirstResponder()
+        self.resignFirstResponder()
+        
+        let url = self.urlButton.value(forKey: "view") as! UIView
+        let back = self.backButton.value(forKey: "view") as! UIView
+        let tab = self.tabButton.value(forKey: "view") as! UIView
+        
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
+            self.scrim.alpha = 0
+            
+            url.transform  = .identity
+            back.transform = .identity
+            tab.transform  = .identity
+        })
     }
 
     
