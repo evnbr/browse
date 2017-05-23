@@ -115,6 +115,8 @@ class SearchView: UIView, UITextViewDelegate {
             textView.transform = .identity
             textView.alpha = 1
             self.cancel.transform = .identity
+        }, completion: { completed in
+            textView.selectAll(nil) // if not nil, will show actions
         })
     }
     
@@ -129,6 +131,7 @@ class SearchView: UIView, UITextViewDelegate {
             self.cancel.transform = CGAffineTransform(translationX: 60, y: 0)
         }, completion: { completed in
             self.isEnabled = false
+            textView.selectedTextRange = nil
         })
     }
 
@@ -144,12 +147,12 @@ class SearchView: UIView, UITextViewDelegate {
     func prepareToShow() {
         textView.text = webViewController.editableURL
         
-        self.backgroundColor = webViewController.colorAtBottom
+        self.backgroundColor = webViewController.webViewColor.bottom
         self.tintColor = webViewController.toolbar.tintColor
         textView.textColor = webViewController.toolbar.tintColor
         
-        textView.keyboardAppearance = webViewController.colorAtBottom.isLight ? .dark : .light
-        textView.placeholderColor = webViewController.colorAtBottom.isLight
+        textView.keyboardAppearance = webViewController.webViewColor.bottom.isLight ? .dark : .light
+        textView.placeholderColor = webViewController.webViewColor.bottom.isLight
             ? UIColor.white.withAlphaComponent(0.4)
             : UIColor.black.withAlphaComponent(0.2)
 

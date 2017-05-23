@@ -59,7 +59,7 @@ public extension UIColor
     }
 
     
-    func darken(_ amount : CGFloat) -> UIColor {
+    func withBrightness(_ amount : CGFloat) -> UIColor {
         let components : Array<CGFloat> = self.getRGB()
         
         if components.count < 3 { return self }

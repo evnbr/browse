@@ -11,10 +11,27 @@ import WebKit
 
 class WebViewColorFetcher {
     
-    var webView: WKWebView!
-    var context: CGContext!
-    var pixel: [CUnsignedChar]
+    private var webView: WKWebView!
+    private var context: CGContext!
+    private var pixel: [CUnsignedChar]
+    
+    public var top: UIColor = UIColor.clear
+    public var bottom: UIColor = UIColor.clear
+    
+    public var previousTop: UIColor = UIColor.clear
+    public var previousBottom: UIColor = UIColor.clear
+    
+    public var topDelta: Float = 0.0
+    public var bottomDelta: Float = 0.0
+    
+    private var deltas : Sampler = Sampler(period: 12)
 
+    public var isFranticallyChanging : Bool {
+        get {
+            return deltas.sum > 7.0
+        }
+    }
+    
     init(_ wv : WKWebView) {
         webView = wv
         
@@ -61,6 +78,22 @@ class WebViewColorFetcher {
             }
             return UIColor.black
         }
+    }
+    
+    func update() {
+        
+        previousTop = top
+        previousBottom = bottom
+        
+        top = getColorAtTop()
+        bottom = getColorAtBottom()
+        
+        topDelta    = top.difference(from: previousTop)
+        bottomDelta = bottom.difference(from: previousBottom)
+        
+        deltas.addSample(value:    topDelta > 0.3 ? 1 : 0)
+        deltas.addSample(value: bottomDelta > 0.3 ? 1 : 0)
+        
     }
     
     func getColorAtTop() -> UIColor {
