@@ -39,7 +39,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     var isPanning : Bool = false
     
     var searchView: SearchView!
-    var scrim: UIButton!
+    var searchDismissScrim: UIScrollView!
     
     var webViewColor: WebViewColorFetcher!
 
@@ -95,6 +95,18 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             }
         }
     }
+    
+    func makeDisplaySearch(_ query: String) -> String {
+        if query.characters.count > 28 {
+            let index = query.index(query.startIndex, offsetBy: 28)
+            let trimmed = query.substring(to: index)
+            return "🔍 \(trimmed)..."
+        }
+        else {
+            return "🔍 \(query)"
+        }
+    }
+
     
     var isSearching : Bool {
         get {
@@ -152,12 +164,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 
         searchView = SearchView(for: self)
         
-        scrim = UIButton(frame: UIScreen.main.bounds)
-        scrim.autoresizingMask = [.flexibleHeight, .flexibleWidth]
-        scrim.backgroundColor = UIColor.black.withAlphaComponent(0.4)
-        scrim.addTarget(self, action: #selector(hideSearch), for: .primaryActionTriggered)
-        scrim.alpha = 0
-        view.addSubview(scrim)
+        searchDismissScrim = makeScrim()
+        view.addSubview(searchDismissScrim)
+//        NotificationCenter.default.addObserver(self, selector: #selector(hideSearch), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
 
         bookmarksController = BookmarksViewController()
         
@@ -190,6 +199,24 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 //        RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
         
         navigateToText("fonts.google.com")
+    }
+    
+    func makeScrim() -> UIScrollView {
+        let scrim = UIScrollView(frame: UIScreen.main.bounds)
+        scrim.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+        scrim.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+        scrim.alpha = 0
+        
+        scrim.keyboardDismissMode = .interactive
+        scrim.alwaysBounceVertical = true
+        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(hideSearch))
+        tap.numberOfTapsRequired = 1
+        tap.isEnabled = true
+        tap.cancelsTouchesInView = false
+        scrim.addGestureRecognizer(tap)
+        
+        return scrim
     }
     
     
@@ -428,7 +455,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         let tab = self.tabButton.value(forKey: "view") as! UIView
 
         UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
-            self.scrim.alpha = 1
+            self.searchDismissScrim.alpha = 1
             
             url.transform  = CGAffineTransform(translationX: -30, y: -100)
             back.transform = CGAffineTransform(translationX: 0, y: -50)
@@ -438,7 +465,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         
         self.becomeFirstResponder()
         searchView.textView.becomeFirstResponder()
-        searchView.textView.selectAll(nil) // if not nil, will show actions
+        
     }
 
     
@@ -450,24 +477,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         let back = self.backButton.value(forKey: "view") as! UIView
         let tab = self.tabButton.value(forKey: "view") as! UIView
         
+        // TODO: This animation doesn't work with interactive dismiss
         UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
-            self.scrim.alpha = 0
+            self.searchDismissScrim.alpha = 0
             
             url.transform  = .identity
             back.transform = .identity
             tab.transform  = .identity
         })
-    }
-    
-    func makeDisplaySearch(_ query: String) -> String {
-        if query.characters.count > 28 {
-            let index = query.index(query.startIndex, offsetBy: 28)
-            let trimmed = query.substring(to: index)
-            return "🔍 \(trimmed)..."
-        }
-        else {
-            return "🔍 \(query)"
-        }
     }
     
     func displayShareSheet() {

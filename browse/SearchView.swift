@@ -133,8 +133,10 @@ class SearchView: UIView, UITextViewDelegate {
             self.isEnabled = false
             textView.selectedTextRange = nil
         })
+        
+        hide()
     }
-
+    
     func textViewDidChange(_ textView: UITextView) {
         updateSize()
     }
