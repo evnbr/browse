@@ -72,6 +72,8 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         )
         colorUpdateTimer.tolerance = 0
         
+        //        RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
+
 
     }
     

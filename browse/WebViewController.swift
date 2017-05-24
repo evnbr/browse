@@ -54,7 +54,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     var backButton: UIBarButtonItem!
     var forwardButton: UIBarButtonItem!
     var tabButton: UIBarButtonItem!
-    var urlButton: UIBarButtonItem!
+    var locationBar: LocationBar!
     
     var bookmarksController : BookmarksViewController!
 
@@ -87,12 +87,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     var displayURL : String {
         get {
             let url = webView.url!
-            if webView.hasOnlySecureContent {
-                return "🔒 \(url.displayHost)"
-                // return "Secure: \(url.displayHost)"
-            } else {
-                return url.displayHost
-            }
+            return url.displayHost
+
+//            if webView.hasOnlySecureContent {
+//                return "🔒 \(url.displayHost)"
+//                 return "Secure: \(url.displayHost)"
+//            } else {
+//                return url.displayHost
+//            }
         }
     }
     
@@ -100,10 +102,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         if query.characters.count > 28 {
             let index = query.index(query.startIndex, offsetBy: 28)
             let trimmed = query.substring(to: index)
-            return "🔍 \(trimmed)..."
+            return "\(trimmed)..."
         }
         else {
-            return "🔍 \(query)"
+            return query
         }
     }
 
@@ -183,11 +185,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 
         
 
-        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
-        toolbar.addGestureRecognizer(longPress)
+//        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
+//        toolbar.addGestureRecognizer(longPress)
 
-        
-//        RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
         
         navigateToText("fonts.google.com")
     }
@@ -247,8 +247,15 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 //        let pwd = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(displayPassword))
         //        urlButton = UIBarButtonItem(title: "URL...", style: .plain, target: self, action: #selector(askURL))
         
-        urlButton = UIBarButtonItem(title: "Where to?", style: .plain, target: self, action: #selector(displaySearch))
-        
+        locationBar = LocationBar(onTap: self.displaySearch)
+//        locationBar.setTitle("Where to?", for: .normal)
+//        locationBar.backgroundColor = .red
+//        locationBar.setImage(UIImage(named: "lock"), for: .normal)
+//        locationBar.addTarget(self, action: #selector(displaySearch), for: .primaryActionTriggered)
+
+//        urlButton = UIBarButtonItem(title: "Where to?", style: .plain, target: self, action: #selector(displaySearch))
+        let urlButton = UIBarButtonItem(customView: locationBar)
+        urlButton.width = 120.0
         
         toolbarItems = [negSpace, backButton, forwardButton, flex, urlButton, flex, tabButton, negSpace]
         navigationController?.isToolbarHidden = false
@@ -294,10 +301,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             let shouldThrottleTop    = CACurrentMediaTime() - lastTopTransitionTime    < 1.0
             let shouldThrottleBottom = CACurrentMediaTime() - lastBottomTransitionTime < 1.0
 
-            statusBar.back.layer.removeAllAnimations()
-            statusBar.inner.layer.removeAllAnimations()
-            toolbar.layer.removeAllAnimations()
-            toolbarInner.layer.removeAllAnimations()
+//            statusBar.back.layer.removeAllAnimations()
+//            statusBar.inner.layer.removeAllAnimations()
+//            toolbar.layer.removeAllAnimations()
+//            toolbarInner.layer.removeAllAnimations()
             
 //            webView.backgroundColor            = webViewColor.top
 //            webView.scrollView.backgroundColor = webViewColor.top
@@ -346,6 +353,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     
     override func viewDidAppear(_ animated: Bool) {
         webView.scrollView.contentInset = .zero
+        
+        // disable mysterious delays
+        // https://stackoverflow.com/questions/19799961/uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen
+        let window = view.window!
+        let gr0 = window.gestureRecognizers![0] as UIGestureRecognizer
+        let gr1 = window.gestureRecognizers![1] as UIGestureRecognizer
+        gr0.delaysTouchesBegan = false
+        gr1.delaysTouchesBegan = false
     }
 
     override func didReceiveMemoryWarning() {
@@ -423,7 +438,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         
         searchView.prepareToShow()
 
-        let url = self.urlButton.value(forKey: "view") as! UIView
+        let url = locationBar!
         let back = self.backButton.value(forKey: "view") as! UIView
         let tab = self.tabButton.value(forKey: "view") as! UIView
 
@@ -446,7 +461,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         searchView.textView.resignFirstResponder()
         self.resignFirstResponder()
         
-        let url = self.urlButton.value(forKey: "view") as! UIView
+        let url = locationBar!
         let back = self.backButton.value(forKey: "view") as! UIView
         let tab = self.tabButton.value(forKey: "view") as! UIView
         
@@ -488,12 +503,12 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         if ( text.range(of:".") != nil && text.range(of:" ") == nil ) {
             if (text.hasPrefix("http://") || text.hasPrefix("https://")) {
                 let url = URL(string: text)!
-                if let btn = urlButton { btn.title = url.displayHost }
+                if let btn = locationBar { btn.text = url.displayHost }
                 self.webView.load(URLRequest(url: url))
             }
             else {
                 let url = URL(string: "http://" + text)!
-                if let btn = urlButton { btn.title = url.displayHost }
+                if let btn = locationBar { btn.text = url.displayHost }
                 self.webView.load(URLRequest(url: url))
             }
         }
@@ -504,8 +519,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             let searchURL = "https://www.google.com/search?q="
             let url = URL(string: searchURL + query)!
             
-            if let btn = urlButton {
-                btn.title = makeDisplaySearch(text)
+            if let btn = locationBar {
+                btn.text = makeDisplaySearch(text)
             }
             
             self.webView.load(URLRequest(url: url))
@@ -514,13 +529,18 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        locationBar.text = self.displayTitle
+        locationBar.isSecure = webView.hasOnlySecureContent
+        locationBar.isSearch = isSearching
+        
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
-        urlButton.title = self.displayTitle
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        urlButton.title = self.displayTitle
-        
+        locationBar.text = self.displayTitle
+        locationBar.isSecure = webView.hasOnlySecureContent
+        locationBar.isSearch = isSearching
+
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
     }
 
