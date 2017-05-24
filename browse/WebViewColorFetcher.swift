@@ -9,9 +9,13 @@
 import Foundation
 import WebKit
 
-class WebViewColorFetcher {
+class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     
     private var webView: WKWebView!
+    private var actionOnChange: () -> Void
+    
+    private var isPanning : Bool = false
+
     private var context: CGContext!
     private var pixel: [CUnsignedChar]
     
@@ -32,11 +36,12 @@ class WebViewColorFetcher {
         }
     }
     
-    init(_ wv : WKWebView) {
-        webView = wv
+    init(from sourceWebView : WKWebView, actionOnChange action: @escaping () -> Void) {
+        
+        webView = sourceWebView
+        actionOnChange = action
         
         pixel = [0, 0, 0, 0]
-        let colorSpace = CGColorSpaceCreateDeviceRGB();
         let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
         
         context = CGContext(
@@ -45,24 +50,76 @@ class WebViewColorFetcher {
             height: 1,
             bitsPerComponent: 8,
             bytesPerRow: 4,
-            space: colorSpace,
+            space: CGColorSpaceCreateDeviceRGB(),
             bitmapInfo: bitmapInfo.rawValue
         )
         
-    }
+        super.init()
+
+        // Detect panning to prevent firing when faux-scrolling, like in maps and carousels
+        let touchRecognizer = UIPanGestureRecognizer()
+        touchRecognizer.delegate = self
+        touchRecognizer.addTarget(self, action: #selector(self.onWebviewPan))
+        webView.scrollView.addGestureRecognizer(touchRecognizer)
+
         
+        let colorUpdateTimer = Timer.scheduledTimer(
+            timeInterval: 0.6,
+            target: self,
+            selector: #selector(self.update),
+            userInfo: nil,
+            repeats: true
+        )
+        colorUpdateTimer.tolerance = 0
+        
+
+    }
+    
+    func update() {
+        
+        guard !self.isPanning else { return }
+
+        previousTop = top
+        previousBottom = bottom
+        
+        top = getColorAtTop()
+        bottom = getColorAtBottom()
+        
+        topDelta    = top.difference(from: previousTop)
+        bottomDelta = bottom.difference(from: previousBottom)
+        
+        deltas.addSample(value:    topDelta > 0.3 ? 1 : 0)
+        deltas.addSample(value: bottomDelta > 0.3 ? 1 : 0)
+
+        actionOnChange()
+    }
+    
+    func onWebviewPan(gestureRecognizer:UIGestureRecognizer) {
+        if gestureRecognizer.state == UIGestureRecognizerState.began {
+            self.isPanning = true
+        }
+        else if gestureRecognizer.state == UIGestureRecognizerState.ended {
+            self.isPanning = false
+        }
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+
+    
     func blendColors(_ colors: UIColor...) -> UIColor {
         let average : UIColor = UIColor.average(colors)
         
         // Remove outliers
-        let blendable : Array<UIColor> = colors.filter({$0.difference(from: average) < 0.5})
+        let blendable : Array<UIColor> = colors.filter({ $0.difference(from: average) < 0.5 })
         
         if blendable.count > 1 {
 
             return UIColor.average(blendable)
         }
         else {
-            let distribution : Float = colors.map({$0.difference(from: average)}).reduce(0, +)
+            let distribution : Float = colors.map({ $0.difference(from: average) }).reduce(0, +)
             if distribution < Float(colors.count) * 1.0 {
                 return average
             }
@@ -78,22 +135,6 @@ class WebViewColorFetcher {
             }
             return UIColor.black
         }
-    }
-    
-    func update() {
-        
-        previousTop = top
-        previousBottom = bottom
-        
-        top = getColorAtTop()
-        bottom = getColorAtBottom()
-        
-        topDelta    = top.difference(from: previousTop)
-        bottomDelta = bottom.difference(from: previousBottom)
-        
-        deltas.addSample(value:    topDelta > 0.3 ? 1 : 0)
-        deltas.addSample(value: bottomDelta > 0.3 ? 1 : 0)
-        
     }
     
     func getColorAtTop() -> UIColor {

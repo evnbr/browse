@@ -36,7 +36,6 @@ extension URL {
 class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITextFieldDelegate, UIGestureRecognizerDelegate {
     
     var webView: WKWebView!
-    var isPanning : Bool = false
     
     var searchView: SearchView!
     var searchDismissScrim: UIScrollView!
@@ -90,6 +89,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             let url = webView.url!
             if webView.hasOnlySecureContent {
                 return "🔒 \(url.displayHost)"
+                // return "Secure: \(url.displayHost)"
             } else {
                 return url.displayHost
             }
@@ -159,6 +159,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         super.viewDidLoad()
         
         toolbar = setUpToolbar()
+        
         statusBar = ColorStatusBarView()
         view.addSubview(statusBar)
 
@@ -170,32 +171,22 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 
         bookmarksController = BookmarksViewController()
         
-        webViewColor = WebViewColorFetcher(webView)
-
+        webViewColor = WebViewColorFetcher(
+            from: webView,
+            actionOnChange: updateInterfaceColor
+        )
+        
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.isLoading), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.title), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.url), options: .new, context: nil)
 
         
-        // Detect panning to prevent status bar firing on js-implemented scrolling, like maps and pagers
-        let touchRecognizer = UIPanGestureRecognizer()
-        touchRecognizer.delegate = self
-        touchRecognizer.addTarget(self, action: #selector(self.onWebviewPan))
-        webView.scrollView.addGestureRecognizer(touchRecognizer)
 
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
         toolbar.addGestureRecognizer(longPress)
 
         
-        let colorUpdateTimer = Timer.scheduledTimer(
-            timeInterval: 0.6,
-            target: self,
-            selector: #selector(self.updateInterfaceColor),
-            userInfo: nil,
-            repeats: true
-        )
-        colorUpdateTimer.tolerance = 0
 //        RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
         
         navigateToText("fonts.google.com")
@@ -280,11 +271,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     
     func updateInterfaceColor() {
         
-        if self.isPanning {
-            return
-        }
-        
-        webViewColor.update()
         
         if webViewColor.topDelta > 0 {
             statusBar.inner.transform = CGAffineTransform(translationX: 0, y: 20)
@@ -294,7 +280,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             toolbarInner.transform = CGAffineTransform(translationX: 0, y: -48)
             toolbarInner.backgroundColor = webViewColor.bottom
         }
-        
         
         if webViewColor.isFranticallyChanging {
 
@@ -306,23 +291,23 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             setNeedsStatusBarAppearanceUpdate()
         }
         else {
-            let shouldThrottleTop    = CACurrentMediaTime() - self.lastTopTransitionTime    < 1.0
-            let shouldThrottleBottom = CACurrentMediaTime() - self.lastBottomTransitionTime < 1.0
+            let shouldThrottleTop    = CACurrentMediaTime() - lastTopTransitionTime    < 1.0
+            let shouldThrottleBottom = CACurrentMediaTime() - lastBottomTransitionTime < 1.0
 
             statusBar.back.layer.removeAllAnimations()
             statusBar.inner.layer.removeAllAnimations()
             toolbar.layer.removeAllAnimations()
             toolbarInner.layer.removeAllAnimations()
             
-            webView.backgroundColor = self.webViewColor.top
-            webView.scrollView.backgroundColor = self.webViewColor.top
+//            webView.backgroundColor            = webViewColor.top
+//            webView.scrollView.backgroundColor = webViewColor.top
             
-            progressView.progressTintColor = self.webViewColor.bottom.isLight
+            progressView.progressTintColor = webViewColor.bottom.isLight
                 ? UIColor.white.withAlphaComponent(0.2)
                 : UIColor.black.withAlphaComponent(0.08)
 
             
-            UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseOut, animations: {
+            UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
                 if self.webViewColor.topDelta > 0 {
                     if !shouldThrottleTop && self.webViewColor.topDelta > 0.6 {
                         self.statusBar.inner.transform      = .identity
@@ -378,19 +363,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         }
     }
     
-    
-    func onWebviewPan(gestureRecognizer:UIGestureRecognizer) {
-        if gestureRecognizer.state == UIGestureRecognizerState.began {
-            self.isPanning = true
-        }
-        else if gestureRecognizer.state == UIGestureRecognizerState.ended {
-            self.isPanning = false
-        }
-    }
-    
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        return true
-    }
+        
 
     // MARK: - Actions
 
