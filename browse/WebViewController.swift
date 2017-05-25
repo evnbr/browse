@@ -41,9 +41,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     var searchDismissScrim: UIScrollView!
     
     var webViewColor: WebViewColorFetcher!
-
-    var lastTopTransitionTime : CFTimeInterval = 0.0
-    var lastBottomTransitionTime : CFTimeInterval = 0.0
     
     var statusBar: ColorStatusBarView!
     
@@ -165,10 +162,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 
         bookmarksController = BookmarksViewController()
         
-        webViewColor = WebViewColorFetcher(
-            from: webView,
-            actionOnChange: updateInterfaceColor
-        )
+        webViewColor = WebViewColorFetcher(from: webView, inViewController: self)
         
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.isLoading), options: .new, context: nil)
@@ -271,80 +265,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     }
     
     
-    func updateInterfaceColor() {
-        
-        
-        if webViewColor.topDelta > 0 {
-            statusBar.inner.transform = CGAffineTransform(translationX: 0, y: 20)
-            statusBar.inner.backgroundColor = webViewColor.top
-        }
-        if webViewColor.bottomDelta > 0 {
-            toolbarInner.transform = CGAffineTransform(translationX: 0, y: -48)
-            toolbarInner.backgroundColor = webViewColor.bottom
-        }
-        
-        if webViewColor.isFranticallyChanging {
-
-            statusBar.back.backgroundColor = .black
-            toolbar.barTintColor = .black
-            toolbar.tintColor = .white
-            
-            toolbar.layoutIfNeeded()
-            setNeedsStatusBarAppearanceUpdate()
-        }
-        else {
-            let shouldThrottleTop    = CACurrentMediaTime() - lastTopTransitionTime    < 1.0
-            let shouldThrottleBottom = CACurrentMediaTime() - lastBottomTransitionTime < 1.0
-
-//            statusBar.back.layer.removeAllAnimations()
-//            statusBar.inner.layer.removeAllAnimations()
-//            toolbar.layer.removeAllAnimations()
-//            toolbarInner.layer.removeAllAnimations()
-            
-//            webView.backgroundColor            = webViewColor.top
-//            webView.scrollView.backgroundColor = webViewColor.top
-            
-            progressView.progressTintColor = webViewColor.bottom.isLight
-                ? UIColor.white.withAlphaComponent(0.2)
-                : UIColor.black.withAlphaComponent(0.08)
-
-            
-            UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
-                if self.webViewColor.topDelta > 0 {
-                    if !shouldThrottleTop && self.webViewColor.topDelta > 0.6 {
-                        self.statusBar.inner.transform      = .identity
-                        self.lastTopTransitionTime          = CACurrentMediaTime()
-                        self.statusBar.back.backgroundColor = self.webViewColor.previousTop.withBrightness(0.2)
-                    } else {
-                        self.statusBar.back.backgroundColor = self.webViewColor.top
-                    }
-                    self.setNeedsStatusBarAppearanceUpdate()
-                }
-                if self.webViewColor.bottomDelta > 0 {
-                    if !shouldThrottleBottom && self.webViewColor.bottomDelta > 0.6 {
-                        self.toolbarInner.transform    = .identity
-                        self.lastBottomTransitionTime  = CACurrentMediaTime()
-                        self.toolbar.barTintColor      = self.webViewColor.previousBottom.withBrightness(0.2)
-                    } else {
-                        self.toolbar.barTintColor      = self.webViewColor.bottom
-                    }
-                    self.toolbar.tintColor = self.webViewColor.bottom.isLight ? .white : .darkText
-                    self.toolbar.layoutIfNeeded()
-                }
-            }, completion: { completed in
-                if (completed) {
-                    self.statusBar.back.backgroundColor = self.webViewColor.top
-                    self.toolbar.barTintColor           = self.webViewColor.bottom
-                    self.toolbar.layoutIfNeeded()
-                }
-                else {
-                    print("Animation interrupted!")
-                }
-            })
-            
-        }
-        
-    }
     
     override func viewDidAppear(_ animated: Bool) {
         webView.scrollView.contentInset = .zero

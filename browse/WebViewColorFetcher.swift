@@ -9,12 +9,25 @@
 import Foundation
 import WebKit
 
+extension ClosedRange {
+    func clamp(_ value : Bound) -> Bound {
+        return self.lowerBound > value ? self.lowerBound
+            : self.upperBound < value ? self.upperBound
+            : value
+    }
+    
+}
+
+
 class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     
     private var webView: WKWebView!
-    private var actionOnChange: () -> Void
     
+    private var isAnimating : Bool = false
     private var isPanning : Bool = false
+    private var wasScrollingDown : Bool = true
+    
+    private var isBottomTransitionInteractive = false
 
     private var context: CGContext!
     private var pixel: [CUnsignedChar]
@@ -28,7 +41,12 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     public var topDelta: Float = 0.0
     public var bottomDelta: Float = 0.0
     
+    var lastTopTransitionTime : CFTimeInterval = 0.0
+    var lastBottomTransitionTime : CFTimeInterval = 0.0
+    
     private var deltas : Sampler = Sampler(period: 12)
+    
+    private var wvc : WebViewController!
 
     public var isFranticallyChanging : Bool {
         get {
@@ -36,10 +54,10 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         }
     }
     
-    init(from sourceWebView : WKWebView, actionOnChange action: @escaping () -> Void) {
+    init(from sourceWebView : WKWebView, inViewController vc : WebViewController) {
         
         webView = sourceWebView
-        actionOnChange = action
+        wvc = vc
         
         pixel = [0, 0, 0, 0]
         let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
@@ -70,22 +88,25 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
             userInfo: nil,
             repeats: true
         )
-        colorUpdateTimer.tolerance = 0
+        colorUpdateTimer.tolerance = 0.2
         
-        //        RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
+        RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
 
 
     }
     
     func update() {
         
-        guard !self.isPanning else { return }
+//        guard !self.isPanning else { return }
         guard UIApplication.shared.applicationState == .active else { return }
+        guard !isAnimating else { return }
+        guard !isBottomTransitionInteractive else { return }
 
         previousTop = top
         previousBottom = bottom
         
         top = getColorAtTop()
+//        bottom = UIColor.black
         bottom = getColorAtBottom()
         
         topDelta    = top.difference(from: previousTop)
@@ -94,15 +115,169 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         deltas.addSample(value:    topDelta > 0.3 ? 1 : 0)
         deltas.addSample(value: bottomDelta > 0.3 ? 1 : 0)
 
-        actionOnChange()
+        updateInterfaceColor()
     }
     
-    func onWebviewPan(gestureRecognizer:UIGestureRecognizer) {
-        if gestureRecognizer.state == UIGestureRecognizerState.began {
+    
+    func updateInterfaceColor() {
+        
+        
+        if self.topDelta > 0 {
+            wvc.statusBar.inner.transform = CGAffineTransform(translationX: 0, y: 20)
+            wvc.statusBar.inner.isHidden = false
+
+//            wvc.statusBar.inner.transform = CGAffineTransform(translationX: 0, y: (self.wasScrollingDown ? 20 : -20))
+            wvc.statusBar.inner.backgroundColor = self.top
+        }
+        if self.bottomDelta > 0 {
+            wvc.toolbarInner.transform = CGAffineTransform(translationX: 0, y: -48)
+//            wvc.toolbarInner.transform = CGAffineTransform(translationX: 0, y: (self.wasScrollingDown ? 48 : -48))
+            wvc.toolbarInner.backgroundColor = self.bottom
+            wvc.toolbarInner.isHidden = false
+        }
+        
+        if isPanning && !isBottomTransitionInteractive && self.bottomDelta > 0.6 {
+            bottomInteractiveTransitionStart()
+            return
+        }
+
+        if self.isFranticallyChanging {
+            
+            wvc.statusBar.back.backgroundColor = .black
+            wvc.toolbar.barTintColor = .black
+            wvc.toolbar.tintColor = .white
+            
+            wvc.toolbar.layoutIfNeeded()
+            wvc.setNeedsStatusBarAppearanceUpdate()
+        }
+        else {
+            animateToEndState()
+        }
+        
+    }
+    
+    func commitColorChange() {
+        self.wvc.toolbar.barTintColor = self.bottom
+        self.wvc.toolbarInner.isHidden = true
+        
+        self.wvc.statusBar.back.backgroundColor = self.top
+        self.wvc.statusBar.inner.isHidden = true
+        self.wvc.toolbar.layoutIfNeeded()
+
+        let newTint : UIColor = self.bottom.isLight ? .white : .darkText
+        if self.wvc.toolbar.tintColor != newTint {
+            UIView.animate(withDuration: 0.2) {
+                self.wvc.toolbar.tintColor = newTint
+                self.wvc.toolbar.layoutIfNeeded()
+            }
+        }
+
+    }
+    
+    func animateToEndState() {
+        let shouldThrottleTop    = CACurrentMediaTime() - lastTopTransitionTime    < 1.0
+        let shouldThrottleBottom = CACurrentMediaTime() - lastBottomTransitionTime < 1.0
+        
+        wvc.progressView.progressTintColor = self.bottom.isLight
+            ? UIColor.white.withAlphaComponent(0.2)
+            : UIColor.black.withAlphaComponent(0.08)
+        
+        isAnimating = true
+        
+        UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
+            if self.topDelta > 0 {
+                if !shouldThrottleTop && self.topDelta > 0.6 {
+                    self.wvc.statusBar.inner.transform      = .identity
+                    self.lastTopTransitionTime          = CACurrentMediaTime()
+                    self.wvc.statusBar.back.backgroundColor = self.previousTop.withBrightness(0.2)
+                } else {
+                    self.wvc.statusBar.back.backgroundColor = self.top
+                }
+                self.wvc.setNeedsStatusBarAppearanceUpdate()
+            }
+            if self.bottomDelta > 0 {
+                if !shouldThrottleBottom && self.bottomDelta > 0.6 {
+                    self.wvc.toolbarInner.transform    = .identity
+                    self.lastBottomTransitionTime  = CACurrentMediaTime()
+                    //                        self.toolbar.barTintColor      = self.webViewColor.previousBottom.withBrightness(0.2)
+                    self.wvc.toolbar.barTintColor      = UIColor.average(self.previousBottom, self.bottom )
+                } else {
+                    self.wvc.toolbar.barTintColor      = self.bottom
+                }
+                self.wvc.toolbar.tintColor = self.bottom.isLight ? .white : .darkText
+                self.wvc.toolbar.layoutIfNeeded()
+            }
+        }, completion: { completed in
+            if (completed) {
+                self.commitColorChange()
+            }
+            else {
+                print("Animation never completed")
+            }
+            self.isAnimating = false
+            
+        })
+    }
+    
+    var bottomTransitionStartY : CGFloat = 0.0
+    var gestureCurrentY : CGFloat = 0.0
+    var bottomYRange : ClosedRange<CGFloat> = (-48.0 ... 48.0)
+    
+    func bottomInteractiveTransitionStart() {
+        isBottomTransitionInteractive = true
+        self.wvc.toolbarInner.isHidden = false
+
+        bottomTransitionStartY = gestureCurrentY + (self.wasScrollingDown ? -48 : 48)
+        bottomYRange = self.wasScrollingDown
+            ? (  0.0 ... 48.0)
+            : (-48.0 ...  0.0)
+
+    }
+    
+    func bottomInteractiveTransitionChange() {
+        let y = gestureCurrentY - bottomTransitionStartY
+        let clampedY = bottomYRange.clamp(y)
+        wvc.toolbarInner.transform = CGAffineTransform(translationX: 0, y: clampedY)
+        
+        if clampedY == 0.0 {
+            bottomInteractiveTransitionEnd(animated: false)
+        }
+    }
+    
+    func bottomInteractiveTransitionEnd(animated : Bool) {
+        isBottomTransitionInteractive = false
+        if animated {
+            animateToEndState()
+        }
+        else {
+            commitColorChange()
+        }
+    }
+
+
+    
+    func onWebviewPan(gesture:UIPanGestureRecognizer) {
+        if gesture.state == .began {
             self.isPanning = true
         }
-        else if gestureRecognizer.state == UIGestureRecognizerState.ended {
+            
+        else if gesture.state == .changed {
+            let velY = gesture.velocity(in: webView).y
+            self.wasScrollingDown = velY < 0
+            
+            gestureCurrentY = gesture.translation(in: webView).y
+            
+            if isBottomTransitionInteractive {
+                bottomInteractiveTransitionChange()
+            }
+        }
+            
+        else if gesture.state == .ended {
             self.isPanning = false
+            
+            if isBottomTransitionInteractive {
+                bottomInteractiveTransitionEnd(animated: true)
+            }
         }
     }
     
