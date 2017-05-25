@@ -41,6 +41,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     public var topDelta: Float = 0.0
     public var bottomDelta: Float = 0.0
     
+    var lastUpdatedColors : CFTimeInterval = 0.0
     var lastTopTransitionTime : CFTimeInterval = 0.0
     var lastBottomTransitionTime : CFTimeInterval = 0.0
     
@@ -84,24 +85,29 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         let colorUpdateTimer = Timer.scheduledTimer(
             timeInterval: 0.6,
             target: self,
-            selector: #selector(self.update),
+            selector: #selector(self.updateColors),
             userInfo: nil,
             repeats: true
         )
         colorUpdateTimer.tolerance = 0.2
         
-        RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
-
+        // Note: rather than run on the main loop, which drops frames during inertial scroll, we add additional throttled calls during panning. (imo dropped frames when the finger is down is slightly more forgiving than during animation)
+        // RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
 
     }
     
-    func update() {
+    func updateColors() {
         
 //        guard !self.isPanning else { return }
         guard UIApplication.shared.applicationState == .active else { return }
         guard !isAnimating else { return }
         guard !isBottomTransitionInteractive else { return }
 
+        let now = CACurrentMediaTime()
+        guard ( now - lastUpdatedColors > 0.5 )  else { return }
+        lastUpdatedColors = now
+
+        
         previousTop = top
         previousBottom = bottom
         
@@ -120,7 +126,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     
     
     func updateInterfaceColor() {
-        
+
         
         if self.topDelta > 0 {
             wvc.statusBar.inner.transform = CGAffineTransform(translationX: 0, y: 20)
@@ -269,6 +275,9 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
             
             if isBottomTransitionInteractive {
                 bottomInteractiveTransitionChange()
+            }
+            else {
+                updateColors() // this will be throttled
             }
         }
             
