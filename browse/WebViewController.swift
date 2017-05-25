@@ -181,7 +181,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         toolbar.addGestureRecognizer(longPress)
 
         
-        navigateToText("fonts.google.com")
+//        navigateToText("fonts.google.com")
+        if let restored : String = restoreURL() {
+            navigateToText(restored)
+        }
     }
     
     func makeScrim() -> UIScrollView {
@@ -359,6 +362,29 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        // This is probably called too often, should only be when app closes
+        saveURL()
+    }
+    
+    func saveURL() {
+        guard let url_str : String = webView.url?.absoluteString else { return }
+        UserDefaults.standard.setValue(url_str, forKey: "current_url")
+        print("Saved location: \(url_str)")
+    }
+    
+    func restoreURL() -> String! {
+        let saved_url_val = UserDefaults.standard.value(forKey: "current_url")
+        if saved_url_val != nil {
+            let saved_url_str = saved_url_val as! String
+            //            let saved_url = URL(string: saved_url_str)
+            return saved_url_str
+        }
+        return nil
+    }
+
     
     // MARK: - Gestures
     
