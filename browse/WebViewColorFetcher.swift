@@ -228,26 +228,56 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     var bottomTransitionStartY : CGFloat = 0.0
     var gestureCurrentY : CGFloat = 0.0
     var bottomYRange : ClosedRange<CGFloat> = (-48.0 ... 48.0)
+    var bottomTransitionStartTint  : UIColor = UIColor.black
+    var bottomTransitionEndTint : UIColor = UIColor.black
+    let TOOLBAR_H : CGFloat = 48.0
     
     func bottomInteractiveTransitionStart() {
         isBottomTransitionInteractive = true
         self.wvc.toolbarInner.isHidden = false
+        
+        let amt = TOOLBAR_H * 2.0
 
-        bottomTransitionStartY = gestureCurrentY + (self.wasScrollingDown ? -48 : 48)
+        bottomTransitionStartY = gestureCurrentY + (self.wasScrollingDown ? -amt : amt)
         bottomYRange = self.wasScrollingDown
-            ? (  0.0 ... 48.0)
-            : (-48.0 ...  0.0)
-
+            ? (  0.0 ... amt)
+            : (-amt ...  0.0)
+        
+        bottomTransitionStartTint = self.previousBottom.isLight ? .white : .darkText
+        bottomTransitionEndTint   = self.bottom.isLight         ? .white : .darkText
     }
     
     func bottomInteractiveTransitionChange() {
         let y = gestureCurrentY - bottomTransitionStartY
-        let clampedY = bottomYRange.clamp(y)
+        let clampedY = -abs( bottomYRange.clamp(y) ) * 0.5
+                
+        if abs(clampedY) > 48.0 {
+            // todo: this transition is broken
+            bottomInteractiveTransitionEnd(animated: false)
+        }
+        
         wvc.toolbarInner.transform = CGAffineTransform(translationX: 0, y: clampedY)
         
+        let progress = 1 - abs(clampedY) / 48
+
+        let newTint : UIColor = progress > 0.5
+            ? self.bottomTransitionEndTint
+            : self.bottomTransitionStartTint
+        
+        if !newTint.isEqual(self.wvc.toolbar.tintColor) {
+            UIView.animate(withDuration: 0.2) {
+                self.wvc.toolbar.tintColor = newTint
+            }
+        }
+
         if clampedY == 0.0 {
             bottomInteractiveTransitionEnd(animated: false)
         }
+    }
+    
+    func bottomInteractiveTransitionCancel() {
+        self.wvc.toolbarInner.isHidden = true
+        isBottomTransitionInteractive = false
     }
     
     func bottomInteractiveTransitionEnd(animated : Bool) {
