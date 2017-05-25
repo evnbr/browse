@@ -88,13 +88,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         get {
             let url = webView.url!
             return url.displayHost
-
-//            if webView.hasOnlySecureContent {
-//                return "🔒 \(url.displayHost)"
-//                 return "Secure: \(url.displayHost)"
-//            } else {
-//                return url.displayHost
-//            }
         }
     }
     
@@ -169,7 +162,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         
         searchDismissScrim = makeScrim()
         view.addSubview(searchDismissScrim)
-//        NotificationCenter.default.addObserver(self, selector: #selector(hideSearch), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
 
         bookmarksController = BookmarksViewController()
         
@@ -185,8 +177,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 
         
 
-//        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
-//        toolbar.addGestureRecognizer(longPress)
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
+        toolbar.addGestureRecognizer(longPress)
 
         
         navigateToText("fonts.google.com")
@@ -458,14 +450,20 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 
     
     func hideSearch() {
+        let startPoint = searchView.convert(searchView.frame.origin, to: toolbar)
+        
         searchView.textView.resignFirstResponder()
-        self.resignFirstResponder()
+//        self.resignFirstResponder()
         
         let url = locationBar!
         let back = self.backButton.value(forKey: "view") as! UIView
         let tab = self.tabButton.value(forKey: "view") as! UIView
         
-        // TODO: This animation doesn't work with interactive dismiss
+        url.transform  = CGAffineTransform(translationX: -30, y: startPoint.y)
+        back.transform = CGAffineTransform(translationX: 0,   y: startPoint.y)
+        tab.transform  = CGAffineTransform(translationX: 0,   y: startPoint.y)
+
+        
         UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
             self.searchDismissScrim.alpha = 0
             

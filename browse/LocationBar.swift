@@ -25,9 +25,9 @@ class LocationBar: UIControl {
             label.text = newValue
             label.sizeToFit()
             
-            var newFrame = label.frame
-            newFrame.origin.x = (isSearch || isSecure) ? 24 : 0
-            label.frame = newFrame
+//            var newFrame = label.frame
+//            newFrame.origin.x = (isSearch || isSecure) ? 24 : 0
+//            label.frame = newFrame
         
         }
     }
@@ -54,23 +54,35 @@ class LocationBar: UIControl {
     
     init(onTap: @escaping () -> Void) {
         action = onTap
-        super.init(frame: CGRect(x: 0, y: 0, width: 200, height: 40))
+        super.init(frame: CGRect(x: 0, y: 0, width: 200, height: 44))
         backgroundColor = .clear
         
         let lockImage = UIImage(named: "lock")!.withRenderingMode(.alwaysTemplate)
         lock = UIImageView(image: lockImage)
-        addSubview(lock)
         
         let magnifyImage = UIImage(named: "magnify")!.withRenderingMode(.alwaysTemplate)
         magnify = UIImageView(image: magnifyImage)
-        addSubview(magnify)
 
-
-        label.text = "Hey"
+        label.text = "Where to?"
         label.sizeToFit()
         
         
-        addSubview(label)
+        // https://stackoverflow.com/questions/30728062/add-views-in-uistackview-programmatically
+        let stackView   = UIStackView()
+        stackView.axis  = .horizontal
+        stackView.distribution  = .equalSpacing
+        stackView.alignment = .center
+        stackView.spacing   = 8.0
+        
+        stackView.addArrangedSubview(lock)
+        stackView.addArrangedSubview(magnify)
+        stackView.addArrangedSubview(label)
+        stackView.translatesAutoresizingMaskIntoConstraints = false;
+        
+        addSubview(stackView)
+        stackView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
+        stackView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
+
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(doAction))
         tap.numberOfTapsRequired = 1
@@ -80,11 +92,12 @@ class LocationBar: UIControl {
         addGestureRecognizer(tap)
         
 
+        isSecure = false
+        isSecure = false
 //        sizeToFit()
     }
     
     func doAction() {
-        print("tapped")
         action()
     }
     
@@ -100,7 +113,7 @@ class LocationBar: UIControl {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if touches.first != nil {
-            backgroundColor = .cyan
+            backgroundColor = UIColor.black.withAlphaComponent(0.08)
         }
     }
     
@@ -113,15 +126,7 @@ class LocationBar: UIControl {
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         if touches.first != nil {
             
-            UIView.animate(withDuration: 0.1, delay: 0.1, animations: {
-                self.backgroundColor = .clear
-            })
-        }
-    }
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if touches.first != nil {
-            
-            UIView.animate(withDuration: 0.1, delay: 0.1, animations: {
+            UIView.animate(withDuration: 0.2, delay: 0.1, animations: {
                 self.backgroundColor = .clear
             })
         }

@@ -20,7 +20,14 @@ class SearchView: UIView, UITextViewDelegate {
             return self.isUserInteractionEnabled
         }
         set {
-            self.alpha = newValue ? 1 : 0
+            if !newValue {
+                UIView.animate(withDuration: 0.3, animations: {
+                    self.alpha = 0
+                })
+            }
+            else {
+                self.alpha = 1
+            }
             self.isUserInteractionEnabled = newValue
         }
     }
@@ -125,16 +132,22 @@ class SearchView: UIView, UITextViewDelegate {
         textView.alpha = 1
         cancel.transform = .identity
 
+        self.hide()
+
         UIView.animate(withDuration: 0.3, animations: {
-            textView.transform = CGAffineTransform(translationX: 20, y: 0)
+            textView.transform = CGAffineTransform(translationX: 30, y: 0)
             textView.alpha = 0
             self.cancel.transform = CGAffineTransform(translationX: 60, y: 0)
+            
+            var frame = self.frame
+            frame.origin.y = frame.size.height - 44
+            frame.size.height = 44
+            self.frame = frame
+            
         }, completion: { completed in
             self.isEnabled = false
             textView.selectedTextRange = nil
         })
-        
-        hide()
     }
     
     func textViewDidChange(_ textView: UITextView) {

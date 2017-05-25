@@ -19,11 +19,11 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     private var context: CGContext!
     private var pixel: [CUnsignedChar]
     
-    public var top: UIColor = UIColor.clear
-    public var bottom: UIColor = UIColor.clear
+    public var top: UIColor = UIColor.white
+    public var bottom: UIColor = UIColor.white
     
-    public var previousTop: UIColor = UIColor.clear
-    public var previousBottom: UIColor = UIColor.clear
+    public var previousTop: UIColor = UIColor.white
+    public var previousBottom: UIColor = UIColor.white
     
     public var topDelta: Float = 0.0
     public var bottomDelta: Float = 0.0
@@ -80,6 +80,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     func update() {
         
         guard !self.isPanning else { return }
+        guard UIApplication.shared.applicationState == .active else { return }
 
         previousTop = top
         previousBottom = bottom
