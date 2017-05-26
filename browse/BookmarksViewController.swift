@@ -13,6 +13,9 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
     
     let bookmarks : Array<String> = [
         "apple.com",
+        "figma.com",
+        "hoverstat.es",
+        "amazon.com",
         "fonts.google.com",
         "flights.google.com",
         "maps.google.com",

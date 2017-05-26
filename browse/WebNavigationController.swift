@@ -26,7 +26,7 @@ class WebNavigationController: UINavigationController {
            return topViewController
         }
     }
-
+    
     /*
     // MARK: - Navigation
 

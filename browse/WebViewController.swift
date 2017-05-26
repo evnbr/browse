@@ -46,6 +46,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     
     var toolbar: UIToolbar!
     var toolbarInner: UIView!
+    var toolbarBack: UIView!
 
     var progressView: UIProgressView!
     var backButton: UIBarButtonItem!
@@ -175,9 +176,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         toolbar.addGestureRecognizer(longPress)
 
         
-//        navigateToText("fonts.google.com")
         if let restored : String = restoreURL() {
             navigateToText(restored)
+        }
+        else {
+            navigateToText("fonts.google.com")
         }
     }
     
@@ -220,38 +223,28 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         let actionButton = UIBarButtonItem(image: UIImage(named: "action"), style: .plain, target: self, action: #selector(displayShareSheet))
         tabButton = UIBarButtonItem(image: UIImage(named: "tab"), style: .plain, target: self, action: #selector(displayBookmarks))
         
-        backButton.width = 40.0
-        forwardButton.width = 40.0
-        actionButton.width = 40.0
-        tabButton.width = 40.0
+        backButton.width = 48.0
+        forwardButton.width = 48.0
+        actionButton.width = 48.0
+        tabButton.width = 48.0
         
         let flex = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let space = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
         let negSpace = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
         
-        space.width = 12.0
-        negSpace.width = -12.0
-        
+        space.width = 16.0
+        negSpace.width = -16.0
         
 //        let pwd = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(displayPassword))
-        //        urlButton = UIBarButtonItem(title: "URL...", style: .plain, target: self, action: #selector(askURL))
         
         locationBar = LocationBar(onTap: self.displaySearch)
-//        locationBar.setTitle("Where to?", for: .normal)
-//        locationBar.backgroundColor = .red
-//        locationBar.setImage(UIImage(named: "lock"), for: .normal)
-//        locationBar.addTarget(self, action: #selector(displaySearch), for: .primaryActionTriggered)
-
-//        urlButton = UIBarButtonItem(title: "Where to?", style: .plain, target: self, action: #selector(displaySearch))
         let urlButton = UIBarButtonItem(customView: locationBar)
-        urlButton.width = 120.0
         
-        toolbarItems = [negSpace, backButton, forwardButton, flex, urlButton, flex, tabButton, negSpace]
+        toolbarItems = [negSpace, backButton, forwardButton, flex, urlButton, flex, actionButton, tabButton, negSpace]
         navigationController?.isToolbarHidden = false
         toolbar.isTranslucent = false
         toolbar.barTintColor = .white
         toolbar.tintColor = .darkText
-        //        toolbar.setBackgroundImage(UIImage(), forToolbarPosition: .any, barMetrics: .default)
         
         toolbarInner = UIView()
         toolbarInner.frame = toolbar.bounds
@@ -259,6 +252,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         toolbarInner.backgroundColor = .white
         toolbar.addSubview(toolbarInner)
         toolbar.sendSubview(toBack: toolbarInner)
+        
+        toolbarBack = UIView()
+        toolbarBack.frame = toolbar.bounds
+        toolbarBack.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        toolbarBack.backgroundColor = .white
+        toolbar.addSubview(toolbarBack)
+        toolbar.sendSubview(toBack: toolbarBack)
+
         toolbar.clipsToBounds = true
         
         return toolbar

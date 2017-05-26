@@ -42,6 +42,15 @@ class LocationBar: UIControl {
         }
     }
     
+//    override var isSelected: Bool {
+//        get {
+//            return label.backgroundColor == UIColor.clear
+//        }
+//        set {
+//            label.backgroundColor = newValue ? UIColor.blue : UIColor.clear
+//        }
+//    }
+    
     var isSearch : Bool {
         get {
             return !magnify.isHidden
@@ -64,6 +73,7 @@ class LocationBar: UIControl {
         magnify = UIImageView(image: magnifyImage)
 
         label.text = "Where to?"
+        label.font = UIFont.systemFont(ofSize: 15.0)
         label.sizeToFit()
         
         
@@ -72,7 +82,7 @@ class LocationBar: UIControl {
         stackView.axis  = .horizontal
         stackView.distribution  = .equalSpacing
         stackView.alignment = .center
-        stackView.spacing   = 8.0
+        stackView.spacing   = 6.0
         
         stackView.addArrangedSubview(lock)
         stackView.addArrangedSubview(magnify)

@@ -23,6 +23,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     
     let TOOLBAR_H : CGFloat = 48.0
     let STATUS_H : CGFloat = 22.0
+    let MIN_TIME_BETWEEN_UPDATES = 0.2
 
     private var webView: WKWebView!
     
@@ -96,12 +97,8 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         )
         colorUpdateTimer.tolerance = 0.2
         
-        // Note: rather than run on the main loop, which drops frames during inertial scroll, we add additional throttled calls during panning. (imo dropped frames when the finger is down is slightly more forgiving than during animation)
-         RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
-
+        RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
     }
-    
-    let MIN_TIME_BETWEEN_UPDATES = 0.5
     
     func updateColors() {
         
@@ -123,13 +120,19 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
             })
         }
         
-        if !isBottomAnimating && !isBottomTransitionInteractive {
+        if !isBottomAnimating {
             getColorAtBottomAsync(completion: { newColor in
-                self.previousBottom = self.bottom
-                self.bottom = newColor
-                self.bottomDelta = self.bottom.difference(from: self.previousBottom)
-                self.deltas.addSample(value: self.bottomDelta > 0.3 ? 1 : 0)
-                self.updateBottomColor()
+                if !self.isBottomTransitionInteractive {
+                    self.previousBottom = self.bottom
+                    self.bottom = newColor
+                    self.bottomDelta = self.bottom.difference(from: self.previousBottom)
+                    self.deltas.addSample(value: self.bottomDelta > 0.3 ? 1 : 0)
+                    self.updateBottomColor()
+                }
+                else {
+                    self.bottom = newColor
+                    self.wvc.toolbarInner.backgroundColor = newColor
+                }
             })
         }
 
@@ -172,7 +175,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         }
 
         if self.isFranticallyChanging {
-            wvc.toolbar.barTintColor = .black
+            wvc.toolbarBack.backgroundColor = .black
             wvc.toolbar.tintColor = .white
         }
         else {
@@ -192,22 +195,19 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     }
 
     func commitBottomChange() {
-        self.wvc.toolbar.barTintColor = self.bottom
+        self.wvc.toolbarBack.backgroundColor = self.bottom
         self.wvc.toolbarInner.isHidden = true
         
-//        self.wvc.toolbar.layoutIfNeeded()
-
         let newTint : UIColor = self.bottom.isLight ? .white : .darkText
         if self.wvc.toolbar.tintColor != newTint {
             UIView.animate(withDuration: 0.2) {
                 self.wvc.toolbar.tintColor = newTint
-//                self.wvc.toolbar.layoutIfNeeded()
             }
         }
 
     }
     func animateTopToEndState() {
-        let shouldThrottleTop = CACurrentMediaTime() - lastTopTransitionTime    < 1.0
+        let shouldThrottleTop = false//CACurrentMediaTime() - lastTopTransitionTime    < 1.0
         
 //        print("animate top")
         isTopAnimating = true
@@ -238,7 +238,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     }
 
     func animateBottomEndState() {
-        let shouldThrottleBottom = CACurrentMediaTime() - lastBottomTransitionTime < 1.0
+        let shouldThrottleBottom = false//CACurrentMediaTime() - lastBottomTransitionTime < 1.0
         
         wvc.progressView.progressTintColor = self.bottom.isLight
             ? UIColor.white.withAlphaComponent(0.2)
@@ -251,12 +251,11 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
                 if !shouldThrottleBottom && self.bottomDelta > 0.6 {
                     self.wvc.toolbarInner.transform = .identity
                     self.lastBottomTransitionTime   = CACurrentMediaTime()
-                    self.wvc.toolbar.barTintColor   = UIColor.average(self.previousBottom, self.bottom )
+                    self.wvc.toolbarBack.backgroundColor   = UIColor.average(self.previousBottom, self.bottom )
                 } else {
-                    self.wvc.toolbar.barTintColor   = self.bottom
+                    self.wvc.toolbarBack.backgroundColor   = self.bottom
                 }
                 self.wvc.toolbar.tintColor = self.bottom.isLight ? .white : .darkText
-//                self.wvc.toolbar.layoutIfNeeded()
             }
         }, completion: { completed in
             if (completed) {
@@ -302,7 +301,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         let progress = 1 - abs(clampedY) / TOOLBAR_H
         
         wvc.toolbarInner.transform = CGAffineTransform(translationX: 0, y: clampedY)
-        wvc.toolbar.barTintColor = self.previousBottom.withBrightness( 1 - (progress * 0.8))
+        wvc.toolbarBack.backgroundColor = self.previousBottom.withBrightness( 1 - (progress * 0.8))
         
         
         let newTint : UIColor = progress > 0.5
