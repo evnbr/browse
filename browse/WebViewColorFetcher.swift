@@ -88,7 +88,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
 
         
         let colorUpdateTimer = Timer.scheduledTimer(
-            timeInterval: 0.6,
+            timeInterval: MIN_TIME_BETWEEN_UPDATES + 0.1,
             target: self,
             selector: #selector(self.updateColors),
             userInfo: nil,
@@ -97,9 +97,11 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         colorUpdateTimer.tolerance = 0.2
         
         // Note: rather than run on the main loop, which drops frames during inertial scroll, we add additional throttled calls during panning. (imo dropped frames when the finger is down is slightly more forgiving than during animation)
-        // RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
+         RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
 
     }
+    
+    let MIN_TIME_BETWEEN_UPDATES = 0.5
     
     func updateColors() {
         
@@ -107,90 +109,99 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         guard UIApplication.shared.applicationState == .active else { return }
         
         let now = CACurrentMediaTime()
-        guard ( now - lastUpdatedColors > 0.5 )  else { return }
+        guard ( now - lastUpdatedColors > MIN_TIME_BETWEEN_UPDATES )  else { return }
         lastUpdatedColors = now
 
         
         if !isTopAnimating && !isTopTransitionInteractive {
-            previousTop = top
-            top = getColorAtTop()
-            topDelta = top.difference(from: previousTop)
-            deltas.addSample(value: topDelta > 0.3 ? 1 : 0)
+            getColorAtTopAsync(completion: { newColor in
+                self.previousTop = self.top
+                self.top = newColor
+                self.topDelta = self.top.difference(from: self.previousTop)
+                self.deltas.addSample(value: self.topDelta > 0.3 ? 1 : 0)
+                self.updateTopColor()
+            })
         }
         
         if !isBottomAnimating && !isBottomTransitionInteractive {
-            previousBottom = bottom
-            bottom = getColorAtBottom()
-            bottomDelta = bottom.difference(from: previousBottom)
-            deltas.addSample(value: bottomDelta > 0.3 ? 1 : 0)
+            getColorAtBottomAsync(completion: { newColor in
+                self.previousBottom = self.bottom
+                self.bottom = newColor
+                self.bottomDelta = self.bottom.difference(from: self.previousBottom)
+                self.deltas.addSample(value: self.bottomDelta > 0.3 ? 1 : 0)
+                self.updateBottomColor()
+            })
         }
 
-        updateInterfaceColor()
     }
     
-    
-    func updateInterfaceColor() {
-
-        
+    func updateTopColor() {
         if !isTopTransitionInteractive && self.topDelta > 0 {
             wvc.statusBar.inner.transform = CGAffineTransform(translationX: 0, y: STATUS_H)
             wvc.statusBar.inner.isHidden = false
-
-//            wvc.statusBar.inner.transform = CGAffineTransform(translationX: 0, y: (self.wasScrollingDown ? 20 : -20))
             wvc.statusBar.inner.backgroundColor = self.top
-        }
-        if !isBottomTransitionInteractive && self.bottomDelta > 0 {
-            wvc.toolbarInner.transform = CGAffineTransform(translationX: 0, y: -TOOLBAR_H)
-//            wvc.toolbarInner.transform = CGAffineTransform(translationX: 0, y: (self.wasScrollingDown ? 48 : -48))
-            wvc.toolbarInner.backgroundColor = self.bottom
-            wvc.toolbarInner.isHidden = false
-        }
-        
-        if isPanning && !isBottomTransitionInteractive && self.bottomDelta > 0.6 {
-            bottomInteractiveTransitionStart()
         }
         if isPanning && !isTopTransitionInteractive && self.topDelta > 0.6 {
             topInteractiveTransitionStart()
+            return
         }
-        guard !isBottomTransitionInteractive && !isTopTransitionInteractive else { return }
-
         if self.isFranticallyChanging {
-            
             wvc.statusBar.back.backgroundColor = .black
-            wvc.toolbar.barTintColor = .black
-            wvc.toolbar.tintColor = .white
-            
-            wvc.toolbar.layoutIfNeeded()
             wvc.setNeedsStatusBarAppearanceUpdate()
         }
         else {
             if !isTopAnimating && self.topDelta > 0 {
                 animateTopToEndState()
             }
+        }
+
+    }
+    
+    
+    func updateBottomColor() {
+
+        if !isBottomTransitionInteractive && self.bottomDelta > 0 {
+            wvc.toolbarInner.transform = CGAffineTransform(translationX: 0, y: -TOOLBAR_H)
+            wvc.toolbarInner.backgroundColor = self.bottom
+            wvc.toolbarInner.isHidden = false
+        }
+        
+        if isPanning && !isBottomTransitionInteractive && self.bottomDelta > 0.6 {
+            bottomInteractiveTransitionStart()
+            return
+        }
+
+        if self.isFranticallyChanging {
+            wvc.toolbar.barTintColor = .black
+            wvc.toolbar.tintColor = .white
+        }
+        else {
             if !isBottomAnimating && self.bottomDelta > 0 {
                 animateBottomEndState()
             }
         }
+
         
     }
     
     func commitTopChange() {
-        print("commit top")
+//        print("commit top")
         self.wvc.statusBar.back.backgroundColor = self.top
         self.wvc.statusBar.inner.isHidden = true
+        self.webView.scrollView.backgroundColor = self.top
     }
 
     func commitBottomChange() {
         self.wvc.toolbar.barTintColor = self.bottom
         self.wvc.toolbarInner.isHidden = true
         
-        self.wvc.toolbar.layoutIfNeeded()
+//        self.wvc.toolbar.layoutIfNeeded()
 
         let newTint : UIColor = self.bottom.isLight ? .white : .darkText
         if self.wvc.toolbar.tintColor != newTint {
             UIView.animate(withDuration: 0.2) {
                 self.wvc.toolbar.tintColor = newTint
-                self.wvc.toolbar.layoutIfNeeded()
+//                self.wvc.toolbar.layoutIfNeeded()
             }
         }
 
@@ -198,7 +209,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     func animateTopToEndState() {
         let shouldThrottleTop = CACurrentMediaTime() - lastTopTransitionTime    < 1.0
         
-        print("animate top")
+//        print("animate top")
         isTopAnimating = true
 
         UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
@@ -245,7 +256,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
                     self.wvc.toolbar.barTintColor   = self.bottom
                 }
                 self.wvc.toolbar.tintColor = self.bottom.isLight ? .white : .darkText
-                self.wvc.toolbar.layoutIfNeeded()
+//                self.wvc.toolbar.layoutIfNeeded()
             }
         }, completion: { completed in
             if (completed) {
@@ -322,7 +333,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     var topYRange : ClosedRange<CGFloat> = (0.0 ... 0.0)
     func topInteractiveTransitionStart() {
         
-        print("top interactive start")
+//        print("top interactive start")
 
         isTopTransitionInteractive = true
         self.wvc.statusBar.inner.isHidden = false
@@ -347,7 +358,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         }
         
         let progress = 1 - abs(clampedY) / STATUS_H
-        print("top interactive change y:\(clampedY) prog:\(progress)")
+//        print("top interactive change y:\(clampedY) prog:\(progress)")
 
         wvc.statusBar.back.backgroundColor = self.previousTop.withBrightness( 1 - (progress * 0.8))
         wvc.statusBar.inner.transform = CGAffineTransform(translationX: 0, y: clampedY)
@@ -367,7 +378,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     
     
     func topInteractiveTransitionEnd(animated : Bool) {
-        print("top interactive end")
+//        print("top interactive end")
 
         isTopTransitionInteractive = false
         if animated {
@@ -397,9 +408,9 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
             if isTopTransitionInteractive {
                 topInteractiveTransitionChange()
             }
-            if !isBottomTransitionInteractive || !isTopTransitionInteractive {
-                updateColors() // this will be throttled
-            }
+//            if !isBottomTransitionInteractive || !isTopTransitionInteractive {
+//                updateColors() // this will be throttled
+//            }
         }
             
         else if gesture.state == .ended {
@@ -448,37 +459,88 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         }
     }
     
-    func getColorAtTop() -> UIColor {
+//    func getColorAtTop() -> UIColor {
+//        let size = self.webView.bounds.size
+//        
+//        let colorAtTopLeft     = getColorAt( x: 5,                y: 1 )
+//        let colorAtTopRight    = getColorAt( x: size.width - 5,   y: 1 )
+//        
+//        return blendColors(colorAtTopLeft, colorAtTopRight)
+//    }
+    
+    func getColorAtTopAsync(completion: @escaping (UIColor) -> Void ) {
         let size = self.webView.bounds.size
         
-        let colorAtTopLeft     = getColorAt( x: 5,                y: 1 )
-        let colorAtTopRight    = getColorAt( x: size.width - 5,   y: 1 )
-        
-        return blendColors(colorAtTopLeft, colorAtTopRight)
+        getColorAsync( x: 5, y: 1, completion: { colorAtTopLeft in
+            self.getColorAsync( x: size.width - 5,   y: 1, completion: { colorAtTopRight in
+                let color = self.blendColors(colorAtTopLeft, colorAtTopRight)
+                completion(color)
+            })
+        })
     }
     
-    func getColorAtBottom() -> UIColor {
+//    func getColorAtBottom() -> UIColor {
+//        let size = self.webView.bounds.size
+//
+//        let colorAtBottomLeft  = getColorAt( x: 2,                y: size.height - 2 )
+//        let colorAtBottomRight = getColorAt( x: size.width - 2,   y: size.height - 2 )
+//        
+//        if colorAtBottomLeft.difference(from: colorAtBottomRight) < 1 {
+//            return blendColors(
+//                colorAtBottomLeft,
+//                colorAtBottomRight
+//            )
+//        }
+//        else {
+//            let colorAtBottomLeftUp  = getColorAt( x: 2,                y: size.height - 24 )
+//            let colorAtBottomRightUp = getColorAt( x: size.width - 2,   y: size.height - 24 )
+//            
+//            return blendColors(
+//                colorAtBottomLeftUp,
+//                colorAtBottomLeft,
+//                colorAtBottomRightUp,
+//                colorAtBottomRight
+//            )
+//        }
+//    }
+    
+    func getColorAtBottomAsync(completion: @escaping (UIColor) -> Void) {
         let size = self.webView.bounds.size
-
-        let colorAtBottomLeft    = getColorAt( x: 2,                y: size.height - 2 )
-        let colorAtBottomRight   = getColorAt( x: size.width - 2,   y: size.height - 2 )
         
-        if colorAtBottomLeft.difference(from: colorAtBottomRight) < 1 {
-            return blendColors(
-                colorAtBottomLeft,
-                colorAtBottomRight
-            )
-        }
-        else {
-            let colorAtBottomLeftUp  = getColorAt( x: 2,                y: size.height - 24 )
-            let colorAtBottomRightUp = getColorAt( x: size.width - 2,   y: size.height - 24 )
+        getColorAsync(x: 2, y: size.height - 2, completion: { colorAtBottomLeft in
+        
+            self.getColorAsync( x: size.width - 2, y: size.height - 2, completion: { colorAtBottomRight in
             
-            return blendColors(
-                colorAtBottomLeftUp,
-                colorAtBottomLeft,
-                colorAtBottomRightUp,
-                colorAtBottomRight
-            )
+                if colorAtBottomLeft.difference(from: colorAtBottomRight) < 1 {
+                    let color = self.blendColors(colorAtBottomLeft, colorAtBottomRight)
+                    completion(color)
+                }
+                else {
+                    self.getColorAsync( x: 2, y: size.height - 24, completion: { colorAtBottomLeftUp in
+                        self.getColorAsync( x: size.width - 2,   y: size.height - 24, completion: { colorAtBottomRightUp in
+                            let color = self.blendColors(
+                                colorAtBottomLeftUp,
+                                colorAtBottomLeft,
+                                colorAtBottomRightUp,
+                                colorAtBottomRight
+                            )
+                            completion(color)
+                        })
+                    })
+                }
+            })
+        })
+
+    }
+    
+    // adds a frame before and after sampling
+    func getColorAsync(x: CGFloat, y: CGFloat, completion: @escaping (UIColor) -> Void) {
+        
+        DispatchQueue.main.async {
+            let color = self.getColorAt(x: x, y: y)
+            DispatchQueue.main.async {
+                completion(color)
+            }
         }
     }
 
