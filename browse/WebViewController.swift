@@ -175,6 +175,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
         toolbar.addGestureRecognizer(longPress)
 
+        URLProtocol.wk_registerScheme("http")
+        URLProtocol.wk_registerScheme("https")
+        URLProtocol.registerClass(BrowseURLProtocol.self)
+        
         
         if let restored : String = restoreURL() {
             navigateToText(restored)

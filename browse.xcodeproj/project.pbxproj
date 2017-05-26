@@ -11,6 +11,7 @@
 		A908920A1ED547C500A5E9BA /* LocationBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90892091ED547C500A5E9BA /* LocationBar.swift */; };
 		A908F04C1ECD03B800A74241 /* ColorStatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */; };
 		A908F04E1ECD60CD00A74241 /* BookmarksViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */; };
+		A92095801ED8CB34009497A2 /* BrowseURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A920957F1ED8CB34009497A2 /* BrowseURLProtocol.swift */; };
 		A94FE41F1ECA5A7400ED48DB /* UIColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */; };
 		A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE4201ECA661700ED48DB /* Sampler.swift */; };
 		A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */; };
@@ -56,6 +57,7 @@
 		A90892091ED547C500A5E9BA /* LocationBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationBar.swift; sourceTree = "<group>"; };
 		A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorStatusBarView.swift; sourceTree = "<group>"; };
 		A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarksViewController.swift; sourceTree = "<group>"; };
+		A920957F1ED8CB34009497A2 /* BrowseURLProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BrowseURLProtocol.swift; sourceTree = "<group>"; };
 		A9446E9A1ECEBFC40082B4D9 /* Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Bridging-Header.h"; sourceTree = "<group>"; };
 		A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIColorExtensions.swift; sourceTree = "<group>"; };
 		A94FE4201ECA661700ED48DB /* Sampler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sampler.swift; sourceTree = "<group>"; };
@@ -172,6 +174,7 @@
 				A97CB0761EC53DCD005DDBD1 /* Assets.xcassets */,
 				A97CB0781EC53DCD005DDBD1 /* LaunchScreen.storyboard */,
 				A97CB07B1EC53DCD005DDBD1 /* Info.plist */,
+				A920957F1ED8CB34009497A2 /* BrowseURLProtocol.swift */,
 			);
 			path = browse;
 			sourceTree = "<group>";
@@ -485,6 +488,7 @@
 				A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */,
 				A908920A1ED547C500A5E9BA /* LocationBar.swift in Sources */,
 				A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */,
+				A92095801ED8CB34009497A2 /* BrowseURLProtocol.swift in Sources */,
 				A9B3176A1ED134CD00C71EBE /* SearchTextView.swift in Sources */,
 				A94FE41F1ECA5A7400ED48DB /* UIColorExtensions.swift in Sources */,
 			);

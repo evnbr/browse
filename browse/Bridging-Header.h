@@ -3,3 +3,7 @@
 //
 
 #import <UITextView_Placeholder/UITextView+Placeholder.h>
+
+// https://github.com/brave/browser-ios/issues/96
+// https://github.com/WildDylan/WKWebViewWithURLProtocol
+#import <WKWebViewWithURLProtocol/NSURLProtocol+WKWebViewSupport.h>
