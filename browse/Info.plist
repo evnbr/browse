@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>So you can upload photos to the website you are visiting</string>
+	<key>NSCameraUsageDescription</key>
+	<string>So you can upload photos to the website you are visiting</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Websites you are visiting may request your location</string>
 	<key>LSApplicationQueriesSchemes</key>
