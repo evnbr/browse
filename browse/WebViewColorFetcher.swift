@@ -18,6 +18,11 @@ extension ClosedRange {
     
 }
 
+enum ColorTransitionStyle {
+    case fade
+    case translate
+}
+
 
 class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     
@@ -154,7 +159,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         }
         else {
             if !isTopAnimating && self.topDelta > 0 {
-                animateTopToEndState()
+                animateTopToEndState(.fade)
             }
         }
 
@@ -180,7 +185,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         }
         else {
             if !isBottomAnimating && self.bottomDelta > 0 {
-                animateBottomEndState()
+                animateBottomEndState(.fade)
             }
         }
 
@@ -206,15 +211,15 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         }
 
     }
-    func animateTopToEndState() {
-        let shouldThrottleTop = false//CACurrentMediaTime() - lastTopTransitionTime    < 1.0
+    func animateTopToEndState(_ style : ColorTransitionStyle) {
+//        let shouldThrottleTop = true//CACurrentMediaTime() - lastTopTransitionTime    < 1.0
         
 //        print("animate top")
         isTopAnimating = true
 
-        UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
             if self.topDelta > 0 {
-                if !shouldThrottleTop && self.topDelta > 0.6 {
+                if style == .translate && self.topDelta > 0.6 {
                     self.wvc.statusBar.inner.transform  = .identity
                     self.lastTopTransitionTime          = CACurrentMediaTime()
                     self.wvc.statusBar.back.backgroundColor = self.previousTop.withBrightness(0.2)
@@ -237,8 +242,8 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
 
     }
 
-    func animateBottomEndState() {
-        let shouldThrottleBottom = false//CACurrentMediaTime() - lastBottomTransitionTime < 1.0
+    func animateBottomEndState(_ style : ColorTransitionStyle) {
+//        let shouldThrottleBottom = true//CACurrentMediaTime() - lastBottomTransitionTime < 1.0
         
         wvc.progressView.progressTintColor = self.bottom.isLight
             ? UIColor.white.withAlphaComponent(0.2)
@@ -246,9 +251,9 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         
         isBottomAnimating = true
         
-        UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
             if self.bottomDelta > 0 {
-                if !shouldThrottleBottom && self.bottomDelta > 0.6 {
+                if style == .translate && self.bottomDelta > 0.6 {
                     self.wvc.toolbarInner.transform = .identity
                     self.lastBottomTransitionTime   = CACurrentMediaTime()
                     self.wvc.toolbarBack.backgroundColor   = UIColor.average(self.previousBottom, self.bottom )
@@ -292,6 +297,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     func bottomInteractiveTransitionChange() {
         let y = gestureCurrentY - bottomTransitionStartY
         let clampedY = -abs( bottomYRange.clamp(y) ) * ( 1 / 1.0 )
+        // let clampedY = ( bottomYRange.clamp(y) ) * ( 1 / 1.0 )
         
         if abs(clampedY) > TOOLBAR_H {
             // todo: this transition is broken. we should instead prevent reversing, which doesnt make sense anyways, and just continuing at same speed while the finger is down
@@ -321,7 +327,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     func bottomInteractiveTransitionEnd(animated : Bool) {
         isBottomTransitionInteractive = false
         if animated {
-            animateBottomEndState()
+            animateBottomEndState(.translate)
         }
         else {
             commitBottomChange()
@@ -349,6 +355,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
     func topInteractiveTransitionChange() {
         let y = gestureCurrentY - topTransitionStartY
         let clampedY = abs( topYRange.clamp(y) ) * ( 1 / 1.0 )
+        // let clampedY = ( topYRange.clamp(y) ) * ( 1 / 1.0 )
         
         
         if abs(clampedY) > STATUS_H {
@@ -373,15 +380,13 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
             topInteractiveTransitionEnd(animated: false)
         }
     }
-
-    
     
     func topInteractiveTransitionEnd(animated : Bool) {
 //        print("top interactive end")
 
         isTopTransitionInteractive = false
         if animated {
-            animateTopToEndState()
+            animateTopToEndState(.translate)
         }
         else {
             commitTopChange()
@@ -472,8 +477,17 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         
         getColorAsync( x: 5, y: 1, completion: { colorAtTopLeft in
             self.getColorAsync( x: size.width - 5,   y: 1, completion: { colorAtTopRight in
-                let color = self.blendColors(colorAtTopLeft, colorAtTopRight)
-                completion(color)
+                
+                if colorAtTopLeft.difference(from: UIColor.white) < 1 {
+                    completion(colorAtTopLeft)
+                }
+                else if colorAtTopRight.difference(from: UIColor.white) < 1 {
+                    completion(colorAtTopRight)
+                }
+                else {
+                    let color = self.blendColors(colorAtTopLeft, colorAtTopRight)
+                    completion(color)
+                }
             })
         })
     }
