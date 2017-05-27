@@ -18,14 +18,16 @@ class BrowseURLProtocol: URLProtocol, NSURLConnectionDataDelegate {
     
     override class func canInit(with request: URLRequest) -> Bool {
         
-        print("Got request from \(request.url?.absoluteString ?? "Somewhere?")")
-        
         if let scheme = request.url?.scheme {
             if scheme.caseInsensitiveCompare("http") == .orderedSame
             || scheme.caseInsensitiveCompare("https") == .orderedSame {
+                
+                // print("➡️ Request: \(request.url?.host ?? "Somewhere?")")
+
                 if URLProtocol.property(forKey: KEY, in: request) != nil {
                     return false
                 }
+                
                 return true
             }
         }
@@ -33,10 +35,9 @@ class BrowseURLProtocol: URLProtocol, NSURLConnectionDataDelegate {
     }
     
     override class func canonicalRequest(for request: URLRequest) -> URLRequest {
-        if let str = request.url?.absoluteString {
-            if str.contains("odb.outbrain.com") {
-                let nowhere = redirectToNowhere(request)
-                return nowhere
+        if let url = request.url {
+            if Blocker.shared.shouldBlock(url) {
+                return redirectToNowhere(request)
             }
         }
         
@@ -45,7 +46,7 @@ class BrowseURLProtocol: URLProtocol, NSURLConnectionDataDelegate {
     
     class func redirectToNowhere(_ originalRequest : URLRequest) -> URLRequest {
         
-        print("Blocked: \(originalRequest.url?.host ?? "Somewhere?")")
+        // print("🛑 Blocked: \(originalRequest.url?.host ?? "Somewhere?")")
         
         var newRequest = originalRequest
         let blank = "about:blank"
