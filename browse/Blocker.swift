@@ -18,12 +18,19 @@ class Blocker: NSObject {
 
     var sitesToBlock : Set<String>!
     
+    var isEnabled : Bool {
+        return Settings.shared.blockAds.isOn
+    }
+    
     override init() {
         super.init()
         sitesToBlock = loadSites()
     }
     
     func shouldBlock(_ url : URL) -> Bool {
+        
+        guard isEnabled else { return false }
+        
         if let host = url.host {
             let components = host.components(separatedBy: ".")
             

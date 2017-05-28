@@ -217,7 +217,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
 //        print("animate top")
         isTopAnimating = true
 
-        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
+        UIView.animate(withDuration: 0.4, delay: 0, options: .curveEaseInOut, animations: {
             if self.topDelta > 0 {
                 if style == .translate && self.topDelta > 0.6 {
                     self.wvc.statusBar.inner.transform  = .identity
@@ -251,7 +251,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         
         isBottomAnimating = true
         
-        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
+        UIView.animate(withDuration: 0.4, delay: 0, options: .curveEaseInOut, animations: {
             if self.bottomDelta > 0 {
                 if style == .translate && self.bottomDelta > 0.6 {
                     self.wvc.toolbarInner.transform = .identity

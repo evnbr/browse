@@ -26,6 +26,8 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
     ]
     
     var sender : WebViewController!
+    
+    lazy var settingsVC : SettingsViewController = SettingsViewController()
 
     
     private var table: UITableView!
@@ -38,15 +40,13 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.title = "Bookmarks"
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(
+        title = "Bookmarks"
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
             barButtonSystemItem: .done, target: self, action: #selector(dismissSelf))
         
-
-        let displayWidth: CGFloat = self.view.frame.width
-        let displayHeight: CGFloat = self.view.frame.height
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Settings", style: .plain, target: self, action: #selector(showSettings))
         
-        table = UITableView(frame: CGRect(x: 0, y: 0, width: displayWidth, height: displayHeight))
+        table = UITableView(frame:self.view.frame)
         table.register(UITableViewCell.self, forCellReuseIdentifier: "MyCell")
         table.dataSource = self
         table.delegate = self
@@ -57,6 +57,10 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
         self.dismiss(animated: true, completion: nil)
     }
     
+    func showSettings() {
+        navigationController?.pushViewController(settingsVC, animated: true)
+    }
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if sender != nil {
             dismissSelf()
@@ -65,13 +69,26 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
         }
     }
     
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+    
+    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
+        let remove = UITableViewRowAction(style: .destructive, title: "Remove", handler: { (action, indexPath) in
+            print("Remove \(indexPath.row)")
+        })
+        return [remove]
+    }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return bookmarks.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "MyCell", for: indexPath as IndexPath)
+        
         cell.textLabel!.text = "\(bookmarks[indexPath.row])"
+        
         return cell
     }
 

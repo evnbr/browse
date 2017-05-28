@@ -22,13 +22,18 @@ class BrowseURLProtocol: URLProtocol, NSURLConnectionDataDelegate {
             if scheme.caseInsensitiveCompare("http") == .orderedSame
             || scheme.caseInsensitiveCompare("https") == .orderedSame {
                 
-                // print("➡️ Request: \(request.url?.host ?? "Somewhere?")")
+//                print("➡️ Request: \(request.url?.host ?? "Somewhere?")")
 
                 if URLProtocol.property(forKey: KEY, in: request) != nil {
                     return false
                 }
                 
-                return true
+                if Blocker.shared.isEnabled {
+                    return true
+                }
+                else {
+                    return false
+                }
             }
         }
         return false
@@ -46,7 +51,7 @@ class BrowseURLProtocol: URLProtocol, NSURLConnectionDataDelegate {
     
     class func redirectToNowhere(_ originalRequest : URLRequest) -> URLRequest {
         
-        // print("🛑 Blocked: \(originalRequest.url?.host ?? "Somewhere?")")
+        print("🛑 Blocked: \(originalRequest.url?.host ?? "Somewhere?")")
         
         var newRequest = originalRequest
         let blank = "about:blank"
@@ -58,6 +63,7 @@ class BrowseURLProtocol: URLProtocol, NSURLConnectionDataDelegate {
     override func startLoading() {
         guard let mutableRequest = (self.request as NSURLRequest).mutableCopy() as? NSMutableURLRequest else {
             // Handle the error
+            print("couldn't make mutablerequest")
             return
         }
         URLProtocol.setProperty(true, forKey: KEY, in: mutableRequest)
@@ -70,7 +76,7 @@ class BrowseURLProtocol: URLProtocol, NSURLConnectionDataDelegate {
     }
     
     // MARK: - NSURLConnectionDelegate
-
+    // see https://github.com/buzzfeed/mattress/blob/master/Source/URLProtocol.swift for example with nsurlsession
 
     func connection(_ connection: NSURLConnection, didReceive response: URLResponse) -> Void {
         self.client!.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)

@@ -14,6 +14,9 @@
 		A92095801ED8CB34009497A2 /* BrowseURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A920957F1ED8CB34009497A2 /* BrowseURLProtocol.swift */; };
 		A92095821ED8FD7B009497A2 /* plowe.txt in Resources */ = {isa = PBXBuildFile; fileRef = A92095811ED8FD7B009497A2 /* plowe.txt */; };
 		A92095841ED90E7B009497A2 /* Blocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095831ED90E7B009497A2 /* Blocker.swift */; };
+		A92095861ED9E242009497A2 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095851ED9E241009497A2 /* SettingsViewController.swift */; };
+		A92095881ED9E3C0009497A2 /* SettingsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095871ED9E3C0009497A2 /* SettingsTableViewCell.swift */; };
+		A920958A1EDA6526009497A2 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095891EDA6526009497A2 /* Settings.swift */; };
 		A94FE41F1ECA5A7400ED48DB /* UIColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */; };
 		A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE4201ECA661700ED48DB /* Sampler.swift */; };
 		A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */; };
@@ -62,6 +65,9 @@
 		A920957F1ED8CB34009497A2 /* BrowseURLProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BrowseURLProtocol.swift; sourceTree = "<group>"; };
 		A92095811ED8FD7B009497A2 /* plowe.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = plowe.txt; sourceTree = "<group>"; };
 		A92095831ED90E7B009497A2 /* Blocker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Blocker.swift; sourceTree = "<group>"; };
+		A92095851ED9E241009497A2 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		A92095871ED9E3C0009497A2 /* SettingsTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsTableViewCell.swift; sourceTree = "<group>"; };
+		A92095891EDA6526009497A2 /* Settings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		A9446E9A1ECEBFC40082B4D9 /* Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Bridging-Header.h"; sourceTree = "<group>"; };
 		A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIColorExtensions.swift; sourceTree = "<group>"; };
 		A94FE4201ECA661700ED48DB /* Sampler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sampler.swift; sourceTree = "<group>"; };
@@ -137,6 +143,16 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		A920958D1EDAA714009497A2 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				A92095891EDA6526009497A2 /* Settings.swift */,
+				A92095851ED9E241009497A2 /* SettingsViewController.swift */,
+				A92095871ED9E3C0009497A2 /* SettingsTableViewCell.swift */,
+			);
+			name = Settings;
+			sourceTree = "<group>";
+		};
 		A97CB0631EC53DCC005DDBD1 = {
 			isa = PBXGroup;
 			children = (
@@ -172,6 +188,7 @@
 				A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */,
 				A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */,
 				A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */,
+				A920958D1EDAA714009497A2 /* Settings */,
 				A9446E9A1ECEBFC40082B4D9 /* Bridging-Header.h */,
 				A94FE4201ECA661700ED48DB /* Sampler.swift */,
 				A97CB0731EC53DCD005DDBD1 /* Main.storyboard */,
@@ -494,7 +511,10 @@
 				A92095841ED90E7B009497A2 /* Blocker.swift in Sources */,
 				A9E4859D1EC8D7BE0021D155 /* WebViewColorFetcher.swift in Sources */,
 				A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */,
+				A92095881ED9E3C0009497A2 /* SettingsTableViewCell.swift in Sources */,
 				A908920A1ED547C500A5E9BA /* LocationBar.swift in Sources */,
+				A920958A1EDA6526009497A2 /* Settings.swift in Sources */,
+				A92095861ED9E242009497A2 /* SettingsViewController.swift in Sources */,
 				A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */,
 				A92095801ED8CB34009497A2 /* BrowseURLProtocol.swift in Sources */,
 				A9B3176A1ED134CD00C71EBE /* SearchTextView.swift in Sources */,
