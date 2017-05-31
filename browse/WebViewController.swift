@@ -56,8 +56,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     
     var bookmarksController : WebNavigationController!
     
-    let customPresentAnimationController = CustomPresentAnimationController()
-
+    let customAnimationController = CustomAnimationController()
 
     // MARK: - Derived properties
 
@@ -342,10 +341,12 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     
     
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        return customPresentAnimationController
+        customAnimationController.direction = .present
+        return customAnimationController
     }
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        return nil
+        customAnimationController.direction = .dismiss
+        return customAnimationController
     }
 
 

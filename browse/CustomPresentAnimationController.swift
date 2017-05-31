@@ -7,46 +7,68 @@
 //
 //  Based on http://www.appcoda.com/custom-view-controller-transitions-tutorial/
 //  https://www.raywenderlich.com/146692/ios-animation-tutorial-custom-view-controller-presentation-transitions-2
+//
+//  TODO: the homeVC should present the webVC, its backwards now
 
 import UIKit
 
-class CustomPresentAnimationController: NSObject, UIViewControllerAnimatedTransitioning {
+enum CustomAnimationDirection {
+    case present
+    case dismiss
+}
+
+class CustomAnimationController: NSObject, UIViewControllerAnimatedTransitioning {
+    
+    var direction : CustomAnimationDirection!
+    
+    var isPresenting : Bool {
+        return direction == .present
+    }
+        
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         return 0.7
     }
     
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
         
-        let fromViewController = transitionContext.viewController(forKey: UITransitionContextViewControllerKey.from)!
-        let toViewController = transitionContext.viewController(forKey: UITransitionContextViewControllerKey.to)!
+        let fromVC = transitionContext.viewController(forKey: UITransitionContextViewControllerKey.from)!
+        let toVC = transitionContext.viewController(forKey: UITransitionContextViewControllerKey.to)!
         
         let containerView = transitionContext.containerView
         
-        let bookmarksVC = (toViewController as! UINavigationController).topViewController as! BookmarksViewController
+        let webVC = isPresenting ? fromVC : toVC
+        let homeVC = isPresenting ? toVC : fromVC
+        
+        let bookmarksVC = (homeVC as! UINavigationController).topViewController as! BookmarksViewController
         let thumb = bookmarksVC.thumb!
         thumb.isHidden = true
 
-        let snapshot : UIView = fromViewController.view.snapshotView(afterScreenUpdates: true)!
-        fromViewController.view.isHidden = true
+        let snapshot : UIView = webVC.view.snapshotView(afterScreenUpdates: true)!
+        webVC.view.isHidden = true
         
-        toViewController.view.alpha = 0.0
+        homeVC.view.alpha = isPresenting ? 0.0 : 1.0
 
         containerView.addSubview(snapshot)
-        containerView.addSubview(toViewController.view)
+        
+        if isPresenting {
+            containerView.addSubview(homeVC.view)
+        }
         
         let thumbFrame = containerView.convert(thumb.frame, from: thumb.superview) // must be after toVC is added
 
+        snapshot.frame = isPresenting ? webVC.view.frame : thumbFrame
+        
         containerView.bringSubview(toFront: snapshot)
         
         
         UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0.0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
             
-            snapshot.frame = thumbFrame
-            toViewController.view.alpha = 1.0
+            snapshot.frame = self.isPresenting ? thumbFrame : webVC.view.frame
+            homeVC.view.alpha = self.isPresenting ? 1.0 : 0.0
             
         }, completion: { finished in
             transitionContext.completeTransition(true)
-            fromViewController.view.isHidden = false
+            webVC.view.isHidden = false
             snapshot.removeFromSuperview()
             thumb.isHidden = false
         })

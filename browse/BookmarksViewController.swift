@@ -107,7 +107,7 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
     
     func updateSnapshot() {
         if snapshot != nil { snapshot.removeFromSuperview() }
-        snapshot = webViewController.view.superview?.snapshotView(afterScreenUpdates: true)! // note that this is superview to account for nav bars
+        snapshot = webViewController.navigationController?.view.snapshotView(afterScreenUpdates: true)! // note that this is navcontroller to account for nav bars. maybe change that?
         snapshot.frame = CGRect(origin: .zero, size: thumb.frame.size)
         thumb.addSubview(snapshot)
     }
@@ -123,7 +123,7 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
     }
     
     func dismissSelf() {
-        self.dismiss(animated: false, completion: nil)
+        self.dismiss(animated: true, completion: nil)
     }
     
     func showSettings() {
