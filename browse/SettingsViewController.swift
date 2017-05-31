@@ -17,6 +17,10 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
     
     private var table: UITableView!
     
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+
     override func loadView() {
         super.loadView()
         
@@ -26,7 +30,7 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
         super.viewDidLoad()
         
         self.title = "Settings"
-        
+                
         table = UITableView(frame: self.view.bounds, style: .grouped)
         table.allowsSelection = false
 //        table.register(SettingsTableViewCell.self, forCellReuseIdentifier: "SettingsCell")
@@ -34,6 +38,11 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
         table.dataSource = self
         table.delegate = self
         self.view.addSubview(table)
+        
+        view.backgroundColor = .black
+        table.backgroundColor = .black
+        
+        table.separatorColor = UIColor.white.withAlphaComponent(0.1)
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -63,14 +72,21 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
         let item = settings[indexPath.section][indexPath.row]
         
         cell.textLabel!.text = "\(item.title)"
-                
         cell.item = item
+        cell.backgroundColor = UIColor(white: 0.1, alpha: 1.0)
+        cell.textLabel?.textColor = .white
 
         if item.style == .toggle {
             let toggle = UISwitch()
             toggle.isOn = item.isOn
+            
+//            toggle.thumbTintColor = .darkGray
+//            toggle.onTintColor = .white
+            toggle.tintColor = UIColor.white.withAlphaComponent(0.1)
+            
             toggle.addTarget(cell, action: #selector(cell.toggleSwitch), for: .valueChanged)
             cell.accessoryView = toggle
+            
         }
 
     

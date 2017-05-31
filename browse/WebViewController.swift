@@ -33,7 +33,7 @@ extension URL {
     }
 }
 
-class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITextFieldDelegate, UIGestureRecognizerDelegate {
+class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITextFieldDelegate, UIGestureRecognizerDelegate, UIViewControllerTransitioningDelegate {
     
     var webView: WKWebView!
     
@@ -54,7 +54,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     var tabButton: UIBarButtonItem!
     var locationBar: LocationBar!
     
-    var bookmarksController : BookmarksViewController!
+    var bookmarksController : WebNavigationController!
+    
+    let customPresentAnimationController = CustomPresentAnimationController()
+
 
     // MARK: - Derived properties
 
@@ -68,10 +71,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     }
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        get {
-            guard webViewColor != nil else { return .default }
-            return webViewColor.top.isLight ? .lightContent : .default
-        }
+        guard webViewColor != nil else { return .default }
+        return webViewColor.top.isLight ? .lightContent : .default
     }
 
     var displayTitle : String {
@@ -161,7 +162,12 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         searchDismissScrim = makeScrim()
         view.addSubview(searchDismissScrim)
 
-        bookmarksController = BookmarksViewController()
+        let bc = BookmarksViewController()
+        bc.webViewController = self
+        bookmarksController = WebNavigationController(rootViewController: bc)
+//        bookmarksController.modalTransitionStyle = .crossDissolve
+//        bookmarksController.modalPresentationStyle = .overCurrentContext
+
         
         webViewColor = WebViewColorFetcher(from: webView, inViewController: self)
         
@@ -326,12 +332,23 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     // MARK: - Actions
 
     func displayBookmarks() {
-        
-        let navigationController = UINavigationController(rootViewController: bookmarksController)
-        bookmarksController.sender = self
+         
+        bookmarksController.modalPresentationStyle = .custom
+        bookmarksController.transitioningDelegate = self
 
-        present(navigationController, animated: true)
+        present(bookmarksController, animated: true)
+
     }
+    
+    
+    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        return customPresentAnimationController
+    }
+    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        return nil
+    }
+
+
     
     func displayURLMenu() {
         if !isFirstResponder {
