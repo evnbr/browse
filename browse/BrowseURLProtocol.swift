@@ -7,6 +7,10 @@
 //
 //  Based on https://www.raywenderlich.com/76735/using-nsurlprotocol-swift
 //  and https://github.com/WildDylan/WKWebViewWithURLProtocol/blob/master/Example/WKWebViewWithURLProtocol/URLProtocol.m
+//
+//  Note that we only handle requests with the custom protocol
+//  if we plan on blocking it. We should be able to pass through requests
+//  without blocking them, and only check in canonicalRequest, but it isn't working.
 
 import Foundation
 
@@ -29,11 +33,14 @@ class BrowseURLProtocol: URLProtocol, NSURLConnectionDataDelegate {
                 }
                 
                 if Blocker.shared.isEnabled {
-                    return true
+                    if let url = request.url { // TODO: if we check here we don't need to check in cannonicalRequest
+                        if Blocker.shared.shouldBlock(url) {
+                            return true
+                        }
+                    }
                 }
-                else {
-                    return false
-                }
+                
+                return false
             }
         }
         return false
