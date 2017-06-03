@@ -33,7 +33,7 @@ extension URL {
     }
 }
 
-class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UITextFieldDelegate, UIGestureRecognizerDelegate, UIViewControllerTransitioningDelegate {
+class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UIGestureRecognizerDelegate {
     
     var webView: WKWebView!
     
@@ -54,9 +54,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     var tabButton: UIBarButtonItem!
     var locationBar: LocationBar!
     
-    var bookmarksController : WebNavigationController!
+    var homeVC : HomeViewController!
     
-    let customAnimationController = CustomAnimationController()
 
     // MARK: - Derived properties
 
@@ -125,8 +124,37 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         
         // --
         
+        
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
+        
+//        let prefs = WKPreferences()
+//        prefs.javaScriptEnabled = false
+//        config.preferences = prefs
+        
+
+//        let scriptContent = ""
+//            + " document.documentElement.querySelectorAll('form').forEach((form) => {"
+//            + "  form.addEventListener('submit', (e) => {"
+//            + "     /* e.preventDefault(); */"
+//            + "     alert('form submitted');"
+//            + "  });"
+//            + " });"
+        
+//        let scriptContent = "document.head.querySelectorAll('script').forEach((s) => console.log(s.src))"
+//        let scriptContent = "document.documentElement.querySelectorAll('script').forEach((s) => console.log(s.src))"
+//        let scriptContent = "(function() { "
+//            + " var target = document.documentElement; "
+//            + " var observer = new MutationObserver(function(mutations) {"
+//            + "     mutations.forEach(function(mutation) {"
+//            + "         document.documentElement.querySelectorAll('script').forEach((s) => s.remove() )"
+//            + "     }); "
+//            + " }); "
+//            + " var config = { attributes: true, childList: true, characterData: true }; "
+//            + " observer.observe(target, config);"
+//            + " })(); "
+//        let script = WKUserScript(source: scriptContent, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+//        config.userContentController.addUserScript(script)
         
         let rect = CGRect(
             origin: CGPoint(x: 0, y: 20),
@@ -154,6 +182,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         NotificationCenter.default.addObserver(self, selector: #selector(updateProtocolRegistration), name: NSNotification.Name(rawValue: "adBlockSettingDidChange"), object: nil)
         
         toolbar = setUpToolbar()
+        view.addSubview(toolbar)
         
         statusBar = ColorStatusBarView()
         view.addSubview(statusBar)
@@ -163,9 +192,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         searchDismissScrim = makeScrim()
         view.addSubview(searchDismissScrim)
 
-        let bc = BookmarksViewController()
-        bc.webViewController = self
-        bookmarksController = WebNavigationController(rootViewController: bc)
+//        self.navigationController?.hidesBarsOnSwipe = true
+        
+//        let bc = BookmarksViewController()
+//        bc.webViewController = self
+//        bookmarksController = WebNavigationController(rootViewController: bc)
 //        bookmarksController.modalTransitionStyle = .crossDissolve
 //        bookmarksController.modalPresentationStyle = .overCurrentContext
 
@@ -182,8 +213,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
         toolbar.addGestureRecognizer(longPress)
 
-        // TODO: This breaks a few things (server redirects on medium, search on greenapple), not sure why
-        
+        updateProtocolRegistration()
         
         if let restored : String = restoreURL() {
             navigateToText(restored)
@@ -194,25 +224,15 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     }
     
     func updateProtocolRegistration() {
-        setIsProtocolRegistered(Settings.shared.blockAds.isOn) // TODO: subscribe to updates rather than override dismiss
+        let newValue : Bool = Settings.shared.blockAds.isOn
+        if newValue { registerProtocol()   }
+        else        { unregisterProtocol() }
     }
-    
-    func setIsProtocolRegistered(_ newValue: Bool) {
-        print("Setting custom protocol to: \(newValue)")
-        if newValue {
-            registerProtocol()
-        }
-        else {
-            unregisterProtocol()
-        }
-    }
-    
     func registerProtocol() {
          URLProtocol.wk_registerScheme("http")
          URLProtocol.wk_registerScheme("https")
          URLProtocol.registerClass(BrowseURLProtocol.self)
     }
-    
     func unregisterProtocol() {
         URLProtocol.wk_unregisterScheme("http")
         URLProtocol.wk_unregisterScheme("https")
@@ -240,7 +260,18 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     
     func setUpToolbar() -> UIToolbar {
         
-        let toolbar = (navigationController?.toolbar)!
+        // let toolbar = (navigationController?.toolbar)!
+        let toolbar = UIToolbar()
+        
+        let TOOLBAR_H : CGFloat = 36.0
+        
+        toolbar.frame = CGRect(
+            x: 0,
+            y: UIScreen.main.bounds.size.height - TOOLBAR_H,
+            width: UIScreen.main.bounds.size.width,
+            height: TOOLBAR_H
+        )
+        toolbar.autoresizingMask = [.flexibleTopMargin, .flexibleWidth]
         
         progressView = UIProgressView(progressViewStyle: .default)
         progressView.frame = CGRect(
@@ -255,8 +286,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         
         backButton = UIBarButtonItem(image: UIImage(named: "back"), style: .plain, target: webView, action: #selector(webView.goBack))
         forwardButton = UIBarButtonItem(image: UIImage(named: "fwd"), style: .plain, target: webView, action: #selector(webView.goForward))
-        let actionButton = UIBarButtonItem(image: UIImage(named: "action"), style: .plain, target: self, action: #selector(displayShareSheet))
-        tabButton = UIBarButtonItem(image: UIImage(named: "tab"), style: .plain, target: self, action: #selector(displayBookmarks))
+        let actionButton = UIBarButtonItem(image: UIImage(named: "action"), style: .plain, target: self, action: #selector(displayOverflow))
+        tabButton = UIBarButtonItem(image: UIImage(named: "tab"), style: .plain, target: self, action: #selector(dismissSelf))
         
         backButton.width = 48.0
         forwardButton.width = 48.0
@@ -275,8 +306,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         locationBar = LocationBar(onTap: self.displaySearch)
         let urlButton = UIBarButtonItem(customView: locationBar)
         
-        toolbarItems = [negSpace, backButton, forwardButton, flex, urlButton, flex, actionButton, tabButton, negSpace]
-        navigationController?.isToolbarHidden = false
+        toolbar.items = [negSpace, backButton, forwardButton, flex, urlButton, flex, actionButton, tabButton, negSpace]
+//        navigationController?.isToolbarHidden = false
         toolbar.isTranslucent = false
         toolbar.barTintColor = .white
         toolbar.tintColor = .darkText
@@ -304,14 +335,15 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     
     override func viewDidAppear(_ animated: Bool) {
         webView.scrollView.contentInset = .zero
-        
+        self.setNeedsStatusBarAppearanceUpdate()
+
         // disable mysterious delays
         // https://stackoverflow.com/questions/19799961/uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen
-        let window = view.window!
-        let gr0 = window.gestureRecognizers![0] as UIGestureRecognizer
-        let gr1 = window.gestureRecognizers![1] as UIGestureRecognizer
-        gr0.delaysTouchesBegan = false
-        gr1.delaysTouchesBegan = false
+//        let window = view.window!
+//        let gr0 = window.gestureRecognizers![0] as UIGestureRecognizer
+//        let gr1 = window.gestureRecognizers![1] as UIGestureRecognizer
+//        gr0.delaysTouchesBegan = false
+//        gr1.delaysTouchesBegan = false
         
     }
         
@@ -357,24 +389,22 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 
     // MARK: - Actions
 
-    func displayBookmarks() {
-         
-        bookmarksController.modalPresentationStyle = .custom
-        bookmarksController.transitioningDelegate = self
-
-        present(bookmarksController, animated: true)
-
+//    func displayBookmarks() {
+//         
+//        bookmarksController.modalPresentationStyle = .custom
+//        bookmarksController.transitioningDelegate = self
+//
+//        present(bookmarksController, animated: true)
+//
+//    }
+    
+    func dismissSelf() {
+        homeVC.updateSnapshot()
+        self.dismiss(animated: true, completion: nil)
     }
+
     
     
-    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        customAnimationController.direction = .present
-        return customAnimationController
-    }
-    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        customAnimationController.direction = .dismiss
-        return customAnimationController
-    }
 
 
     
@@ -475,6 +505,24 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         self.present(avc, animated: true, completion: nil)
     }
     
+    func displayOverflow() {
+        let ac = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        
+        ac.addAction(UIAlertAction(title: "Passwords", style: .default, handler: { action in
+            self.displayPassword()
+        }))
+        ac.addAction(UIAlertAction(title: "Share", style: .default, handler: { action in
+            self.displayShareSheet()
+        }))
+        ac.addAction(UIAlertAction(title: "Refresh", style: .default, handler: { action in
+            self.webView.reload()
+        }))
+        
+        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        
+        present(ac, animated: true, completion: nil)
+    }
+    
     func displayPassword() {
         OnePasswordExtension.shared().fillItem(intoWebView: self.webView, for: self, sender: nil, showOnlyLogins: true) { (success, error) -> Void in
             if success == false {
@@ -560,10 +608,18 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         self.present(alert, animated: true, completion: nil)
     }
     
+    func webViewDidClose(_ webView: WKWebView) {
+        print("Tried to close window")
+    }
+    
+    func webView(_ webView: WKWebView, didReceiveServerRedirectForProvisionalNavigation navigation: WKNavigation!) {
+        print("server redirect")
+    }
     
     // this handles target=_blank links by opening them in the same view
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         if navigationAction.targetFrame == nil {
+            print("Tried to open new window")
             webView.load(navigationAction.request)
         }
         return nil

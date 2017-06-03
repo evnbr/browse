@@ -20,11 +20,9 @@ class WebNavigationController: UINavigationController {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
-    override var childViewControllerForStatusBarStyle: UIViewController? {
-        get {
-           return topViewController
-        }
+        
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return visibleViewController?.preferredStatusBarStyle ?? .lightContent
     }
     
     /*

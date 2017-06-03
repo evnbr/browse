@@ -18,6 +18,7 @@
 		A92095881ED9E3C0009497A2 /* SettingsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095871ED9E3C0009497A2 /* SettingsTableViewCell.swift */; };
 		A920958A1EDA6526009497A2 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095891EDA6526009497A2 /* Settings.swift */; };
 		A920958F1EDF4AB8009497A2 /* CustomPresentAnimationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A920958E1EDF4AB8009497A2 /* CustomPresentAnimationController.swift */; };
+		A92095911EE34CDC009497A2 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095901EE34CDC009497A2 /* HomeViewController.swift */; };
 		A94FE41F1ECA5A7400ED48DB /* UIColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */; };
 		A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE4201ECA661700ED48DB /* Sampler.swift */; };
 		A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */; };
@@ -70,6 +71,7 @@
 		A92095871ED9E3C0009497A2 /* SettingsTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsTableViewCell.swift; sourceTree = "<group>"; };
 		A92095891EDA6526009497A2 /* Settings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		A920958E1EDF4AB8009497A2 /* CustomPresentAnimationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomPresentAnimationController.swift; sourceTree = "<group>"; };
+		A92095901EE34CDC009497A2 /* HomeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		A9446E9A1ECEBFC40082B4D9 /* Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Bridging-Header.h"; sourceTree = "<group>"; };
 		A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIColorExtensions.swift; sourceTree = "<group>"; };
 		A94FE4201ECA661700ED48DB /* Sampler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sampler.swift; sourceTree = "<group>"; };
@@ -182,6 +184,7 @@
 			children = (
 				A97CB06F1EC53DCD005DDBD1 /* AppDelegate.swift */,
 				A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */,
+				A92095901EE34CDC009497A2 /* HomeViewController.swift */,
 				A97CB0711EC53DCD005DDBD1 /* WebViewController.swift */,
 				A9E4859C1EC8D7BE0021D155 /* WebViewColorFetcher.swift */,
 				A90892091ED547C500A5E9BA /* LocationBar.swift */,
@@ -511,6 +514,7 @@
 				A97CB0721EC53DCD005DDBD1 /* WebViewController.swift in Sources */,
 				A908F04C1ECD03B800A74241 /* ColorStatusBarView.swift in Sources */,
 				A97CB0701EC53DCD005DDBD1 /* AppDelegate.swift in Sources */,
+				A92095911EE34CDC009497A2 /* HomeViewController.swift in Sources */,
 				A92095841ED90E7B009497A2 /* Blocker.swift in Sources */,
 				A9E4859D1EC8D7BE0021D155 /* WebViewColorFetcher.swift in Sources */,
 				A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */,

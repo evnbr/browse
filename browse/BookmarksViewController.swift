@@ -12,35 +12,26 @@ import UIKit
 class BookmarksViewController : UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     let bookmarks : Array<String> = [
-        "_",
         "apple.com",
         "figma.com",
         "hoverstat.es",
+        "medium.com",
+        "greenapplebooks.com",
         "amazon.com",
         "fonts.google.com",
         "flights.google.com",
         "maps.google.com",
         "plus.google.com",
         "wikipedia.org",
-        "theoutline.com",
-        "corndog.love",
-        "fonts.google.com",
-        "flights.google.com",
-        "maps.google.com",
-        "plus.google.com",
-        "wikipedia.org",
+        "theverge.com",
+        "framer.com",
+        "nytimes.com",
+        "bloomberg.com",
         "theoutline.com",
         "corndog.love",
     ]
     
-    var webViewController : WebViewController!
-    
-    var thumb : UIView!
-    var snapshot : UIView!
-    
-    
-    lazy var settingsVC : SettingsViewController = SettingsViewController()
-
+    var homeVC : HomeViewController!
     
     private var table: UITableView!
 
@@ -57,14 +48,13 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        title = "3 Tabs"
+        title = "Bookmarks"
         navigationController?.navigationBar.tintColor = .white
         navigationController?.navigationBar.barStyle = .blackTranslucent
 //        navigationController?.navigationBar.isTranslucent = false
 //        navigationController?.navigationBar.barTintColor = .clear
         
         
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Settings", style: .plain, target: self, action: #selector(showSettings))
         
         table = UITableView(frame:self.view.frame)
 //        table.contentInset = .init(top: 0, left: 0, bottom: 200, right: 0) // TODO: why?
@@ -96,29 +86,17 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
         toolbarItems = [flex, done]
 //        toolbarItems = [flex, tabButton, negSpace]
 
-        let aspect = UIScreen.main.bounds.width / UIScreen.main.bounds.height
-        thumb = UIView(frame: CGRect(x: 10, y: 10, width: 300 * aspect, height: 300) )
-        thumb.backgroundColor = .white
-        updateSnapshot()
-        
-        let thumbTap = UITapGestureRecognizer(target: self, action: #selector(dismissSelf))
-        thumb.addGestureRecognizer(thumbTap)
+
     }
     
-    func updateSnapshot() {
-        if snapshot != nil { snapshot.removeFromSuperview() }
-        snapshot = webViewController.navigationController?.view.snapshotView(afterScreenUpdates: true)! // note that this is navcontroller to account for nav bars. maybe change that?
-        snapshot.frame = CGRect(origin: .zero, size: thumb.frame.size)
-        thumb.addSubview(snapshot)
-    }
     
     override func viewWillAppear(_ animated: Bool) {
 //        table.setContentOffset(table.contentInset  , animated: false)
         table.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
-        updateSnapshot()
     }
     
     override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         self.setNeedsStatusBarAppearanceUpdate()
     }
     
@@ -126,20 +104,15 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
         self.dismiss(animated: true, completion: nil)
     }
     
-    func showSettings() {
-        navigationController?.pushViewController(settingsVC, animated: true)
-    }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if webViewController != nil {
-            dismissSelf()
+        if homeVC != nil {
+//            dismissSelf()
+            navigationController?.popToRootViewController(animated: true)
             table.deselectRow(at: indexPath, animated: true)
-            webViewController.navigateToText(bookmarks[indexPath.row])
+            homeVC.tab.navigateToText(bookmarks[indexPath.row])
+            homeVC.showTab()
         }
-    }
-    
-    func tableView(_ tableView: UITableView, shouldHighlightRowAt indexPath: IndexPath) -> Bool {
-        return indexPath.row != 0
     }
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
@@ -157,15 +130,6 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
         return bookmarks.count
     }
     
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        if indexPath.row == 0 {
-            return 320
-        }
-        else {
-           return table.rowHeight
-        }
-    }
-    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "MyCell", for: indexPath as IndexPath)
         for subview in cell.contentView.subviews { subview.removeFromSuperview() }
@@ -175,13 +139,9 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
         cell.backgroundColor = .clear
         
         let bv = UIView()
-        bv.backgroundColor = .black
+        bv.backgroundColor = UIColor(white: 0.2, alpha: 1)
         cell.selectedBackgroundView = bv
         
-        if indexPath.row == 0 {
-            cell.contentView.addSubview(thumb)
-        }
-
         return cell
     }
 

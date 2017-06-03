@@ -140,8 +140,8 @@ class SearchView: UIView, UITextViewDelegate {
             self.cancel.transform = CGAffineTransform(translationX: 60, y: 0)
             
             var frame = self.frame
-            frame.origin.y = frame.size.height - 44
-            frame.size.height = 44
+            frame.origin.y = frame.size.height - 36
+            frame.size.height = 36
             self.frame = frame
             
         }, completion: { completed in

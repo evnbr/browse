@@ -21,12 +21,12 @@ class CustomAnimationController: NSObject, UIViewControllerAnimatedTransitioning
     
     var direction : CustomAnimationDirection!
     
-    var isPresenting : Bool {
+    var isExpanding : Bool {
         return direction == .present
     }
         
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return 0.7
+        return 0.6
     }
     
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -36,35 +36,35 @@ class CustomAnimationController: NSObject, UIViewControllerAnimatedTransitioning
         
         let containerView = transitionContext.containerView
         
-        let webVC = isPresenting ? fromVC : toVC
-        let homeVC = isPresenting ? toVC : fromVC
+        let homeNav = isExpanding ? fromVC : toVC
+        let webVC = isExpanding ? toVC : fromVC
         
-        let bookmarksVC = (homeVC as! UINavigationController).topViewController as! BookmarksViewController
-        let thumb = bookmarksVC.thumb!
+        let homeVC = (homeNav as! UINavigationController).topViewController as! HomeViewController
+        let thumb = homeVC.thumb!
         thumb.isHidden = true
 
         let snapshot : UIView = webVC.view.snapshotView(afterScreenUpdates: true)!
         webVC.view.isHidden = true
         
-        homeVC.view.alpha = isPresenting ? 0.0 : 1.0
+        homeNav.view.alpha = isExpanding ? 1.0 : 0.0
 
         containerView.addSubview(snapshot)
         
-        if isPresenting {
-            containerView.addSubview(homeVC.view)
+        if isExpanding {
+            containerView.addSubview(webVC.view)
         }
         
         let thumbFrame = containerView.convert(thumb.frame, from: thumb.superview) // must be after toVC is added
 
-        snapshot.frame = isPresenting ? webVC.view.frame : thumbFrame
+        snapshot.frame = isExpanding ? thumbFrame : webVC.view.frame
         
         containerView.bringSubview(toFront: snapshot)
         
         
         UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0.0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
             
-            snapshot.frame = self.isPresenting ? thumbFrame : webVC.view.frame
-            homeVC.view.alpha = self.isPresenting ? 1.0 : 0.0
+            snapshot.frame = self.isExpanding ? webVC.view.frame : thumbFrame
+            homeNav.view.alpha = self.isExpanding ? 0.0 : 1.0
             
         }, completion: { finished in
             transitionContext.completeTransition(true)
