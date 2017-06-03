@@ -28,6 +28,9 @@ class SettingsItem : NSObject {
     var isOn: Bool {
         didSet {
             UserDefaults.standard.setValue(isOn, forKey: "settings_\(key)")
+            NotificationCenter.default.post(
+                name: NSNotification.Name(rawValue: "adBlockSettingDidChange"), // TODO: don't send for every switch!
+                object: nil)
         }
     }
     

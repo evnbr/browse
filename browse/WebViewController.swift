@@ -151,6 +151,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        NotificationCenter.default.addObserver(self, selector: #selector(updateProtocolRegistration), name: NSNotification.Name(rawValue: "adBlockSettingDidChange"), object: nil)
+        
         toolbar = setUpToolbar()
         
         statusBar = ColorStatusBarView()
@@ -180,9 +182,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
         toolbar.addGestureRecognizer(longPress)
 
-        URLProtocol.wk_registerScheme("http")
-        URLProtocol.wk_registerScheme("https")
-        URLProtocol.registerClass(BrowseURLProtocol.self)
+        // TODO: This breaks a few things (server redirects on medium, search on greenapple), not sure why
         
         
         if let restored : String = restoreURL() {
@@ -191,6 +191,32 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         else {
             navigateToText("fonts.google.com")
         }
+    }
+    
+    func updateProtocolRegistration() {
+        setIsProtocolRegistered(Settings.shared.blockAds.isOn) // TODO: subscribe to updates rather than override dismiss
+    }
+    
+    func setIsProtocolRegistered(_ newValue: Bool) {
+        print("Setting custom protocol to: \(newValue)")
+        if newValue {
+            registerProtocol()
+        }
+        else {
+            unregisterProtocol()
+        }
+    }
+    
+    func registerProtocol() {
+         URLProtocol.wk_registerScheme("http")
+         URLProtocol.wk_registerScheme("https")
+         URLProtocol.registerClass(BrowseURLProtocol.self)
+    }
+    
+    func unregisterProtocol() {
+        URLProtocol.wk_unregisterScheme("http")
+        URLProtocol.wk_unregisterScheme("https")
+        URLProtocol.unregisterClass(BrowseURLProtocol.self)
     }
     
     func makeScrim() -> UIScrollView {
@@ -286,8 +312,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         let gr1 = window.gestureRecognizers![1] as UIGestureRecognizer
         gr0.delaysTouchesBegan = false
         gr1.delaysTouchesBegan = false
+        
     }
-
+        
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
