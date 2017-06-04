@@ -33,7 +33,11 @@ extension URL {
     }
 }
 
-class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UIGestureRecognizerDelegate {
+let TOOLBAR_H : CGFloat = 40.0
+let STATUS_H : CGFloat = 20.0
+
+
+class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UIGestureRecognizerDelegate, UIActivityItemSource {
     
     var webView: WKWebView!
     
@@ -49,13 +53,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     var toolbarBack: UIView!
 
     var progressView: UIProgressView!
-    var backButton: UIBarButtonItem!
-    var forwardButton: UIBarButtonItem!
-    var tabButton: UIBarButtonItem!
+    var backButton: ToolbarIconButton!
+    var forwardButton: ToolbarIconButton!
+    var tabButton: ToolbarIconButton!
     var locationBar: LocationBar!
     
     var homeVC : HomeViewController!
     
+    var onePasswordExtensionItem : NSExtensionItem!
 
     // MARK: - Derived properties
 
@@ -71,6 +76,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     override var preferredStatusBarStyle: UIStatusBarStyle {
         guard webViewColor != nil else { return .default }
         return webViewColor.top.isLight ? .lightContent : .default
+    }
+    
+    override var prefersStatusBarHidden: Bool {
+        return false
     }
 
     var displayTitle : String {
@@ -156,11 +165,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 //        let script = WKUserScript(source: scriptContent, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
 //        config.userContentController.addUserScript(script)
         
+        
+        
+        
         let rect = CGRect(
-            origin: CGPoint(x: 0, y: 20),
+            origin: CGPoint(x: 0, y: STATUS_H),
             size:CGSize(
                 width: UIScreen.main.bounds.size.width,
-                height: UIScreen.main.bounds.size.height - 20
+                height: UIScreen.main.bounds.size.height - TOOLBAR_H - STATUS_H
             )
         )
 
@@ -263,8 +275,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         // let toolbar = (navigationController?.toolbar)!
         let toolbar = UIToolbar()
         
-        let TOOLBAR_H : CGFloat = 36.0
-        
         toolbar.frame = CGRect(
             x: 0,
             y: UIScreen.main.bounds.size.height - TOOLBAR_H,
@@ -284,15 +294,28 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         
         toolbar.addSubview(progressView)
         
-        backButton = UIBarButtonItem(image: UIImage(named: "back"), style: .plain, target: webView, action: #selector(webView.goBack))
-        forwardButton = UIBarButtonItem(image: UIImage(named: "fwd"), style: .plain, target: webView, action: #selector(webView.goForward))
-        let actionButton = UIBarButtonItem(image: UIImage(named: "action"), style: .plain, target: self, action: #selector(displayOverflow))
-        tabButton = UIBarButtonItem(image: UIImage(named: "tab"), style: .plain, target: self, action: #selector(dismissSelf))
+        backButton = ToolbarIconButton(
+            icon: UIImage(named: "back"),
+            onTap: { self.webView.goBack() }
+        )
+        forwardButton = ToolbarIconButton(
+            icon: UIImage(named: "fwd"),
+            onTap: { self.webView.goForward() }
+        )
+
+        let actionButton = ToolbarIconButton(
+            icon: UIImage(named: "action"),
+            onTap: displayOverflow
+        )
+        tabButton = ToolbarIconButton(
+            icon: UIImage(named: "tab"),
+            onTap: dismissSelf
+        )
         
-        backButton.width = 48.0
-        forwardButton.width = 48.0
-        actionButton.width = 48.0
-        tabButton.width = 48.0
+//        backButton.width = 48.0
+//        forwardButton.width = 48.0
+//        actionButton.width = 48.0
+//        tabButton.width = 48.0
         
         let flex = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let space = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
@@ -304,9 +327,20 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 //        let pwd = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(displayPassword))
         
         locationBar = LocationBar(onTap: self.displaySearch)
-        let urlButton = UIBarButtonItem(customView: locationBar)
         
-        toolbar.items = [negSpace, backButton, forwardButton, flex, urlButton, flex, actionButton, tabButton, negSpace]
+        let items : [UIBarButtonItem] = [
+            negSpace,
+            UIBarButtonItem(customView: backButton),
+            UIBarButtonItem(customView: forwardButton),
+            flex,
+            UIBarButtonItem(customView: locationBar),
+            flex,
+            UIBarButtonItem(customView: actionButton),
+            UIBarButtonItem(customView: tabButton),
+            negSpace
+        ]
+        toolbar.items = items
+        
 //        navigationController?.isToolbarHidden = false
         toolbar.isTranslucent = false
         toolbar.barTintColor = .white
@@ -457,8 +491,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         searchView.prepareToShow()
 
         let url = locationBar!
-        let back = self.backButton.value(forKey: "view") as! UIView
-        let tab = self.tabButton.value(forKey: "view") as! UIView
+        let back = backButton!
+        let tab = tabButton!
 
         UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
             self.searchDismissScrim.alpha = 1
@@ -482,8 +516,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 //        self.resignFirstResponder()
         
         let url = locationBar!
-        let back = self.backButton.value(forKey: "view") as! UIView
-        let tab = self.tabButton.value(forKey: "view") as! UIView
+        let back = backButton!
+        let tab = tabButton!
         
         url.transform  = CGAffineTransform(translationX: -30, y: startPoint.y)
         back.transform = CGAffineTransform(translationX: 0,   y: startPoint.y)
@@ -499,10 +533,65 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         })
     }
     
+    func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
+        return self.webView!.url!
+    }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType) -> Any? {
+        if OnePasswordExtension.shared().isOnePasswordExtensionActivityType(activityType.rawValue) {
+            // Return the 1Password extension item
+            return self.onePasswordExtensionItem
+        } else {
+            // Return the current URL
+            return self.webView!.url!
+        }
+        
+    }
+    
+    func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivityType?) -> String {
+        // Because of our UTI declaration, this UTI now satisfies both the 1Password Extension and the usual NSURL for Share extensions.
+        return "org.appextension.fill-browser-action"
+        
+    }
+
+    
     func displayShareSheet() {
-        let avc = UIActivityViewController(activityItems: [webView.url!], applicationActivities: nil)
         self.resignFirstResponder() // without this, action sheet dismiss animation won't go all the way
-        self.present(avc, animated: true, completion: nil)
+        
+    
+        
+        let onePass = OnePasswordExtension.shared()
+        
+        onePass.createExtensionItem(
+            forWebView: self.webView,
+            completion: { (extensionItem, error) in
+                if (extensionItem == nil) {
+                    print("Failed to create an extension item: \(String(describing: error))")
+                    return
+                }
+                self.onePasswordExtensionItem = extensionItem
+                
+                let activityItems : [Any] = [self, self.webView.url!]
+                
+                let avc = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+                
+                avc.excludedActivityTypes = [ .addToReadingList ]
+                
+                avc.completionWithItemsHandler = { (type, completed, returned, error) in
+                    if onePass.isOnePasswordExtensionActivityType(type?.rawValue) {
+                        if (returned != nil && returned!.count > 0) {
+                            onePass.fillReturnedItems(returned, intoWebView: self.webView, completion: {(success, error) in
+                                if !success {
+                                    print("Failed to fill into webview: \(String(describing: error))")
+                                }
+                            })
+                        }
+                    }
+                }
+                self.present(avc, animated: true, completion: nil)
+        })
+        
+        
     }
     
     func displayOverflow() {
@@ -524,11 +613,17 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     }
     
     func displayPassword() {
-        OnePasswordExtension.shared().fillItem(intoWebView: self.webView, for: self, sender: nil, showOnlyLogins: true) { (success, error) -> Void in
-            if success == false {
-                print("Failed to fill into webview: <\(String(describing: error))>")
+        OnePasswordExtension.shared().fillItem(
+            intoWebView: self.webView,
+            for: self,
+            sender: nil,
+            showOnlyLogins: true,
+            completion: { (success, error) in
+                if success == false {
+                    print("Failed to fill into webview: <\(String(describing: error))>")
+                }
             }
-        }
+        )
     }
 
 

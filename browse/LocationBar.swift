@@ -8,12 +8,11 @@
 
 import UIKit
 
-class LocationBar: UIControl {
+class LocationBar: ToolbarTouchView {
     
     var label = UILabel()
     var lock : UIImageView!
     var magnify : UIImageView!
-    var action: () -> Void
     
     private var shouldShowLock : Bool = false
 
@@ -24,11 +23,6 @@ class LocationBar: UIControl {
         set {
             label.text = newValue
             label.sizeToFit()
-            
-//            var newFrame = label.frame
-//            newFrame.origin.x = (isSearch || isSecure) ? 24 : 0
-//            label.frame = newFrame
-        
         }
     }
     
@@ -42,15 +36,6 @@ class LocationBar: UIControl {
         }
     }
     
-//    override var isSelected: Bool {
-//        get {
-//            return label.backgroundColor == UIColor.clear
-//        }
-//        set {
-//            label.backgroundColor = newValue ? UIColor.blue : UIColor.clear
-//        }
-//    }
-    
     var isSearch : Bool {
         get {
             return !magnify.isHidden
@@ -62,9 +47,7 @@ class LocationBar: UIControl {
     }
     
     init(onTap: @escaping () -> Void) {
-        action = onTap
-        super.init(frame: CGRect(x: 0, y: 0, width: 200, height: 44))
-        backgroundColor = .clear
+        super.init(frame: CGRect(x: 0, y: 0, width: 180, height: 40), onTap: onTap)
         
         let lockImage = UIImage(named: "lock")!.withRenderingMode(.alwaysTemplate)
         lock = UIImageView(image: lockImage)
@@ -73,7 +56,7 @@ class LocationBar: UIControl {
         magnify = UIImageView(image: magnifyImage)
 
         label.text = "Where to?"
-        label.font = UIFont.systemFont(ofSize: 15.0)
+        label.font = UIFont.systemFont(ofSize: 14.0)
         label.sizeToFit()
         
         
@@ -93,24 +76,9 @@ class LocationBar: UIControl {
         stackView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
         stackView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
 
-        
-        let tap = UITapGestureRecognizer(target: self, action: #selector(doAction))
-        tap.numberOfTapsRequired = 1
-        tap.isEnabled = true
-        tap.cancelsTouchesInView = false
-        
-        addGestureRecognizer(tap)
-        
-
         isSecure = false
-        isSecure = false
-//        sizeToFit()
+        isSearch = false
     }
-    
-    func doAction() {
-        action()
-    }
-    
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -118,29 +86,8 @@ class LocationBar: UIControl {
     
     
     override func tintColorDidChange() {
+        super.tintColorDidChange()
         label.textColor = tintColor
     }
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if touches.first != nil {
-            backgroundColor = UIColor.black.withAlphaComponent(0.08)
-        }
-    }
-    
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if touches.first != nil {
-            // do something with your currentPoint
-        }
-    }
-    
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if touches.first != nil {
-            
-            UIView.animate(withDuration: 0.2, delay: 0.1, animations: {
-                self.backgroundColor = .clear
-            })
-        }
-    }
-    
 
 }
