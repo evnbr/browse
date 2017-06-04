@@ -9,6 +9,8 @@
 import Foundation
 import UIKit
 
+let SEARCHVIEW_MAX_H : CGFloat = 160.0
+
 class SearchView: UIView, UITextViewDelegate {
     
     var webViewController : WebViewController!
@@ -59,7 +61,7 @@ class SearchView: UIView, UITextViewDelegate {
         textView.autocorrectionType = .no
 
         textView.delegate = self
-        textView.isScrollEnabled = false
+        textView.isScrollEnabled = true
 //        textView.layer.cornerRadius = 5.0
         
         textView.translatesAutoresizingMaskIntoConstraints = false
@@ -78,33 +80,43 @@ class SearchView: UIView, UITextViewDelegate {
         cancel.autoresizingMask = [.flexibleLeftMargin, .flexibleTopMargin]
         
         self.autoresizingMask = UIViewAutoresizing.flexibleHeight
-        let margin = Int(cancel.frame.size.width) + 28
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-8-[text]-\(margin)-|", options: [], metrics: nil, views: ["text": self.textView]))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-8-[text]-8-|", options: [], metrics: nil, views: ["text": self.textView]))
-
+        
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[text]-0-|", options: [], metrics: nil, views: ["text": self.textView]))
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[text]-0-|", options: [], metrics: nil, views: ["text": self.textView]))
+        let maxH = self.heightAnchor.constraint(lessThanOrEqualToConstant: SEARCHVIEW_MAX_H)
+        self.addConstraints([maxH])
+        
         updateSize()
     }
     
     func updateSize() {
         let fixedWidth = textView.frame.size.width
         
-        textView.textContainerInset = UIEdgeInsetsMake(5, 6, 5, 6)
-        textView.contentInset = .zero
+        let leftMargin = cancel.frame.size.width + 28
 
-        let newSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
+        textView.textContainerInset = UIEdgeInsetsMake(13, 14, 13, leftMargin)
+
+        let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
         var newFrame = textView.frame
-        newFrame.size = CGSize(width: max(newSize.width, fixedWidth), height: newSize.height)
-        textView.frame = newFrame;
         
+        let newHeight: CGFloat = min(fullTextSize.height, SEARCHVIEW_MAX_H)  // 80.0
+        textView.isScrollEnabled = fullTextSize.height > SEARCHVIEW_MAX_H
+        
+        newFrame.size = CGSize(width: max(fullTextSize.width, fixedWidth), height: newHeight)
+        textView.frame = newFrame;
+
         var frame = self.frame
-        frame.size.height = textView.frame.size.height + 16
+        frame.size.height = newFrame.size.height
         self.frame = frame
         
-        textView.invalidateIntrinsicContentSize()
+//        textView.invalidateIntrinsicContentSize()
+        self.invalidateIntrinsicContentSize()
     }
     
     override public var intrinsicContentSize: CGSize {
-        get { return frame.size }
+        get {
+            return frame.size
+        }
     }
 
     required init?(coder aDecoder: NSCoder) {
