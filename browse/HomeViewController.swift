@@ -10,7 +10,7 @@ import UIKit
 
 class HomeViewController: UIViewController, UIViewControllerTransitioningDelegate {
 
-    var thumb : UIView!
+    var thumb : TabThumbnail!
     var snapshot : UIView!
 
     let thumbAnimationController = CustomAnimationController()
@@ -24,6 +24,10 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
     }
+    override var prefersStatusBarHidden: Bool {
+        return false
+    }
+
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -42,7 +46,7 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
         
         let aspect = UIScreen.main.bounds.width / UIScreen.main.bounds.height
         let H : CGFloat = 300.0
-        thumb = UIView(frame: CGRect(x: 10, y: 100, width: aspect * H, height: H) )
+        thumb = TabThumbnail(frame: CGRect(x: 10, y: 100, width: aspect * H, height: H) )
         thumb.backgroundColor = .white
         updateSnapshot()
         view.addSubview(thumb)
@@ -67,7 +71,12 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
         if snapshot != nil { snapshot.removeFromSuperview() }
         snapshot = tab.view.snapshotView(afterScreenUpdates: true)
         snapshot.frame = CGRect(origin: .zero, size: thumb.frame.size)
+//        snapshot.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+        
         thumb.addSubview(snapshot)
+//        let h = NSLayoutConstraint(item: snapshot, attribute: .height, relatedBy: .equal, toItem: thumb, attribute: .height, multiplier: 1, constant: 1)
+//        let w = NSLayoutConstraint(item: snapshot, attribute: .width, relatedBy: .equal, toItem: thumb, attribute: .width, multiplier: 1, constant: 1)
+//        thumb.addConstraints([w, h])
     }
 
     
@@ -83,6 +92,7 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
     }
     
     func showTab() {
+        thumb.unSelect() // TODO this shou;d be somewhere else
         tab.modalPresentationStyle = .custom
         tab.transitioningDelegate = self
 
