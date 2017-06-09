@@ -16,7 +16,7 @@ import UIKit
 class Blocker: NSObject {
     static let shared = Blocker()
 
-    var sitesToBlock : Set<String>!
+    var hostsToBlock : Set<String>!
     
     var isEnabled : Bool {
         return Settings.shared.blockAds.isOn
@@ -24,7 +24,16 @@ class Blocker: NSObject {
     
     override init() {
         super.init()
-        sitesToBlock = loadSites()
+        hostsToBlock = loadHosts()
+    }
+    
+    func shouldBlockSocial(_ url : URL) -> Bool {
+        guard let host = url.host else { return false }
+        
+        if ( host.contains("facebook.com") || host.contains("twitter.com")) {
+            return true
+        }
+        return false
     }
     
     func shouldBlock(_ url : URL) -> Bool {
@@ -40,7 +49,7 @@ class Blocker: NSObject {
             let _ = components.reversed().reduce("", { result, elmt in
                 if hostIsBad { return result }
                 if result == "" { return elmt }
-                if sitesToBlock.contains(result) { hostIsBad = true }
+                if hostsToBlock.contains(result) { hostIsBad = true }
 
                 return elmt + "." + result
             })
@@ -49,7 +58,7 @@ class Blocker: NSObject {
         return false
     }
     
-    func loadSites() -> Set<String> {
+    func loadHosts() -> Set<String> {
         
         do {
             if let path = Bundle.main.path(forResource: "plowe", ofType: "txt"){

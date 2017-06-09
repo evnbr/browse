@@ -66,15 +66,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     var onePasswordExtensionItem : NSExtensionItem!
 
     // MARK: - Derived properties
-
-    // This enables docked inputaccessory and long-press edit menu
-    // http://stackoverflow.com/questions/19764293/inputaccessoryview-docked-at-bottom/23880574#23880574
-    override var canBecomeFirstResponder : Bool {
-        return true
-    }
-    override var inputAccessoryView:UIView{
-        get { return searchView }
-    }
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         guard webViewColor != nil else { return .default }
@@ -230,7 +221,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             navigateToText(restored)
         }
         else {
-            navigateToText("fonts.google.com")
+            navigateToText("evanbrooks.info")
         }
     }
         
@@ -375,6 +366,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         saveURL()
     }
     
+    func dismissSelf() {
+        homeVC.updateSnapshot()
+        self.dismiss(animated: true, completion: nil)
+    }
+
+    // MARK: - Restore State
+
+    
     func saveURL() {
         guard let url_str : String = webView.url?.absoluteString else { return }
         UserDefaults.standard.setValue(url_str, forKey: "current_url")
@@ -415,16 +414,21 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 //
 //    }
     
-    func dismissSelf() {
-        homeVC.updateSnapshot()
-        self.dismiss(animated: true, completion: nil)
+
+    
+    
+
+    // MARK: - Edit Menu / First Responder
+
+    // This enables docked inputaccessory and long-press edit menu
+    // http://stackoverflow.com/questions/19764293/inputaccessoryview-docked-at-bottom/23880574#23880574
+    override var canBecomeFirstResponder : Bool {
+        return true
+    }
+    override var inputAccessoryView:UIView{
+        get { return searchView }
     }
 
-    
-    
-
-
-    
     func displayURLMenu() {
         if !isFirstResponder {
             UIView.setAnimationsEnabled(false)
@@ -441,17 +445,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         }
     }
     
-    func copyURL() {
-        UIPasteboard.general.string = self.editableURL
-    }
-    
-    func pasteURLAndGo() {
-        hideSearch()
-        if let str = UIPasteboard.general.string {
-            navigateToText(str)
-        }
-    }
-
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
         if !isFirstResponder && action != #selector(pasteURLAndGo) {
             return false
@@ -467,6 +460,19 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             return false
         }
     }
+    
+    func copyURL() {
+        UIPasteboard.general.string = self.editableURL
+    }
+    
+    func pasteURLAndGo() {
+        hideSearch()
+        if let str = UIPasteboard.general.string {
+            navigateToText(str)
+        }
+    }
+
+    // MARK: - Search
     
     func displaySearch() {
         guard !UIMenuController.shared.isMenuVisible else { return }
@@ -515,6 +521,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             tab.transform  = .identity
         })
     }
+    
+    // MARK: - Share ActivityViewController and 1Password
     
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
         return self.webView!.url!
@@ -668,10 +676,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         webView.load(URLRequest(url: url))
     }
     
+    func isProbablyURL(_ text: String) -> Bool {
+        // TODO: Make more robust
+        return text.range(of:".") != nil && text.range(of:" ") == nil
+    }
+    
     func navigateToText(_ text: String) {
-        // TODO: More robust url detection
         
-        if ( text.range(of:".") != nil && text.range(of:" ") == nil ) {
+        if isProbablyURL(text) {
             if (text.hasPrefix("http://") || text.hasPrefix("https://")) {
                 let url = URL(string: text)!
                 if let btn = locationBar { btn.text = url.displayHost }
@@ -684,8 +696,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             }
         }
         else {
-            let query = text.addingPercentEncoding(
-                withAllowedCharacters: .urlHostAllowed)!
+            let query = text.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
             //            let searchURL = "https://duckduckgo.com/?q="
             let searchURL = "https://www.google.com/search?q="
             let url = URL(string: searchURL + query)!
@@ -714,7 +725,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 
         if overflowController != nil {
             updateStopRefreshAlertAction()
-//            ac.title = "Done loading"
         }
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = false

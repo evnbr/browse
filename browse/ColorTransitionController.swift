@@ -1,5 +1,5 @@
 //
-//  WebViewColorFetcher.swift
+//  ColorTransitionController.swift
 //  browse
 //
 //  Created by Evan Brooks on 5/14/17.
@@ -23,6 +23,7 @@ enum ColorTransitionStyle {
     case translate
 }
 
+let DURATION = 0.3
 
 class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
     
@@ -52,7 +53,7 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
     public var topDelta: Float = 0.0
     public var bottomDelta: Float = 0.0
     
-    var lastUpdatedColors : CFTimeInterval = 0.0
+    var lastSampledColorsTime : CFTimeInterval = 0.0
     var lastTopTransitionTime : CFTimeInterval = 0.0
     var lastBottomTransitionTime : CFTimeInterval = 0.0
     
@@ -61,9 +62,8 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
     private var wvc : WebViewController!
 
     public var isFranticallyChanging : Bool {
-        get {
-            return deltas.sum > 7.0
-        }
+        return false
+        // return deltas.sum > 7.0
     }
     
     init(from sourceWebView : WKWebView, inViewController vc : WebViewController) {
@@ -112,8 +112,8 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
         guard (wvc.isViewLoaded && (wvc.view.window != nil)) else { return }
         
         let now = CACurrentMediaTime()
-        guard ( now - lastUpdatedColors > MIN_TIME_BETWEEN_UPDATES )  else { return }
-        lastUpdatedColors = now
+        guard ( now - lastSampledColorsTime > MIN_TIME_BETWEEN_UPDATES )  else { return }
+        lastSampledColorsTime = now
 
         
         if !isTopAnimating && !isTopTransitionInteractive {
@@ -224,7 +224,7 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
 //        print("animate top")
         isTopAnimating = true
 
-        UIView.animate(withDuration: 0.4, delay: 0, options: .curveEaseInOut, animations: {
+        UIView.animate(withDuration: DURATION, delay: 0, options: .curveEaseInOut, animations: {
             if self.topDelta > 0 {
                 if style == .translate && self.topDelta > 0.6 {
                     self.wvc.statusBar.inner.transform  = .identity
@@ -254,7 +254,7 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
         
         isBottomAnimating = true
         
-        UIView.animate(withDuration: 0.4, delay: 0, options: .curveEaseInOut, animations: {
+        UIView.animate(withDuration: DURATION, delay: 0, options: .curveEaseInOut, animations: {
             if self.bottomDelta > 0 {
                 if style == .translate && self.bottomDelta > 0.6 {
                     self.wvc.toolbarInner.transform = .identity
@@ -466,15 +466,6 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
         }
     }
     
-//    func getColorAtTop() -> UIColor {
-//        let size = self.webView.bounds.size
-//        
-//        let colorAtTopLeft     = getColorAt( x: 5,                y: 1 )
-//        let colorAtTopRight    = getColorAt( x: size.width - 5,   y: 1 )
-//        
-//        return blendColors(colorAtTopLeft, colorAtTopRight)
-//    }
-    
     func getColorAtTopAsync(completion: @escaping (UIColor) -> Void ) {
         let size = self.webView.bounds.size
         
@@ -494,31 +485,7 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
             })
         })
     }
-    
-//    func getColorAtBottom() -> UIColor {
-//        let size = self.webView.bounds.size
-//
-//        let colorAtBottomLeft  = getColorAt( x: 2,                y: size.height - 2 )
-//        let colorAtBottomRight = getColorAt( x: size.width - 2,   y: size.height - 2 )
-//        
-//        if colorAtBottomLeft.difference(from: colorAtBottomRight) < 1 {
-//            return blendColors(
-//                colorAtBottomLeft,
-//                colorAtBottomRight
-//            )
-//        }
-//        else {
-//            let colorAtBottomLeftUp  = getColorAt( x: 2,                y: size.height - 24 )
-//            let colorAtBottomRightUp = getColorAt( x: size.width - 2,   y: size.height - 24 )
-//            
-//            return blendColors(
-//                colorAtBottomLeftUp,
-//                colorAtBottomLeft,
-//                colorAtBottomRightUp,
-//                colorAtBottomRight
-//            )
-//        }
-//    }
+
     
     func getColorAtBottomAsync(completion: @escaping (UIColor) -> Void) {
         let size = self.webView.bounds.size
