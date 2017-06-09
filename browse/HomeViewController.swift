@@ -13,7 +13,7 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
     var thumb : TabThumbnail!
     var snapshot : UIView!
 
-    let thumbAnimationController = CustomAnimationController()
+    let thumbAnimationController = PresentTabAnimationController()
 
     
     var tab : WebViewController!
@@ -35,9 +35,11 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
         tab = WebViewController()
         tab.homeVC = self
 
+        Settings.shared.updateProtocolRegistration()
+        
         navigationController?.navigationBar.tintColor = .white
         navigationController?.navigationBar.barStyle = .blackTranslucent
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Settings", style: .plain, target: self, action: #selector(showSettings))
+//        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Settings", style: .plain, target: self, action: #selector(showSettings))
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Bookmarks", style: .plain, target: self, action: #selector(showBookmarks))
 
         view.backgroundColor = .black
@@ -45,15 +47,16 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
         title = "Browser"
         
         let aspect = UIScreen.main.bounds.width / UIScreen.main.bounds.height
-        let H : CGFloat = 300.0
+        let H : CGFloat = 400.0
         thumb = TabThumbnail(frame: CGRect(x: 10, y: 100, width: aspect * H, height: H) )
         thumb.backgroundColor = .white
         updateSnapshot()
         view.addSubview(thumb)
         
-        let thumbTap = UITapGestureRecognizer(target: self, action: #selector(showTab))
+        let thumbTap = UITapGestureRecognizer(target: self, action: #selector(showTabAnimated))
         thumb.addGestureRecognizer(thumbTap)
         
+        showTab(animated: false)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -91,12 +94,16 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
         navigationController?.pushViewController(bookmarksVC, animated: true)
     }
     
-    func showTab() {
+    func showTabAnimated() {
+            showTab(animated: true)
+    }
+    
+    func showTab(animated: Bool = true) {
         thumb.unSelect() // TODO this shou;d be somewhere else
         tab.modalPresentationStyle = .custom
         tab.transitioningDelegate = self
 
-        present(tab, animated: true)
+        present(tab, animated: animated)
     }
 
     

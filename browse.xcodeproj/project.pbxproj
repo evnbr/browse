@@ -17,7 +17,7 @@
 		A92095861ED9E242009497A2 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095851ED9E241009497A2 /* SettingsViewController.swift */; };
 		A92095881ED9E3C0009497A2 /* SettingsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095871ED9E3C0009497A2 /* SettingsTableViewCell.swift */; };
 		A920958A1EDA6526009497A2 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095891EDA6526009497A2 /* Settings.swift */; };
-		A920958F1EDF4AB8009497A2 /* CustomPresentAnimationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A920958E1EDF4AB8009497A2 /* CustomPresentAnimationController.swift */; };
+		A920958F1EDF4AB8009497A2 /* PresentTabAnimationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A920958E1EDF4AB8009497A2 /* PresentTabAnimationController.swift */; };
 		A92095911EE34CDC009497A2 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095901EE34CDC009497A2 /* HomeViewController.swift */; };
 		A92095931EE36483009497A2 /* TabThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095921EE36483009497A2 /* TabThumbnail.swift */; };
 		A92095951EE3E0DA009497A2 /* ToolbarTouchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095941EE3E0DA009497A2 /* ToolbarTouchView.swift */; };
@@ -34,7 +34,7 @@
 		A97CB0851EC53DCD005DDBD1 /* browseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97CB0841EC53DCD005DDBD1 /* browseTests.swift */; };
 		A97CB0901EC53DCD005DDBD1 /* browseUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97CB08F1EC53DCD005DDBD1 /* browseUITests.swift */; };
 		A9B3176A1ED134CD00C71EBE /* SearchTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B317691ED134CD00C71EBE /* SearchTextView.swift */; };
-		A9E4859D1EC8D7BE0021D155 /* WebViewColorFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E4859C1EC8D7BE0021D155 /* WebViewColorFetcher.swift */; };
+		A9E4859D1EC8D7BE0021D155 /* ColorTransitionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E4859C1EC8D7BE0021D155 /* ColorTransitionController.swift */; };
 		E7FD11F16B9CF60BCBD3DD19 /* Pods_browseTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C40CC59AFABD40322DFCDDD7 /* Pods_browseTests.framework */; };
 		F64D20A87990C82DA660E905 /* Pods_browse.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7CBD4E92318735B3DA34E02 /* Pods_browse.framework */; };
 /* End PBXBuildFile section */
@@ -73,7 +73,7 @@
 		A92095851ED9E241009497A2 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		A92095871ED9E3C0009497A2 /* SettingsTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsTableViewCell.swift; sourceTree = "<group>"; };
 		A92095891EDA6526009497A2 /* Settings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
-		A920958E1EDF4AB8009497A2 /* CustomPresentAnimationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomPresentAnimationController.swift; sourceTree = "<group>"; };
+		A920958E1EDF4AB8009497A2 /* PresentTabAnimationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PresentTabAnimationController.swift; sourceTree = "<group>"; };
 		A92095901EE34CDC009497A2 /* HomeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		A92095921EE36483009497A2 /* TabThumbnail.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TabThumbnail.swift; sourceTree = "<group>"; };
 		A92095941EE3E0DA009497A2 /* ToolbarTouchView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToolbarTouchView.swift; sourceTree = "<group>"; };
@@ -97,7 +97,7 @@
 		A97CB08F1EC53DCD005DDBD1 /* browseUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = browseUITests.swift; sourceTree = "<group>"; };
 		A97CB0911EC53DCD005DDBD1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A9B317691ED134CD00C71EBE /* SearchTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchTextView.swift; sourceTree = "<group>"; };
-		A9E4859C1EC8D7BE0021D155 /* WebViewColorFetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebViewColorFetcher.swift; sourceTree = "<group>"; };
+		A9E4859C1EC8D7BE0021D155 /* ColorTransitionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorTransitionController.swift; sourceTree = "<group>"; };
 		C40CC59AFABD40322DFCDDD7 /* Pods_browseTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_browseTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAFEEFBF73AF0DFBC3AD7745 /* Pods-browse.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-browse.debug.xcconfig"; path = "Pods/Target Support Files/Pods-browse/Pods-browse.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -192,7 +192,7 @@
 				A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */,
 				A92095901EE34CDC009497A2 /* HomeViewController.swift */,
 				A97CB0711EC53DCD005DDBD1 /* WebViewController.swift */,
-				A9E4859C1EC8D7BE0021D155 /* WebViewColorFetcher.swift */,
+				A9E4859C1EC8D7BE0021D155 /* ColorTransitionController.swift */,
 				A90892091ED547C500A5E9BA /* LocationBar.swift */,
 				A92095941EE3E0DA009497A2 /* ToolbarTouchView.swift */,
 				A92095961EE3E2AF009497A2 /* ToolbarIconButton.swift */,
@@ -210,7 +210,7 @@
 				A97CB0781EC53DCD005DDBD1 /* LaunchScreen.storyboard */,
 				A97CB07B1EC53DCD005DDBD1 /* Info.plist */,
 				A920957F1ED8CB34009497A2 /* BrowseURLProtocol.swift */,
-				A920958E1EDF4AB8009497A2 /* CustomPresentAnimationController.swift */,
+				A920958E1EDF4AB8009497A2 /* PresentTabAnimationController.swift */,
 				A92095831ED90E7B009497A2 /* Blocker.swift */,
 				A92095811ED8FD7B009497A2 /* plowe.txt */,
 			);
@@ -528,10 +528,10 @@
 				A97CB0701EC53DCD005DDBD1 /* AppDelegate.swift in Sources */,
 				A92095911EE34CDC009497A2 /* HomeViewController.swift in Sources */,
 				A92095841ED90E7B009497A2 /* Blocker.swift in Sources */,
-				A9E4859D1EC8D7BE0021D155 /* WebViewColorFetcher.swift in Sources */,
+				A9E4859D1EC8D7BE0021D155 /* ColorTransitionController.swift in Sources */,
 				A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */,
 				A92095881ED9E3C0009497A2 /* SettingsTableViewCell.swift in Sources */,
-				A920958F1EDF4AB8009497A2 /* CustomPresentAnimationController.swift in Sources */,
+				A920958F1EDF4AB8009497A2 /* PresentTabAnimationController.swift in Sources */,
 				A908920A1ED547C500A5E9BA /* LocationBar.swift in Sources */,
 				A920958A1EDA6526009497A2 /* Settings.swift in Sources */,
 				A92095861ED9E242009497A2 /* SettingsViewController.swift in Sources */,

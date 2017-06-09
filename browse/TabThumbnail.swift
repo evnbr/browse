@@ -10,6 +10,16 @@ import UIKit
 
 class TabThumbnail: UIView {
 
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        layer.cornerRadius = 5.0
+        clipsToBounds = true
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if touches.first != nil {
             UIView.animate(withDuration: 0.15, animations: {
