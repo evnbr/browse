@@ -24,7 +24,7 @@ enum ColorTransitionStyle {
 }
 
 
-class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
+class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
     
     let TOOLBAR_H : CGFloat = 48.0
     let STATUS_H : CGFloat = 22.0
@@ -109,6 +109,7 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         
 //        guard !self.isPanning else { return }
         guard UIApplication.shared.applicationState == .active else { return }
+        guard (wvc.isViewLoaded && (wvc.view.window != nil)) else { return }
         
         let now = CACurrentMediaTime()
         guard ( now - lastUpdatedColors > MIN_TIME_BETWEEN_UPDATES )  else { return }
@@ -149,10 +150,12 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
             wvc.statusBar.inner.isHidden = false
             wvc.statusBar.inner.backgroundColor = self.top
         }
+        
         if isPanning && !isTopTransitionInteractive && self.topDelta > 0.6 {
             topInteractiveTransitionStart()
             return
         }
+        
         if self.isFranticallyChanging {
             wvc.statusBar.back.backgroundColor = .black
             wvc.setNeedsStatusBarAppearanceUpdate()
@@ -203,6 +206,10 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         self.wvc.toolbarBack.backgroundColor = self.bottom
         self.wvc.toolbarInner.isHidden = true
         
+        self.wvc.progressView.progressTintColor = self.bottom.isLight
+            ? UIColor.white.withAlphaComponent(0.2)
+            : UIColor.black.withAlphaComponent(0.08)
+        
         let newTint : UIColor = self.bottom.isLight ? .white : .darkText
         if self.wvc.toolbar.tintColor != newTint {
             UIView.animate(withDuration: 0.2) {
@@ -244,10 +251,6 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
 
     func animateBottomEndState(_ style : ColorTransitionStyle) {
 //        let shouldThrottleBottom = true//CACurrentMediaTime() - lastBottomTransitionTime < 1.0
-        
-        wvc.progressView.progressTintColor = self.bottom.isLight
-            ? UIColor.white.withAlphaComponent(0.2)
-            : UIColor.black.withAlphaComponent(0.08)
         
         isBottomAnimating = true
         
@@ -370,8 +373,8 @@ class WebViewColorFetcher : NSObject, UIGestureRecognizerDelegate {
         wvc.statusBar.inner.transform = CGAffineTransform(translationX: 0, y: clampedY)
 
         // TODO only trigger at 50%, only if there is a change, make cancelable
-        if progress > 0.5 {
-            UIView.animate(withDuration: 0.5) {
+        if progress > 0.2 {
+            UIView.animate(withDuration: 0.3) {
                 self.wvc.setNeedsStatusBarAppearanceUpdate()
             }
         }

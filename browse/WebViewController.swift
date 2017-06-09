@@ -44,7 +44,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     var searchView: SearchView!
     var searchDismissScrim: UIScrollView!
     
-    var webViewColor: WebViewColorFetcher!
+    var webViewColor: ColorTransitionController!
     
     var statusBar: ColorStatusBarView!
     
@@ -57,6 +57,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     var forwardButton: ToolbarIconButton!
     var tabButton: ToolbarIconButton!
     var locationBar: LocationBar!
+    
+    var overflowController: UIAlertController!
+    var stopRefreshAlertAction: UIAlertAction!
     
     var homeVC : HomeViewController!
     
@@ -190,9 +193,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(updateProtocolRegistration), name: NSNotification.Name(rawValue: "adBlockSettingDidChange"), object: nil)
-        
+                
         toolbar = setUpToolbar()
         view.addSubview(toolbar)
         
@@ -213,7 +214,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 //        bookmarksController.modalPresentationStyle = .overCurrentContext
 
         
-        webViewColor = WebViewColorFetcher(from: webView, inViewController: self)
+        webViewColor = ColorTransitionController(from: webView, inViewController: self)
         
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.isLoading), options: .new, context: nil)
@@ -224,8 +225,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
         toolbar.addGestureRecognizer(longPress)
-
-        updateProtocolRegistration()
         
         if let restored : String = restoreURL() {
             navigateToText(restored)
@@ -234,23 +233,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             navigateToText("fonts.google.com")
         }
     }
-    
-    func updateProtocolRegistration() {
-        let newValue : Bool = Settings.shared.blockAds.isOn
-        if newValue { registerProtocol()   }
-        else        { unregisterProtocol() }
-    }
-    func registerProtocol() {
-         URLProtocol.wk_registerScheme("http")
-         URLProtocol.wk_registerScheme("https")
-         URLProtocol.registerClass(BrowseURLProtocol.self)
-    }
-    func unregisterProtocol() {
-        URLProtocol.wk_unregisterScheme("http")
-        URLProtocol.wk_unregisterScheme("https")
-        URLProtocol.unregisterClass(BrowseURLProtocol.self)
-    }
-    
+        
     func makeScrim() -> UIScrollView {
         let scrim = UIScrollView(frame: UIScreen.main.bounds)
         scrim.autoresizingMask = [.flexibleHeight, .flexibleWidth]
@@ -289,7 +272,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             size:CGSize(width: UIScreen.main.bounds.size.width, height:4)
         )
         progressView.trackTintColor = UIColor.white.withAlphaComponent(0)
-        progressView.progressTintColor = UIColor.white.withAlphaComponent(0.3)
+        progressView.progressTintColor = UIColor.black.withAlphaComponent(0.08)
         progressView.transform = progressView.transform.scaledBy(x: 1, y: 22)
         
         toolbar.addSubview(progressView)
@@ -594,8 +577,57 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         
     }
     
+    func updateStopRefreshAlertAction() {
+        if webView.isLoading {
+            stopRefreshAlertAction.setValue("Stop", forKey: "title")
+//            stopRefreshAlertAction.setValue(UIAlertActionStyle.destructive.rawValue, forKey: "style")
+
+//            stopRefreshAlertAction.title = "Stop"
+//            stopRefreshAlertAction.style = .destructive
+        }
+        else {
+            stopRefreshAlertAction.setValue("Refresh", forKey: "title")
+//            stopRefreshAlertAction.setValue(UIAlertActionStyle.default.rawValue, forKey: "style")
+//            overflowController.dismiss(animated: false, completion: nil)
+//            present(overflowController, animated: false, completion: nil)
+        }
+        
+        overflowController.view.setNeedsLayout()
+        
+//        let viewVal = stopRefreshAlertAction.value(forKey: "view")
+//        if viewVal != nil {
+//            let view : UIView = viewVal as! UIView
+//            view.setNeedsDisplay()
+//        }
+
+    }
+    
+    func stopOrRefresh(_ action : UIAlertAction) {
+        if webView.isLoading {
+            self.webView.stopLoading()
+        }
+        else {
+            self.webView.reload()
+        }
+    }
+    
     func displayOverflow() {
-        let ac = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        
+        let ac = UIAlertController(title: title, message: nil, preferredStyle: .actionSheet)
+        self.overflowController = ac
+        
+        if Settings.shared.blockAds.isOn {
+            ac.addAction(UIAlertAction(title: "Stop Blocking Ads", style: .destructive, handler: { action in
+                Settings.shared.blockAds.isOn = false
+                self.webView.reload()
+            }))
+        }
+        else {
+            ac.addAction(UIAlertAction(title: "Block Ads", style: .destructive, handler: { action in
+                Settings.shared.blockAds.isOn = true
+                self.webView.reload()
+            }))
+        }
         
         ac.addAction(UIAlertAction(title: "Passwords", style: .default, handler: { action in
             self.displayPassword()
@@ -603,9 +635,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         ac.addAction(UIAlertAction(title: "Share", style: .default, handler: { action in
             self.displayShareSheet()
         }))
-        ac.addAction(UIAlertAction(title: "Refresh", style: .default, handler: { action in
-            self.webView.reload()
-        }))
+        
+        stopRefreshAlertAction = UIAlertAction(title: "_", style: .default, handler: stopOrRefresh)
+        updateStopRefreshAlertAction()
+        ac.addAction(stopRefreshAlertAction)
+        
         
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         
@@ -678,6 +712,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         locationBar.isSecure = webView.hasOnlySecureContent
         locationBar.isSearch = isSearching
 
+        if overflowController != nil {
+            updateStopRefreshAlertAction()
+//            ac.title = "Done loading"
+        }
+        
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
     }
 
