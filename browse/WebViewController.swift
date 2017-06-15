@@ -33,11 +33,11 @@ extension URL {
     }
 }
 
-let TOOLBAR_H : CGFloat = 40.0
+let TOOLBAR_H : CGFloat = 36.0
 let STATUS_H : CGFloat = 20.0
 
 
-class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UIGestureRecognizerDelegate, UIActivityItemSource {
+class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UIGestureRecognizerDelegate, UIActivityItemSource, UIScrollViewDelegate {
     
     var webView: WKWebView!
     
@@ -47,10 +47,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     var webViewColor: ColorTransitionController!
     
     var statusBar: ColorStatusBarView!
-    
-    var toolbar: UIToolbar!
-    var toolbarInner: UIView!
-    var toolbarBack: UIView!
+    var toolbar: ColorToolbar!
 
     var progressView: UIProgressView!
     var backButton: ToolbarIconButton!
@@ -69,6 +66,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         guard webViewColor != nil else { return .default }
+        print("Getting status bar | dismissing: \(isInteractiveDismiss), isLight: \(webViewColor.top.isLight)")
+        if isInteractiveDismiss && view.frame.origin.y > 15 {
+            return .lightContent
+        }
         return webViewColor.top.isLight ? .lightContent : .default
     }
     
@@ -78,7 +79,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 
     var displayTitle : String {
         get {
-            let url = webView.url!
+            guard let url = webView.url else { return "Where to?" }
             if isSearching { return makeDisplaySearch(url.searchQuery) }
             else { return displayURL }
         }
@@ -173,18 +174,32 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         webView = WKWebView(frame: rect, configuration: config)
         webView.navigationDelegate = self
         webView.uiDelegate = self  // req'd for target=_blank override
+        webView.scrollView.delegate = self
+        
         webView.allowsBackForwardNavigationGestures = true
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         webView.scrollView.contentInset = .zero
         webView.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
 
+//        webView.clipsToBounds = false
+//        webView.scrollView.layer.masksToBounds = false
+//        webView.scrollView.backgroundColor = .clear
+        
         view.addSubview(webView)
     }
     
 
     override func viewDidLoad() {
         super.viewDidLoad()
-                
+        
+        
+        view.layer.cornerRadius = 4.0
+        view.layer.masksToBounds = true
+//        webView.layer.cornerRadius = 4.0
+//        webView.layer.masksToBounds = true
+        
+        
+        
         toolbar = setUpToolbar()
         view.addSubview(toolbar)
         
@@ -208,11 +223,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         webViewColor = ColorTransitionController(from: webView, inViewController: self)
         
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
-        webView.addObserver(self, forKeyPath: #keyPath(WKWebView.isLoading), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.title), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.url), options: .new, context: nil)
 
-        
+        let dismissPanner = UIPanGestureRecognizer()
+        dismissPanner.delegate = self
+        dismissPanner.addTarget(self, action: #selector(self.dismissPan))
+        dismissPanner.cancelsTouchesInView = true
+        view.addGestureRecognizer(dismissPanner)
 
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
         toolbar.addGestureRecognizer(longPress)
@@ -223,6 +241,27 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         else {
             navigateToText("evanbrooks.info")
         }
+        
+//        makeSuperTitle()
+    }
+    
+    var topWindow : UIWindow!
+    var topLabel : UILabel!
+    func makeSuperTitle() {
+        topWindow = UIWindow(frame: self.statusBar.frame)
+        topWindow.windowLevel = UIWindowLevelStatusBar + 1
+        
+        topLabel = UILabel()
+        topLabel.text = "apple.com"
+//        topLabel.font = UIFont.systemFont(ofSize: 12.0)
+        topLabel.font = UIFont.systemFont(ofSize: 12.0, weight: UIFontWeightSemibold)
+        topLabel.backgroundColor = .red
+        topLabel.frame = CGRect(x: 0, y: 0, width: 290, height: STATUS_H)
+        topLabel.center = topWindow.center
+        topLabel.textAlignment = .center
+        
+        topWindow.addSubview(topLabel)
+        topWindow.isHidden = false
     }
         
     func makeScrim() -> UIScrollView {
@@ -244,26 +283,23 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     }
     
     
-    func setUpToolbar() -> UIToolbar {
+    func setUpToolbar() -> ColorToolbar {
         
         // let toolbar = (navigationController?.toolbar)!
-        let toolbar = UIToolbar()
-        
-        toolbar.frame = CGRect(
+        let toolbar = ColorToolbar(frame: CGRect(
             x: 0,
             y: UIScreen.main.bounds.size.height - TOOLBAR_H,
             width: UIScreen.main.bounds.size.width,
             height: TOOLBAR_H
-        )
-        toolbar.autoresizingMask = [.flexibleTopMargin, .flexibleWidth]
-        
+        ))
+                
         progressView = UIProgressView(progressViewStyle: .default)
         progressView.frame = CGRect(
             origin: CGPoint(x: 0, y: 21),
             size:CGSize(width: UIScreen.main.bounds.size.width, height:4)
         )
         progressView.trackTintColor = UIColor.white.withAlphaComponent(0)
-        progressView.progressTintColor = UIColor.black.withAlphaComponent(0.08)
+        progressView.progressTintColor = UIColor.lightOverlay
         progressView.transform = progressView.transform.scaledBy(x: 1, y: 22)
         
         toolbar.addSubview(progressView)
@@ -285,11 +321,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             icon: UIImage(named: "tab"),
             onTap: dismissSelf
         )
+        tabButton.isHidden = true
         
-//        backButton.width = 48.0
-//        forwardButton.width = 48.0
-//        actionButton.width = 48.0
-//        tabButton.width = 48.0
         
         let flex = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let space = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
@@ -297,8 +330,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         
         space.width = 16.0
         negSpace.width = -16.0
-        
-//        let pwd = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(displayPassword))
         
         locationBar = LocationBar(onTap: self.displaySearch)
         
@@ -309,32 +340,12 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             flex,
             UIBarButtonItem(customView: locationBar),
             flex,
-            UIBarButtonItem(customView: actionButton),
             UIBarButtonItem(customView: tabButton),
+            UIBarButtonItem(customView: actionButton),
             negSpace
         ]
         toolbar.items = items
         
-//        navigationController?.isToolbarHidden = false
-        toolbar.isTranslucent = false
-        toolbar.barTintColor = .white
-        toolbar.tintColor = .darkText
-        
-        toolbarInner = UIView()
-        toolbarInner.frame = toolbar.bounds
-        toolbarInner.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        toolbarInner.backgroundColor = .white
-        toolbar.addSubview(toolbarInner)
-        toolbar.sendSubview(toBack: toolbarInner)
-        
-        toolbarBack = UIView()
-        toolbarBack.frame = toolbar.bounds
-        toolbarBack.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        toolbarBack.backgroundColor = .white
-        toolbar.addSubview(toolbarBack)
-        toolbar.sendSubview(toBack: toolbarBack)
-
-        toolbar.clipsToBounds = true
         
         return toolbar
     }
@@ -367,7 +378,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     }
     
     func dismissSelf() {
-        homeVC.updateSnapshot()
         self.dismiss(animated: true, completion: nil)
     }
 
@@ -395,12 +405,72 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     
     func longPressURL(recognizer: UIGestureRecognizer) {
         if recognizer.state == .began {
+            
             displayURLMenu()
             recognizer.isEnabled = false
             recognizer.isEnabled = true
         }
     }
     
+    func cancelScroll() {
+        webView.scrollView.isScrollEnabled = false
+        webView.scrollView.contentOffset.y = 0
+        webView.scrollView.isScrollEnabled = true
+    }
+
+    var isInteractiveDismiss : Bool = false
+    
+    func dismissPan(gesture:UIPanGestureRecognizer) {
+        if gesture.state == .began {
+            if webView.scrollView.contentOffset.y < 0 {
+                isInteractiveDismiss = true
+                cancelScroll()
+            }
+//            if ( webView.scrollView.contentOffset.y > webView.scrollView.contentSize.height ) {
+//                print("at bottom")
+//            }
+            
+        }
+            
+        else if gesture.state == .changed {
+            if isInteractiveDismiss {
+//                let velY = gesture.velocity(in: webView).y
+                let gestureY = gesture.translation(in: webView).y
+                view.frame.origin.y = gestureY * 0.7
+                UIView.animate(withDuration: 0.3, animations: {
+                    self.setNeedsStatusBarAppearanceUpdate()
+                })
+            }
+            else {
+                if webView.scrollView.contentOffset.y < 0 {
+                    isInteractiveDismiss = true
+                    cancelScroll()
+                }
+            }
+        }
+            
+        else if gesture.state == .ended {
+            if isInteractiveDismiss {
+                let gestureY = gesture.translation(in: webView).y
+                if gestureY > 100 {
+                    dismissSelf()
+                }
+                else {
+                    UIView.animate(withDuration: 0.3, animations: {
+                        self.view.frame.origin = .zero
+                        self.setNeedsStatusBarAppearanceUpdate()
+                    })
+                }
+                isInteractiveDismiss = false
+            }
+            
+
+        }
+    }
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+
         
 
     // MARK: - Actions
@@ -544,12 +614,57 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         return "org.appextension.fill-browser-action"
         
     }
+    
+    func updateStatusbarLayering() {
+        
+        webViewCheckFixedNav() { isFixed in
+            print("isFixed: \(isFixed)")
+            if isFixed { self.view.bringSubview(toFront: self.statusBar) }
+            else { self.view.sendSubview(toBack: self.statusBar) }
+        }
+    }
 
+    func webViewCheckFixedNav(completion: @escaping (Bool) -> Void ) {
+        
+        // for some reason this doesn't work during a drag. assuming document coordinates are
+        // not updated live or something?
+//        guard !webView.scrollView.isDragging else {
+//            return
+//        }
+
+        let js = ""
+        + "(function() {"
+        + "function isFixed(el) {"
+        + "    let pos = getComputedStyle(el).position;"
+        + "    if (pos == 'fixed' || pos.includes('sticky')) {"
+        + "        return true;"
+        + "    }"
+        + "    if (el.parentElement) {"
+        + "        return isFixed(el.parentElement);"
+        + "    }"
+        + "    return false;"
+        + "}"
+        + ""
+        + "let el = document.elementFromPoint(2,2);"
+        + "console.log(el);"
+        + "return isFixed(el);"
+        + "})()"
+        
+        webView.evaluateJavaScript(js) { (result, error) in
+            if (result != nil) {
+                let isFixed : Bool = result as! Bool
+                completion(isFixed)
+            }
+            else {
+                // something went wrong
+                completion(false)
+            }
+        }
+    }
     
     func displayShareSheet() {
         self.resignFirstResponder() // without this, action sheet dismiss animation won't go all the way
         
-    
         
         let onePass = OnePasswordExtension.shared()
         
@@ -683,6 +798,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     
     func navigateToText(_ text: String) {
         
+        locationBar.isLoading = true
+
         if isProbablyURL(text) {
             if (text.hasPrefix("http://") || text.hasPrefix("https://")) {
                 let url = URL(string: text)!
@@ -716,12 +833,17 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         locationBar.isSearch = isSearching
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
+        locationBar.isLoading = webView.isLoading
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         locationBar.text = self.displayTitle
+        
+        topLabel?.text = self.displayTitle
+        
         locationBar.isSecure = webView.hasOnlySecureContent
         locationBar.isSearch = isSearching
+        locationBar.isLoading = webView.isLoading
 
         if overflowController != nil {
             updateStopRefreshAlertAction()
@@ -731,11 +853,17 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
+
         if (error as NSError).code == NSURLErrorCancelled {
             print("Cancelled")
             return
         }
+        
+        locationBar.text = displayTitle // reset
+        locationBar.isLoading = webView.isLoading
+
         let alert = UIAlertController(title: "Failed Nav", message: error.localizedDescription, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.default, handler: nil))
         self.present(alert, animated: true, completion: nil)
@@ -746,7 +874,12 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             print("Cancelled")
             return
         }
+        
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
+        locationBar.text = displayTitle // reset
+        locationBar.isLoading = webView.isLoading
+
+
         let alert = UIAlertController(title: "Failed Provisional Nav", message: error.localizedDescription, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.default, handler: nil))
         self.present(alert, animated: true, completion: nil)
@@ -776,6 +909,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             let isIncreasing = progressView.progress < Float(webView.estimatedProgress)
             progressView.setProgress(Float(webView.estimatedProgress), animated: isIncreasing)
             
+            locationBar.isLoading = webView.isLoading
+            
             if (webView.estimatedProgress >= 1.0) {
                 UIView.animate(withDuration: 0.3, delay: 0.3, options: .curveEaseOut, animations: {
                     self.progressView.progress = 1.0
@@ -789,9 +924,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             forwardButton.isEnabled = webView.canGoForward
             forwardButton.tintColor = webView.canGoForward ? nil : .clear
             
-        }
-        else if keyPath == "isLoading" {
-            print("loading change")
         }
         else if keyPath == "title" {
 //             catches custom navigation

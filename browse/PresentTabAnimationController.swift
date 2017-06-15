@@ -53,50 +53,72 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         let containerView = transitionContext.containerView
         
         let homeNav = isExpanding ? fromVC : toVC
-        let webVC = isExpanding ? toVC : fromVC
+        let webVC = (isExpanding ? toVC : fromVC) as! WebViewController
         
         let homeVC = (homeNav as! UINavigationController).topViewController as! HomeViewController
         let thumb = homeVC.thumb!
         thumb.isHidden = true
 
+//        let oldTransform = isExpanding ? .identity : webVC.view.transform
+        if direction == .dismiss {
+//            let scrollPos = webVC.webView.scrollView.contentOffset.y
+//            if scrollPos < 0 {
+//                webVC.view.frame.origin.y = -scrollPos
+//                webVC.webView.scrollView.contentOffset.y = 0
+//                webVC.view.transform = .identity
+//            }
+        }
+        else {
+            webVC.view.frame.origin.y = 0
+        }
+        
         let snapshot : UIView = webVC.view.snapshotView(afterScreenUpdates: true)!
-        snapshot.clipsToBounds = true
-        snapshot.layer.cornerRadius = isExpanding ? 5.0 : 0.0
+//        snapshot.clipsToBounds = true
+        let transitioningThumb = TabThumbnail()
+        let thumbFrame = containerView.convert(thumb.frame, from: thumb.superview) // must be after toVC is added
+        
+        transitioningThumb.frame = isExpanding ? thumbFrame : webVC.view.frame
+        
+        transitioningThumb.layer.cornerRadius = isExpanding ? 5.0 : 0.0
+
+        transitioningThumb.setSnapshot(snapshot)
 
         webVC.view.isHidden = true
         
-        homeNav.view.alpha = isExpanding ? 1.0 : 0.0
+        homeNav.view.alpha = isExpanding ? 1.0 : 0.3
 
-        containerView.addSubview(snapshot)
-        
+        containerView.addSubview(transitioningThumb)
+        containerView.bringSubview(toFront: transitioningThumb)
+
         if isExpanding {
             containerView.addSubview(webVC.view)
         }
         
-        let thumbFrame = containerView.convert(thumb.frame, from: thumb.superview) // must be after toVC is added
-
-        snapshot.frame = isExpanding ? thumbFrame : webVC.view.frame
         
-        containerView.bringSubview(toFront: snapshot)
-        
-        
-        snapshot.addCornerRadiusAnimation(
+        transitioningThumb.addCornerRadiusAnimation(
             to: self.isExpanding ? 0.0 : 5.0,
             duration: transitionDuration(using: transitionContext)
         )
         
         UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0.0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
             
-            snapshot.frame = self.isExpanding ? webVC.view.frame : thumbFrame
+            transitioningThumb.frame = self.isExpanding ? webVC.view.frame : thumbFrame
 
-            homeNav.view.alpha = self.isExpanding ? 0.0 : 1.0
-            webVC.setNeedsStatusBarAppearanceUpdate()
+            homeNav.view.alpha = self.isExpanding ? 0.3 : 1.0
 
         }, completion: { finished in
             transitionContext.completeTransition(true)
             webVC.view.isHidden = false
-            snapshot.removeFromSuperview()
-            thumb.isHidden = false
+//            snapshot.removeFromSuperview()
+            thumb.setSnapshot(snapshot)
+            transitioningThumb.removeFromSuperview()
+            
+            if self.direction == .dismiss {
+                thumb.isHidden = false
+                homeVC.setNeedsStatusBarAppearanceUpdate()
+            }
+            
+
         })
     }
 }

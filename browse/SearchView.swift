@@ -153,7 +153,7 @@ class SearchView: UIView, UITextViewDelegate {
             
             var frame = self.frame
             frame.origin.y = frame.size.height - 36
-            frame.size.height = 36
+            frame.size.height = TOOLBAR_H
             self.frame = frame
             
         }, completion: { completed in
@@ -174,12 +174,12 @@ class SearchView: UIView, UITextViewDelegate {
     func prepareToShow() {
         textView.text = webViewController.editableURL
         
-        self.backgroundColor = webViewController.webViewColor.bottom
+        self.backgroundColor = webViewController.toolbar.back.backgroundColor
         self.tintColor = webViewController.toolbar.tintColor
         textView.textColor = webViewController.toolbar.tintColor
         
-        textView.keyboardAppearance = webViewController.webViewColor.bottom.isLight ? .dark : .light
-        textView.placeholderColor = webViewController.webViewColor.bottom.isLight
+        textView.keyboardAppearance = self.backgroundColor!.isLight ? .dark : .light
+        textView.placeholderColor = self.backgroundColor!.isLight
             ? UIColor.white.withAlphaComponent(0.4)
             : UIColor.black.withAlphaComponent(0.2)
 

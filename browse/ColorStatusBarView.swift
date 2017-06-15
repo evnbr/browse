@@ -9,9 +9,33 @@
 import Foundation
 import UIKit
 
+extension UIVisualEffectView {
+    public convenience init(frame: CGRect, isTransparent: Bool) {
+        
+        self.init(effect: UIBlurEffect(style: .light))
+        self.frame = frame
+        self.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+
+        // TODO: gross workaround to not have lightening effect.
+        // could be more robust, make sure if v is _UIVisualEffectFilterView
+        for v in subviews {
+            
+            if v.backgroundColor != nil {
+                v.backgroundColor = nil
+            }
+            
+            //            let sat = v.value(forKey: "_saturateFilter")
+            //            let colorOffset = v.value(forKey: "_colorOffsetFilter")
+            //            let blur = v.value(forKey: "_blurFilter")
+        }
+
+    }
+}
+
 class ColorStatusBarView : UIView {
     var inner : UIView!
     var back : UIView!
+    var blurView : UIVisualEffectView!
     
     init() {
         let rect = CGRect(
@@ -22,28 +46,27 @@ class ColorStatusBarView : UIView {
         super.init(frame: rect)
         
         self.autoresizingMask = [.flexibleWidth]
-        self.backgroundColor = UIColor.black
+        self.backgroundColor = .clear
         
         back = UIView.init(frame: rect)
         back.autoresizingMask = [.flexibleWidth]
-        back.backgroundColor = UIColor.black
+        back.backgroundColor = .white
+//        back.alpha = 0.7
         self.addSubview(back)
         
-        //        statusBar.backgroundColor = UIColor.clear
-        //        statusBack.alpha = 0.8
-        //        webView.scrollView.layer.masksToBounds = false
-        //        let blurEffect = UIBlurEffect(style: UIBlurEffectStyle.light)
-        //        let blurEffectView = UIVisualEffectView(effect: blurEffect)
-        //        blurEffectView.frame = statusBack.bounds
-        //        blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        //        statusBar.addSubview(blurEffectView)
+//        blurView = UIVisualEffectView(frame: rect, isTransparent: true)
+//        self.addSubview(blurView)
         
         inner = UIView()
         inner.frame = back.bounds
         inner.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         inner.backgroundColor = .white
-        back.addSubview(inner)
+//        back.addSubview(inner)
         back.clipsToBounds = true
+        
+        self.clipsToBounds = true
+        
+//        isHidden = true
     }
     
     required init?(coder aDecoder: NSCoder) {

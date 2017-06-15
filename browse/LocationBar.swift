@@ -11,10 +11,12 @@ import UIKit
 class LocationBar: ToolbarTouchView {
     
     var label = UILabel()
+    var spinner : UIActivityIndicatorView!
     var lock : UIImageView!
     var magnify : UIImageView!
     
     private var shouldShowLock : Bool = false
+    private var shouldShowSpinner : Bool = false
 
     var text : String? {
         get {
@@ -32,7 +34,7 @@ class LocationBar: ToolbarTouchView {
         }
         set {
             shouldShowLock = newValue
-            lock.isHidden = !shouldShowLock || isSearch
+            lock.isHidden = !shouldShowLock || isSearch || shouldShowSpinner
         }
     }
     
@@ -42,9 +44,29 @@ class LocationBar: ToolbarTouchView {
         }
         set {
             magnify.isHidden = !newValue
-            lock.isHidden = !shouldShowLock || isSearch
+            lock.isHidden = !shouldShowLock || isSearch || shouldShowSpinner
         }
     }
+    
+    var isLoading : Bool {
+        get {
+            return shouldShowSpinner
+        }
+        set {
+            shouldShowSpinner = newValue
+            spinner.isHidden = !shouldShowSpinner
+            
+            lock.isHidden = !shouldShowLock || isSearch || shouldShowSpinner
+
+            if newValue {
+                spinner.startAnimating()
+            }
+            else {
+                spinner.stopAnimating()
+            }
+        }
+    }
+
     
     init(onTap: @escaping () -> Void) {
         super.init(frame: CGRect(x: 0, y: 0, width: 180, height: 40), onTap: onTap)
@@ -56,9 +78,12 @@ class LocationBar: ToolbarTouchView {
         magnify = UIImageView(image: magnifyImage)
 
         label.text = "Where to?"
-        label.font = UIFont.systemFont(ofSize: 14.0)
+        label.font = UIFont.systemFont(ofSize: 13.0)
         label.sizeToFit()
         
+        spinner = UIActivityIndicatorView(activityIndicatorStyle: .gray)
+//        spinner.frame = CGRect(x: 0, y: 0, width: 12, height: 12)
+        spinner.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
         
         // https://stackoverflow.com/questions/30728062/add-views-in-uistackview-programmatically
         let stackView   = UIStackView()
@@ -67,6 +92,7 @@ class LocationBar: ToolbarTouchView {
         stackView.alignment = .center
         stackView.spacing   = 6.0
         
+        stackView.addArrangedSubview(spinner)
         stackView.addArrangedSubview(lock)
         stackView.addArrangedSubview(magnify)
         stackView.addArrangedSubview(label)
@@ -78,6 +104,7 @@ class LocationBar: ToolbarTouchView {
 
         isSecure = false
         isSearch = false
+        isLoading = false
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -88,6 +115,7 @@ class LocationBar: ToolbarTouchView {
     override func tintColorDidChange() {
         super.tintColorDidChange()
         label.textColor = tintColor
+        spinner.color = tintColor
     }
 
 }

@@ -17,12 +17,18 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
 
     
     var tab : WebViewController!
+    
     lazy var settingsVC : SettingsViewController = SettingsViewController()
     lazy var bookmarksVC : BookmarksViewController = BookmarksViewController()
 
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
+        if tab != nil && tab.view.window != nil {
+            return tab.preferredStatusBarStyle
+        }
+        else {
+            return .lightContent
+        }
     }
     override var prefersStatusBarHidden: Bool {
         return false
@@ -37,18 +43,30 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
 
         Settings.shared.updateProtocolRegistration()
         
-        navigationController?.navigationBar.tintColor = .white
-        navigationController?.navigationBar.barStyle = .blackTranslucent
-//        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Settings", style: .plain, target: self, action: #selector(showSettings))
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Bookmarks", style: .plain, target: self, action: #selector(showBookmarks))
-
+        title = ""
         view.backgroundColor = .black
 
-        title = "Browser"
+        navigationController?.navigationBar.tintColor = .white
+        navigationController?.navigationBar.barStyle = .blackTranslucent
+
+        navigationController?.toolbar.tintColor = .white
+        navigationController?.toolbar.barStyle = .blackTranslucent
+        
+//        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Settings", style: .plain, target: self, action: #selector(showSettings))
+        
+//        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Bookmarks", style: .plain, target: self, action: #selector(showBookmarks))
+        
+        let bookmarkButton = UIBarButtonItem(barButtonSystemItem: .bookmarks, target: self, action:  #selector(showBookmarks))
+//        navigationItem.rightBarButtonItem = bookmarks
+        
+        toolbarItems = [bookmarkButton]
+
+
         
         let aspect = UIScreen.main.bounds.width / UIScreen.main.bounds.height
-        let H : CGFloat = 400.0
-        thumb = TabThumbnail(frame: CGRect(x: 10, y: 100, width: aspect * H, height: H) )
+        let H : CGFloat = 500.0
+        thumb = TabThumbnail(frame: CGRect(x: 10, y: 50, width: aspect * H, height: H - 32) )
+//        thumb = TabThumbnail(frame: CGRect(x: 10, y: 100, width: 300, height: 450) )
         thumb.backgroundColor = .white
         updateSnapshot()
         view.addSubview(thumb)
@@ -63,6 +81,11 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
         // TODO: this isnt working
         setNeedsStatusBarAppearanceUpdate()
     }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        navigationController?.isNavigationBarHidden = true
+        navigationController?.isToolbarHidden = false
+    }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -70,16 +93,8 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
     }
     
     func updateSnapshot() {
-        print("update snapshot")
-        if snapshot != nil { snapshot.removeFromSuperview() }
         snapshot = tab.view.snapshotView(afterScreenUpdates: true)
-        snapshot.frame = CGRect(origin: .zero, size: thumb.frame.size)
-//        snapshot.autoresizingMask = [.flexibleHeight, .flexibleWidth]
-        
-        thumb.addSubview(snapshot)
-//        let h = NSLayoutConstraint(item: snapshot, attribute: .height, relatedBy: .equal, toItem: thumb, attribute: .height, multiplier: 1, constant: 1)
-//        let w = NSLayoutConstraint(item: snapshot, attribute: .width, relatedBy: .equal, toItem: thumb, attribute: .width, multiplier: 1, constant: 1)
-//        thumb.addConstraints([w, h])
+        thumb.setSnapshot(snapshot)
     }
 
     

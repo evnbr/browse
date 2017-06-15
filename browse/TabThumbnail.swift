@@ -10,6 +10,18 @@ import UIKit
 
 class TabThumbnail: UIView {
 
+    var snap : UIView!
+    
+    override var frame : CGRect {
+        didSet {
+            if snap != nil {
+                let aspect = snap.frame.size.height / snap.frame.size.width
+                let W = self.frame.size.width
+                snap.frame = CGRect(x: 0, y: 0, width: W, height: aspect * W )
+            }
+        }
+    }
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         layer.cornerRadius = 5.0
@@ -23,7 +35,7 @@ class TabThumbnail: UIView {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if touches.first != nil {
             UIView.animate(withDuration: 0.15, animations: {
-                self.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+                self.transform = CGAffineTransform(scaleX: 0.97, y: 0.97)
             })
         }
     }
@@ -46,6 +58,24 @@ class TabThumbnail: UIView {
         UIView.animate(withDuration: 0.2, delay: 0.1, animations: {
             self.transform = .identity
         })
+
+    }
+    
+    func setSnapshot(_ newSnapshot : UIView) {
+        snap?.removeFromSuperview()
+        
+        snap = newSnapshot
+        
+        let aspect = snap.frame.size.height / snap.frame.size.width
+        let W = self.frame.size.width
+        snap.frame = CGRect(x: 0, y: 0, width: W, height: aspect * W )
+        
+        //        snapshot.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+        
+        self.addSubview(snap)
+        //        let h = NSLayoutConstraint(item: snapshot, attribute: .height, relatedBy: .equal, toItem: thumb, attribute: .height, multiplier: 1, constant: 1)
+        //        let w = NSLayoutConstraint(item: snapshot, attribute: .width, relatedBy: .equal, toItem: thumb, attribute: .width, multiplier: 1, constant: 1)
+        //        thumb.addConstraints([w, h])
 
     }
 

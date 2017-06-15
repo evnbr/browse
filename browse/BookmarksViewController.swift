@@ -29,6 +29,7 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
         "bloomberg.com",
         "theoutline.com",
         "corndog.love",
+        "bacca.online",
     ]
     
     var homeVC : HomeViewController!
@@ -43,7 +44,6 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
     }
-
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -53,7 +53,6 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
         navigationController?.navigationBar.barStyle = .blackTranslucent
 //        navigationController?.navigationBar.isTranslucent = false
 //        navigationController?.navigationBar.barTintColor = .clear
-        
         
         
         table = UITableView(frame:self.view.frame)
@@ -83,7 +82,7 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
         negSpace.width = -16.0
         tabButton.width = 48.0
 
-        toolbarItems = [flex, done]
+//        toolbarItems = [flex, done]
 //        toolbarItems = [flex, tabButton, negSpace]
 
 
@@ -93,11 +92,16 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
     override func viewWillAppear(_ animated: Bool) {
 //        table.setContentOffset(table.contentInset  , animated: false)
         table.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
+        
+        navigationController?.isNavigationBarHidden = false
+        navigationController?.isToolbarHidden = true
+
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         self.setNeedsStatusBarAppearanceUpdate()
+        
     }
     
     func dismissSelf() {
