@@ -17,7 +17,8 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
     let thumbAnimationController = PresentTabAnimationController()
 
     var tab : WebViewController!
-    var tab2 : WebViewController!
+    
+    var scroll : UIScrollView!
     
     lazy var settingsVC : SettingsViewController = SettingsViewController()
     lazy var bookmarksVC : BookmarksViewController = BookmarksViewController()
@@ -42,7 +43,7 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let scroll = UIScrollView(frame: view.frame)
+        scroll = UIScrollView(frame: view.frame)
         view.addSubview(scroll)
         scroll.alwaysBounceVertical = false
         scroll.indicatorStyle = .white
@@ -51,9 +52,10 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
         scroll.delaysContentTouches = false
         scroll.contentSize = CGSize(width: 1600, height: 500)
         
+        scroll.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         
         tab = WebViewController()
-        tab2 = WebViewController()
+        let tab2 = WebViewController()
         let tab3 = WebViewController()
         tabs = [tab, tab2, tab3]
 

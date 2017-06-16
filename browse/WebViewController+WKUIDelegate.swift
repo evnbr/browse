@@ -1,5 +1,5 @@
 //
-//  WebViewUIDelegate.swift
+//  WebViewController+WKUIDelegate.swift
 //  browse
 //
 //  Created by Evan Brooks on 6/16/17.
@@ -9,13 +9,7 @@
 import UIKit
 import WebKit
 
-class WebViewUIDelegate: NSObject, WKUIDelegate {
-    
-    var vc : UIViewController!
-    
-    init(for viewController : UIViewController) {
-        vc = viewController
-    }
+extension WebViewController : WKUIDelegate {
     
     // this handles target=_blank links by opening them in the same view
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
@@ -36,7 +30,7 @@ class WebViewUIDelegate: NSObject, WKUIDelegate {
             completionHandler()
         }))
         
-        vc.present(alertController, animated: true, completion: nil)
+        present(alertController, animated: true, completion: nil)
     }
     
     
@@ -53,7 +47,7 @@ class WebViewUIDelegate: NSObject, WKUIDelegate {
             completionHandler(false)
         }))
         
-        vc.present(alertController, animated: true, completion: nil)
+        present(alertController, animated: true, completion: nil)
     }
     
     
@@ -78,7 +72,7 @@ class WebViewUIDelegate: NSObject, WKUIDelegate {
             completionHandler(nil)
         }))
         
-        vc.present(alertController, animated: true, completion: nil)
+        present(alertController, animated: true, completion: nil)
     }
 
 }

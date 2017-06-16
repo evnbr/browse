@@ -143,7 +143,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIGestureRecogn
 
         webView = WKWebView(frame: rect, configuration: config)
         webView.navigationDelegate = self
-        webView.uiDelegate = WebViewUIDelegate(for: self)  // req'd for target=_blank override
+        webView.uiDelegate = self  // req'd for target=_blank override
         webView.scrollView.delegate = self
         
         webView.allowsBackForwardNavigationGestures = true
@@ -168,6 +168,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIGestureRecogn
             height: view.frame.height - TOOLBAR_H
         ))
         
+        view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         cardView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         cardView.layer.cornerRadius = 8.0
         cardView.layer.masksToBounds = true
@@ -276,6 +277,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIGestureRecogn
             width: UIScreen.main.bounds.size.width,
             height: TOOLBAR_H
         ))
+        
+        toolbar.autoresizingMask = [.flexibleWidth, .flexibleTopMargin]
                 
         progressView = UIProgressView(progressViewStyle: .default)
         progressView.frame = CGRect(
@@ -420,7 +423,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIGestureRecogn
             if isInteractiveDismiss {
 //                let velY = gesture.velocity(in: webView).y
                 
-                cardView.frame.origin.x = gesturePos.x - interactiveDismissStartPoint.x
+                cardView.frame.origin.x = gesturePos.x * 0.5 - interactiveDismissStartPoint.x
                 cardView.frame.origin.y = gesturePos.y - interactiveDismissStartPoint.y
                 
                 let progress = 1 - (abs(gesturePos.y) / 100)

@@ -63,6 +63,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         thumb?.isHidden = true
 
         if direction == .present {
+            webVC.view.frame = UIScreen.main.bounds
             webVC.view.transform = .identity
             webVC.cardView.frame.origin = .zero
         }
@@ -102,6 +103,8 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             
             transitioningThumb.frame = self.isExpanding ? webVC.cardView.frame : thumbFrame
 
+            homeVC.scroll.scrollRectToVisible(thumb!.frame.insetBy(dx: -20, dy: -20), animated: false)
+            
             homeNav.view.alpha = self.isExpanding ? 0.3 : 1.0
             webVC.toolbar.alpha = self.isExpanding ? 1.0 : 0.0
             homeVC.setNeedsStatusBarAppearanceUpdate()
