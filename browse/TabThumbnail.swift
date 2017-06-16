@@ -8,9 +8,13 @@
 
 import UIKit
 
+typealias tabTapType = (_ tab: WebViewController) -> Void
+
 class TabThumbnail: UIView {
 
     var snap : UIView!
+    var tab : WebViewController!
+    var onTap: tabTapType!
     
     override var frame : CGRect {
         didSet {
@@ -22,11 +26,25 @@ class TabThumbnail: UIView {
         }
     }
     
-    override init(frame: CGRect) {
+    init(frame: CGRect, tab: WebViewController?, onTap: tabTapType?) {
+        self.tab = tab
+        self.onTap = onTap
+    
         super.init(frame: frame)
+
+        let thumbTap = UITapGestureRecognizer(target: self, action: #selector(tapped))
+        self.addGestureRecognizer(thumbTap)
+
+        
         layer.cornerRadius = 5.0
+        backgroundColor = .white
         clipsToBounds = true
     }
+    
+    func tapped() {
+        onTap?(tab)
+    }
+    
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -48,17 +66,18 @@ class TabThumbnail: UIView {
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         if touches.first != nil {
-            UIView.animate(withDuration: 0.2, delay: 0.1, animations: {
-                self.transform = .identity
-            })
+            unSelect()
         }
     }
     
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        unSelect()
+    }
+    
     func unSelect() {
-        UIView.animate(withDuration: 0.2, delay: 0.1, animations: {
+        UIView.animate(withDuration: 0.2, delay: 0.0, animations: {
             self.transform = .identity
         })
-
     }
     
     func setSnapshot(_ newSnapshot : UIView) {

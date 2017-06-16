@@ -33,6 +33,7 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
     ]
     
     var homeVC : HomeViewController!
+    var webVC : WebViewController!
     
     private var table: UITableView!
 
@@ -82,6 +83,8 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
         negSpace.width = -16.0
         tabButton.width = 48.0
 
+        navigationItem.rightBarButtonItem = done
+
 //        toolbarItems = [flex, done]
 //        toolbarItems = [flex, tabButton, negSpace]
 
@@ -110,12 +113,16 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
     
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        table.deselectRow(at: indexPath, animated: true)
         if homeVC != nil {
 //            dismissSelf()
             navigationController?.popToRootViewController(animated: true)
-            table.deselectRow(at: indexPath, animated: true)
             homeVC.tab.navigateToText(bookmarks[indexPath.row])
-            homeVC.showTab()
+            homeVC.showTab(tab: homeVC.tab)
+        }
+        if webVC != nil {
+            dismissSelf()
+            webVC.navigateToText(bookmarks[indexPath.row])
         }
     }
     

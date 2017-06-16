@@ -10,27 +10,31 @@ import UIKit
 
 class HomeViewController: UIViewController, UIViewControllerTransitioningDelegate {
 
-    var thumb : TabThumbnail!
-    var snapshot : UIView!
+//    var thumb : TabThumbnail!
+    var thumbs : [TabThumbnail] = []
+    var tabs : [WebViewController] = []
 
     let thumbAnimationController = PresentTabAnimationController()
 
-    
     var tab : WebViewController!
+    var tab2 : WebViewController!
     
     lazy var settingsVC : SettingsViewController = SettingsViewController()
     lazy var bookmarksVC : BookmarksViewController = BookmarksViewController()
 
     
+    
     override var preferredStatusBarStyle: UIStatusBarStyle {
         if tab != nil && tab.view.window != nil && !tab.isBeingDismissed {
             return tab.preferredStatusBarStyle
         }
-        else {
-            return .lightContent
-        }
+        return .lightContent
     }
     override var prefersStatusBarHidden: Bool {
+        if tab != nil && tab.view.window != nil && !tab.isBeingDismissed {
+            return tab.prefersStatusBarHidden
+        }
+
         return false
     }
 
@@ -38,9 +42,22 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        let scroll = UIScrollView(frame: view.frame)
+        view.addSubview(scroll)
+        scroll.alwaysBounceVertical = false
+        scroll.indicatorStyle = .white
+        scroll.isDirectionalLockEnabled = true
+        scroll.isPagingEnabled = false
+        scroll.delaysContentTouches = false
+        scroll.contentSize = CGSize(width: 1600, height: 500)
+        
+        
         tab = WebViewController()
-        tab.homeVC = self
+        tab2 = WebViewController()
+        let tab3 = WebViewController()
+        tabs = [tab, tab2, tab3]
 
+        
         Settings.shared.updateProtocolRegistration()
         
         title = ""
@@ -51,44 +68,56 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
 
         navigationController?.toolbar.tintColor = .white
         navigationController?.toolbar.barStyle = .blackTranslucent
-        
-//        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Settings", style: .plain, target: self, action: #selector(showSettings))
-        
-//        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Bookmarks", style: .plain, target: self, action: #selector(showBookmarks))
-        
-        let bookmarkButton = UIBarButtonItem(barButtonSystemItem: .bookmarks, target: self, action:  #selector(showBookmarks))
-//        navigationItem.rightBarButtonItem = bookmarks
-        
-        toolbarItems = [bookmarkButton]
-
 
         
         let aspect = UIScreen.main.bounds.width / UIScreen.main.bounds.height
-        let H : CGFloat = 500.0
+        let THUMB_H : CGFloat = 500.0
+        let THUMB_W : CGFloat = aspect * THUMB_H
+
+        for i in 0 ... 2 {
+            let t = TabThumbnail(
+                frame: CGRect(
+                    x: 10 + (THUMB_W + 8) * CGFloat(i),
+                    y: 50,
+                    width: THUMB_W,
+                    height: THUMB_H - 40
+                ),
+                tab: tabs[i],
+                onTap: showRenameThis
+            )
+            t.center.y = view.center.y
+
+            scroll.addSubview(t)
+            thumbs.append(t)
+        }
         
-        thumb = TabThumbnail(frame: CGRect(x: 10, y: 50, width: aspect * H, height: H - 32) )
-        thumb.center.y = view.center.y
-        thumb.isHidden = true
+        thumbs[0].isHidden = true
         
-//        thumb = TabThumbnail(frame: CGRect(x: 10, y: 100, width: 300, height: 450) )
-        thumb.backgroundColor = .white
-        updateSnapshot()
-        view.addSubview(thumb)
         
-        let thumbTap = UITapGestureRecognizer(target: self, action: #selector(showTabAnimated))
-        thumb.addGestureRecognizer(thumbTap)
-        
-        showTab(animated: false)
+        showTab(tab: tab, animated: false)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        // TODO: this isnt working
-        setNeedsStatusBarAppearanceUpdate()
+    func showRenameThis(_ tab: WebViewController) {
+        showTab(tab: tab)
     }
+    
+    func thumb(forTab tab: WebViewController) -> TabThumbnail! {
+        return thumbs.first(where: { $0.tab == tab })
+    }
+    
+    func showTab(tab: WebViewController, animated: Bool = true) {
+        thumb(forTab: tab).unSelect() // TODO this should be somewhere else
+        
+        tab.modalPresentationStyle = .custom
+        tab.transitioningDelegate = self
+        
+        present(tab, animated: animated)
+    }
+
     
     override func viewDidAppear(_ animated: Bool) {
         navigationController?.isNavigationBarHidden = true
-        navigationController?.isToolbarHidden = false
+//        navigationController?.isToolbarHidden = false
     }
 
     override func didReceiveMemoryWarning() {
@@ -96,10 +125,10 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
         // Dispose of any resources that can be recreated.
     }
     
-    func updateSnapshot() {
-        snapshot = tab.view.snapshotView(afterScreenUpdates: true)
-        thumb.setSnapshot(snapshot)
-    }
+//    func updateSnapshot() {
+//        snapshot = tab.view.snapshotView(afterScreenUpdates: true)
+//        thumb.setSnapshot(snapshot)
+//    }
 
     
     // MARK - Presenting other views
@@ -113,17 +142,7 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
         navigationController?.pushViewController(bookmarksVC, animated: true)
     }
     
-    func showTabAnimated() {
-            showTab(animated: true)
-    }
     
-    func showTab(animated: Bool = true) {
-        thumb.unSelect() // TODO this shou;d be somewhere else
-        tab.modalPresentationStyle = .custom
-        tab.transitioningDelegate = self
-
-        present(tab, animated: animated)
-    }
 
     
     // MARK - Animation

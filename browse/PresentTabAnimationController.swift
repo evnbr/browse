@@ -42,7 +42,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
     }
         
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return 0.5
+        return 0.6
     }
     
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -56,37 +56,33 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         let webVC = (isExpanding ? toVC : fromVC) as! WebViewController
         
         let homeVC = (homeNav as! UINavigationController).topViewController as! HomeViewController
-        let thumb = homeVC.thumb!
-        thumb.isHidden = true
+        
+//        let thumb = homeVC.thumb!
+        let thumb = homeVC.thumb(forTab: webVC)
+        
+        thumb?.isHidden = true
 
-//        let oldTransform = isExpanding ? .identity : webVC.view.transform
-        if direction == .dismiss {
-//            let scrollPos = webVC.webView.scrollView.contentOffset.y
-//            if scrollPos < 0 {
-//                webVC.view.frame.origin.y = -scrollPos
-//                webVC.webView.scrollView.contentOffset.y = 0
-//                webVC.view.transform = .identity
-//            }
-        }
-        else {
+        if direction == .present {
             webVC.view.transform = .identity
-            webVC.cardView.frame.origin.y = 0
+            webVC.cardView.frame.origin = .zero
         }
         
         let snapshot : UIView = webVC.cardView.snapshotView(afterScreenUpdates: true)!
 //        snapshot.clipsToBounds = true
-        let transitioningThumb = TabThumbnail()
-        let thumbFrame = containerView.convert(thumb.frame, from: thumb.superview) // must be after toVC is added
+        let thumbFrame = containerView.convert(thumb!.frame, from: thumb?.superview) // must be after toVC is added
+
+        let transitioningThumb = TabThumbnail(frame: thumbFrame, tab: nil, onTap: nil)
         
         transitioningThumb.frame = isExpanding ? thumbFrame : webVC.cardView.frame
         
-        transitioningThumb.layer.cornerRadius = isExpanding ? 5.0 : 0.0
+        transitioningThumb.layer.cornerRadius = isExpanding ? 5.0 : 8.0
 
         transitioningThumb.setSnapshot(snapshot)
 
-        webVC.view.isHidden = true
+        webVC.cardView.isHidden = true
         
         homeNav.view.alpha = isExpanding ? 1.0 : 0.3
+        if isExpanding { webVC.toolbar.alpha = 0.0 }
 
         containerView.addSubview(transitioningThumb)
         containerView.bringSubview(toFront: transitioningThumb)
@@ -97,25 +93,28 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         
         transitioningThumb.addCornerRadiusAnimation(
-            to: self.isExpanding ? 0.0 : 5.0,
+            to: self.isExpanding ? 8.0 : 5.0,
             duration: transitionDuration(using: transitionContext)
         )
         
-        UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0.0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
+        
+        UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0.0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0.0, options: [.curveLinear], animations: {
             
-            transitioningThumb.frame = self.isExpanding ? webVC.view.frame : thumbFrame
+            transitioningThumb.frame = self.isExpanding ? webVC.cardView.frame : thumbFrame
 
             homeNav.view.alpha = self.isExpanding ? 0.3 : 1.0
+            webVC.toolbar.alpha = self.isExpanding ? 1.0 : 0.0
+            homeVC.setNeedsStatusBarAppearanceUpdate()
 
         }, completion: { finished in
             transitionContext.completeTransition(true)
-            webVC.view.isHidden = false
+            webVC.cardView.isHidden = false
 //            snapshot.removeFromSuperview()
-            thumb.setSnapshot(snapshot)
+            thumb?.setSnapshot(snapshot)
             transitioningThumb.removeFromSuperview()
             
             if self.direction == .dismiss {
-                thumb.isHidden = false
+                thumb?.isHidden = false
                 homeVC.setNeedsStatusBarAppearanceUpdate()
             }
             

@@ -12,17 +12,32 @@ class ToolbarTouchView: UIView {
 
     var action: () -> Void
     var tapColor : UIColor = UIColor.black.withAlphaComponent(0.08)
+    
+    var touchCircle : UIView!
 
     init(frame: CGRect, onTap: @escaping () -> Void) {
         action = onTap
 
         super.init(frame: frame)
         backgroundColor = .clear
+        layer.cornerRadius = 8.0//frame.height / 2
+        layer.masksToBounds = true
+
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(doAction))
         tap.numberOfTapsRequired = 1
         tap.isEnabled = true
         tap.cancelsTouchesInView = false
+        
+        touchCircle = UIView(frame: CGRect(x: 0, y: 0, width: frame.width + 20, height: frame.width + 20))
+        touchCircle.layer.cornerRadius = frame.width / 2
+        touchCircle.layer.masksToBounds = true
+        touchCircle.center = self.center
+        touchCircle.isUserInteractionEnabled = false
+        touchCircle.alpha = 0
+        
+        addSubview(touchCircle)
+        sendSubview(toBack: touchCircle)
         
         addGestureRecognizer(tap)
     }
@@ -33,17 +48,30 @@ class ToolbarTouchView: UIView {
     
     func doAction() {
         action()
+        deSelect()
     }
     
     override func tintColorDidChange() {
         tapColor = tintColor.isLight
             ? UIColor.black.withAlphaComponent(0.1)
-            : UIColor.white.withAlphaComponent(0.15)
+            : UIColor.white.withAlphaComponent(0.25)
+        
+        self.touchCircle.backgroundColor = self.tapColor
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if touches.first != nil {
-            backgroundColor = tapColor
+//            backgroundColor = tapColor
+
+            touchCircle.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+            touchCircle.center = touches.first!.location(in: self)
+            
+            let endScale = (frame.width + 2 * abs(frame.width / 2 - touchCircle.center.x)) / frame.width
+            
+            UIView.animate(withDuration: 0.2, delay: 0.0, animations: {
+                self.touchCircle.alpha = 1
+                self.touchCircle.transform = CGAffineTransform(scaleX: endScale, y: endScale)
+            })
         }
     }
     
@@ -54,12 +82,20 @@ class ToolbarTouchView: UIView {
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if touches.first != nil {
-            
-            UIView.animate(withDuration: 0.2, delay: 0.1, animations: {
-                self.backgroundColor = .clear
-            })
-        }
+        deSelect()
+    }
+    
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        deSelect()
+    }
+
+    
+    func deSelect() {
+        UIView.animate(withDuration: 0.2, delay: 0.0, animations: {
+            self.backgroundColor = .clear
+            self.touchCircle.alpha = 0
+            self.touchCircle.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+        })
     }
 
 }

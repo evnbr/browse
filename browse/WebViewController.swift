@@ -37,7 +37,7 @@ let TOOLBAR_H : CGFloat = 36.0
 let STATUS_H : CGFloat = 20.0
 
 
-class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UIGestureRecognizerDelegate, UIActivityItemSource, UIScrollViewDelegate {
+class WebViewController: UIViewController, WKNavigationDelegate, UIGestureRecognizerDelegate, UIActivityItemSource, UIScrollViewDelegate {
     
     var webView: WKWebView!
     
@@ -60,9 +60,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     
     var overflowController: UIAlertController!
     var stopRefreshAlertAction: UIAlertAction!
-    
-    var homeVC : HomeViewController!
-    
+        
     var onePasswordExtensionItem : NSExtensionItem!
 
     // MARK: - Derived properties
@@ -77,7 +75,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     }
     
     override var prefersStatusBarHidden: Bool {
-        return false
+        return isInteractiveDismissToolbar
     }
 
     var displayTitle : String {
@@ -145,7 +143,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 
         webView = WKWebView(frame: rect, configuration: config)
         webView.navigationDelegate = self
-        webView.uiDelegate = self  // req'd for target=_blank override
+        webView.uiDelegate = WebViewUIDelegate(for: self)  // req'd for target=_blank override
         webView.scrollView.delegate = self
         
         webView.allowsBackForwardNavigationGestures = true
@@ -163,12 +161,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        
-//        view.layer.cornerRadius = 4.0
-//        view.layer.masksToBounds = true
-//        webView.layer.cornerRadius = 4.0
-//        webView.layer.masksToBounds = true
-        
         cardView = UIView(frame: CGRect(
             x: 0,
             y: 0,
@@ -177,7 +169,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         ))
         
         cardView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        cardView.layer.cornerRadius = 4.0
+        cardView.layer.cornerRadius = 8.0
         cardView.layer.masksToBounds = true
         
         cardView.addSubview(webView)
@@ -216,6 +208,13 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         dismissPanner.addTarget(self, action: #selector(self.dismissPan))
         dismissPanner.cancelsTouchesInView = true
         view.addGestureRecognizer(dismissPanner)
+        
+        let toolbarDismissPanner = UIPanGestureRecognizer()
+        toolbarDismissPanner.delegate = self
+        toolbarDismissPanner.addTarget(self, action: #selector(self.toolbarDismissPan))
+        toolbarDismissPanner.cancelsTouchesInView = true
+        toolbar.addGestureRecognizer(toolbarDismissPanner)
+
 
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
         toolbar.addGestureRecognizer(longPress)
@@ -391,7 +390,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     func longPressURL(recognizer: UIGestureRecognizer) {
         if recognizer.state == .began {
             
-            displayURLMenu()
+            displayEditMenu()
             recognizer.isEnabled = false
             recognizer.isEnabled = true
         }
@@ -404,45 +403,37 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     }
 
     var isInteractiveDismiss : Bool = false
-    
+    var interactiveDismissStartPoint : CGPoint = .zero
+
     func dismissPan(gesture:UIPanGestureRecognizer) {
         if gesture.state == .began {
             if webView.scrollView.contentOffset.y < 0 {
                 isInteractiveDismiss = true
+                interactiveDismissStartPoint = .zero
                 cancelScroll()
             }
-//            if ( webView.scrollView.contentOffset.y > webView.scrollView.contentSize.height ) {
-//                print("at bottom")
-//            }
-            
         }
             
         else if gesture.state == .changed {
+            let gesturePos = gesture.translation(in: webView)
+
             if isInteractiveDismiss {
 //                let velY = gesture.velocity(in: webView).y
-                let gestureY = gesture.translation(in: webView).y
                 
-                cardView.frame.origin.y = gestureY
+                cardView.frame.origin.x = gesturePos.x - interactiveDismissStartPoint.x
+                cardView.frame.origin.y = gesturePos.y - interactiveDismissStartPoint.y
                 
-//                let limit : CGFloat = 100.0
-//                let resistance : CGFloat = 0.3
-//                if abs(gestureY) < limit {
-//                    cardView.frame.origin.y = gestureY * resistance
-//                }
-//                else {
-//                    cardView.frame.origin.y = limit * resistance + ( abs(gestureY) - limit )
-//                }
+                let progress = 1 - (abs(gesturePos.y) / 100)
+                toolbar.alpha = progress
                 
-                UIView.animate(withDuration: 0.3, animations: {
+                UIView.animate(withDuration: 0.2, animations: {
                     self.setNeedsStatusBarAppearanceUpdate()
-//                    self.view.transform = abs(gestureY) > 50
-//                        ? CGAffineTransform(scaleX: 0.9, y: 0.9)
-//                        : CGAffineTransform.identity
                 })
             }
             else {
                 if webView.scrollView.contentOffset.y < 0 {
                     isInteractiveDismiss = true
+                    interactiveDismissStartPoint = gesturePos
                     cancelScroll()
                 }
             }
@@ -458,6 +449,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
                     UIView.animate(withDuration: 0.3, animations: {
                         self.cardView.frame.origin = .zero
                         self.setNeedsStatusBarAppearanceUpdate()
+                        self.toolbar.alpha = 1
                     })
                 }
                 isInteractiveDismiss = false
@@ -466,6 +458,56 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 
         }
     }
+    
+    var isInteractiveDismissToolbar : Bool = false
+    var interactiveDismissToolbarStartPoint : CGPoint = .zero
+    
+    func toolbarDismissPan(gesture:UIPanGestureRecognizer) {
+        if gesture.state == .began {
+            // do nothing until the gesture gets to -20
+        }
+            
+        else if gesture.state == .changed {
+            let gesturePos = gesture.translation(in: webView)
+
+            if isInteractiveDismissToolbar {
+                cardView.frame.origin.x = gesturePos.x - interactiveDismissToolbarStartPoint.x
+                cardView.frame.origin.y = gesturePos.y - interactiveDismissToolbarStartPoint.y
+
+                let progress = 1 - (abs(gesturePos.y) / 100)
+                toolbar.alpha = progress
+            }
+            else {
+                if gesturePos.y < -20 {
+                    isInteractiveDismissToolbar = true
+                    interactiveDismissToolbarStartPoint = gesturePos
+
+                    cancelScroll()
+                }
+            }
+
+        }
+            
+        else if gesture.state == .ended {
+            if isInteractiveDismissToolbar {
+                let gestureY = gesture.translation(in: view).y
+                if gestureY < -100 {
+                    dismissSelf()
+                }
+                else {
+                    UIView.animate(withDuration: 0.3, animations: {
+                        self.cardView.frame.origin = .zero
+                        self.toolbar.alpha = 1
+                    })
+                }
+                isInteractiveDismissToolbar = false
+            }
+            
+            
+        }
+    }
+
+    
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
     }
@@ -474,17 +516,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 
     // MARK: - Actions
 
-//    func displayBookmarks() {
-//         
-//        bookmarksController.modalPresentationStyle = .custom
-//        bookmarksController.transitioningDelegate = self
-//
-//        present(bookmarksController, animated: true)
-//
-//    }
-    
-
-    
+    func displayBookmarks() {
+        let bc = BookmarksViewController()
+        bc.webVC = self
+        present(WebNavigationController(rootViewController: bc), animated: true)
+    }
     
 
     // MARK: - Edit Menu / First Responder
@@ -498,7 +534,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         get { return searchView }
     }
 
-    func displayURLMenu() {
+    func displayEditMenu() {
         if !isFirstResponder {
             UIView.setAnimationsEnabled(false)
             self.becomeFirstResponder()
@@ -558,7 +594,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             url.transform  = CGAffineTransform(translationX: -30, y: -100)
             back.transform = CGAffineTransform(translationX: 0, y: -50)
             tab.transform  = CGAffineTransform(translationX: 0, y: -50)
-            
         })
         
         self.becomeFirstResponder()
@@ -614,15 +649,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         
     }
     
-    func updateStatusbarLayering() {
-        
-        webViewCheckFixedNav() { isFixed in
-            print("isFixed: \(isFixed)")
-            if isFixed { self.view.bringSubview(toFront: self.statusBar) }
-            else { self.view.sendSubview(toBack: self.statusBar) }
-        }
-    }
-
     func webViewCheckFixedNav(completion: @escaping (Bool) -> Void ) {
         
         // for some reason this doesn't work during a drag. assuming document coordinates are
@@ -702,35 +728,19 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     func updateStopRefreshAlertAction() {
         if webView.isLoading {
             stopRefreshAlertAction.setValue("Stop", forKey: "title")
-//            stopRefreshAlertAction.setValue(UIAlertActionStyle.destructive.rawValue, forKey: "style")
-
-//            stopRefreshAlertAction.title = "Stop"
-//            stopRefreshAlertAction.style = .destructive
         }
         else {
             stopRefreshAlertAction.setValue("Refresh", forKey: "title")
-//            stopRefreshAlertAction.setValue(UIAlertActionStyle.default.rawValue, forKey: "style")
-//            overflowController.dismiss(animated: false, completion: nil)
-//            present(overflowController, animated: false, completion: nil)
         }
         
         overflowController.view.setNeedsLayout()
         
-//        let viewVal = stopRefreshAlertAction.value(forKey: "view")
-//        if viewVal != nil {
-//            let view : UIView = viewVal as! UIView
-//            view.setNeedsDisplay()
-//        }
 
     }
     
     func stopOrRefresh(_ action : UIAlertAction) {
-        if webView.isLoading {
-            self.webView.stopLoading()
-        }
-        else {
-            self.webView.reload()
-        }
+        if webView.isLoading { self.webView.stopLoading() }
+        else { self.webView.reload() }
     }
     
     func displayOverflow() {
@@ -739,13 +749,13 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         self.overflowController = ac
         
         if Settings.shared.blockAds.isOn {
-            ac.addAction(UIAlertAction(title: "Stop Blocking Ads", style: .destructive, handler: { action in
+            ac.addAction(UIAlertAction(title: "Stop Blocking Ads", style: .default, handler: { action in
                 Settings.shared.blockAds.isOn = false
                 self.webView.reload()
             }))
         }
         else {
-            ac.addAction(UIAlertAction(title: "Block Ads", style: .destructive, handler: { action in
+            ac.addAction(UIAlertAction(title: "Block Ads", style: .default, handler: { action in
                 Settings.shared.blockAds.isOn = true
                 self.webView.reload()
             }))
@@ -754,11 +764,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         ac.addAction(UIAlertAction(title: "Passwords", style: .default, handler: { action in
             self.displayPassword()
         }))
+        ac.addAction(UIAlertAction(title: "Bookmarks", style: .default, handler: { action in
+            self.displayBookmarks()
+        }))
         ac.addAction(UIAlertAction(title: "Share", style: .default, handler: { action in
             self.displayShareSheet()
         }))
         
-        stopRefreshAlertAction = UIAlertAction(title: "_", style: .default, handler: stopOrRefresh)
+        stopRefreshAlertAction = UIAlertAction(title: "_", style: .destructive, handler: stopOrRefresh)
         updateStopRefreshAlertAction()
         ac.addAction(stopRefreshAlertAction)
         
@@ -854,21 +867,15 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         
-
-        if (error as NSError).code == NSURLErrorCancelled {
-            print("Cancelled")
-            return
-        }
+        if (error as NSError).code == NSURLErrorCancelled { return }
         
         updateLoadingUI()
         displayError(text: error.localizedDescription)
     }
     
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        if (error as NSError).code == NSURLErrorCancelled {
-            print("Cancelled")
-            return
-        }
+        
+        if (error as NSError).code == NSURLErrorCancelled { return }
         
         updateLoadingUI()
         displayError(text: error.localizedDescription)
@@ -879,14 +886,13 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     }
 
     func displayError(text: String) {
-//        webView.loadHTMLString("<h1>\(text)</h1", baseURL: nil)
         if errorView == nil {
             errorView = UIView(frame: webView.bounds)
             errorView.frame.size.height = 120
             errorView.frame.origin.y = webView.frame.height - 120
             
 //            errorView.isUserInteractionEnabled = false
-            errorView.backgroundColor = .black
+            errorView.backgroundColor = .darkGray
             
             let errorLabel = UILabel()
             errorLabel.textAlignment = .natural
@@ -896,6 +902,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             errorView.addSubview(errorLabel)
             
             let errorButton = UIButton(type: .system)
+//            let errorButton = ToolbarTouchView(frame: .zero, onTap: hideError)
             errorButton.tintColor = .white
             errorButton.setTitle("Okay", for: .normal)
             errorButton.sizeToFit()
@@ -925,16 +932,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     func webView(_ webView: WKWebView, didReceiveServerRedirectForProvisionalNavigation navigation: WKNavigation!) {
         print("server redirect")
     }
-    
-    // this handles target=_blank links by opening them in the same view
-    func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
-        if navigationAction.targetFrame == nil {
-            print("Tried to open new window")
-            webView.load(navigationAction.request)
-        }
-        return nil
-    }
-    
+        
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "estimatedProgress" {
             progressView.alpha = 1.0
@@ -978,62 +976,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 
         }
     }
-    
-    // MARK: - Webview Javascript Inputs
-    
-    func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo,
-                 completionHandler: @escaping () -> Void) {
-        
-        let alertController = UIAlertController(title: nil, message: message, preferredStyle: .alert)
-        alertController.addAction(UIAlertAction(title: "OK", style: .cancel, handler: { (action) in
-            completionHandler()
-        }))
-        
-        present(alertController, animated: true, completion: nil)
-    }
-    
-    
-    func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo,
-                 completionHandler: @escaping (Bool) -> Void) {
-        
-        let alertController = UIAlertController(title: nil, message: message, preferredStyle: .actionSheet)
-        
-        alertController.addAction(UIAlertAction(title: "OK", style: .default, handler: { (action) in
-            completionHandler(true)
-        }))
-        
-        alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (action) in
-            completionHandler(false)
-        }))
-        
-        present(alertController, animated: true, completion: nil)
-    }
-    
-    
-    func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo,
-                 completionHandler: @escaping (String?) -> Void) {
-        
-        let alertController = UIAlertController(title: nil, message: prompt, preferredStyle: .alert)
-        
-        alertController.addTextField { (textField) in
-            textField.text = defaultText
-        }
-        
-        alertController.addAction(UIAlertAction(title: "OK", style: .default, handler: { (action) in
-            if let text = alertController.textFields?.first?.text {
-                completionHandler(text)
-            } else {
-                completionHandler(defaultText)
-            }
-        }))
-        
-        alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (action) in
-            completionHandler(nil)
-        }))
-        
-        present(alertController, animated: true, completion: nil)
-    }
-
 
 }
 

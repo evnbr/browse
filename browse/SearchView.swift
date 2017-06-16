@@ -53,7 +53,7 @@ class SearchView: UIView, UITextViewDelegate {
         
         textView.backgroundColor = UIColor.clear
         textView.font = UIFont(descriptor: .preferredFontDescriptor(withTextStyle: .body), size: 17)
-        textView.text = "Test"
+        textView.text = ""
         
         textView.keyboardType = UIKeyboardType.webSearch
         textView.returnKeyType = .go
