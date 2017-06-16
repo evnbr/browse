@@ -13,7 +13,7 @@ import OnePasswordExtension
 extension URL {
     var displayHost : String {
         get {
-            let host : String = self.host!
+            guard let host : String = self.host else { return "No host"}
             if host.hasPrefix("www.") {
                 let index = host.index(host.startIndex, offsetBy: 4)
                 return host.substring(from: index)
@@ -48,6 +48,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     
     var statusBar: ColorStatusBarView!
     var toolbar: ColorToolbar!
+    
+    var cardView: UIView!
 
     var progressView: UIProgressView!
     var backButton: ToolbarIconButton!
@@ -66,8 +68,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         guard webViewColor != nil else { return .default }
-        print("Getting status bar | dismissing: \(isInteractiveDismiss), isLight: \(webViewColor.top.isLight)")
-        if isInteractiveDismiss && view.frame.origin.y > 15 {
+//        print("Getting status bar | dismissing: \(isInteractiveDismiss), isLight: \(webViewColor.top.isLight)")
+        if isInteractiveDismiss && cardView.frame.origin.y > 15 {
             return .lightContent
         }
         return webViewColor.top.isLight ? .lightContent : .default
@@ -79,8 +81,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 
     var displayTitle : String {
         get {
-            guard let url = webView.url else { return "Where to?" }
-            if isSearching { return makeDisplaySearch(url.searchQuery) }
+            guard let url = webView.url else { return "Search" }
+            if isSearching { return trimText(url.searchQuery) }
             else { return displayURL }
         }
     }
@@ -92,7 +94,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         }
     }
     
-    func makeDisplaySearch(_ query: String) -> String {
+    func trimText(_ query: String) -> String {
         if query.characters.count > 28 {
             let index = query.index(query.startIndex, offsetBy: 28)
             let trimmed = query.substring(to: index)
@@ -106,7 +108,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     
     var isSearching : Bool {
         get {
-            let url = webView.url!
+            guard let url = webView.url else { return false }
             let searchURL = "https://www.google.com/search?"
             return url.absoluteString.hasPrefix(searchURL)
         }
@@ -115,7 +117,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     var editableURL : String {
         get {
             guard let url = webView.url else { return "" }
-            
             if isSearching { return url.searchQuery }
             else { return url.absoluteString }
         }
@@ -131,36 +132,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
-        
-//        let prefs = WKPreferences()
-//        prefs.javaScriptEnabled = false
-//        config.preferences = prefs
-        
-
-//        let scriptContent = ""
-//            + " document.documentElement.querySelectorAll('form').forEach((form) => {"
-//            + "  form.addEventListener('submit', (e) => {"
-//            + "     /* e.preventDefault(); */"
-//            + "     alert('form submitted');"
-//            + "  });"
-//            + " });"
-        
-//        let scriptContent = "document.head.querySelectorAll('script').forEach((s) => console.log(s.src))"
-//        let scriptContent = "document.documentElement.querySelectorAll('script').forEach((s) => console.log(s.src))"
-//        let scriptContent = "(function() { "
-//            + " var target = document.documentElement; "
-//            + " var observer = new MutationObserver(function(mutations) {"
-//            + "     mutations.forEach(function(mutation) {"
-//            + "         document.documentElement.querySelectorAll('script').forEach((s) => s.remove() )"
-//            + "     }); "
-//            + " }); "
-//            + " var config = { attributes: true, childList: true, characterData: true }; "
-//            + " observer.observe(target, config);"
-//            + " })(); "
-//        let script = WKUserScript(source: scriptContent, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
-//        config.userContentController.addUserScript(script)
-        
-        
         
         
         let rect = CGRect(
@@ -799,6 +770,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     func navigateToText(_ text: String) {
         
         locationBar.isLoading = true
+        errorView?.removeFromSuperview()
 
         if isProbablyURL(text) {
             if (text.hasPrefix("http://") || text.hasPrefix("https://")) {
@@ -819,7 +791,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             let url = URL(string: searchURL + query)!
             
             if let btn = locationBar {
-                btn.text = makeDisplaySearch(text)
+                btn.text = trimText(text)
             }
             
             self.webView.load(URLRequest(url: url))
@@ -828,45 +800,40 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
-        locationBar.text = self.displayTitle
-        locationBar.isSecure = webView.hasOnlySecureContent
-        locationBar.isSearch = isSearching
-        
-        UIApplication.shared.isNetworkActivityIndicatorVisible = true
-        locationBar.isLoading = webView.isLoading
+        errorView?.removeFromSuperview()
+
+        updateLoadingUI()
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        locationBar.text = self.displayTitle
         
-        topLabel?.text = self.displayTitle
-        
-        locationBar.isSecure = webView.hasOnlySecureContent
-        locationBar.isSearch = isSearching
-        locationBar.isLoading = webView.isLoading
+        updateLoadingUI()
 
         if overflowController != nil {
             updateStopRefreshAlertAction()
         }
-        
-        UIApplication.shared.isNetworkActivityIndicatorVisible = false
+    }
+    
+    func updateLoadingUI() {
+        locationBar.text = self.displayTitle
+        topLabel?.text = self.displayTitle
+
+        locationBar.isSecure = webView.hasOnlySecureContent
+        locationBar.isSearch = isSearching || webView.url == nil
+        locationBar.isLoading = webView.isLoading
+        UIApplication.shared.isNetworkActivityIndicatorVisible = webView.isLoading
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         
-        UIApplication.shared.isNetworkActivityIndicatorVisible = false
 
         if (error as NSError).code == NSURLErrorCancelled {
             print("Cancelled")
             return
         }
         
-        locationBar.text = displayTitle // reset
-        locationBar.isLoading = webView.isLoading
-
-        let alert = UIAlertController(title: "Failed Nav", message: error.localizedDescription, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.default, handler: nil))
-        self.present(alert, animated: true, completion: nil)
+        updateLoadingUI()
+        displayError(text: error.localizedDescription)
     }
     
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
@@ -875,14 +842,52 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             return
         }
         
-        UIApplication.shared.isNetworkActivityIndicatorVisible = false
-        locationBar.text = displayTitle // reset
-        locationBar.isLoading = webView.isLoading
+        updateLoadingUI()
+        displayError(text: error.localizedDescription)
+    }
+    
+    func hideError() {
+        errorView.removeFromSuperview()
+    }
 
-
-        let alert = UIAlertController(title: "Failed Provisional Nav", message: error.localizedDescription, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.default, handler: nil))
-        self.present(alert, animated: true, completion: nil)
+    func displayError(text: String) {
+//        webView.loadHTMLString("<h1>\(text)</h1", baseURL: nil)
+        if errorView == nil {
+            errorView = UIView(frame: webView.bounds)
+            errorView.frame.size.height = 120
+            errorView.frame.origin.y = webView.frame.height - 120
+            
+//            errorView.isUserInteractionEnabled = false
+            errorView.backgroundColor = .black
+            
+            let errorLabel = UILabel()
+            errorLabel.textAlignment = .natural
+            errorLabel.font = UIFont.systemFont(ofSize: 15.0)
+            errorLabel.numberOfLines = 0
+            errorLabel.textColor = .white
+            errorView.addSubview(errorLabel)
+            
+            let errorButton = UIButton(type: .system)
+            errorButton.tintColor = .white
+            errorButton.setTitle("Okay", for: .normal)
+            errorButton.sizeToFit()
+            errorButton.frame.origin.y = 20
+            errorButton.frame.origin.x = errorView.frame.width - errorButton.frame.width - 20
+            errorButton.addTarget(self, action: #selector(hideError), for: .primaryActionTriggered)
+            errorView.addSubview(errorButton)
+        }
+        
+        let errorLabel = errorView.subviews.first as! UILabel
+        errorLabel.text = text
+        let size = errorLabel.sizeThatFits(CGSize(width: 280, height: 200))
+        errorLabel.frame = CGRect(origin: CGPoint(x: 20, y: 20), size: size)
+//        errorLabel.center = CGPoint(
+//            x: errorView.center.x,
+//            y: errorView.center.y * 0.7
+//        )
+        
+        
+        webView.addSubview(errorView)
     }
     
     func webViewDidClose(_ webView: WKWebView) {
