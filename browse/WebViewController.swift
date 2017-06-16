@@ -49,6 +49,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
     var statusBar: ColorStatusBarView!
     var toolbar: ColorToolbar!
     
+    var errorView: UIView!
     var cardView: UIView!
 
     var progressView: UIProgressView!
@@ -156,7 +157,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
 //        webView.scrollView.layer.masksToBounds = false
 //        webView.scrollView.backgroundColor = .clear
         
-        view.addSubview(webView)
     }
     
 
@@ -164,18 +164,32 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
         super.viewDidLoad()
         
         
-        view.layer.cornerRadius = 4.0
-        view.layer.masksToBounds = true
+//        view.layer.cornerRadius = 4.0
+//        view.layer.masksToBounds = true
 //        webView.layer.cornerRadius = 4.0
 //        webView.layer.masksToBounds = true
         
+        cardView = UIView(frame: CGRect(
+            x: 0,
+            y: 0,
+            width: view.frame.width,
+            height: view.frame.height - TOOLBAR_H
+        ))
         
+        cardView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        cardView.layer.cornerRadius = 4.0
+        cardView.layer.masksToBounds = true
         
-        toolbar = setUpToolbar()
-        view.addSubview(toolbar)
-        
+        cardView.addSubview(webView)
+
         statusBar = ColorStatusBarView()
-        view.addSubview(statusBar)
+        cardView.addSubview(statusBar)
+
+        toolbar = setUpToolbar()
+        
+        view.addSubview(toolbar)
+        view.addSubview(cardView)
+
 
         searchView = SearchView(for: self)
         
@@ -407,9 +421,23 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
             if isInteractiveDismiss {
 //                let velY = gesture.velocity(in: webView).y
                 let gestureY = gesture.translation(in: webView).y
-                view.frame.origin.y = gestureY * 0.7
+                
+                cardView.frame.origin.y = gestureY
+                
+//                let limit : CGFloat = 100.0
+//                let resistance : CGFloat = 0.3
+//                if abs(gestureY) < limit {
+//                    cardView.frame.origin.y = gestureY * resistance
+//                }
+//                else {
+//                    cardView.frame.origin.y = limit * resistance + ( abs(gestureY) - limit )
+//                }
+                
                 UIView.animate(withDuration: 0.3, animations: {
                     self.setNeedsStatusBarAppearanceUpdate()
+//                    self.view.transform = abs(gestureY) > 50
+//                        ? CGAffineTransform(scaleX: 0.9, y: 0.9)
+//                        : CGAffineTransform.identity
                 })
             }
             else {
@@ -428,7 +456,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, U
                 }
                 else {
                     UIView.animate(withDuration: 0.3, animations: {
-                        self.view.frame.origin = .zero
+                        self.cardView.frame.origin = .zero
                         self.setNeedsStatusBarAppearanceUpdate()
                     })
                 }

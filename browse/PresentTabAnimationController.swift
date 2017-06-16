@@ -42,7 +42,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
     }
         
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return 0.6
+        return 0.5
     }
     
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -69,15 +69,16 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
 //            }
         }
         else {
-            webVC.view.frame.origin.y = 0
+            webVC.view.transform = .identity
+            webVC.cardView.frame.origin.y = 0
         }
         
-        let snapshot : UIView = webVC.view.snapshotView(afterScreenUpdates: true)!
+        let snapshot : UIView = webVC.cardView.snapshotView(afterScreenUpdates: true)!
 //        snapshot.clipsToBounds = true
         let transitioningThumb = TabThumbnail()
         let thumbFrame = containerView.convert(thumb.frame, from: thumb.superview) // must be after toVC is added
         
-        transitioningThumb.frame = isExpanding ? thumbFrame : webVC.view.frame
+        transitioningThumb.frame = isExpanding ? thumbFrame : webVC.cardView.frame
         
         transitioningThumb.layer.cornerRadius = isExpanding ? 5.0 : 0.0
 

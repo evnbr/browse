@@ -23,7 +23,7 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
 
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        if tab != nil && tab.view.window != nil {
+        if tab != nil && tab.view.window != nil && !tab.isBeingDismissed {
             return tab.preferredStatusBarStyle
         }
         else {
@@ -65,7 +65,11 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
         
         let aspect = UIScreen.main.bounds.width / UIScreen.main.bounds.height
         let H : CGFloat = 500.0
+        
         thumb = TabThumbnail(frame: CGRect(x: 10, y: 50, width: aspect * H, height: H - 32) )
+        thumb.center.y = view.center.y
+        thumb.isHidden = true
+        
 //        thumb = TabThumbnail(frame: CGRect(x: 10, y: 100, width: 300, height: 450) )
         thumb.backgroundColor = .white
         updateSnapshot()

@@ -209,6 +209,7 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
         
         if !isTopAnimating && !isTopTransitionInteractive {
             getColorAtTopAsync(completion: { newColor in
+                // TODO: if it looks confusing, maybe just go transparent?
                 self.previousTop = self.top
                 self.top = newColor
                 self.topDelta = self.top.difference(from: self.previousTop)
