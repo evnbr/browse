@@ -197,10 +197,7 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
     
     func updateColors() {
         
-//        guard !self.isPanning else { return }
-        guard !wvc.isInteractiveDismiss else { return }
-        guard UIApplication.shared.applicationState == .active else { return }
-        guard (wvc.isViewLoaded && (wvc.view.window != nil)) else { return }
+        guard wvc.shouldUpdateColors else { return }
         
         let now = CACurrentMediaTime()
         guard ( now - lastSampledColorsTime > MIN_TIME_BETWEEN_UPDATES )  else { return }
@@ -298,7 +295,7 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
         self.wvc.toolbar.back.backgroundColor = self.bottom
         self.wvc.toolbar.inner.isHidden = true
         
-        self.wvc.progressView.progressTintColor = self.bottom.isLight
+        self.wvc.toolbar.progressView.progressTintColor = self.bottom.isLight
             ? UIColor.lightOverlay
             : UIColor.darkOverlay
         

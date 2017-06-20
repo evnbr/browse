@@ -33,12 +33,14 @@ extension URL {
     }
 }
 
-let TOOLBAR_H : CGFloat = 36.0
-let STATUS_H : CGFloat = 20.0
+let TOOLBAR_H     : CGFloat = 36.0
+let STATUS_H      : CGFloat = 20.0
+let CORNER_RADIUS : CGFloat = 4.0
 
 
 class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivityItemSource, UIScrollViewDelegate {
     
+    var home: HomeViewController!
     var webView: WKWebView!
     
     var searchView: SearchView!
@@ -67,16 +69,31 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     override var preferredStatusBarStyle: UIStatusBarStyle {
         guard webViewColor != nil else { return .default }
 //        print("Getting status bar | dismissing: \(isInteractiveDismiss), isLight: \(webViewColor.top.isLight)")
-        if isInteractiveDismiss && cardView.frame.origin.y > 15 {
+        if (isInteractiveDismiss || isInteractiveDismissToolbar) && cardView.frame.origin.y > 15 {
             return .lightContent
         }
         return webViewColor.top.isLight ? .lightContent : .default
     }
     
     override var prefersStatusBarHidden: Bool {
-        return isInteractiveDismissToolbar
+        return false
     }
-
+    
+    var shouldUpdateColors : Bool {
+        return (
+            isViewLoaded
+            && view.window != nil
+            && !isInteractiveDismiss
+            && !isInteractiveDismissToolbar
+            && UIApplication.shared.applicationState == .active
+        )
+    }
+    
+    convenience init(home: HomeViewController) {
+        self.init()
+        self.home = home
+    }
+    
     var displayTitle : String {
         get {
             guard let url = webView.url else { return "Search" }
@@ -146,7 +163,12 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         webView.scrollView.delegate = self
         
         webView.allowsBackForwardNavigationGestures = true
-        webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        
+        // TODO: Prevent webview from layout when resizing, but allow it when 
+        // screen changes size
+        
+        webView.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
+        //        webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         webView.scrollView.contentInset = .zero
         webView.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
 
@@ -156,20 +178,24 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         
     }
     
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        coordinator.animate(alongsideTransition: { context in
+            //
+        }, completion: { context in
+            self.resignFirstResponder()
+            self.webView.frame.size.height = UIScreen.main.bounds.size.height - TOOLBAR_H - STATUS_H
+        })
+    }
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        cardView = UIView(frame: CGRect(
-            x: 0,
-            y: 0,
-            width: view.frame.width,
-            height: view.frame.height - TOOLBAR_H
-        ))
+        cardView = UIView(frame: cardViewDefaultFrame)
         
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         cardView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        cardView.layer.cornerRadius = 8.0
+        cardView.layer.cornerRadius = CORNER_RADIUS
         cardView.layer.masksToBounds = true
         
         cardView.addSubview(webView)
@@ -267,6 +293,15 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     }
     
     
+    var cardViewDefaultFrame : CGRect {
+        return CGRect(
+            x: 0,
+            y: 0,
+            width: UIScreen.main.bounds.width,
+            height: UIScreen.main.bounds.height - TOOLBAR_H
+        )
+    }
+
     func setUpToolbar() -> ColorToolbar {
         
         // let toolbar = (navigationController?.toolbar)!
@@ -385,118 +420,6 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
             recognizer.isEnabled = true
         }
     }
-    
-    func cancelScroll() {
-        webView.scrollView.isScrollEnabled = false
-        webView.scrollView.contentOffset.y = 0
-        webView.scrollView.isScrollEnabled = true
-    }
-
-    var isInteractiveDismiss : Bool = false
-    var interactiveDismissStartPoint : CGPoint = .zero
-
-    func dismissPan(gesture:UIPanGestureRecognizer) {
-        if gesture.state == .began {
-            if webView.scrollView.contentOffset.y < 0 {
-                isInteractiveDismiss = true
-                interactiveDismissStartPoint = .zero
-                cancelScroll()
-            }
-        }
-            
-        else if gesture.state == .changed {
-            let gesturePos = gesture.translation(in: webView)
-
-            if isInteractiveDismiss {
-//                let velY = gesture.velocity(in: webView).y
-                
-                cardView.frame.origin.x = gesturePos.x * 0.5 - interactiveDismissStartPoint.x
-                cardView.frame.origin.y = gesturePos.y - interactiveDismissStartPoint.y
-                
-                let progress = 1 - (abs(gesturePos.y) / 100)
-                toolbar.alpha = progress
-                
-                UIView.animate(withDuration: 0.2, animations: {
-                    self.setNeedsStatusBarAppearanceUpdate()
-                })
-            }
-            else {
-                if webView.scrollView.contentOffset.y < 0 {
-                    isInteractiveDismiss = true
-                    interactiveDismissStartPoint = gesturePos
-                    cancelScroll()
-                }
-            }
-        }
-            
-        else if gesture.state == .ended {
-            if isInteractiveDismiss {
-                let gestureY = gesture.translation(in: webView).y
-                if gestureY > 100 {
-                    dismissSelf()
-                }
-                else {
-                    UIView.animate(withDuration: 0.3, animations: {
-                        self.cardView.frame.origin = .zero
-                        self.setNeedsStatusBarAppearanceUpdate()
-                        self.toolbar.alpha = 1
-                    })
-                }
-                isInteractiveDismiss = false
-            }
-            
-
-        }
-    }
-    
-    var isInteractiveDismissToolbar : Bool = false
-    var interactiveDismissToolbarStartPoint : CGPoint = .zero
-    
-    func toolbarDismissPan(gesture:UIPanGestureRecognizer) {
-        if gesture.state == .began {
-            // do nothing until the gesture gets to -20
-        }
-            
-        else if gesture.state == .changed {
-            let gesturePos = gesture.translation(in: webView)
-
-            if isInteractiveDismissToolbar {
-                cardView.frame.origin.x = gesturePos.x - interactiveDismissToolbarStartPoint.x
-                cardView.frame.origin.y = gesturePos.y - interactiveDismissToolbarStartPoint.y
-
-                let progress = 1 - (abs(gesturePos.y) / 100)
-                toolbar.alpha = progress
-            }
-            else {
-                if gesturePos.y < -20 {
-                    isInteractiveDismissToolbar = true
-                    interactiveDismissToolbarStartPoint = gesturePos
-
-                    cancelScroll()
-                }
-            }
-
-        }
-            
-        else if gesture.state == .ended {
-            if isInteractiveDismissToolbar {
-                let gestureY = gesture.translation(in: view).y
-                if gestureY < -100 {
-                    dismissSelf()
-                }
-                else {
-                    UIView.animate(withDuration: 0.3, animations: {
-                        self.cardView.frame.origin = .zero
-                        self.toolbar.alpha = 1
-                    })
-                }
-                isInteractiveDismissToolbar = false
-            }
-            
-            
-        }
-    }
-
     
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
@@ -757,7 +680,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         ac.addAction(UIAlertAction(title: "Bookmarks", style: .default, handler: { action in
             self.displayBookmarks()
         }))
-        ac.addAction(UIAlertAction(title: "Share", style: .default, handler: { action in
+        ac.addAction(UIAlertAction(title: "Share...", style: .default, handler: { action in
             self.displayShareSheet()
         }))
         
@@ -817,8 +740,8 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         }
         else {
             let query = text.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
-            //            let searchURL = "https://duckduckgo.com/?q="
-            let searchURL = "https://www.google.com/search?q="
+                        let searchURL = "https://duckduckgo.com/?q="
+//            let searchURL = "https://www.google.com/search?q="
             let url = URL(string: searchURL + query)!
             
             if let btn = locationBar {
@@ -849,11 +772,11 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     func displayError(text: String) {
         if errorView == nil {
             errorView = UIView(frame: webView.bounds)
-            errorView.frame.size.height = 120
+            errorView.frame.size.height = 80
             errorView.frame.origin.y = webView.frame.height - 120
             
 //            errorView.isUserInteractionEnabled = false
-            errorView.backgroundColor = .darkGray
+            errorView.backgroundColor = UIColor.red
             
             let errorLabel = UILabel()
             errorLabel.textAlignment = .natural
@@ -877,11 +800,6 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         errorLabel.text = text
         let size = errorLabel.sizeThatFits(CGSize(width: 280, height: 200))
         errorLabel.frame = CGRect(origin: CGPoint(x: 20, y: 20), size: size)
-//        errorLabel.center = CGPoint(
-//            x: errorView.center.x,
-//            y: errorView.center.y * 0.7
-//        )
-        
         
         webView.addSubview(errorView)
     }
@@ -898,7 +816,6 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
             
         }
         else if keyPath == "title" {
-//             catches custom navigation
             backButton.isEnabled = webView.canGoBack
             forwardButton.isEnabled = webView.canGoForward
             forwardButton.tintColor = webView.canGoForward ? nil : UIColor.clear

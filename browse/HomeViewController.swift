@@ -8,31 +8,40 @@
 
 import UIKit
 
+
+let THUMB_H : CGFloat = 200.0
+
 class HomeViewController: UIViewController, UIViewControllerTransitioningDelegate {
 
 //    var thumb : TabThumbnail!
     var thumbs : [TabThumbnail] = []
     var tabs : [WebViewController] = []
+    
+    var selectedTabIndex : Int = 0
+    var selectedTab : WebViewController? {
+        guard tabs.count > selectedTabIndex else { return nil }
+        return tabs[selectedTabIndex]
+    }
 
     let thumbAnimationController = PresentTabAnimationController()
-
-    var tab : WebViewController!
     
     var scroll : UIScrollView!
     
     lazy var settingsVC : SettingsViewController = SettingsViewController()
     lazy var bookmarksVC : BookmarksViewController = BookmarksViewController()
 
-    
+    var gradientLayer : CAGradientLayer!
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        if tab != nil && tab.view.window != nil && !tab.isBeingDismissed {
+        guard let tab = selectedTab else { return .lightContent }
+        if tab.view.window != nil && !tab.isBeingDismissed {
             return tab.preferredStatusBarStyle
         }
         return .lightContent
     }
     override var prefersStatusBarHidden: Bool {
-        if tab != nil && tab.view.window != nil && !tab.isBeingDismissed {
+        guard let tab = selectedTab else { return false }
+        if tab.view.window != nil && !tab.isBeingDismissed {
             return tab.prefersStatusBarHidden
         }
 
@@ -45,59 +54,72 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
         
         scroll = UIScrollView(frame: view.frame)
         view.addSubview(scroll)
-        scroll.alwaysBounceVertical = false
+        //        scroll.alwaysBounceVertical = false
+        scroll.alwaysBounceHorizontal = false
         scroll.indicatorStyle = .white
         scroll.isDirectionalLockEnabled = true
         scroll.isPagingEnabled = false
         scroll.delaysContentTouches = false
-        scroll.contentSize = CGSize(width: 1600, height: 500)
-        
-        scroll.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        
-        tab = WebViewController()
-        let tab2 = WebViewController()
-        let tab3 = WebViewController()
-        tabs = [tab, tab2, tab3]
+        scroll.contentSize = CGSize(width: UIScreen.main.bounds.width, height: 1600)
 
+        scroll.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         
         Settings.shared.updateProtocolRegistration()
         
         title = ""
         view.backgroundColor = .black
-
+        
         navigationController?.navigationBar.tintColor = .white
         navigationController?.navigationBar.barStyle = .blackTranslucent
-
+        
         navigationController?.toolbar.tintColor = .white
         navigationController?.toolbar.barStyle = .blackTranslucent
 
         
-        let aspect = UIScreen.main.bounds.width / UIScreen.main.bounds.height
-        let THUMB_H : CGFloat = 500.0
-        let THUMB_W : CGFloat = aspect * THUMB_H
+        
+        let tab1 = WebViewController(home: self)
+        let tab2 = WebViewController(home: self)
+        let tab3 = WebViewController(home: self)
+        let tab4 = WebViewController(home: self)
+        tabs = [tab1, tab2, tab3, tab4]
 
-        for i in 0 ... 2 {
+
+//        gradientLayer = CAGradientLayer()
+//        gradientLayer.frame = view.bounds
+//        gradientLayer.colors = [
+//            UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: 0.7).cgColor,
+//            UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: 1.0).cgColor]
+//        gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.0);
+//        gradientLayer.endPoint = CGPoint(x: 0.0, y: 0.1);
+//        view.layer.mask = gradientLayer;
+
+        
+        for i in 0 ... 3 {
             let t = TabThumbnail(
                 frame: CGRect(
-                    x: 10 + (THUMB_W + 8) * CGFloat(i),
-                    y: 50,
-                    width: THUMB_W,
-                    height: THUMB_H - 40
+                    x: 0,
+                    y: 10 + (THUMB_H + 8) * CGFloat(i),
+                    width: UIScreen.main.bounds.width - 0,
+                    height: THUMB_H
                 ),
                 tab: tabs[i],
                 onTap: showRenameThis
             )
-            t.center.y = view.center.y
-
+            
             scroll.addSubview(t)
             thumbs.append(t)
         }
+
+        thumbs[selectedTabIndex].isHidden = true
+        navigationController?.view.alpha = 0.0
         
-        thumbs[0].isHidden = true
-        
-        
-        showTab(tab: tab, animated: false)
+        showTab(tab: selectedTab!, animated: false)
     }
+    
+    override func viewWillLayoutSubviews() {
+        gradientLayer?.frame = view.bounds
+    }
+
     
     func showRenameThis(_ tab: WebViewController) {
         showTab(tab: tab)
@@ -108,6 +130,7 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
     }
     
     func showTab(tab: WebViewController, animated: Bool = true) {
+        selectedTabIndex = tabs.index(of: tab)!
         thumb(forTab: tab).unSelect() // TODO this should be somewhere else
         
         tab.modalPresentationStyle = .custom
@@ -115,7 +138,10 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
         
         present(tab, animated: animated)
     }
-
+    
+    func updateThumbnail(tab: WebViewController) {
+        thumb(forTab: tab).updateSnapshot()
+    }
     
     override func viewDidAppear(_ animated: Bool) {
         navigationController?.isNavigationBarHidden = true
@@ -127,12 +153,6 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
         // Dispose of any resources that can be recreated.
     }
     
-//    func updateSnapshot() {
-//        snapshot = tab.view.snapshotView(afterScreenUpdates: true)
-//        thumb.setSnapshot(snapshot)
-//    }
-
-    
     // MARK - Presenting other views
 
     func showSettings() {
@@ -143,7 +163,6 @@ class HomeViewController: UIViewController, UIViewControllerTransitioningDelegat
         bookmarksVC.homeVC = self
         navigationController?.pushViewController(bookmarksVC, animated: true)
     }
-    
     
 
     

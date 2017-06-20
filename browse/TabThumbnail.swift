@@ -16,13 +16,19 @@ class TabThumbnail: UIView {
     var tab : WebViewController!
     var onTap: tabTapType!
     
+    var isExpanded : Bool {
+        get {
+            return snap.frame.origin.y == 0
+        }
+        set {
+            snap?.frame.origin.y = newValue ? 0 : -STATUS_H
+            layer.borderWidth = newValue ? 0.0 : 1.0
+        }
+    }
+    
     override var frame : CGRect {
         didSet {
-            if snap != nil {
-                let aspect = snap.frame.size.height / snap.frame.size.width
-                let W = self.frame.size.width
-                snap.frame = CGRect(x: 0, y: 0, width: W, height: aspect * W )
-            }
+            snap?.frame = sizeForSnapshot(snap)
         }
     }
     
@@ -31,14 +37,20 @@ class TabThumbnail: UIView {
         self.onTap = onTap
     
         super.init(frame: frame)
+        autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
+
 
         let thumbTap = UITapGestureRecognizer(target: self, action: #selector(tapped))
         self.addGestureRecognizer(thumbTap)
 
         
-        layer.cornerRadius = 5.0
-        backgroundColor = .white
+        layer.cornerRadius = CORNER_RADIUS
+        backgroundColor = .clear
         clipsToBounds = true
+        layer.borderWidth = 1.0
+        layer.borderColor = UIColor.white.withAlphaComponent(0.15).cgColor
+        
+        isExpanded = false
     }
     
     func tapped() {
@@ -54,6 +66,7 @@ class TabThumbnail: UIView {
         if touches.first != nil {
             UIView.animate(withDuration: 0.15, animations: {
                 self.transform = CGAffineTransform(scaleX: 0.97, y: 0.97)
+                self.alpha = 0.8
             })
         }
     }
@@ -77,6 +90,7 @@ class TabThumbnail: UIView {
     func unSelect() {
         UIView.animate(withDuration: 0.2, delay: 0.0, animations: {
             self.transform = .identity
+            self.alpha = 1.0
         })
     }
     
@@ -84,18 +98,26 @@ class TabThumbnail: UIView {
         snap?.removeFromSuperview()
         
         snap = newSnapshot
-        
-        let aspect = snap.frame.size.height / snap.frame.size.width
-        let W = self.frame.size.width
-        snap.frame = CGRect(x: 0, y: 0, width: W, height: aspect * W )
-        
-        //        snapshot.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+        snap.frame = sizeForSnapshot(snap)
         
         self.addSubview(snap)
-        //        let h = NSLayoutConstraint(item: snapshot, attribute: .height, relatedBy: .equal, toItem: thumb, attribute: .height, multiplier: 1, constant: 1)
-        //        let w = NSLayoutConstraint(item: snapshot, attribute: .width, relatedBy: .equal, toItem: thumb, attribute: .width, multiplier: 1, constant: 1)
-        //        thumb.addConstraints([w, h])
+    }
+    
+    func updateSnapshot() {
+        guard let newSnap : UIView = tab.cardView.snapshotView(afterScreenUpdates: true) else { return }
+        setSnapshot(newSnap)
+    }
 
+    
+    func sizeForSnapshot(_ snap : UIView) -> CGRect {
+        let aspect = snap.frame.size.height / snap.frame.size.width
+        let W = self.frame.size.width
+        return CGRect(
+            x: 0,
+            y: isExpanded ? 0 : -STATUS_H,
+            width: W,
+            height: aspect * W
+        )
     }
 
 }

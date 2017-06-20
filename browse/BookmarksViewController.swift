@@ -117,8 +117,8 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
         if homeVC != nil {
 //            dismissSelf()
             navigationController?.popToRootViewController(animated: true)
-            homeVC.tab.navigateToText(bookmarks[indexPath.row])
-            homeVC.showTab(tab: homeVC.tab)
+            homeVC.selectedTab?.navigateToText(bookmarks[indexPath.row])
+            homeVC.showTab(tab: homeVC.selectedTab!)
         }
         if webVC != nil {
             dismissSelf()
