@@ -52,7 +52,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIGestureRecogn
     var errorView: UIView!
     var cardView: UIView!
 
-    var progressView: UIProgressView!
     var backButton: ToolbarIconButton!
     var forwardButton: ToolbarIconButton!
     var tabButton: ToolbarIconButton!
@@ -277,19 +276,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIGestureRecogn
             width: UIScreen.main.bounds.size.width,
             height: TOOLBAR_H
         ))
-        
-        toolbar.autoresizingMask = [.flexibleWidth, .flexibleTopMargin]
                 
-        progressView = UIProgressView(progressViewStyle: .default)
-        progressView.frame = CGRect(
-            origin: CGPoint(x: 0, y: 21),
-            size:CGSize(width: UIScreen.main.bounds.size.width, height:4)
-        )
-        progressView.trackTintColor = UIColor.white.withAlphaComponent(0)
-        progressView.progressTintColor = UIColor.lightOverlay
-        progressView.transform = progressView.transform.scaledBy(x: 1, y: 22)
-        
-        toolbar.addSubview(progressView)
         
         backButton = ToolbarIconButton(
             icon: UIImage(named: "back"),
@@ -938,21 +925,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIGestureRecogn
         
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "estimatedProgress" {
-            progressView.alpha = 1.0
-            
-            let isIncreasing = progressView.progress < Float(webView.estimatedProgress)
-            progressView.setProgress(Float(webView.estimatedProgress), animated: isIncreasing)
-            
+
             locationBar.isLoading = webView.isLoading
-            
-            if (webView.estimatedProgress >= 1.0) {
-                UIView.animate(withDuration: 0.3, delay: 0.3, options: .curveEaseOut, animations: {
-                    self.progressView.progress = 1.0
-                    self.progressView.alpha = 0
-                }, completion: { (finished) in
-                    self.progressView.setProgress(0.0, animated: false)
-                })
-            }
+            toolbar.progress = Float(webView.estimatedProgress)
             
             backButton.isEnabled = webView.canGoBack
             forwardButton.isEnabled = webView.canGoForward
