@@ -37,7 +37,7 @@ let TOOLBAR_H : CGFloat = 36.0
 let STATUS_H : CGFloat = 20.0
 
 
-class WebViewController: UIViewController, WKNavigationDelegate, UIGestureRecognizerDelegate, UIActivityItemSource, UIScrollViewDelegate {
+class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivityItemSource, UIScrollViewDelegate {
     
     var webView: WKWebView!
     
@@ -830,20 +830,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIGestureRecogn
         
     }
 
-    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
-        errorView?.removeFromSuperview()
-
-        updateLoadingUI()
-    }
-    
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        
-        updateLoadingUI()
-
-        if overflowController != nil {
-            updateStopRefreshAlertAction()
-        }
-    }
     
     func updateLoadingUI() {
         locationBar.text = self.displayTitle
@@ -855,21 +841,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIGestureRecogn
         UIApplication.shared.isNetworkActivityIndicatorVisible = webView.isLoading
     }
 
-    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        
-        if (error as NSError).code == NSURLErrorCancelled { return }
-        
-        updateLoadingUI()
-        displayError(text: error.localizedDescription)
-    }
-    
-    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        
-        if (error as NSError).code == NSURLErrorCancelled { return }
-        
-        updateLoadingUI()
-        displayError(text: error.localizedDescription)
-    }
     
     func hideError() {
         errorView.removeFromSuperview()
@@ -913,14 +884,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIGestureRecogn
         
         
         webView.addSubview(errorView)
-    }
-    
-    func webViewDidClose(_ webView: WKWebView) {
-        print("Tried to close window")
-    }
-    
-    func webView(_ webView: WKWebView, didReceiveServerRedirectForProvisionalNavigation navigation: WKNavigation!) {
-        print("server redirect")
     }
         
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {

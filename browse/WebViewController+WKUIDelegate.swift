@@ -20,6 +20,10 @@ extension WebViewController : WKUIDelegate {
         return nil
     }
     
+    func webViewDidClose(_ webView: WKWebView) {
+        print("Tried to close window")
+    }
+
     // MARK: - Javascript alerts and inputs
     
     func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo,
