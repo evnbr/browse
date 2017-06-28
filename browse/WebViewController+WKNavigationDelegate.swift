@@ -13,12 +13,12 @@ extension WebViewController: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
         errorView?.removeFromSuperview()
         
-        updateLoadingUI()
+        loadingDidChange()
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         
-        updateLoadingUI()
+        loadingDidChange()
         
         if overflowController != nil {
             updateStopRefreshAlertAction()
@@ -27,9 +27,10 @@ extension WebViewController: WKNavigationDelegate {
     
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         
+        loadingDidChange()
+
         if (error as NSError).code == NSURLErrorCancelled { return }
         
-        updateLoadingUI()
         displayError(text: error.localizedDescription)
     }
     
@@ -37,7 +38,7 @@ extension WebViewController: WKNavigationDelegate {
         
         if (error as NSError).code == NSURLErrorCancelled { return }
         
-        updateLoadingUI()
+        loadingDidChange()
         displayError(text: error.localizedDescription)
     }
 

@@ -10,10 +10,10 @@ import UIKit
 
 typealias tabTapType = (_ tab: WebViewController) -> Void
 
-class TabThumbnail: UIView {
+class TabThumbnail: UICollectionViewCell {
 
     var snap : UIView!
-    var tab : WebViewController!
+    var webVC : WebViewController!
     var onTap: tabTapType!
     
     var isExpanded : Bool {
@@ -32,17 +32,8 @@ class TabThumbnail: UIView {
         }
     }
     
-    init(frame: CGRect, tab: WebViewController?, onTap: tabTapType?) {
-        self.tab = tab
-        self.onTap = onTap
-    
+    override init(frame: CGRect) {
         super.init(frame: frame)
-        autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
-
-
-        let thumbTap = UITapGestureRecognizer(target: self, action: #selector(tapped))
-        self.addGestureRecognizer(thumbTap)
-
         
         layer.cornerRadius = CORNER_RADIUS
         backgroundColor = .clear
@@ -50,12 +41,27 @@ class TabThumbnail: UIView {
         layer.borderWidth = 1.0
         layer.borderColor = UIColor.white.withAlphaComponent(0.15).cgColor
         
+        let snapPlaceholder = UIView(frame: UIScreen.main.bounds)
+        snapPlaceholder.backgroundColor = .darkGray
+        setSnapshot(snapPlaceholder)
+        
         isExpanded = false
+
     }
     
-    func tapped() {
-        onTap?(tab)
-    }
+//    init(frame: CGRect, tab: WebViewController?, onTap: tabTapType?) {
+//        self.tab = tab
+//        self.onTap = onTap
+//    
+//        super.init(frame: frame)
+//        autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
+//
+//
+//        let thumbTap = UITapGestureRecognizer(target: self, action: #selector(tapped))
+//        self.addGestureRecognizer(thumbTap)
+//
+//        
+//    }
     
     
     required init?(coder aDecoder: NSCoder) {
@@ -63,6 +69,7 @@ class TabThumbnail: UIView {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
         if touches.first != nil {
             UIView.animate(withDuration: 0.15, animations: {
                 self.transform = CGAffineTransform(scaleX: 0.97, y: 0.97)
@@ -71,19 +78,17 @@ class TabThumbnail: UIView {
         }
     }
     
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if touches.first != nil {
-            // do something with your currentPoint
-        }
-    }
-    
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+
         if touches.first != nil {
             unSelect()
         }
     }
     
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
+
         unSelect()
     }
     
@@ -100,15 +105,14 @@ class TabThumbnail: UIView {
         snap = newSnapshot
         snap.frame = sizeForSnapshot(snap)
         
-        self.addSubview(snap)
+        contentView.addSubview(snap)
     }
     
     func updateSnapshot() {
-        guard let newSnap : UIView = tab.cardView.snapshotView(afterScreenUpdates: true) else { return }
+        guard let newSnap : UIView = webVC.cardView.snapshotView(afterScreenUpdates: true) else { return }
         setSnapshot(newSnap)
     }
 
-    
     func sizeForSnapshot(_ snap : UIView) -> CGRect {
         let aspect = snap.frame.size.height / snap.frame.size.width
         let W = self.frame.size.width
@@ -121,3 +125,5 @@ class TabThumbnail: UIView {
     }
 
 }
+
+

@@ -10,35 +10,12 @@ import UIKit
 import WebKit
 import OnePasswordExtension
 
-extension URL {
-    var displayHost : String {
-        get {
-            guard let host : String = self.host else { return "No host"}
-            if host.hasPrefix("www.") {
-                let index = host.index(host.startIndex, offsetBy: 4)
-                return host.substring(from: index)
-            }
-            else {
-                return host
-            }
-        }
-    }
-    var searchQuery : String {
-        get {
-            guard let components = URLComponents(string: self.absoluteString) else { return "?" }
-            let queryParam : String = (components.queryItems?.first(where: { $0.name == "q" })?.value)!
-            let withoutPlus : String = queryParam.replacingOccurrences(of: "+", with: " ")
-            return withoutPlus
-        }
-    }
-}
-
-let TOOLBAR_H     : CGFloat = 36.0
+let TOOLBAR_H     : CGFloat = 40.0
 let STATUS_H      : CGFloat = 20.0
-let CORNER_RADIUS : CGFloat = 4.0
+let CORNER_RADIUS : CGFloat = 6.0
 
 
-class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivityItemSource, UIScrollViewDelegate {
+class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivityItemSource {
     
     var home: HomeViewController!
     var webView: WKWebView!
@@ -55,6 +32,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     var cardView: UIView!
 
     var backButton: ToolbarIconButton!
+    var stopButton: ToolbarIconButton!
     var forwardButton: ToolbarIconButton!
     var tabButton: ToolbarIconButton!
     var locationBar: LocationBar!
@@ -63,15 +41,19 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     var stopRefreshAlertAction: UIAlertAction!
         
     var onePasswordExtensionItem : NSExtensionItem!
+    
+    var interactiveDismissController : WebViewInteractiveDismissController!
 
     // MARK: - Derived properties
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         guard webViewColor != nil else { return .default }
-//        print("Getting status bar | dismissing: \(isInteractiveDismiss), isLight: \(webViewColor.top.isLight)")
-        if (isInteractiveDismiss || isInteractiveDismissToolbar) && cardView.frame.origin.y > 15 {
+
+        if interactiveDismissController.isInteractiveDismiss && (cardView.frame.origin.y > 10 || cardView.frame.origin.x > 100) {
+//        if interactiveDismissController.isInteractiveDismiss {
             return .lightContent
         }
+        
         return webViewColor.top.isLight ? .lightContent : .default
     }
     
@@ -83,9 +65,10 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         return (
             isViewLoaded
             && view.window != nil
-            && !isInteractiveDismiss
-            && !isInteractiveDismissToolbar
+            && !interactiveDismissController.isInteractiveDismiss
+            && !interactiveDismissController.isInteractiveDismissToolbar
             && UIApplication.shared.applicationState == .active
+            && webView.scrollView.contentOffset.y >= 0
         )
     }
     
@@ -124,7 +107,8 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     var isSearching : Bool {
         get {
             guard let url = webView.url else { return false }
-            let searchURL = "https://www.google.com/search?"
+            let searchURL = "https://duckduckgo.com/?"
+            // let searchURL = "https://www.google.com/search?"
             return url.absoluteString.hasPrefix(searchURL)
         }
     }
@@ -160,9 +144,8 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         webView = WKWebView(frame: rect, configuration: config)
         webView.navigationDelegate = self
         webView.uiDelegate = self  // req'd for target=_blank override
-        webView.scrollView.delegate = self
         
-        webView.allowsBackForwardNavigationGestures = true
+//        webView.allowsBackForwardNavigationGestures = true
         
         // TODO: Prevent webview from layout when resizing, but allow it when 
         // screen changes size
@@ -229,17 +212,8 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.title), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.url), options: .new, context: nil)
 
-        let dismissPanner = UIPanGestureRecognizer()
-        dismissPanner.delegate = self
-        dismissPanner.addTarget(self, action: #selector(self.dismissPan))
-        dismissPanner.cancelsTouchesInView = true
-        view.addGestureRecognizer(dismissPanner)
-        
-        let toolbarDismissPanner = UIPanGestureRecognizer()
-        toolbarDismissPanner.delegate = self
-        toolbarDismissPanner.addTarget(self, action: #selector(self.toolbarDismissPan))
-        toolbarDismissPanner.cancelsTouchesInView = true
-        toolbar.addGestureRecognizer(toolbarDismissPanner)
+        interactiveDismissController = WebViewInteractiveDismissController(for: self)
+        webView.scrollView.delegate = interactiveDismissController
 
 
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
@@ -291,8 +265,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         
         return scrim
     }
-    
-    
+        
     var cardViewDefaultFrame : CGRect {
         return CGRect(
             x: 0,
@@ -326,6 +299,13 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
             icon: UIImage(named: "action"),
             onTap: displayOverflow
         )
+        
+        stopButton = ToolbarIconButton(
+            icon: UIImage(named: "stop"),
+            onTap: { self.webView.stopLoading() }
+        )
+
+        
         tabButton = ToolbarIconButton(
             icon: UIImage(named: "tab"),
             onTap: dismissSelf
@@ -349,7 +329,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
             flex,
             UIBarButtonItem(customView: locationBar),
             flex,
-            UIBarButtonItem(customView: tabButton),
+            UIBarButtonItem(customView: stopButton),
             UIBarButtonItem(customView: actionButton),
             negSpace
         ]
@@ -365,6 +345,8 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         webView.scrollView.contentInset = .zero
         self.setNeedsStatusBarAppearanceUpdate()
 
+        webViewColor.startUpdates()
+
         // disable mysterious delays
         // https://stackoverflow.com/questions/19799961/uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen
 //        let window = view.window!
@@ -377,12 +359,15 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
+        
         // Dispose of any resources that can be recreated.
     }
     
     
     override func viewDidDisappear(_ animated: Bool) {
         // This is probably called too often, should only be when app closes
+        
+        webViewColor.stopUpdates()
         saveURL()
     }
     
@@ -723,7 +708,6 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     
     func navigateToText(_ text: String) {
         
-        locationBar.isLoading = true
         errorView?.removeFromSuperview()
 
         if isProbablyURL(text) {
@@ -740,7 +724,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         }
         else {
             let query = text.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
-                        let searchURL = "https://duckduckgo.com/?q="
+            let searchURL = "https://duckduckgo.com/?q="
 //            let searchURL = "https://www.google.com/search?q="
             let url = URL(string: searchURL + query)!
             
@@ -752,18 +736,6 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         }
         
     }
-
-    
-    func updateLoadingUI() {
-        locationBar.text = self.displayTitle
-        topLabel?.text = self.displayTitle
-
-        locationBar.isSecure = webView.hasOnlySecureContent
-        locationBar.isSearch = isSearching || webView.url == nil
-        locationBar.isLoading = webView.isLoading
-        UIApplication.shared.isNetworkActivityIndicatorVisible = webView.isLoading
-    }
-
     
     func hideError() {
         errorView.removeFromSuperview()
@@ -771,9 +743,10 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
 
     func displayError(text: String) {
         if errorView == nil {
+            let ERROR_H : CGFloat = 80
             errorView = UIView(frame: webView.bounds)
-            errorView.frame.size.height = 80
-            errorView.frame.origin.y = webView.frame.height - 120
+            errorView.frame.size.height = ERROR_H
+            errorView.frame.origin.y = webView.frame.height - ERROR_H
             
 //            errorView.isUserInteractionEnabled = false
             errorView.backgroundColor = UIColor.red
@@ -803,23 +776,42 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         
         webView.addSubview(errorView)
     }
+    
+    
+    func resetSizes() {
+        view.frame = UIScreen.main.bounds
+        statusBar.frame.origin.y = 0
+        webView.frame.origin.y = STATUS_H
+        view.transform = .identity
+        cardView.frame = cardViewDefaultFrame
         
+        toolbar.alpha = 1
+    }
+    
+    func loadingDidChange() {
+        backButton.isEnabled = webView.canGoBack
+        
+        forwardButton.isEnabled = webView.canGoForward
+        forwardButton.tintColor = webView.canGoForward ? nil : .clear
+        
+        stopButton.isHidden = !webView.isLoading
+        
+        locationBar.text = self.displayTitle
+        locationBar.isLoading = webView.isLoading
+        locationBar.isSecure = webView.hasOnlySecureContent
+        locationBar.isSearch = isSearching || webView.url == nil
+        
+        UIApplication.shared.isNetworkActivityIndicatorVisible = webView.isLoading
+    }
+    
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "estimatedProgress" {
-
-            locationBar.isLoading = webView.isLoading
             toolbar.progress = Float(webView.estimatedProgress)
             
-            backButton.isEnabled = webView.canGoBack
-            forwardButton.isEnabled = webView.canGoForward
-            forwardButton.tintColor = webView.canGoForward ? nil : .clear
-            
+            loadingDidChange()
         }
         else if keyPath == "title" {
-            backButton.isEnabled = webView.canGoBack
-            forwardButton.isEnabled = webView.canGoForward
-            forwardButton.tintColor = webView.canGoForward ? nil : UIColor.clear
-
+            loadingDidChange()
             
             if (webView.title != "" && webView.title != title) {
                 title = webView.title
@@ -827,11 +819,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
             }
         }
         else if keyPath == "url" {
-            
-            backButton.isEnabled = webView.canGoBack
-            forwardButton.isEnabled = webView.canGoForward
-            forwardButton.tintColor = webView.canGoForward ? nil : .clear
-
+            loadingDidChange()
         }
     }
 

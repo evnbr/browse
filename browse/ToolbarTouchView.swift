@@ -20,7 +20,8 @@ class ToolbarTouchView: UIView {
 
         super.init(frame: frame)
         backgroundColor = .clear
-        layer.cornerRadius = 8.0//frame.height / 2
+//        layer.cornerRadius = 8.0
+        layer.cornerRadius = frame.height / 2
         layer.masksToBounds = true
 
         

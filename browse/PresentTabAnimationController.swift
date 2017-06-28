@@ -62,16 +62,15 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         thumb?.isHidden = true
 
         if direction == .present {
-            webVC.view.frame = UIScreen.main.bounds
-            webVC.view.transform = .identity
-            webVC.cardView.frame = webVC.cardViewDefaultFrame
+            webVC.resetSizes()
         }
         
         let snapshot : UIView = webVC.cardView.snapshotView(afterScreenUpdates: true)!
         
-        let thumbFrame = containerView.convert(thumb!.frame, from: thumb?.superview) // must be after toVC is added
+        let thumbFrame = containerView.convert(thumb!.frame, from: thumb?.superview)
+        // must be after toVC is added
 
-        let transitioningThumb = TabThumbnail(frame: thumbFrame, tab: nil, onTap: nil)
+        let transitioningThumb = TabThumbnail(frame: thumbFrame)
         transitioningThumb.frame = isExpanding ? thumbFrame : webVC.cardView.frame
         transitioningThumb.setSnapshot(snapshot)
         transitioningThumb.isExpanded = !isExpanding
@@ -83,7 +82,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
 //        homeNav.view.alpha = isExpanding ? 1.0 : END_ALPHA
 
         if isExpanding { webVC.toolbar.alpha = 0.0 }
-
+        
         containerView.addSubview(transitioningThumb)
         containerView.bringSubview(toFront: transitioningThumb)
 
@@ -103,7 +102,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             transitioningThumb.frame = self.isExpanding ? webVC.cardView.frame : thumbFrame
             transitioningThumb.isExpanded = self.isExpanding
 
-            homeVC.scroll.scrollRectToVisible(thumb!.frame.insetBy(dx: -20, dy: -20), animated: false)
+            homeVC.collectionView?.scrollRectToVisible(thumb!.frame.insetBy(dx: -20, dy: -20), animated: false)
             
             homeNav.view.alpha = self.isExpanding ? END_ALPHA : 1.0
             webVC.toolbar.alpha = self.isExpanding ? 1.0 : 0.0

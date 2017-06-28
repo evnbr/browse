@@ -30,6 +30,8 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
     let TOOLBAR_H : CGFloat = 36.0
     let STATUS_H : CGFloat = 22.0
     let MIN_TIME_BETWEEN_UPDATES = 0.2
+    
+    private var colorUpdateTimer : Timer!
 
     private var webView: WKWebView!
     
@@ -85,24 +87,14 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
         )
         
         super.init()
-
-        // Detect panning to prevent firing when faux-scrolling, like in maps and carousels
-        let touchRecognizer = UIPanGestureRecognizer()
-        touchRecognizer.delegate = self
-        touchRecognizer.addTarget(self, action: #selector(self.onWebviewPan))
-        webView.scrollView.addGestureRecognizer(touchRecognizer)
-
         
-        let colorUpdateTimer = Timer.scheduledTimer(
-            timeInterval: MIN_TIME_BETWEEN_UPDATES + 0.1,
-            target: self,
-            selector: #selector(self.updateColors),
-            userInfo: nil,
-            repeats: true
-        )
-        colorUpdateTimer.tolerance = 0.2
+        startUpdates()
         
-        RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
+//        let touchRecognizer = UIPanGestureRecognizer()
+//        touchRecognizer.delegate = self
+//        touchRecognizer.addTarget(self, action: #selector(self.onWebviewPan))
+//        webView.scrollView.addGestureRecognizer(touchRecognizer)
+
         
 //        let snapshotTimer = Timer.scheduledTimer(
 //            timeInterval: (1/30.0),
@@ -118,6 +110,24 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
         
     }
     
+    func startUpdates() {
+        if colorUpdateTimer == nil {
+            colorUpdateTimer = Timer.scheduledTimer(
+                timeInterval: MIN_TIME_BETWEEN_UPDATES + 0.1,
+                target: self,
+                selector: #selector(self.updateColors),
+                userInfo: nil,
+                repeats: true
+            )
+            colorUpdateTimer.tolerance = 0.2
+            RunLoop.main.add(colorUpdateTimer, forMode: RunLoopMode.commonModes)
+        }
+    }
+    
+    func stopUpdates() {
+        colorUpdateTimer.invalidate()
+        colorUpdateTimer = nil
+    }
     
     func updateSnapshots() {
         guard UIApplication.shared.applicationState == .active else { return }
