@@ -50,12 +50,6 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         dismissPanner.cancelsTouchesInView = true
         view.addGestureRecognizer(dismissPanner)
         
-//        let toolbarDismissPanner = UIPanGestureRecognizer()
-//        toolbarDismissPanner.delegate = self
-//        toolbarDismissPanner.addTarget(self, action: #selector(toolbarDismissPan(gesture:)))
-//        toolbarDismissPanner.cancelsTouchesInView = true
-//        toolbar.addGestureRecognizer(toolbarDismissPanner)
-        
         let edgeDismissPan = UIScreenEdgePanGestureRecognizer()
         edgeDismissPan.delegate = self
         edgeDismissPan.edges = .left
@@ -67,11 +61,16 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
     
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if scrollView.contentOffset.y < 0 && !scrollView.isDecelerating {
+        
+        let contentH = scrollView.contentSize.height
+        let viewH = scrollView.bounds.height
+
+        
+        if contentH > viewH && scrollView.contentOffset.y < 0 && !scrollView.isDecelerating {
             scrollView.contentOffset.y = 0
         }
         else if isInteractiveDismiss {
-            scrollView.contentOffset.y = startScroll.y
+            scrollView.contentOffset.y = max(startScroll.y, 0)
         }
     }
     
@@ -135,22 +134,35 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
     
     func considerStarting(gesture: UIPanGestureRecognizer) {
         let scrollY = scrollView.contentOffset.y
-        let endY = scrollView.contentSize.height - scrollView.bounds.height
+        
+        let contentH = scrollView.contentSize.height
+        let viewH = scrollView.bounds.height
+        
+        let maxScroll = contentH - viewH
+
         
         let gesturePos = gesture.translation(in: view)
 
+        if contentH > viewH {
+            if scrollY == 0 && gesturePos.y > 0 {
+                direction = .top
+                startPoint = gesturePos
+                start()
+            }
+            else if scrollY > maxScroll {
+                direction = .bottom
+                startPoint = gesturePos
+                start()
+            }
+        }
+        else {
+            if scrollY < 0 && gesturePos.y > 0 {
+                direction = .top
+                startPoint = gesturePos
+                start()
+            }
+        }
         
-        if scrollY == 0 && gesturePos.y > 0 {
-            direction = .top
-            startPoint = gesturePos
-            start()
-
-        }
-        else if scrollY > endY {
-            direction = .bottom
-            startPoint = gesturePos
-            start()
-        }
     }
     
     
@@ -205,8 +217,7 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
             ? adjustedY + statusOffset
             : adjustedY * -0.2
         
-//        cardView.frame.size.height = max(view.frame.height - TOOLBAR_H - (abs(adjustedY) * 1.2), THUMB_H * 1.1)
-        cardView.frame.size.height = max(view.frame.height - TOOLBAR_H - (abs(adjustedY) * 0.9), THUMB_H * 1.1)
+        cardView.frame.size.height = max(view.frame.height - TOOLBAR_H - (abs(adjustedY) * 0.8), THUMB_H * 1.1)
         
         if direction == .bottom && adjustedY < 0 {
             scrollView.contentOffset.y = startScroll.y - adjustedY
@@ -256,7 +267,6 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
                 }
                 else { reset() }
             }
-            
             
         }
     }

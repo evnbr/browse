@@ -165,9 +165,13 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         coordinator.animate(alongsideTransition: { context in
             //
         }, completion: { context in
+            self.updateHeight()
             self.resignFirstResponder()
-            self.webView.frame.size.height = UIScreen.main.bounds.size.height - TOOLBAR_H - STATUS_H
         })
+    }
+    
+    func updateHeight() {
+        self.webView.frame.size.height = UIScreen.main.bounds.size.height - TOOLBAR_H - STATUS_H
     }
     
 
@@ -340,20 +344,24 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     }
     
     
+    override func viewWillAppear(_ animated: Bool) {
+        updateHeight()
+    }
     
     override func viewDidAppear(_ animated: Bool) {
         webView.scrollView.contentInset = .zero
         self.setNeedsStatusBarAppearanceUpdate()
+        self.resignFirstResponder()
 
         webViewColor.startUpdates()
 
         // disable mysterious delays
         // https://stackoverflow.com/questions/19799961/uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen
-//        let window = view.window!
-//        let gr0 = window.gestureRecognizers![0] as UIGestureRecognizer
-//        let gr1 = window.gestureRecognizers![1] as UIGestureRecognizer
-//        gr0.delaysTouchesBegan = false
-//        gr1.delaysTouchesBegan = false
+        let window = view.window!
+        let gr0 = window.gestureRecognizers![0] as UIGestureRecognizer
+        let gr1 = window.gestureRecognizers![1] as UIGestureRecognizer
+        gr0.delaysTouchesBegan = false
+        gr1.delaysTouchesBegan = false
         
     }
         
@@ -504,7 +512,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         let startPoint = searchView.convert(searchView.frame.origin, to: toolbar)
         
         searchView.textView.resignFirstResponder()
-//        self.resignFirstResponder()
+        self.resignFirstResponder()
         
         let url = locationBar!
         let back = backButton!

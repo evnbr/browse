@@ -8,13 +8,13 @@
 
 import UIKit
 
-typealias tabTapType = (_ tab: WebViewController) -> Void
+typealias CloseTabCallback = (UICollectionViewCell) -> Void
 
-class TabThumbnail: UICollectionViewCell {
+class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
 
     var snap : UIView!
     var webVC : WebViewController!
-    var onTap: tabTapType!
+    var closeTabCallback : CloseTabCallback!
     
     var isExpanded : Bool {
         get {
@@ -41,28 +41,16 @@ class TabThumbnail: UICollectionViewCell {
         layer.borderWidth = 1.0
         layer.borderColor = UIColor.white.withAlphaComponent(0.15).cgColor
         
-        let snapPlaceholder = UIView(frame: UIScreen.main.bounds)
-        snapPlaceholder.backgroundColor = .darkGray
-        setSnapshot(snapPlaceholder)
-        
         isExpanded = false
-
+        
+        let dismissPanner = UIPanGestureRecognizer()
+        dismissPanner.delegate = self
+        dismissPanner.addTarget(self, action: #selector(panGestureChange(gesture:)))
+//        dismissPanner.cancelsTouchesInView = true
+        addGestureRecognizer(dismissPanner)
+        
+        setPlaceholderSnap()
     }
-    
-//    init(frame: CGRect, tab: WebViewController?, onTap: tabTapType?) {
-//        self.tab = tab
-//        self.onTap = onTap
-//    
-//        super.init(frame: frame)
-//        autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
-//
-//
-//        let thumbTap = UITapGestureRecognizer(target: self, action: #selector(tapped))
-//        self.addGestureRecognizer(thumbTap)
-//
-//        
-//    }
-    
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -77,6 +65,23 @@ class TabThumbnail: UICollectionViewCell {
             })
         }
     }
+    
+//    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+//        return true
+//    }
+    
+    // only recognize horizontals
+    override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        if let panGestureRecognizer = gestureRecognizer as? UIPanGestureRecognizer {
+            let translation = panGestureRecognizer.translation(in: superview!)
+            if fabs(translation.x) > fabs(translation.y) {
+                return true
+            }
+            return false
+        }
+        return false
+    }
+
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesEnded(touches, with: event)
@@ -111,6 +116,54 @@ class TabThumbnail: UICollectionViewCell {
     func updateSnapshot() {
         guard let newSnap : UIView = webVC.cardView.snapshotView(afterScreenUpdates: true) else { return }
         setSnapshot(newSnap)
+    }
+    
+    var isDismissing = false
+    var startOrigin : CGPoint = .zero
+    
+    func panGestureChange(gesture: UIPanGestureRecognizer) {
+        let gesturePos = gesture.translation(in: self)
+
+        if gesture.state == .began {
+            isDismissing = true
+            startOrigin = frame.origin
+        }
+        else if gesture.state == .changed {
+            if isDismissing {
+                self.frame.origin.x = startOrigin.x + gesturePos.x
+            }
+        }
+        else if gesture.state == .ended {
+
+            if isDismissing {
+                isDismissing = false
+                
+                var endPos : CGFloat = startOrigin.x
+                if ( gesturePos.x > frame.width / 2 ) {
+                    endPos = startOrigin.x + frame.width
+                    closeTabCallback(self)
+                }
+                else if ( gesturePos.x < -frame.width / 2 ) {
+                    endPos = startOrigin.x - frame.width
+                    closeTabCallback(self)
+                }
+                
+                UIView.animate(withDuration: 0.6, delay: 0.0, usingSpringWithDamping: 0.65, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
+                    self.frame.origin.x = endPos
+                }, completion: nil)
+            }
+            
+        }
+    }
+
+    override func prepareForReuse() {
+        setPlaceholderSnap()
+    }
+    
+    func setPlaceholderSnap() {
+        let snapPlaceholder = UIView(frame: UIScreen.main.bounds)
+        snapPlaceholder.backgroundColor = .darkGray
+        setSnapshot(snapPlaceholder)
     }
 
     func sizeForSnapshot(_ snap : UIView) -> CGRect {

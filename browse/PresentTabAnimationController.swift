@@ -101,8 +101,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             
             transitioningThumb.frame = self.isExpanding ? webVC.cardView.frame : thumbFrame
             transitioningThumb.isExpanded = self.isExpanding
-
-            homeVC.collectionView?.scrollRectToVisible(thumb!.frame.insetBy(dx: -20, dy: -20), animated: false)
             
             homeNav.view.alpha = self.isExpanding ? END_ALPHA : 1.0
             webVC.toolbar.alpha = self.isExpanding ? 1.0 : 0.0

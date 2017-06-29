@@ -38,16 +38,16 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     var gradientLayer : CAGradientLayer!
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        guard let tab = selectedTab else { return .lightContent }
-        if tab.view.window != nil && !tab.isBeingDismissed {
-            return tab.preferredStatusBarStyle
+        guard let webVC = selectedTab else { return .lightContent }
+        if webVC.view.window != nil && !webVC.isBeingDismissed {
+            return webVC.preferredStatusBarStyle
         }
         return .lightContent
     }
     override var prefersStatusBarHidden: Bool {
-        guard let tab = selectedTab else { return false }
-        if tab.view.window != nil && !tab.isBeingDismissed {
-            return tab.prefersStatusBarHidden
+        guard let webVC = selectedTab else { return false }
+        if webVC.view.window != nil && !webVC.isBeingDismissed {
+            return webVC.prefersStatusBarHidden
         }
 
         return false
@@ -57,17 +57,11 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     override func viewDidLoad() {
         super.viewDidLoad()
         
-//        scroll = UIScrollView(frame: view.frame)
-//        view.addSubview(scroll)
-//        scroll.alwaysBounceHorizontal = false
-//        scroll.indicatorStyle = .white
-//        scroll.isDirectionalLockEnabled = true
-//        scroll.isPagingEnabled = false
         collectionView?.delaysContentTouches = false
-//        scroll.contentSize = CGSize(width: UIScreen.main.bounds.width, height: 1600)
-//
-//        scroll.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        
+        collectionView?.alwaysBounceVertical = true
+        collectionView?.indicatorStyle = .white
+        collectionView?.register(TabThumbnail.self, forCellWithReuseIdentifier: reuseIdentifier)
+
         Settings.shared.updateProtocolRegistration()
         
         title = ""
@@ -79,14 +73,12 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         navigationController?.toolbar.tintColor = .white
         navigationController?.toolbar.barStyle = .blackTranslucent
-
-        self.collectionView!.register(TabThumbnail.self, forCellWithReuseIdentifier: reuseIdentifier)
+        navigationController?.isToolbarHidden = false
+        
+        toolbarItems = [UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(self.addTab))]
         
         let tab1 = WebViewController(home: self)
-        let tab2 = WebViewController(home: self)
-        let tab3 = WebViewController(home: self)
-        let tab4 = WebViewController(home: self)
-        tabs = [tab1, tab2, tab3, tab4]
+        tabs = [tab1]
 
 
 //        gradientLayer = CAGradientLayer()
@@ -116,15 +108,34 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
 //        }
 
         // thumbs[selectedTabIndex].isHidden = true
-        // navigationController?.view.alpha = 0.0
         
-        // showTab(tab: selectedTab!, animated: false)
+        navigationController?.view.alpha = 0.0
+        showTab(tab: tabs[0], animated: false)
     }
     
     override func viewWillLayoutSubviews() {
         gradientLayer?.frame = view.bounds
     }
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        updateCollectionViewLayout(with: size)
+    }
+    
+    private func updateCollectionViewLayout(with size: CGSize) {
+        if let layout = collectionView?.collectionViewLayout as? UICollectionViewFlowLayout {
+//            layout.itemSize = (size.width < size.height) ? itemSizeForPortraitMode : itemSizeForLandscapeMode
+            layout.invalidateLayout()
+        }
+    }
 
+    func addTab() {
+        let newTab = WebViewController(home: self)
+        tabs.append(newTab)
+        collectionView?.insertItems(at: [ IndexPath(item: tabs.index(of: newTab)!, section: 0) ])
+        
+        showTab(tab: newTab)
+    }
     
     func showRenameThis(_ tab: WebViewController) {
         showTab(tab: tab)
@@ -212,6 +223,7 @@ extension HomeViewController {
         // Configure the cells
         
         cell.webVC = tabs[indexPath.row]
+        cell.closeTabCallback = closeTab
         
         return cell
     }
@@ -219,9 +231,14 @@ extension HomeViewController {
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
         
-        print("tapped")
-        
         showTab(tab: tabs[indexPath.row])
+    }
+    
+    func closeTab(fromCell cell: UICollectionViewCell) {
+        if let path = collectionView?.indexPath(for: cell) {
+            tabs.remove(at: path.row)
+            collectionView?.deleteItems(at: [path])
+        }
     }
     
     
@@ -235,6 +252,9 @@ extension HomeViewController : UICollectionViewDelegateFlowLayout {
 //        let availableWidth = view.frame.width - paddingSpace
 //        let widthPerItem = availableWidth / itemsPerRow
         
+        if view.frame.width > 400 {
+            return CGSize(width: view.frame.width / 2 - 12, height: THUMB_H)
+        }
         return CGSize(width: view.frame.width, height: THUMB_H)
     }
     
