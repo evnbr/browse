@@ -22,14 +22,14 @@ class SearchView: UIView, UITextViewDelegate {
             return self.isUserInteractionEnabled
         }
         set {
-            if !newValue {
-                UIView.animate(withDuration: 0.3, animations: {
-                    self.alpha = 0
-                })
-            }
-            else {
-                self.alpha = 1
-            }
+//            if !newValue {
+//                UIView.animate(withDuration: 0.3, animations: {
+//                    self.alpha = 0
+//                })
+//            }
+//            else {
+//                self.alpha = 1
+//            }
             self.isUserInteractionEnabled = newValue
         }
     }
@@ -44,20 +44,26 @@ class SearchView: UIView, UITextViewDelegate {
         
         webViewController = vc
         
-        self.backgroundColor = UIColor.white
         self.isEnabled = false
-
+        
         textView = SearchTextView()
         textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 100)
         textView.placeholder = "Where to?"
         
-        textView.backgroundColor = UIColor.clear
+        textView.backgroundColor = .clear
         textView.font = UIFont(descriptor: .preferredFontDescriptor(withTextStyle: .body), size: 17)
         textView.text = ""
         
+        backgroundColor =  .clear
+        tintColor = .white
+        textView.textColor = .white
+        textView.placeholderColor = UIColor.white.withAlphaComponent(0.4)
+        textView.keyboardAppearance = .dark
+        
+        
         textView.keyboardType = UIKeyboardType.webSearch
         textView.returnKeyType = .go
-        textView.inputAccessoryView = self
+//        textView.inputAccessoryView = self
         textView.autocorrectionType = .no
 
         textView.delegate = self
@@ -80,11 +86,19 @@ class SearchView: UIView, UITextViewDelegate {
         cancel.autoresizingMask = [.flexibleLeftMargin, .flexibleTopMargin]
         
         self.autoresizingMask = UIViewAutoresizing.flexibleHeight
+        translatesAutoresizingMaskIntoConstraints = false
         
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[text]-0-|", options: [], metrics: nil, views: ["text": self.textView]))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[text]-0-|", options: [], metrics: nil, views: ["text": self.textView]))
-        let maxH = self.heightAnchor.constraint(lessThanOrEqualToConstant: SEARCHVIEW_MAX_H)
-        self.addConstraints([maxH])
+        
+        textView.widthAnchor.constraint(equalTo: self.widthAnchor).isActive = true
+        textView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        self.heightAnchor.constraint(equalTo: textView.heightAnchor).isActive = true
+        self.heightAnchor.constraint(lessThanOrEqualToConstant: SEARCHVIEW_MAX_H).isActive = true
+        
+//        layer.borderColor = UIColor.red.cgColor
+//        layer.borderWidth = 2.0
+//        textView.layer.borderColor = UIColor.cyan.cgColor
+//        textView.layer.borderWidth = 2.0
+        
         
         updateSize()
     }
@@ -111,6 +125,8 @@ class SearchView: UIView, UITextViewDelegate {
         
 //        textView.invalidateIntrinsicContentSize()
         self.invalidateIntrinsicContentSize()
+        
+        webViewController.searchSizeDidChange()
     }
     
     override public var intrinsicContentSize: CGSize {
@@ -166,30 +182,16 @@ class SearchView: UIView, UITextViewDelegate {
         updateSize()
     }
     
-    func hide() {
+    @objc func hide() {
         webViewController.hideSearch()
     }
     
     
     func prepareToShow() {
-        textView.text = webViewController.editableURL
-        
-        self.backgroundColor = webViewController.toolbar.back.backgroundColor
-        self.tintColor = webViewController.toolbar.tintColor
-        textView.textColor = webViewController.toolbar.tintColor
-        
-        textView.keyboardAppearance = self.backgroundColor!.isLight ? .dark : .light
-        textView.placeholderColor = self.backgroundColor!.isLight
-            ? UIColor.white.withAlphaComponent(0.4)
-            : UIColor.black.withAlphaComponent(0.2)
-
-//        textView.backgroundColor = siteController.colorAtBottom.isLight()
-//            ? UIColor.white.withAlphaComponent(0.1)
-//            : UIColor.black.withAlphaComponent(0.08)
-
-        updateSize()
+//        textView.text = webViewController.editableURL
+//
+//        updateSize()
     }
-    
     
     
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {

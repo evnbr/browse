@@ -65,7 +65,12 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             webVC.resetSizes()
         }
         
-        let snapshot : UIView = webVC.cardView.snapshotView(afterScreenUpdates: true)!
+        if isExpanding {
+            containerView.addSubview(webVC.view)
+        }
+        
+        
+        let snapshot : UIView = webVC.cardView.snapshotView(afterScreenUpdates: true)! // note that snapshot only works if view is in hierarchy
         
         let thumbFrame = containerView.convert(thumb!.frame, from: thumb?.superview)
         // must be after toVC is added
@@ -85,11 +90,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         containerView.addSubview(transitioningThumb)
         containerView.bringSubview(toFront: transitioningThumb)
-
-        if isExpanding {
-            containerView.addSubview(webVC.view)
-        }
-        
         
 //        transitioningThumb.addCornerRadiusAnimation(
 //            to: self.isExpanding ? 8.0 : 5.0,

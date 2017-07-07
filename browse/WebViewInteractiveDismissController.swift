@@ -88,10 +88,10 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
     var startPoint : CGPoint = .zero
     var startScroll : CGPoint = .zero
     
-    let DISMISS_POINT_H : CGFloat = 100
+    let DISMISS_POINT_H : CGFloat = 50
     let DISMISS_POINT_V : CGFloat = 100
 
-    func edgeGestureChange(gesture:UIScreenEdgePanGestureRecognizer) {
+    @objc func edgeGestureChange(gesture:UIScreenEdgePanGestureRecognizer) {
 
         if gesture.state == .began {
             direction = .left
@@ -101,7 +101,6 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
             if isInteractiveDismiss && direction == .left {
                 let gesturePos = gesture.translation(in: view)
 
-                cardView.frame.origin.x = gesturePos.x
                 
                 let revealProgress = min(gesturePos.x / 200, 1)
                 home.navigationController?.view.alpha = revealProgress * 0.4 // alpha is 0 ... 0.4
@@ -109,12 +108,31 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
 
                 if gesturePos.x > DISMISS_POINT_H {
                     let amountOver : CGFloat = gesturePos.x - DISMISS_POINT_H
-                    
                     cardView.frame.origin.x = DISMISS_POINT_H + amountOver * 0.5
+//                    cardView.frame.origin.x = amountOver * 0.5
                     
-//                    cardView.frame.origin.y = amountOver * 0.1
-//                    cardView.frame.size.height = max(view.frame.height - TOOLBAR_H - (amountOver * 1.2), THUMB_H * 1.1)
+//                    cardView.frame.origin.y = amountOver * 0.1 + gesturePos.y * (amountOver / 200)
+//                    cardView.frame.size.height = max(view.frame.height - TOOLBAR_H - (amountOver * 0.8 ), THUMB_H * 1.1)
                 }
+                else {
+                    cardView.frame.origin.x = gesturePos.x
+                }
+                
+//                if cardView.frame.size.height > THUMB_H && gesturePos.x > DISMISS_POINT_H {
+//                    UIView.animate(withDuration: 0.2, animations: {
+//                        self.cardView.frame.size.height = THUMB_H
+//                        self.cardView.frame.origin.y = 100
+//                        self.cardView.frame.origin.x = self.DISMISS_POINT_H
+//                    })
+//                }
+//                else if cardView.frame.size.height == THUMB_H && gesturePos.x < DISMISS_POINT_H {
+//                    UIView.animate(withDuration: 0.2, animations: {
+//                        self.cardView.frame.size.height = self.vc.cardViewDefaultFrame.height
+//                        self.cardView.frame.origin.y = 0
+//
+//                    })
+//                }
+                
 
                 if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle {
                     UIView.animate(withDuration: 0.2, animations: {
@@ -172,6 +190,10 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         isInteractiveDismiss = true
         startScroll = scrollView.contentOffset
         
+        if vc.searchView.textView.isFirstResponder {
+            vc.searchView.textView.resignFirstResponder()
+        }
+        
 //        statusBarAnimator = UIViewPropertyAnimator(duration: 2.0, curve: .easeInOut, animations: { 
 //            self.vc.setNeedsStatusBarAppearanceUpdate()
 //        })
@@ -220,6 +242,7 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         cardView.frame.size.height = max(view.frame.height - TOOLBAR_H - (abs(adjustedY) * 0.8), THUMB_H * 1.1)
         
         if direction == .bottom && adjustedY < 0 {
+            print("adjusting scroll")
             scrollView.contentOffset.y = startScroll.y - adjustedY
         }
         
@@ -238,7 +261,7 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
     }
     
     
-    func panGestureChange(gesture: UIPanGestureRecognizer) {
+    @objc func panGestureChange(gesture: UIPanGestureRecognizer) {
 
         if gesture.state == .began {
             considerStarting(gesture: gesture)

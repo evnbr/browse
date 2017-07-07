@@ -12,7 +12,7 @@ import OnePasswordExtension
 
 let TOOLBAR_H     : CGFloat = 40.0
 let STATUS_H      : CGFloat = 20.0
-let CORNER_RADIUS : CGFloat = 6.0
+let CORNER_RADIUS : CGFloat = 8.0
 
 
 class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivityItemSource {
@@ -35,6 +35,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     var stopButton: ToolbarIconButton!
     var forwardButton: ToolbarIconButton!
     var tabButton: ToolbarIconButton!
+    var actionButton: ToolbarIconButton!
     var locationBar: LocationBar!
     
     var overflowController: UIAlertController!
@@ -80,7 +81,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     var displayTitle : String {
         get {
             guard let url = webView.url else { return "Search" }
-            if isSearching { return trimText(url.searchQuery) }
+            if isSearching { return url.searchQuery }
             else { return displayURL }
         }
     }
@@ -91,18 +92,6 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
             return url.displayHost
         }
     }
-    
-    func trimText(_ query: String) -> String {
-        if query.characters.count > 28 {
-            let index = query.index(query.startIndex, offsetBy: 28)
-            let trimmed = query.substring(to: index)
-            return "\(trimmed)..."
-        }
-        else {
-            return query
-        }
-    }
-
     
     var isSearching : Bool {
         get {
@@ -150,8 +139,9 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         // TODO: Prevent webview from layout when resizing, but allow it when 
         // screen changes size
         
-        webView.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
-        //        webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+//         webView.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        
         webView.scrollView.contentInset = .zero
         webView.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
 
@@ -171,7 +161,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     }
     
     func updateHeight() {
-        self.webView.frame.size.height = UIScreen.main.bounds.size.height - TOOLBAR_H - STATUS_H
+//        self.webView.frame.size.height = UIScreen.main.bounds.size.height - TOOLBAR_H - STATUS_H
     }
     
 
@@ -186,29 +176,32 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         cardView.layer.masksToBounds = true
         
         cardView.addSubview(webView)
-
+        
         statusBar = ColorStatusBarView()
         cardView.addSubview(statusBar)
-
+        
+        searchView = SearchView(for: self)
+        
         toolbar = setUpToolbar()
         
-        view.addSubview(toolbar)
         view.addSubview(cardView)
+        view.addSubview(toolbar)
+        
+        toolbar.widthAnchor.constraint(equalTo: cardView.widthAnchor).isActive = true
+        
+        webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: STATUS_H).isActive = true
+//        webView.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
+        webView.leftAnchor.constraint(equalTo: cardView.leftAnchor).isActive = true
+        
+        webView.widthAnchor.constraint(equalTo: cardView.widthAnchor).isActive = true
+        heightConstraint = webView.heightAnchor.constraint(equalTo: view.heightAnchor, constant: (-STATUS_H - TOOLBAR_H))
+        heightConstraint.isActive = true
+        webView.heightAnchor.constraint(greaterThanOrEqualTo: cardView.heightAnchor, constant: -STATUS_H)
 
-
-        searchView = SearchView(for: self)
         
         searchDismissScrim = makeScrim()
         view.addSubview(searchDismissScrim)
-
-//        self.navigationController?.hidesBarsOnSwipe = true
         
-//        let bc = BookmarksViewController()
-//        bc.webViewController = self
-//        bookmarksController = WebNavigationController(rootViewController: bc)
-//        bookmarksController.modalTransitionStyle = .crossDissolve
-//        bookmarksController.modalPresentationStyle = .overCurrentContext
-
         
         webViewColor = ColorTransitionController(from: webView, inViewController: self)
         
@@ -223,15 +216,27 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
         toolbar.addGestureRecognizer(longPress)
         
-        if let restored : String = restoreURL() {
-            navigateToText(restored)
-        }
-        else {
-            navigateToText("evanbrooks.info")
-        }
-        
+        loadingDidChange()
+//        if let restored : String = restoreURL() {
+//            navigateToText(restored)
+//        }
+//        else {
+//            navigateToText("evanbrooks.info")
+//        }
 //        makeSuperTitle()
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+
+        
     }
+    
+    var keyboardHeight : CGFloat = 250
+    @objc func keyboardWillShow(notification:NSNotification) {
+        let userInfo:NSDictionary = notification.userInfo! as NSDictionary
+        let keyboardFrame:NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as! NSValue
+        let keyboardRectangle = keyboardFrame.cgRectValue
+        keyboardHeight = keyboardRectangle.height
+    }
+
     
     var topWindow : UIWindow!
     var topLabel : UILabel!
@@ -242,7 +247,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         topLabel = UILabel()
         topLabel.text = "apple.com"
 //        topLabel.font = UIFont.systemFont(ofSize: 12.0)
-        topLabel.font = UIFont.systemFont(ofSize: 12.0, weight: UIFontWeightSemibold)
+        topLabel.font = UIFont.systemFont(ofSize: 12.0, weight: UIFont.Weight.semibold)
         topLabel.backgroundColor = .red
         topLabel.frame = CGRect(x: 0, y: 0, width: 290, height: STATUS_H)
         topLabel.center = topWindow.center
@@ -282,14 +287,17 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     func setUpToolbar() -> ColorToolbar {
         
         // let toolbar = (navigationController?.toolbar)!
+        
         let toolbar = ColorToolbar(frame: CGRect(
             x: 0,
             y: UIScreen.main.bounds.size.height - TOOLBAR_H,
             width: UIScreen.main.bounds.size.width,
             height: TOOLBAR_H
         ))
-                
         
+        locationBar = LocationBar(
+            onTap: self.displaySearch
+        )
         backButton = ToolbarIconButton(
             icon: UIImage(named: "back"),
             onTap: { self.webView.goBack() }
@@ -298,60 +306,44 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
             icon: UIImage(named: "fwd"),
             onTap: { self.webView.goForward() }
         )
-
-        let actionButton = ToolbarIconButton(
+        actionButton = ToolbarIconButton(
             icon: UIImage(named: "action"),
             onTap: displayOverflow
         )
-        
         stopButton = ToolbarIconButton(
             icon: UIImage(named: "stop"),
             onTap: { self.webView.stopLoading() }
         )
 
         
-        tabButton = ToolbarIconButton(
-            icon: UIImage(named: "tab"),
-            onTap: dismissSelf
-        )
-        tabButton.isHidden = true
+        toolbar.setItems([backButton, forwardButton, locationBar, stopButton, actionButton])
+//        toolbar.leftItems = [backButton, forwardButton]
+//        toolbar.centerItem = locationBar
+//        toolbar.rightItems = [stopButton, actionButton]
         
+        toolbar.addSubview(searchView)
         
-        let flex = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let space = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
-        let negSpace = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
-        
-        space.width = 16.0
-        negSpace.width = -16.0
-        
-        locationBar = LocationBar(onTap: self.displaySearch)
-        
-        let items : [UIBarButtonItem] = [
-            negSpace,
-            UIBarButtonItem(customView: backButton),
-            UIBarButtonItem(customView: forwardButton),
-            flex,
-            UIBarButtonItem(customView: locationBar),
-            flex,
-            UIBarButtonItem(customView: stopButton),
-            UIBarButtonItem(customView: actionButton),
-            negSpace
-        ]
-        toolbar.items = items
-        
+        searchView.topAnchor.constraint(equalTo: toolbar.topAnchor).isActive = true
+        searchView.widthAnchor.constraint(equalTo: toolbar.widthAnchor).isActive = true
         
         return toolbar
     }
     
     
     override func viewWillAppear(_ animated: Bool) {
-        updateHeight()
+        
     }
     
     override func viewDidAppear(_ animated: Bool) {
         webView.scrollView.contentInset = .zero
         self.setNeedsStatusBarAppearanceUpdate()
-        self.resignFirstResponder()
+
+        if webView.url == nil {
+            displaySearch()
+        }
+        else {
+            self.resignFirstResponder()
+        }
 
         webViewColor.startUpdates()
 
@@ -364,7 +356,14 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         gr1.delaysTouchesBegan = false
         
     }
-        
+    var heightConstraint : NSLayoutConstraint!
+    
+    override func viewWillLayoutSubviews() {
+        // because it keeps getting deactivated every time
+        // the view is removed from the hierarchy
+        heightConstraint.isActive = true
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         
@@ -405,7 +404,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     
     // MARK: - Gestures
     
-    func longPressURL(recognizer: UIGestureRecognizer) {
+    @objc func longPressURL(recognizer: UIGestureRecognizer) {
         if recognizer.state == .began {
             
             displayEditMenu()
@@ -436,10 +435,10 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     override var canBecomeFirstResponder : Bool {
         return true
     }
-    override var inputAccessoryView:UIView{
-        get { return searchView }
-    }
-
+//    override var inputAccessoryView:UIView{
+//        get { return searchView }
+//    }
+    
     func displayEditMenu() {
         if !isFirstResponder {
             UIView.setAnimationsEnabled(false)
@@ -472,11 +471,11 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         }
     }
     
-    func copyURL() {
+    @objc func copyURL() {
         UIPasteboard.general.string = self.editableURL
     }
     
-    func pasteURLAndGo() {
+    @objc func pasteURLAndGo() {
         hideSearch()
         if let str = UIPasteboard.general.string {
             navigateToText(str)
@@ -489,48 +488,66 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         guard !UIMenuController.shared.isMenuVisible else { return }
         
         searchView.prepareToShow()
+        
+//        self.becomeFirstResponder()
+        searchView.textView.becomeFirstResponder()
 
-        let url = locationBar!
-        let back = backButton!
-        let tab = tabButton!
-
-        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
-            self.searchDismissScrim.alpha = 1
+        let cardH = cardViewDefaultFrame.height - keyboardHeight - searchView.frame.height + TOOLBAR_H
+        
+        self.locationBar.setAlignment(.left)
+        
+        UIView.animate(withDuration: 0.5, delay: 0.0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
+//            self.searchDismissScrim.alpha = 1
             
-            url.transform  = CGAffineTransform(translationX: -30, y: -100)
-            back.transform = CGAffineTransform(translationX: 0, y: -50)
-            tab.transform  = CGAffineTransform(translationX: 0, y: -50)
+            self.cardView.frame.size.height = cardH
+            self.toolbar.frame.origin.y = cardH
+            self.locationBar.alpha = 0
+//            self.toolbar.frame.origin.x = -120
+            self.toolbar.layoutIfNeeded()
+            
+            
+            self.backButton.isHidden = true
+            self.forwardButton.isHidden = true
+            self.stopButton.isHidden = true
+            self.actionButton.isHidden = true
         })
         
-        self.becomeFirstResponder()
-        searchView.textView.becomeFirstResponder()
-        
     }
-
     
-    func hideSearch() {
-        let startPoint = searchView.convert(searchView.frame.origin, to: toolbar)
+    @objc func hideSearch() {
         
         searchView.textView.resignFirstResponder()
-        self.resignFirstResponder()
+//        self.resignFirstResponder()
         
-        let url = locationBar!
-        let back = backButton!
-        let tab = tabButton!
+        self.locationBar.setAlignment(.centered)
         
-        url.transform  = CGAffineTransform(translationX: -30, y: startPoint.y)
-        back.transform = CGAffineTransform(translationX: 0,   y: startPoint.y)
-        tab.transform  = CGAffineTransform(translationX: 0,   y: startPoint.y)
-
-        
-        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
-            self.searchDismissScrim.alpha = 0
+        UIView.animate(withDuration: 0.5, delay: 0.0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
+//            self.searchDismissScrim.alpha = 0
             
-            url.transform  = .identity
-            back.transform = .identity
-            tab.transform  = .identity
+            self.cardView.frame = self.cardViewDefaultFrame
+            self.toolbar.frame.origin.y = self.cardViewDefaultFrame.height
+            self.toolbar?.frame.size.height = TOOLBAR_H
+            self.locationBar.alpha = 1
+            
+            self.toolbar.layoutIfNeeded()
+            
+            self.backButton.isHidden = false
+            self.forwardButton.isHidden = false
+            self.stopButton.isHidden = false
+            self.actionButton.isHidden = false
         })
     }
+    
+    
+    func searchSizeDidChange() {
+        if searchView != nil && searchView.textView.isFirstResponder {
+            let cardH = cardViewDefaultFrame.height - keyboardHeight - searchView.frame.height + TOOLBAR_H
+            self.cardView?.frame.size.height = cardH
+            self.toolbar?.frame.origin.y = cardH
+            self.toolbar?.frame.size.height = searchView.frame.height
+        }
+    }
+
     
     // MARK: - Share ActivityViewController and 1Password
     
@@ -538,8 +555,8 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         return self.webView!.url!
     }
     
-    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType) -> Any? {
-        if OnePasswordExtension.shared().isOnePasswordExtensionActivityType(activityType.rawValue) {
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivityType?) -> Any? {
+        if OnePasswordExtension.shared().isOnePasswordExtensionActivityType(activityType?.rawValue) {
             // Return the 1Password extension item
             return self.onePasswordExtensionItem
         } else {
@@ -593,7 +610,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         }
     }
     
-    func displayShareSheet() {
+    @objc func displayShareSheet() {
         self.resignFirstResponder() // without this, action sheet dismiss animation won't go all the way
         
         
@@ -737,7 +754,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
             let url = URL(string: searchURL + query)!
             
             if let btn = locationBar {
-                btn.text = trimText(text)
+                btn.text = text
             }
             
             self.webView.load(URLRequest(url: url))
@@ -745,7 +762,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         
     }
     
-    func hideError() {
+    @objc func hideError() {
         errorView.removeFromSuperview()
     }
 
@@ -797,14 +814,27 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     }
     
     func loadingDidChange() {
-        backButton.isEnabled = webView.canGoBack
-        
-        forwardButton.isEnabled = webView.canGoForward
-        forwardButton.tintColor = webView.canGoForward ? nil : .clear
-        
-        stopButton.isHidden = !webView.isLoading
         
         locationBar.text = self.displayTitle
+        
+        let small = CGAffineTransform(scaleX: 0.6, y: 0.6)
+        
+        UIView.animate(withDuration: 0.25) {
+            self.backButton.isEnabled = self.webView.canGoBack
+            
+            self.forwardButton.isEnabled = self.webView.canGoForward
+            self.forwardButton.tintColor = self.webView.canGoForward ? nil : .clear
+            self.forwardButton.transform = self.webView.canGoForward ? .identity : small
+            
+            self.stopButton.isEnabled = self.webView.isLoading
+            self.stopButton.tintColor = self.webView.isLoading ? nil : .clear
+            self.stopButton.transform = self.webView.isLoading ? .identity : small
+            
+//            self.forwardButton.isHidden = !self.webView.canGoForward
+//            self.stopButton.isHidden = !self.webView.isLoading
+        }
+        
+        
         locationBar.isLoading = webView.isLoading
         locationBar.isSecure = webView.hasOnlySecureContent
         locationBar.isSearch = isSearching || webView.url == nil

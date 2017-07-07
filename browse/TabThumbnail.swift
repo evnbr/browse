@@ -16,6 +16,8 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     var webVC : WebViewController!
     var closeTabCallback : CloseTabCallback!
     
+    var unTransformedFrame : CGRect!
+    
     var isExpanded : Bool {
         get {
             return snap.frame.origin.y == 0
@@ -28,7 +30,10 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
     override var frame : CGRect {
         didSet {
-            snap?.frame = sizeForSnapshot(snap)
+            if !isDismissing {
+                snap?.frame = sizeForSnapshot(snap)
+                unTransformedFrame = frame
+            }
         }
     }
     
@@ -56,15 +61,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesBegan(touches, with: event)
-        if touches.first != nil {
-            UIView.animate(withDuration: 0.15, animations: {
-                self.transform = CGAffineTransform(scaleX: 0.97, y: 0.97)
-                self.alpha = 0.8
-            })
-        }
-    }
     
 //    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
 //        return true
@@ -81,19 +77,26 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         }
         return false
     }
-
     
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesEnded(touches, with: event)
-
+    let downScale : CGFloat = 1.025
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        unTransformedFrame = frame
+        
         if touches.first != nil {
-            unSelect()
+            UIView.animate(withDuration: 0.3, animations: {
+                self.transform = CGAffineTransform(scaleX: self.downScale, y: self.downScale)
+//                self.alpha = 0.9
+            })
         }
     }
-    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        unSelect()
+    }
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesCancelled(touches, with: event)
-
         unSelect()
     }
     
@@ -119,18 +122,27 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     }
     
     var isDismissing = false
-    var startOrigin : CGPoint = .zero
+    var startFrame : CGRect = .zero
     
-    func panGestureChange(gesture: UIPanGestureRecognizer) {
+    @objc func panGestureChange(gesture: UIPanGestureRecognizer) {
         let gesturePos = gesture.translation(in: self)
 
         if gesture.state == .began {
             isDismissing = true
-            startOrigin = frame.origin
+            startFrame = unTransformedFrame
         }
         else if gesture.state == .changed {
             if isDismissing {
-                self.frame.origin.x = startOrigin.x + gesturePos.x
+                let pct = abs(gesturePos.x) / startFrame.width
+                
+                
+                frame.origin.x = startFrame.origin.x + gesturePos.x
+//                frame.origin.x = startFrame.origin.x + max(gesturePos.x, 0)
+//                frame.size.width = startFrame.size.width - abs(gesturePos.x)
+                
+                alpha = (1 - pct)
+//                frame.origin.y = startFrame.origin.y + startFrame.size.height * (pct * 0.1)
+//                frame.size.height = startFrame.size.height * (1 - pct * 0.2)
             }
         }
         else if gesture.state == .ended {
@@ -138,18 +150,25 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
             if isDismissing {
                 isDismissing = false
                 
-                var endPos : CGFloat = startOrigin.x
+                var endFrame : CGRect = startFrame
+                var endAlpha : CGFloat = 1
+                
                 if ( gesturePos.x > frame.width / 2 ) {
-                    endPos = startOrigin.x + frame.width
+                    endFrame.origin.x = startFrame.origin.x + startFrame.width
+//                    endFrame.size.width = 0
+                    endAlpha = 0
                     closeTabCallback(self)
                 }
                 else if ( gesturePos.x < -frame.width / 2 ) {
-                    endPos = startOrigin.x - frame.width
+                    endFrame.origin.x = startFrame.origin.x - frame.width
+//                    endFrame.size.width = 0
+                    endAlpha = 0
                     closeTabCallback(self)
                 }
                 
                 UIView.animate(withDuration: 0.6, delay: 0.0, usingSpringWithDamping: 0.65, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
-                    self.frame.origin.x = endPos
+                    self.frame = endFrame
+                    self.alpha = endAlpha
                 }, completion: nil)
             }
             

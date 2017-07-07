@@ -12,9 +12,16 @@ class ToolbarTouchView: UIView {
 
     var action: () -> Void
     var tapColor : UIColor = UIColor.black.withAlphaComponent(0.08)
-    
     var touchCircle : UIView!
-
+    
+    override var frame : CGRect {
+        didSet {
+            touchCircle?.frame = CGRect(x: 0, y: 0, width: frame.width + 20, height: frame.width + 20)
+            touchCircle?.layer.cornerRadius = frame.width / 2
+        }
+    }
+    
+    
     init(frame: CGRect, onTap: @escaping () -> Void) {
         action = onTap
 
@@ -23,7 +30,6 @@ class ToolbarTouchView: UIView {
 //        layer.cornerRadius = 8.0
         layer.cornerRadius = frame.height / 2
         layer.masksToBounds = true
-
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(doAction))
         tap.numberOfTapsRequired = 1
@@ -31,7 +37,6 @@ class ToolbarTouchView: UIView {
         tap.cancelsTouchesInView = false
         
         touchCircle = UIView(frame: CGRect(x: 0, y: 0, width: frame.width + 20, height: frame.width + 20))
-        touchCircle.layer.cornerRadius = frame.width / 2
         touchCircle.layer.masksToBounds = true
         touchCircle.center = self.center
         touchCircle.isUserInteractionEnabled = false
@@ -47,7 +52,7 @@ class ToolbarTouchView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func doAction() {
+    @objc func doAction() {
         action()
         deSelect()
     }

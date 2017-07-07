@@ -75,19 +75,10 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
 //        toolbar?.isTranslucent = false
         toolbar?.barTintColor = .black
         toolbar?.tintColor = .white
-
-        let flex = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let negSpace = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
+        
         let done = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(dismissSelf))
-        let tabButton = UIBarButtonItem(image: UIImage(named: "tab-filled"), style: .plain, target: self, action: #selector(dismissSelf))
-        negSpace.width = -16.0
-        tabButton.width = 48.0
-
         navigationItem.rightBarButtonItem = done
-
-//        toolbarItems = [flex, done]
-//        toolbarItems = [flex, tabButton, negSpace]
-
+        
 
     }
     
@@ -107,7 +98,7 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
         
     }
     
-    func dismissSelf() {
+    @objc func dismissSelf() {
         self.dismiss(animated: true, completion: nil)
     }
     

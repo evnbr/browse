@@ -8,12 +8,22 @@
 
 import UIKit
 
+enum LocationBarAlignment {
+    case left
+    case centered
+}
+
 class LocationBar: ToolbarTouchView {
     
     var label = UILabel()
     var spinner : UIActivityIndicatorView!
     var lock : UIImageView!
     var magnify : UIImageView!
+    
+    var alignment : LocationBarAlignment = .centered
+    var leftConstraint : NSLayoutConstraint!
+    var centerConstraint : NSLayoutConstraint!
+    
     
     private var shouldShowLock : Bool = false
     private var shouldShowSpinner : Bool = false
@@ -62,7 +72,10 @@ class LocationBar: ToolbarTouchView {
 //            else        { spinner.stopAnimating()  }
         }
     }
-
+    
+    override var intrinsicContentSize: CGSize {
+        return CGSize(width: 180.0, height: TOOLBAR_H)
+    }
     
     init(onTap: @escaping () -> Void) {
         super.init(frame: CGRect(x: 0, y: 0, width: 180, height: TOOLBAR_H), onTap: onTap)
@@ -72,10 +85,11 @@ class LocationBar: ToolbarTouchView {
         
         let magnifyImage = UIImage(named: "magnify")!.withRenderingMode(.alwaysTemplate)
         magnify = UIImageView(image: magnifyImage)
-
+        
         label.text = "Where to?"
         label.font = UIFont.systemFont(ofSize: 13.0)
-        label.sizeToFit()
+        label.setContentHuggingPriority(UILayoutPriority(rawValue: 0), for: .horizontal)
+//        label.sizeToFit()
         
         spinner = UIActivityIndicatorView(activityIndicatorStyle: .gray)
 //        spinner.frame = CGRect(x: 0, y: 0, width: 12, height: 12)
@@ -84,7 +98,7 @@ class LocationBar: ToolbarTouchView {
         // https://stackoverflow.com/questions/30728062/add-views-in-uistackview-programmatically
         let stackView   = UIStackView()
         stackView.axis  = .horizontal
-        stackView.distribution  = .equalSpacing
+        stackView.distribution  = .fill
         stackView.alignment = .center
         stackView.spacing   = 6.0
         
@@ -92,21 +106,45 @@ class LocationBar: ToolbarTouchView {
         stackView.addArrangedSubview(lock)
         stackView.addArrangedSubview(magnify)
         stackView.addArrangedSubview(label)
-        stackView.translatesAutoresizingMaskIntoConstraints = false;
+        stackView.translatesAutoresizingMaskIntoConstraints = false
         
         addSubview(stackView)
-        stackView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
         stackView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
-
+        
+        centerConstraint = stackView.centerXAnchor.constraint(equalTo: self.centerXAnchor)
+        leftConstraint = stackView.leftAnchor.constraint(equalTo: self.leftAnchor)
+        centerConstraint.isActive = true
+        leftConstraint.isActive = false
+        
+        stackView.widthAnchor.constraint(lessThanOrEqualTo: self.widthAnchor).isActive = true
+        
         isSecure = false
         isSearch = false
         isLoading = false
+        
+//        layer.borderColor = UIColor.red.cgColor
+//        layer.borderWidth = 0.5
+        
+    }
+    
+    func setAlignment(_ newAlignment: LocationBarAlignment) {
+        if newAlignment != alignment {
+            alignment = newAlignment
+            if newAlignment == .centered {
+                centerConstraint.isActive = true
+                leftConstraint.isActive = false
+            }
+            else if newAlignment == .left {
+                centerConstraint.isActive = false
+                leftConstraint.isActive = true
+            }
+            
+        }
     }
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
     
     override func tintColorDidChange() {
         super.tintColorDidChange()

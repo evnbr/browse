@@ -13,9 +13,8 @@ let THUMB_H : CGFloat = 200.0
 
 class HomeViewController: UICollectionViewController, UIViewControllerTransitioningDelegate {
 
-//    var thumb : TabThumbnail!
-    var thumbs : [TabThumbnail] = []
     var tabs : [WebViewController] = []
+    var snapshots : [UIView] = []
     
     let reuseIdentifier = "TabCell"
     let sectionInsets = UIEdgeInsets(top: 8.0, left: 0.0, bottom: 8.0, right: 0.0)
@@ -73,9 +72,20 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         navigationController?.toolbar.tintColor = .white
         navigationController?.toolbar.barStyle = .blackTranslucent
+        navigationController?.toolbar.isTranslucent = false
         navigationController?.isToolbarHidden = false
         
-        toolbarItems = [UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(self.addTab))]
+        let addButton = ToolbarTextButton(
+            title: "New",
+            withIcon: UIImage(named: "tab"),
+            onTap: { self.addTab() }
+        )
+                
+        toolbarItems = [
+            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+            UIBarButtonItem(customView: addButton),
+            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+        ]
         
         let tab1 = WebViewController(home: self)
         tabs = [tab1]
@@ -134,7 +144,9 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         tabs.append(newTab)
         collectionView?.insertItems(at: [ IndexPath(item: tabs.index(of: newTab)!, section: 0) ])
         
-        showTab(tab: newTab)
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+            self.showTab(tab: newTab)
+        }
     }
     
     func showRenameThis(_ tab: WebViewController) {
@@ -253,9 +265,11 @@ extension HomeViewController : UICollectionViewDelegateFlowLayout {
 //        let widthPerItem = availableWidth / itemsPerRow
         
         if view.frame.width > 400 {
-            return CGSize(width: view.frame.width / 2 - 12, height: THUMB_H)
+            let ratio = view.frame.width / THUMB_H
+            let w = view.frame.width / 2 - 16
+            return CGSize(width: w, height: w / ratio )
         }
-        return CGSize(width: view.frame.width, height: THUMB_H)
+        return CGSize(width: view.frame.width - 16, height: THUMB_H)
     }
     
     func collectionView(_ collectionView: UICollectionView,
@@ -275,6 +289,15 @@ extension HomeViewController : UICollectionViewDelegateFlowLayout {
                         minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 8.0
     }
+    
+    override func collectionView(_ collectionView: UICollectionView,
+                                 moveItemAt source: IndexPath,
+                                 to destination: IndexPath) {
+        let item = tabs.remove(at: source.item)
+        tabs.insert(item, at: destination.item)
+    }
+    
+    
 }
 
 

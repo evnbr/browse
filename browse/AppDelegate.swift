@@ -57,13 +57,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
         print("Will terminate...")
 
-        let rootVC = navController.topViewController as! WebViewController!
-        if let vc : WebViewController = rootVC {
-            vc.saveURL()
-        }
-        else {
-            print("Couldn't find vc to save")
-        }
 
     }
 

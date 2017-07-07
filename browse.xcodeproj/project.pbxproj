@@ -34,10 +34,10 @@
 		A97CB0721EC53DCD005DDBD1 /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97CB0711EC53DCD005DDBD1 /* WebViewController.swift */; };
 		A97CB0751EC53DCD005DDBD1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A97CB0731EC53DCD005DDBD1 /* Main.storyboard */; };
 		A97CB0771EC53DCD005DDBD1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A97CB0761EC53DCD005DDBD1 /* Assets.xcassets */; };
-		A97CB07A1EC53DCD005DDBD1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A97CB0781EC53DCD005DDBD1 /* LaunchScreen.storyboard */; };
 		A97CB0851EC53DCD005DDBD1 /* browseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97CB0841EC53DCD005DDBD1 /* browseTests.swift */; };
 		A97CB0901EC53DCD005DDBD1 /* browseUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97CB08F1EC53DCD005DDBD1 /* browseUITests.swift */; };
 		A98483281EEFCFE200E821AE /* ColorToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98483271EEFCFE200E821AE /* ColorToolbar.swift */; };
+		A99328471F098E270045EBAA /* ToolbarTextButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99328461F098E270045EBAA /* ToolbarTextButton.swift */; };
 		A9B3176A1ED134CD00C71EBE /* SearchTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B317691ED134CD00C71EBE /* SearchTextView.swift */; };
 		A9E4859D1EC8D7BE0021D155 /* ColorTransitionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E4859C1EC8D7BE0021D155 /* ColorTransitionController.swift */; };
 		E7FD11F16B9CF60BCBD3DD19 /* Pods_browseTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C40CC59AFABD40322DFCDDD7 /* Pods_browseTests.framework */; };
@@ -97,7 +97,6 @@
 		A97CB0711EC53DCD005DDBD1 /* WebViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
 		A97CB0741EC53DCD005DDBD1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		A97CB0761EC53DCD005DDBD1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		A97CB0791EC53DCD005DDBD1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A97CB07B1EC53DCD005DDBD1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A97CB0801EC53DCD005DDBD1 /* browseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = browseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A97CB0841EC53DCD005DDBD1 /* browseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = browseTests.swift; sourceTree = "<group>"; };
@@ -106,6 +105,7 @@
 		A97CB08F1EC53DCD005DDBD1 /* browseUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = browseUITests.swift; sourceTree = "<group>"; };
 		A97CB0911EC53DCD005DDBD1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A98483271EEFCFE200E821AE /* ColorToolbar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorToolbar.swift; sourceTree = "<group>"; };
+		A99328461F098E270045EBAA /* ToolbarTextButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToolbarTextButton.swift; sourceTree = "<group>"; };
 		A9B317691ED134CD00C71EBE /* SearchTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchTextView.swift; sourceTree = "<group>"; };
 		A9E4859C1EC8D7BE0021D155 /* ColorTransitionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorTransitionController.swift; sourceTree = "<group>"; };
 		C40CC59AFABD40322DFCDDD7 /* Pods_browseTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_browseTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -210,8 +210,9 @@
 				A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */,
 				A98483271EEFCFE200E821AE /* ColorToolbar.swift */,
 				A90892091ED547C500A5E9BA /* LocationBar.swift */,
-				A92095941EE3E0DA009497A2 /* ToolbarTouchView.swift */,
 				A92095961EE3E2AF009497A2 /* ToolbarIconButton.swift */,
+				A92095941EE3E0DA009497A2 /* ToolbarTouchView.swift */,
+				A99328461F098E270045EBAA /* ToolbarTextButton.swift */,
 				A92095921EE36483009497A2 /* TabThumbnail.swift */,
 				A96184811ECEA39200EF3A6F /* SearchView.swift */,
 				A9B317691ED134CD00C71EBE /* SearchTextView.swift */,
@@ -223,7 +224,6 @@
 				A94FE4201ECA661700ED48DB /* Sampler.swift */,
 				A97CB0731EC53DCD005DDBD1 /* Main.storyboard */,
 				A97CB0761EC53DCD005DDBD1 /* Assets.xcassets */,
-				A97CB0781EC53DCD005DDBD1 /* LaunchScreen.storyboard */,
 				A97CB07B1EC53DCD005DDBD1 /* Info.plist */,
 				A920957F1ED8CB34009497A2 /* BrowseURLProtocol.swift */,
 				A92095831ED90E7B009497A2 /* Blocker.swift */,
@@ -322,21 +322,24 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0820;
-				LastUpgradeCheck = 0820;
+				LastUpgradeCheck = 0900;
 				ORGANIZATIONNAME = "Evan Brooks";
 				TargetAttributes = {
 					A97CB06B1EC53DCC005DDBD1 = {
 						CreatedOnToolsVersion = 8.2;
 						DevelopmentTeam = DJXSN639VG;
+						LastSwiftMigration = 0900;
 						ProvisioningStyle = Automatic;
 					};
 					A97CB07F1EC53DCD005DDBD1 = {
 						CreatedOnToolsVersion = 8.2;
+						LastSwiftMigration = 0900;
 						ProvisioningStyle = Automatic;
 						TestTargetID = A97CB06B1EC53DCC005DDBD1;
 					};
 					A97CB08A1EC53DCD005DDBD1 = {
 						CreatedOnToolsVersion = 8.2;
+						LastSwiftMigration = 0900;
 						ProvisioningStyle = Automatic;
 						TestTargetID = A97CB06B1EC53DCC005DDBD1;
 					};
@@ -368,7 +371,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				A92095821ED8FD7B009497A2 /* plowe.txt in Resources */,
-				A97CB07A1EC53DCD005DDBD1 /* LaunchScreen.storyboard in Resources */,
 				A97CB0771EC53DCD005DDBD1 /* Assets.xcassets in Resources */,
 				A97CB0751EC53DCD005DDBD1 /* Main.storyboard in Resources */,
 			);
@@ -558,6 +560,7 @@
 				A9210D511F0148E600904A0B /* URL+DisplayHost.swift in Sources */,
 				A92095801ED8CB34009497A2 /* BrowseURLProtocol.swift in Sources */,
 				A9B3176A1ED134CD00C71EBE /* SearchTextView.swift in Sources */,
+				A99328471F098E270045EBAA /* ToolbarTextButton.swift in Sources */,
 				A94FE41F1ECA5A7400ED48DB /* UIColorExtensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -602,14 +605,6 @@
 			name = Main.storyboard;
 			sourceTree = "<group>";
 		};
-		A97CB0781EC53DCD005DDBD1 /* LaunchScreen.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				A97CB0791EC53DCD005DDBD1 /* Base */,
-			);
-			name = LaunchScreen.storyboard;
-			sourceTree = "<group>";
-		};
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
@@ -622,7 +617,9 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -630,7 +627,11 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -672,7 +673,9 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -680,7 +683,11 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -711,13 +718,15 @@
 			baseConfigurationReference = EAFEEFBF73AF0DFBC3AD7745 /* Pods-browse.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				DEVELOPMENT_TEAM = DJXSN639VG;
 				INFOPLIST_FILE = browse/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = evn.browser;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "browse/Bridging-Header.h";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -726,13 +735,15 @@
 			baseConfigurationReference = 08DF207E4D450D465A7942EE /* Pods-browse.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				DEVELOPMENT_TEAM = DJXSN639VG;
 				INFOPLIST_FILE = browse/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = evn.browser;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "browse/Bridging-Header.h";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};
@@ -746,7 +757,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = evn.browseTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/browse.app/browse";
 			};
 			name = Debug;
@@ -761,7 +773,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = evn.browseTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/browse.app/browse";
 			};
 			name = Release;
@@ -775,7 +788,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = evn.browseUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 				TEST_TARGET_NAME = browse;
 			};
 			name = Debug;
@@ -789,7 +803,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = evn.browseUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 				TEST_TARGET_NAME = browse;
 			};
 			name = Release;

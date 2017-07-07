@@ -8,19 +8,9 @@
 
 import UIKit
 
-class ColorToolbar: UIToolbar {
-    var inner : UIView!
-    var back : UIView!
-    var blurView : UIVisualEffectView!
-    var progressView: UIProgressView!
-
-    /*
-    // Only override draw() if you perform custom drawing.
-    // An empty implementation adversely affects performance during animation.
-    override func draw(_ rect: CGRect) {
-        // Drawing code
-    }
-    */
+class ColorToolbar: UIView {
+    let progressView: UIProgressView = UIProgressView(progressViewStyle: .default)
+    let stackView   = UIStackView()
     
     var progress : Float {
         get {
@@ -45,41 +35,16 @@ class ColorToolbar: UIToolbar {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        //        navigationController?.isToolbarHidden = false
-        isTranslucent = true
         
-        barTintColor = .black
+        backgroundColor = .clear
         tintColor = .white
         clipsToBounds = true
-
-        setBackgroundImage(UIImage(), forToolbarPosition: .any, barMetrics: .default)
         
         autoresizingMask = [.flexibleTopMargin, .flexibleWidth]
-
+//        translatesAutoresizingMaskIntoConstraints = false
         
-        inner = UIView()
-        inner.frame = self.bounds
-        inner.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        inner.backgroundColor = .black
         
-        //        toolbar.addSubview(toolbarInner)
-        //        toolbar.sendSubview(toBack: toolbarInner)
         
-        back = UIView()
-        back.frame = self.bounds
-        back.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        back.backgroundColor = .black
-        
-        //        toolbarBack.alpha = 0.7
-        
-//        addSubview(back)
-        sendSubview(toBack: back)
-        
-        blurView = UIVisualEffectView(frame: self.bounds, isTransparent: true)
-        addSubview(blurView)
-        sendSubview(toBack: blurView)
-        
-        progressView = UIProgressView(progressViewStyle: .default)
         progressView.frame = CGRect(
             origin: CGPoint(x: 0, y: 21),
             size:CGSize(width: UIScreen.main.bounds.size.width, height:4)
@@ -88,7 +53,29 @@ class ColorToolbar: UIToolbar {
         progressView.progressTintColor = UIColor.lightOverlay
         progressView.transform = progressView.transform.scaledBy(x: 1, y: 22)
         addSubview(progressView)
-
+        
+        stackView.axis  = .horizontal
+        stackView.distribution  = .fill
+        stackView.alignment = .center
+        stackView.spacing   = 6.0
+        
+//        stackView.addArrangedSubview(spinner)
+//        stackView.addArrangedSubview(lock)
+//        stackView.addArrangedSubview(magnify)
+//        stackView.addArrangedSubview(label)
+        stackView.translatesAutoresizingMaskIntoConstraints = false;
+        
+        addSubview(stackView)
+        stackView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
+//        stackView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
+        stackView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        stackView.widthAnchor.constraint(equalTo: self.widthAnchor).isActive = true
+    }
+    
+    func setItems(_ items : [UIView]) {
+        for item in items {
+            stackView.addArrangedSubview(item)
+        }
     }
     
     required init?(coder aDecoder: NSCoder) {

@@ -178,8 +178,8 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
         
         wvc.toolbar.addSubview(bottomSnapshot)
         wvc.toolbar.sendSubview(toBack: bottomSnapshot)
-        wvc.toolbar.sendSubview(toBack: wvc.toolbar.inner)
-        wvc.toolbar.sendSubview(toBack: wvc.toolbar.back)
+//        wvc.toolbar.sendSubview(toBack: wvc.toolbar.inner)
+//        wvc.toolbar.sendSubview(toBack: wvc.toolbar.back)
     }
     
     var bottomBlendSnapshot : UIView!
@@ -205,7 +205,7 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
 
     
     
-    func updateColors() {
+    @objc func updateColors() {
         
         guard wvc.shouldUpdateColors else { return }
         
@@ -270,27 +270,27 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
     
     func updateBottomColor() {
 
-        if !isBottomTransitionInteractive && self.bottomDelta > 0 {
-            wvc.toolbar.inner.transform = CGAffineTransform(translationX: 0, y: -TOOLBAR_H)
-            wvc.toolbar.inner.backgroundColor = self.bottom
-            wvc.toolbar.inner.isHidden = false
-        }
+//        if !isBottomTransitionInteractive && self.bottomDelta > 0 {
+//            wvc.toolbar.inner.transform = CGAffineTransform(translationX: 0, y: -TOOLBAR_H)
+//            wvc.toolbar.inner.backgroundColor = self.bottom
+//            wvc.toolbar.inner.isHidden = false
+//        }
+//
+//        if isPanning && !isBottomTransitionInteractive && self.bottomDelta > 0.6 {
+//            bottomInteractiveTransitionStart()
+//            return
+//        }
+//
+//        if self.isFranticallyChanging {
+//            wvc.toolbar.back.backgroundColor = .black
+//            wvc.toolbar.tintColor = .white
+//        }
+//        else {
+//            if !isBottomAnimating && self.bottomDelta > 0 {
+//                animateBottomEndState(.fade)
+//            }
+//        }
         
-        if isPanning && !isBottomTransitionInteractive && self.bottomDelta > 0.6 {
-            bottomInteractiveTransitionStart()
-            return
-        }
-
-        if self.isFranticallyChanging {
-            wvc.toolbar.back.backgroundColor = .black
-            wvc.toolbar.tintColor = .white
-        }
-        else {
-            if !isBottomAnimating && self.bottomDelta > 0 {
-                animateBottomEndState(.fade)
-            }
-        }
-
         
     }
     
@@ -302,8 +302,8 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
     }
 
     func commitBottomChange() {
-        self.wvc.toolbar.back.backgroundColor = self.bottom
-        self.wvc.toolbar.inner.isHidden = true
+//        self.wvc.toolbar.back.backgroundColor = self.bottom
+//        self.wvc.toolbar.inner.isHidden = true
         
         self.wvc.toolbar.progressView.progressTintColor = self.bottom.isLight
             ? UIColor.lightOverlay
@@ -356,11 +356,11 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
         UIView.animate(withDuration: DURATION, delay: 0, options: .curveEaseInOut, animations: {
             if self.bottomDelta > 0 {
                 if style == .translate && self.bottomDelta > 0.6 {
-                    self.wvc.toolbar.inner.transform = .identity
+//                    self.wvc.toolbar.inner.transform = .identity
                     self.lastBottomTransitionTime   = CACurrentMediaTime()
-                    self.wvc.toolbar.back.backgroundColor   = UIColor.average(self.previousBottom, self.bottom )
+//                    self.wvc.toolbar.back.backgroundColor   = UIColor.average(self.previousBottom, self.bottom )
                 } else {
-                    self.wvc.toolbar.back.backgroundColor   = self.bottom
+//                    self.wvc.toolbar.back.backgroundColor   = self.bottom
                 }
                 self.wvc.toolbar.tintColor = self.bottom.isLight ? .white : .darkText
             }
@@ -384,7 +384,7 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
     var bottomTransitionEndTint : UIColor = UIColor.black
     func bottomInteractiveTransitionStart() {
         isBottomTransitionInteractive = true
-        self.wvc.toolbar.inner.isHidden = false
+//        self.wvc.toolbar.inner.isHidden = false
         
         let amt = TOOLBAR_H * 1.0
 
@@ -408,8 +408,8 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
         
         let progress = 1 - abs(clampedY) / TOOLBAR_H
         
-        wvc.toolbar.inner.transform = CGAffineTransform(translationX: 0, y: clampedY)
-        wvc.toolbar.back.backgroundColor = self.previousBottom.withBrightness( 1 - (progress * 0.8))
+//        wvc.toolbar.inner.transform = CGAffineTransform(translationX: 0, y: clampedY)
+//        wvc.toolbar.back.backgroundColor = self.previousBottom.withBrightness( 1 - (progress * 0.8))
         
         
         let newTint : UIColor = progress > 0.5
