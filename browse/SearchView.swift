@@ -150,6 +150,7 @@ class SearchView: UIView, UITextViewDelegate {
             textView.transform = .identity
             textView.alpha = 1
             self.cancel.transform = .identity
+            self.cancel.alpha = 1
         }, completion: { completed in
             textView.selectAll(nil) // if not nil, will show actions
         })
@@ -166,6 +167,7 @@ class SearchView: UIView, UITextViewDelegate {
             textView.transform = CGAffineTransform(translationX: 30, y: 0)
             textView.alpha = 0
             self.cancel.transform = CGAffineTransform(translationX: 60, y: 0)
+            self.cancel.alpha = 0
             
             var frame = self.frame
             frame.origin.y = frame.size.height - 36

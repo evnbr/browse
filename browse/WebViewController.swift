@@ -331,6 +331,9 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     
     
     override func viewWillAppear(_ animated: Bool) {
+        if webView.url == nil {
+            displaySearch()
+        }
         
     }
     
@@ -338,13 +341,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         webView.scrollView.contentInset = .zero
         self.setNeedsStatusBarAppearanceUpdate()
 
-        if webView.url == nil {
-            displaySearch()
-        }
-        else {
-            self.resignFirstResponder()
-        }
-
+        
         webViewColor.startUpdates()
 
         // disable mysterious delays
@@ -510,6 +507,11 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
             self.forwardButton.isHidden = true
             self.stopButton.isHidden = true
             self.actionButton.isHidden = true
+            self.backButton.alpha = 0
+            self.forwardButton.alpha = 0
+            self.stopButton.alpha = 0
+            self.actionButton.alpha = 0
+            
         })
         
     }
@@ -535,6 +537,10 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
             self.forwardButton.isHidden = false
             self.stopButton.isHidden = false
             self.actionButton.isHidden = false
+            self.backButton.alpha = 1
+            self.forwardButton.alpha = 1
+            self.stopButton.alpha = 1
+            self.actionButton.alpha = 1
         })
     }
     
@@ -809,6 +815,11 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         webView.frame.origin.y = STATUS_H
         view.transform = .identity
         cardView.frame = cardViewDefaultFrame
+        
+        if webView.url == nil {
+            // hack for better transition with keyboard
+            cardView.frame.size.height = cardViewDefaultFrame.height - keyboardHeight - searchView.frame.height + TOOLBAR_H
+        }
         
         toolbar.alpha = 1
     }
