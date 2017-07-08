@@ -62,7 +62,8 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         thumb?.isHidden = true
 
         if direction == .present {
-            webVC.resetSizes()
+            let isBlank = webVC.webView.url == nil
+            webVC.resetSizes(withKeyboard: isBlank)
         }
         
         if isExpanding {
@@ -70,7 +71,9 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         }
         
         
+        webVC.webView.scrollView.showsVerticalScrollIndicator = false
         let snapshot : UIView = webVC.cardView.snapshotView(afterScreenUpdates: true)! // note that snapshot only works if view is in hierarchy
+        webVC.webView.scrollView.showsVerticalScrollIndicator = true
         
         let thumbFrame = containerView.convert(thumb!.frame, from: thumb?.superview)
         // must be after toVC is added

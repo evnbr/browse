@@ -89,7 +89,7 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
     var startScroll : CGPoint = .zero
     
     let DISMISS_POINT_H : CGFloat = 50
-    let DISMISS_POINT_V : CGFloat = 100
+    let DISMISS_POINT_V : CGFloat = 300
 
     @objc func edgeGestureChange(gesture:UIScreenEdgePanGestureRecognizer) {
 
@@ -118,28 +118,23 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
                     cardView.frame.origin.x = gesturePos.x
                 }
                 
-//                if cardView.frame.size.height > THUMB_H && gesturePos.x > DISMISS_POINT_H {
+//                if cardView.frame.origin.y < STATUS_H && gesturePos.x > DISMISS_POINT_H {
 //                    UIView.animate(withDuration: 0.2, animations: {
-//                        self.cardView.frame.size.height = THUMB_H
-//                        self.cardView.frame.origin.y = 100
-//                        self.cardView.frame.origin.x = self.DISMISS_POINT_H
+//                        self.cardView.frame.origin.y = STATUS_H
 //                    })
 //                }
-//                else if cardView.frame.size.height == THUMB_H && gesturePos.x < DISMISS_POINT_H {
+//                else if cardView.frame.origin.y > 0 && gesturePos.x < DISMISS_POINT_H {
 //                    UIView.animate(withDuration: 0.2, animations: {
-//                        self.cardView.frame.size.height = self.vc.cardViewDefaultFrame.height
 //                        self.cardView.frame.origin.y = 0
 //
 //                    })
 //                }
+//                if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle {
+//                    UIView.animate(withDuration: 0.2, animations: {
+//                        self.vc.setNeedsStatusBarAppearanceUpdate()
+//                    })
+//                }
                 
-
-                if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle {
-                    UIView.animate(withDuration: 0.2, animations: {
-                        self.vc.setNeedsStatusBarAppearanceUpdate()
-                    })
-                }
-
             }
         }
         else if gesture.state == .ended {
@@ -185,12 +180,17 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
     
     
 //    var statusBarAnimator : UIViewPropertyAnimator!
-
+    
+    var shouldRestoreKeyboard : Bool = false
+    
     func start() {
         isInteractiveDismiss = true
         startScroll = scrollView.contentOffset
         
         if vc.searchView.textView.isFirstResponder {
+            // TODO: Maybe make this work even when not nil?
+            // This depends on some stuff in resetSizes which makes it a mess
+            if vc.webView.url == nil { shouldRestoreKeyboard = true }
             vc.searchView.textView.resignFirstResponder()
         }
         
@@ -209,14 +209,22 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         vc.dismissSelf()
     }
     
-    func reset() {
+    func reset(atVelocity vel : CGFloat = 0.0) {
         end()
         
-        UIView.animate(withDuration: 0.6, delay: 0.0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
-            self.vc.resetSizes()
+        let springVel = vel * -0.1
+        
+        UIView.animate(withDuration: 0.6, delay: 0.0, usingSpringWithDamping: 0.85, initialSpringVelocity: springVel, options: .curveLinear, animations: {
+            self.vc.resetSizes(withKeyboard: self.shouldRestoreKeyboard)
             self.vc.setNeedsStatusBarAppearanceUpdate()
             self.vc.home.navigationController?.view.alpha = 0
         }, completion: nil)
+        
+        if shouldRestoreKeyboard {  // HACK, COPY PASTED EVERYWHERE
+            shouldRestoreKeyboard = false
+            vc.displaySearch()
+        }
+        
     }
     
     func update(gesture:UIPanGestureRecognizer) {
@@ -227,6 +235,10 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         if (direction == .top && adjustedY < 0) || (direction == .bottom && adjustedY > 0) {
 //            adjustedY = adjustedY * 0.1
             end()
+            if shouldRestoreKeyboard {  // HACK, COPY PASTED EVERYWHERE
+                shouldRestoreKeyboard = false
+                vc.displaySearch()
+            }
             vc.resetSizes()
             return
         }
@@ -239,7 +251,7 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
             ? adjustedY + statusOffset
             : adjustedY * -0.2
         
-        cardView.frame.size.height = max(view.frame.height - TOOLBAR_H - (abs(adjustedY) * 0.8), THUMB_H * 1.1)
+        cardView.frame.size.height = max(view.frame.height - TOOLBAR_H - (abs(adjustedY) * 0.9), THUMB_H * 1.1)
         
         if direction == .bottom && adjustedY < 0 {
             print("adjusting scroll")
@@ -282,13 +294,18 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
                 let gesturePos = gesture.translation(in: view)
                 let adjustedY : CGFloat = gesturePos.y - startPoint.y
 
-                velocity = gesture.velocity(in: vc.view).y
-
-                if ( (direction == .top && adjustedY > DISMISS_POINT_V)
-                    || (direction == .bottom && adjustedY < -DISMISS_POINT_V) ) {
+                let vel = gesture.velocity(in: vc.view)
+                
+                
+                if (direction == .top && (vel.y > 600 || adjustedY > DISMISS_POINT_V)) {
                     commit()
                 }
-                else { reset() }
+                else if (direction == .bottom && (vel.y < -600 || adjustedY < -DISMISS_POINT_V)) {
+                    commit()
+                }
+                else {
+                    reset(atVelocity: vel.y)
+                }
             }
             
         }
@@ -298,7 +315,20 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
     }
-
+    
+    // only recognize verticals
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        if gestureRecognizer is UIScreenEdgePanGestureRecognizer { return true }
+        if let panGestureRecognizer = gestureRecognizer as? UIPanGestureRecognizer {
+            let translation = panGestureRecognizer.translation(in: view!)
+            if fabs(translation.x) < fabs(translation.y) {
+                return true
+            }
+            return false
+        }
+        return false
+    }
+    
     var isInteractiveDismissToolbar : Bool = false
     var interactiveDismissToolbarStartPoint : CGPoint = .zero
 

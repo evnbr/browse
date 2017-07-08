@@ -33,7 +33,16 @@ class LocationBar: ToolbarTouchView {
             return label.text
         }
         set {
-            label.text = newValue
+            if newValue == "" {
+                label.text = "Where to?"
+                label.alpha = 0.6
+                magnify.alpha = 0.6
+            }
+            else {
+                label.text = newValue
+                label.alpha = 1
+                magnify.alpha = 1
+            }
             label.sizeToFit()
         }
     }

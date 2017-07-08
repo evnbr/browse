@@ -9,6 +9,7 @@
 import UIKit
 
 typealias CloseTabCallback = (UICollectionViewCell) -> Void
+let TAP_SCALE : CGFloat = 0.97 //1.025
 
 class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
 
@@ -78,7 +79,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         return false
     }
     
-    let downScale : CGFloat = 1.025
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
@@ -86,7 +86,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         
         if touches.first != nil {
             UIView.animate(withDuration: 0.3, animations: {
-                self.transform = CGAffineTransform(scaleX: self.downScale, y: self.downScale)
+                self.transform = CGAffineTransform(scaleX: TAP_SCALE, y: TAP_SCALE)
 //                self.alpha = 0.9
             })
         }
@@ -150,16 +150,18 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
             if isDismissing {
                 isDismissing = false
                 
+                let vel = gesture.velocity(in: superview)
+                
                 var endFrame : CGRect = startFrame
                 var endAlpha : CGFloat = 1
                 
-                if ( gesturePos.x > frame.width / 2 ) {
+                if ( vel.x > 800 || gesturePos.x > frame.width * 0.8 ) {
                     endFrame.origin.x = startFrame.origin.x + startFrame.width
 //                    endFrame.size.width = 0
                     endAlpha = 0
                     closeTabCallback(self)
                 }
-                else if ( gesturePos.x < -frame.width / 2 ) {
+                else if ( vel.x < -800 || gesturePos.x < -frame.width * 0.8 ) {
                     endFrame.origin.x = startFrame.origin.x - frame.width
 //                    endFrame.size.width = 0
                     endAlpha = 0

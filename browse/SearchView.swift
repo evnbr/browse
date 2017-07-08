@@ -15,7 +15,7 @@ class SearchView: UIView, UITextViewDelegate {
     
     var webViewController : WebViewController!
     var textView : SearchTextView!
-    var cancel   : UIButton!
+    var cancel   : ToolbarTextButton!
     
     var isEnabled : Bool {
         get {
@@ -47,7 +47,7 @@ class SearchView: UIView, UITextViewDelegate {
         self.isEnabled = false
         
         textView = SearchTextView()
-        textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 100)
+        textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 48)
         textView.placeholder = "Where to?"
         
         textView.backgroundColor = .clear
@@ -73,13 +73,19 @@ class SearchView: UIView, UITextViewDelegate {
         textView.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(textView)
 
-        cancel = UIButton(type: .system)
-        cancel.setTitle("Cancel", for: .normal)
-        cancel.addTarget(self, action: #selector(hide), for: .primaryActionTriggered)
+//        cancel = UIButton(type: .system)
+//        cancel.setTitle("Cancel", for: .normal)
+//        cancel.addTarget(self, action: #selector(hide), for: .primaryActionTriggered)
+        
+        cancel = ToolbarTextButton(title: "Cancel", withIcon: nil, onTap: {
+            self.webViewController.hideSearch()
+        })
+        cancel.size = .medium
         cancel.sizeToFit()
+        
         let cancelOrigin = CGPoint(
-            x: self.frame.size.width - cancel.frame.size.width - 12,
-            y: self.frame.size.height - cancel.frame.size.height - 8
+            x: self.frame.size.width - cancel.frame.size.width,
+            y: self.frame.size.height - cancel.frame.size.height - 4
         )
         cancel.frame = CGRect(origin: cancelOrigin, size: cancel.frame.size)
         self.addSubview(cancel)
@@ -99,7 +105,7 @@ class SearchView: UIView, UITextViewDelegate {
 //        textView.layer.borderColor = UIColor.cyan.cgColor
 //        textView.layer.borderWidth = 2.0
         
-        
+        // TODO this doesn't seem to work
         updateSize()
     }
     
@@ -126,7 +132,7 @@ class SearchView: UIView, UITextViewDelegate {
 //        textView.invalidateIntrinsicContentSize()
         self.invalidateIntrinsicContentSize()
         
-        webViewController.searchSizeDidChange()
+        
     }
     
     override public var intrinsicContentSize: CGSize {
@@ -141,6 +147,8 @@ class SearchView: UIView, UITextViewDelegate {
     
     func textViewDidBeginEditing(_ textView: UITextView) {
         self.isEnabled = true
+        
+        self.updateSize()
         
         textView.transform = CGAffineTransform(translationX: 20, y: 0)
         textView.alpha = 0
@@ -169,10 +177,10 @@ class SearchView: UIView, UITextViewDelegate {
             self.cancel.transform = CGAffineTransform(translationX: 60, y: 0)
             self.cancel.alpha = 0
             
-            var frame = self.frame
-            frame.origin.y = frame.size.height - 36
-            frame.size.height = TOOLBAR_H
-            self.frame = frame
+//            var frame = self.frame
+//            frame.origin.y = frame.size.height - 36
+//            frame.size.height = TOOLBAR_H
+//            self.frame = frame
             
         }, completion: { completed in
             self.isEnabled = false
@@ -182,6 +190,7 @@ class SearchView: UIView, UITextViewDelegate {
     
     func textViewDidChange(_ textView: UITextView) {
         updateSize()
+        webViewController.searchSizeDidChange()
     }
     
     @objc func hide() {

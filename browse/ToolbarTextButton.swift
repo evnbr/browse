@@ -8,12 +8,46 @@
 
 import UIKit
 
+enum ToolbarTextButtonSize {
+    case small
+    case medium
+    case large
+}
+
 class ToolbarTextButton: ToolbarTouchView {
     
     let label = UILabel()
     let stackView = UIStackView()
 
-    var icon : UIImageView!
+    var icon : UIImageView?
+    
+    private var _size : ToolbarTextButtonSize = .small
+    
+    var size : ToolbarTextButtonSize {
+        get {
+            return _size
+        }
+        set {
+            if newValue != size {
+                _size = newValue
+                
+                if _size == .small {
+                    label.font = .systemFont(ofSize: 13.0)
+                    frame.size.height = TOOLBAR_H
+                }
+                else if _size == .medium {
+                    label.font = .systemFont(ofSize: 15.0)
+                    frame.size.height = TOOLBAR_H + 4
+                }
+                else if _size == .large {
+                    label.font = .systemFont(ofSize: 17.0)
+                    frame.size.height = TOOLBAR_H + 6
+                }
+                
+                label.sizeToFit()
+            }
+        }
+    }
     
     var text : String? {
         get {
@@ -27,10 +61,10 @@ class ToolbarTextButton: ToolbarTouchView {
     
     var showIcon : Bool {
         get {
-            return !icon.isHidden
+            return !icon!.isHidden
         }
         set {
-            icon.isHidden = !newValue
+            icon?.isHidden = !newValue
         }
     }
     
@@ -39,7 +73,7 @@ class ToolbarTextButton: ToolbarTouchView {
         
         
         label.text = title
-        label.font = UIFont.systemFont(ofSize: 13.0)
+        label.font = .systemFont(ofSize: 13.0)
         label.sizeToFit()
         
         // https://stackoverflow.com/questions/30728062/add-views-in-uistackview-programmatically
@@ -51,7 +85,7 @@ class ToolbarTextButton: ToolbarTouchView {
         if image != nil {
             let template = image!.withRenderingMode(.alwaysTemplate)
             icon = UIImageView(image: template)
-            stackView.addArrangedSubview(icon)
+            stackView.addArrangedSubview(icon!)
             showIcon = true
         }
         else {
@@ -72,6 +106,11 @@ class ToolbarTextButton: ToolbarTouchView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func sizeToFit() {
+        var newFrame = frame
+        newFrame.size.width = label.frame.width + 36
+        frame = newFrame
+    }
     
     override func tintColorDidChange() {
         super.tintColorDidChange()

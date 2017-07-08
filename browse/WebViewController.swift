@@ -80,7 +80,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     
     var displayTitle : String {
         get {
-            guard let url = webView.url else { return "Search" }
+            guard let url = webView.url else { return "" }
             if isSearching { return url.searchQuery }
             else { return displayURL }
         }
@@ -214,7 +214,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
 
 
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
-        toolbar.addGestureRecognizer(longPress)
+        locationBar.addGestureRecognizer(longPress)
         
         loadingDidChange()
 //        if let restored : String = restoreURL() {
@@ -225,8 +225,6 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
 //        }
 //        makeSuperTitle()
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
-
-        
     }
     
     var keyboardHeight : CGFloat = 250
@@ -234,9 +232,15 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         let userInfo:NSDictionary = notification.userInfo! as NSDictionary
         let keyboardFrame:NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as! NSValue
         let keyboardRectangle = keyboardFrame.cgRectValue
-        keyboardHeight = keyboardRectangle.height
+        let newHeight = keyboardRectangle.height
+        
+        if newHeight != keyboardHeight {
+            keyboardHeight = newHeight
+            UIView.animate(withDuration: 1.3, animations: {
+                self.searchSizeDidChange()
+            })
+        }
     }
-
     
     var topWindow : UIWindow!
     var topLabel : UILabel!
@@ -488,16 +492,19 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         
 //        self.becomeFirstResponder()
         searchView.textView.becomeFirstResponder()
-
+        
+        // NOTE: we probably don't have the true keyboard height yet
+        
         let cardH = cardViewDefaultFrame.height - keyboardHeight - searchView.frame.height + TOOLBAR_H
         
         self.locationBar.setAlignment(.left)
         
-        UIView.animate(withDuration: 0.5, delay: 0.0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
+        UIView.animate(withDuration: 0.55, delay: 0.0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
 //            self.searchDismissScrim.alpha = 1
             
             self.cardView.frame.size.height = cardH
             self.toolbar.frame.origin.y = cardH
+            self.toolbar.frame.size.height = self.searchView.frame.height
             self.locationBar.alpha = 0
 //            self.toolbar.frame.origin.x = -120
             self.toolbar.layoutIfNeeded()
@@ -507,11 +514,8 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
             self.forwardButton.isHidden = true
             self.stopButton.isHidden = true
             self.actionButton.isHidden = true
-            self.backButton.alpha = 0
-            self.forwardButton.alpha = 0
-            self.stopButton.alpha = 0
-            self.actionButton.alpha = 0
             
+            self.actionButton.alpha = 0
         })
         
     }
@@ -523,7 +527,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         
         self.locationBar.setAlignment(.centered)
         
-        UIView.animate(withDuration: 0.5, delay: 0.0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
+        UIView.animate(withDuration: 0.55, delay: 0.0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
 //            self.searchDismissScrim.alpha = 0
             
             self.cardView.frame = self.cardViewDefaultFrame
@@ -537,9 +541,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
             self.forwardButton.isHidden = false
             self.stopButton.isHidden = false
             self.actionButton.isHidden = false
-            self.backButton.alpha = 1
-            self.forwardButton.alpha = 1
-            self.stopButton.alpha = 1
+            
             self.actionButton.alpha = 1
         })
     }
@@ -548,9 +550,11 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     func searchSizeDidChange() {
         if searchView != nil && searchView.textView.isFirstResponder {
             let cardH = cardViewDefaultFrame.height - keyboardHeight - searchView.frame.height + TOOLBAR_H
+            
             self.cardView?.frame.size.height = cardH
             self.toolbar?.frame.origin.y = cardH
-            self.toolbar?.frame.size.height = searchView.frame.height
+            self.toolbar?.frame.size.height = self.searchView.frame.height
+                
         }
     }
 
@@ -809,14 +813,14 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     }
     
     
-    func resetSizes() {
+    func resetSizes(withKeyboard : Bool = false) {
         view.frame = UIScreen.main.bounds
         statusBar.frame.origin.y = 0
         webView.frame.origin.y = STATUS_H
         view.transform = .identity
         cardView.frame = cardViewDefaultFrame
         
-        if webView.url == nil {
+        if webView.url == nil && withKeyboard {
             // hack for better transition with keyboard
             cardView.frame.size.height = cardViewDefaultFrame.height - keyboardHeight - searchView.frame.height + TOOLBAR_H
         }
