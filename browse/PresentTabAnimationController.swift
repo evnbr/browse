@@ -75,9 +75,17 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         let snapshot : UIView = webVC.cardView.snapshotView(afterScreenUpdates: true)! // note that snapshot only works if view is in hierarchy
         webVC.webView.scrollView.showsVerticalScrollIndicator = true
         
-        let thumbFrame = containerView.convert(thumb!.frame, from: thumb?.superview)
-        // must be after toVC is added
-
+        var thumbFrame : CGRect
+        if thumb != nil {
+            // must be after toVC is added
+            thumbFrame = containerView.convert(thumb!.frame, from: thumb?.superview)
+        }
+        else {
+            // animate from bottom
+            let y = (homeVC.navigationController?.view.frame.height)!
+            thumbFrame = CGRect(origin: CGPoint(x: 0, y: y), size: homeVC.thumbSize)
+        }
+        
         let transitioningThumb = TabThumbnail(frame: thumbFrame)
         transitioningThumb.frame = isExpanding ? thumbFrame : webVC.cardView.frame
         transitioningThumb.setSnapshot(snapshot)
@@ -89,7 +97,10 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
 
 //        homeNav.view.alpha = isExpanding ? 1.0 : END_ALPHA
 
-        if isExpanding { webVC.toolbar.alpha = 0.0 }
+        if isExpanding {
+            webVC.toolbar.alpha = 0.0
+            webVC.toolbar.frame.origin.y = thumbFrame.origin.y + thumbFrame.height
+        }
         
         containerView.addSubview(transitioningThumb)
         containerView.bringSubview(toFront: transitioningThumb)
@@ -107,6 +118,9 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             
             homeNav.view.alpha = self.isExpanding ? END_ALPHA : 1.0
             webVC.toolbar.alpha = self.isExpanding ? 1.0 : 0.0
+            
+            webVC.toolbar.frame.origin.y = webVC.cardView.frame.height
+            
             homeVC.setNeedsStatusBarAppearanceUpdate()
 
         }, completion: { finished in

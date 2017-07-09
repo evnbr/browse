@@ -48,13 +48,12 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     // MARK: - Derived properties
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        guard webViewColor != nil else { return .default }
-
-        if interactiveDismissController.isInteractiveDismiss && (cardView.frame.origin.y > 10 || cardView.frame.origin.x > 100) {
-//        if interactiveDismissController.isInteractiveDismiss {
+        
+        if interactiveDismissController.isInteractiveDismiss && (cardView.frame.origin.y > 10) {
             return .lightContent
         }
         
+        guard webViewColor != nil else { return .default }
         return webViewColor.top.isLight ? .lightContent : .default
     }
     

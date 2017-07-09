@@ -22,14 +22,6 @@ class SearchView: UIView, UITextViewDelegate {
             return self.isUserInteractionEnabled
         }
         set {
-//            if !newValue {
-//                UIView.animate(withDuration: 0.3, animations: {
-//                    self.alpha = 0
-//                })
-//            }
-//            else {
-//                self.alpha = 1
-//            }
             self.isUserInteractionEnabled = newValue
         }
     }

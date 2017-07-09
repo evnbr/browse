@@ -190,7 +190,8 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         if vc.searchView.textView.isFirstResponder {
             // TODO: Maybe make this work even when not nil?
             // This depends on some stuff in resetSizes which makes it a mess
-            if vc.webView.url == nil { shouldRestoreKeyboard = true }
+            // if vc.webView.url == nil { shouldRestoreKeyboard = true }
+            
             vc.searchView.textView.resignFirstResponder()
         }
         
@@ -214,7 +215,7 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         
         let springVel = vel * -0.1
         
-        UIView.animate(withDuration: 0.6, delay: 0.0, usingSpringWithDamping: 0.85, initialSpringVelocity: springVel, options: .curveLinear, animations: {
+        UIView.animate(withDuration: 0.6, delay: 0.0, usingSpringWithDamping: 0.85, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
             self.vc.resetSizes(withKeyboard: self.shouldRestoreKeyboard)
             self.vc.setNeedsStatusBarAppearanceUpdate()
             self.vc.home.navigationController?.view.alpha = 0
@@ -235,11 +236,11 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         if (direction == .top && adjustedY < 0) || (direction == .bottom && adjustedY > 0) {
 //            adjustedY = adjustedY * 0.1
             end()
+            vc.resetSizes(withKeyboard: shouldRestoreKeyboard)
             if shouldRestoreKeyboard {  // HACK, COPY PASTED EVERYWHERE
                 shouldRestoreKeyboard = false
                 vc.displaySearch()
             }
-            vc.resetSizes()
             return
         }
         
@@ -249,9 +250,9 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         
         cardView.frame.origin.y = direction == .top
             ? adjustedY + statusOffset
-            : adjustedY * -0.2
+            : adjustedY // * -0.2
         
-        cardView.frame.size.height = max(view.frame.height - TOOLBAR_H - (abs(adjustedY) * 0.9), THUMB_H * 1.1)
+        // cardView.frame.size.height = max(view.frame.height - TOOLBAR_H - (abs(adjustedY) * 0.9), THUMB_H * 1.1)
         
         if direction == .bottom && adjustedY < 0 {
             print("adjusting scroll")

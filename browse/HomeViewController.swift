@@ -19,13 +19,8 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     let reuseIdentifier = "TabCell"
     let sectionInsets = UIEdgeInsets(top: 8.0, left: 0.0, bottom: 8.0, right: 0.0)
     let itemsPerRow : CGFloat = 2
-
     
-    var selectedTabIndex : Int = 0
-    var selectedTab : WebViewController? {
-        guard tabs.count > selectedTabIndex else { return nil }
-        return tabs[selectedTabIndex]
-    }
+    var selectedTab : WebViewController?
 
     let thumbAnimationController = PresentTabAnimationController()
     
@@ -78,7 +73,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         let addButton = ToolbarTextButton(
             title: "New",
             withIcon: UIImage(named: "tab"),
-            onTap: { self.addTab() }
+            onTap: self.addTab
         )
                 
         toolbarItems = [
@@ -100,25 +95,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
 //        gradientLayer.endPoint = CGPoint(x: 0.0, y: 0.1);
 //        view.layer.mask = gradientLayer;
 
-        
-//        for i in 0 ... 3 {
-//            let t = TabThumbnail(
-//                frame: CGRect(
-//                    x: 0,
-//                    y: 10 + (THUMB_H + 8) * CGFloat(i),
-//                    width: UIScreen.main.bounds.width - 0,
-//                    height: THUMB_H
-//                ),
-//                tab: tabs[i],
-//                onTap: showRenameThis
-//            )
-//            
-//            scroll.addSubview(t)
-//            thumbs.append(t)
-//        }
-
-        // thumbs[selectedTabIndex].isHidden = true
-        
+                
         navigationController?.view.alpha = 0.0
         showTab(tab: tabs[0], animated: false)
     }
@@ -141,11 +118,12 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
 
     func addTab() {
         let newTab = WebViewController(home: self)
-        tabs.append(newTab)
-        collectionView?.insertItems(at: [ IndexPath(item: tabs.index(of: newTab)!, section: 0) ])
+        self.showTab(tab: newTab)
+
         
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
-            self.showTab(tab: newTab)
+            self.tabs.append(newTab)
+            self.collectionView?.insertItems(at: [ IndexPath(item: self.tabs.index(of: newTab)!, section: 0) ])
         }
     }
     
@@ -162,7 +140,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     }
     
     func showTab(tab: WebViewController, animated: Bool = true) {
-        selectedTabIndex = tabs.index(of: tab)!
+        selectedTab = tab
         
         tab.modalPresentationStyle = .custom
         tab.transitioningDelegate = self
@@ -253,6 +231,15 @@ extension HomeViewController {
         }
     }
     
+    var thumbSize : CGSize {
+        if view.frame.width > 400 {
+            let ratio = view.frame.width / THUMB_H
+            let w = view.frame.width / 2 - 16
+            return CGSize(width: w, height: w / ratio )
+        }
+        return CGSize(width: view.frame.width - 16, height: THUMB_H)
+    }
+    
     
 }
 
@@ -263,14 +250,9 @@ extension HomeViewController : UICollectionViewDelegateFlowLayout {
 //        let paddingSpace = sectionInsets.left * (itemsPerRow + 1)
 //        let availableWidth = view.frame.width - paddingSpace
 //        let widthPerItem = availableWidth / itemsPerRow
-        
-        if view.frame.width > 400 {
-            let ratio = view.frame.width / THUMB_H
-            let w = view.frame.width / 2 - 16
-            return CGSize(width: w, height: w / ratio )
-        }
-        return CGSize(width: view.frame.width - 16, height: THUMB_H)
+        return thumbSize
     }
+    
     
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
