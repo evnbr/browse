@@ -17,9 +17,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         
-        // self.window?.layer.speed = 0.1
-        navController = application.windows[0].rootViewController as! UINavigationController
-
+//         self.window?.layer.speed = 0.1
+        
         
         return true
     }
@@ -29,14 +28,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
         
         print("Will resign active...")
-//        let rootVC = navController.topViewController as! WebViewController!
-//        
-//        if let vc : WebViewController = rootVC {
-//            vc.saveURL()
-//        }
-//        else {
-//            print("Couldn't find vc to save")
-//        }
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {

@@ -9,32 +9,64 @@
 import UIKit
 
 typealias CloseTabCallback = (UICollectionViewCell) -> Void
-let TAP_SCALE : CGFloat = 0.97 //1.025
+let THUMB_OFFSET_COLLAPSED : CGFloat = 0
 
 class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
 
     var snap : UIView!
+    var overlay : UIView!
     var webVC : WebViewController!
     var closeTabCallback : CloseTabCallback!
     
     var unTransformedFrame : CGRect!
     
+    private var _isExpanded : Bool = false
     var isExpanded : Bool {
         get {
-            return snap.frame.origin.y == 0
+            return snap.frame.origin.y != 0
         }
         set {
-            snap?.frame.origin.y = newValue ? 0 : -STATUS_H
+            _isExpanded = newValue
+//            snap?.frame.origin.y = newValue ? 0 : -STATUS_H
+//            snap?.frame.origin.y = newValue ? STATUS_H : 0
+            snap?.frame = frameForSnap(snap)
             layer.borderWidth = newValue ? 0.0 : 1.0
+        }
+    }
+    
+    
+    var darkness : CGFloat {
+        get {
+            return overlay.alpha
+        }
+        set {
+            overlay.alpha = newValue
         }
     }
     
     override var frame : CGRect {
         didSet {
             if !isDismissing {
-                snap?.frame = sizeForSnapshot(snap)
+                snap?.frame = frameForSnap(snap)
                 unTransformedFrame = frame
             }
+        }
+    }
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        // there should be a way to do this with autolayout but couldn't figure it out
+        snap?.frame = frameForSnap(snap)
+    }
+    
+    
+    @available(iOS 11.0, *)
+    override func dragStateDidChange(_ dragState: UICollectionViewCellDragState) {
+        if dragState == .dragging {
+            layer.borderColor = UIColor.red.cgColor
+        }
+        else if dragState == .none {
+            layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
         }
     }
     
@@ -44,8 +76,15 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         layer.cornerRadius = CORNER_RADIUS
         backgroundColor = .clear
         clipsToBounds = true
+        
         layer.borderWidth = 1.0
-        layer.borderColor = UIColor.white.withAlphaComponent(0.15).cgColor
+        layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
+        
+//        layer.shadowColor = UIColor.black.cgColor
+//        layer.shadowOpacity = 0.4
+//        layer.shadowOffset = CGSize.zero
+//        layer.shadowRadius = 4
+        
         
         isExpanded = false
         
@@ -55,7 +94,18 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
 //        dismissPanner.cancelsTouchesInView = true
         addGestureRecognizer(dismissPanner)
         
-        setPlaceholderSnap()
+        overlay = UIView(frame: frame)
+        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        overlay.backgroundColor = .red
+        overlay.alpha = 0
+        
+        contentView.addSubview(overlay)
+        
+//        contentView.translatesAutoresizingMaskIntoConstraints = false
+//        contentView.widthAnchor.constraint(equalTo: self.widthAnchor).isActive = true
+//        contentView.heightAnchor.constraint(equalTo: self.heightAnchor).isActive = true
+//        contentView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
+//        contentView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -87,7 +137,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         if touches.first != nil {
             UIView.animate(withDuration: 0.3, animations: {
                 self.transform = CGAffineTransform(scaleX: TAP_SCALE, y: TAP_SCALE)
-//                self.alpha = 0.9
+                self.alpha = 0.9
             })
         }
     }
@@ -111,14 +161,19 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         snap?.removeFromSuperview()
         
         snap = newSnapshot
-        snap.frame = sizeForSnapshot(snap)
+        snap.frame = frameForSnap(snap)
+//        snap.autoresizingMask = [.flexibleRightMargin, .flexibleBottomMargin]
         
         contentView.addSubview(snap)
-    }
-    
-    func updateSnapshot() {
-        guard let newSnap : UIView = webVC.cardView.snapshotView(afterScreenUpdates: true) else { return }
-        setSnapshot(newSnap)
+        contentView.sendSubview(toBack: snap)
+        
+//        snap.translatesAutoresizingMaskIntoConstraints = false
+        
+//        let aspect = snap.frame.size.height / snap.frame.size.width
+//        snap.topAnchor.constraint(equalTo: contentView.topAnchor, constant: STATUS_H).isActive = true
+//        snap.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
+//        snap.widthAnchor.constraint(equalTo: contentView.widthAnchor).isActive = true
+//        snap.heightAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: aspect).isActive = true
     }
     
     var isDismissing = false
@@ -135,14 +190,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
             if isDismissing {
                 let pct = abs(gesturePos.x) / startFrame.width
                 
-                
                 frame.origin.x = startFrame.origin.x + gesturePos.x
-//                frame.origin.x = startFrame.origin.x + max(gesturePos.x, 0)
-//                frame.size.width = startFrame.size.width - abs(gesturePos.x)
-                
-                alpha = (1 - pct)
-//                frame.origin.y = startFrame.origin.y + startFrame.size.height * (pct * 0.1)
-//                frame.size.height = startFrame.size.height * (1 - pct * 0.2)
             }
         }
         else if gesture.state == .ended {
@@ -187,12 +235,13 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         setSnapshot(snapPlaceholder)
     }
 
-    func sizeForSnapshot(_ snap : UIView) -> CGRect {
+    func frameForSnap(_ snap : UIView) -> CGRect {
         let aspect = snap.frame.size.height / snap.frame.size.width
         let W = self.frame.size.width
         return CGRect(
             x: 0,
-            y: isExpanded ? 0 : -STATUS_H,
+            y: _isExpanded ? STATUS_H : THUMB_OFFSET_COLLAPSED,
+//            y: STATUS_H,
             width: W,
             height: aspect * W
         )

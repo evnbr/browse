@@ -46,18 +46,18 @@ class ColorToolbar: UIView {
         
         
         progressView.frame = CGRect(
-            origin: CGPoint(x: 0, y: 21),
+            origin: CGPoint(x: 0, y: 20),
             size:CGSize(width: UIScreen.main.bounds.size.width, height:4)
         )
         progressView.trackTintColor = UIColor.white.withAlphaComponent(0)
-        progressView.progressTintColor = UIColor.lightOverlay
+        progressView.progressTintColor = UIColor.white.withAlphaComponent(0.25)
         progressView.transform = progressView.transform.scaledBy(x: 1, y: 22)
         addSubview(progressView)
         
         stackView.axis  = .horizontal
         stackView.distribution  = .fill
         stackView.alignment = .center
-        stackView.spacing   = 6.0
+        stackView.spacing   = 0.0
         
 //        stackView.addArrangedSubview(spinner)
 //        stackView.addArrangedSubview(lock)

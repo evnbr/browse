@@ -20,9 +20,6 @@ extension WebViewController: WKNavigationDelegate {
         
         loadingDidChange()
         
-        if overflowController != nil {
-            updateStopRefreshAlertAction()
-        }
     }
     
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {

@@ -8,16 +8,13 @@
 
 import UIKit
 
-
-let THUMB_H : CGFloat = 200.0
-
 class HomeViewController: UICollectionViewController, UIViewControllerTransitioningDelegate {
 
     var tabs : [WebViewController] = []
     var snapshots : [UIView] = []
     
     let reuseIdentifier = "TabCell"
-    let sectionInsets = UIEdgeInsets(top: 8.0, left: 0.0, bottom: 8.0, right: 0.0)
+    let sectionInsets = UIEdgeInsets(top: 8.0, left: 6.0, bottom: 8.0, right: 6.0)
     let itemsPerRow : CGFloat = 2
     
     var selectedTab : WebViewController?
@@ -31,6 +28,8 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
 
     var gradientLayer : CAGradientLayer!
     
+    var isFirstLoad = true
+    
     override var preferredStatusBarStyle: UIStatusBarStyle {
         guard let webVC = selectedTab else { return .lightContent }
         if webVC.view.window != nil && !webVC.isBeingDismissed {
@@ -39,15 +38,14 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         return .lightContent
     }
     override var prefersStatusBarHidden: Bool {
-        guard let webVC = selectedTab else { return false }
-        if webVC.view.window != nil && !webVC.isBeingDismissed {
-            return webVC.prefersStatusBarHidden
-        }
+//        guard let webVC = selectedTab else { return false }
+//        if webVC.view.window != nil && !webVC.isBeingDismissed {
+//            return webVC.prefersStatusBarHidden
+//        }
 
         return false
     }
-
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -60,31 +58,36 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         title = ""
         view.backgroundColor = .black
+        view.layer.cornerRadius = CORNER_RADIUS
+        view.layer.masksToBounds = true
+        
         collectionView?.backgroundColor = .black
         
         navigationController?.navigationBar.tintColor = .white
-        navigationController?.navigationBar.barStyle = .blackTranslucent
+        navigationController?.navigationBar.barStyle = .black
         
         navigationController?.toolbar.tintColor = .white
-        navigationController?.toolbar.barStyle = .blackTranslucent
-        navigationController?.toolbar.isTranslucent = false
+        navigationController?.toolbar.barStyle = .black
+        navigationController?.toolbar.isTranslucent = true
+        navigationController?.toolbar.barTintColor = .black
+        navigationController?.toolbar.alpha = 0.2
+        navigationController?.toolbar.setShadowImage(UIImage(), forToolbarPosition: .any)
+        
         navigationController?.isToolbarHidden = false
         
         let addButton = ToolbarTextButton(
             title: "New",
-            withIcon: UIImage(named: "tab"),
+            withIcon: nil, //UIImage(named: "add"),
             onTap: self.addTab
         )
-                
+        addButton.size = .medium
+        
         toolbarItems = [
             UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
             UIBarButtonItem(customView: addButton),
             UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
         ]
         
-        let tab1 = WebViewController(home: self)
-        tabs = [tab1]
-
 
 //        gradientLayer = CAGradientLayer()
 //        gradientLayer.frame = view.bounds
@@ -95,9 +98,14 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
 //        gradientLayer.endPoint = CGPoint(x: 0.0, y: 0.1);
 //        view.layer.mask = gradientLayer;
 
-                
-        navigationController?.view.alpha = 0.0
-        showTab(tab: tabs[0], animated: false)
+        collectionView?.contentInset = UIEdgeInsets(top: STATUS_H, left: 0, bottom: 0, right: 0)
+        if #available(iOS 11.0, *) {
+            collectionView?.contentInsetAdjustmentBehavior = .never
+        } else {
+            // Fallback on earlier versions
+        }
+        
+        // showTab(tab: tabs[0], animated: false)
     }
     
     override func viewWillLayoutSubviews() {
@@ -124,6 +132,8 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
             self.tabs.append(newTab)
             self.collectionView?.insertItems(at: [ IndexPath(item: self.tabs.index(of: newTab)!, section: 0) ])
+            let thumb = self.thumb(forTab: newTab)
+            thumb?.isHidden = true
         }
     }
     
@@ -148,15 +158,23 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         present(tab, animated: animated)
     }
     
-    func updateThumbnail(tab: WebViewController) {
-        thumb(forTab: tab).updateSnapshot()
+    
+    override func viewWillAppear(_ animated: Bool) {
     }
     
     override func viewDidAppear(_ animated: Bool) {
         navigationController?.isNavigationBarHidden = true
+        
+        navigationController?.isToolbarHidden = false
 //        navigationController?.isToolbarHidden = false
+        
+        if isFirstLoad {
+            isFirstLoad = false
+            addTab()
+        }
+        
     }
-
+        
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -187,17 +205,29 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         return thumbAnimationController
     }
 
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
+//    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+//        for cell in collectionView!.visibleCells {
+//            let cell = cell as! TabThumbnail
+//            
+//            let ip = collectionView!.indexPath(for: cell)!
+//            let intendedFrame = self.collectionViewLayout.layoutAttributesForItem(at: ip)!.frame
+//            
+//            let visibleFrame = cell.superview!.convert(intendedFrame, to: view)
+//            
+//            if visibleFrame.origin.y < 300 {
+//                let amtOver = 300 - visibleFrame.origin.y
+//                let pct = amtOver / 300
+//                
+//                cell.frame.origin.y = intendedFrame.origin.y + amtOver * pct * 0.3
+//                
+//                cell.darkness = pct * 0.5
+//            }
+//            else {
+//                cell.darkness = 0
+//                cell.frame.origin.y = intendedFrame.origin.y
+//            }
+//        }
+//    }
 }
 
 // MARK: - UICollectionViewDataSource
@@ -212,7 +242,14 @@ extension HomeViewController {
                                                       for: indexPath) as! TabThumbnail
         // Configure the cells
         
-        cell.webVC = tabs[indexPath.row]
+        let webVC : WebViewController = tabs[indexPath.row]
+        cell.webVC = webVC
+        if let snap : UIView = webVC.webSnapshot {
+            cell.setSnapshot(snap)
+        }
+        if let color : UIColor = webVC.webViewColor?.top {
+            cell.backgroundColor = color
+        }
         cell.closeTabCallback = closeTab
         
         return cell
@@ -233,11 +270,12 @@ extension HomeViewController {
     
     var thumbSize : CGSize {
         if view.frame.width > 400 {
-            let ratio = view.frame.width / THUMB_H
+            let ratio = view.frame.width / (view.frame.height - TOOLBAR_H - STATUS_H )
             let w = view.frame.width / 2 - 16
             return CGSize(width: w, height: w / ratio )
         }
-        return CGSize(width: view.frame.width - 16, height: THUMB_H)
+        return CGSize(width: view.frame.width - sectionInsets.left - sectionInsets.right, height: THUMB_H)
+//        return CGSize(width: view.frame.width, height: THUMB_H)
     }
     
     

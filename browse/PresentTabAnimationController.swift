@@ -53,10 +53,10 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         let containerView = transitionContext.containerView
         
-        let homeNav = isExpanding ? fromVC : toVC
+        let homeNav = (isExpanding ? fromVC : toVC) as! UINavigationController
         let webVC = (isExpanding ? toVC : fromVC) as! WebViewController
         
-        let homeVC = (homeNav as! UINavigationController).topViewController as! HomeViewController
+        let homeVC = homeNav.topViewController as! HomeViewController
         
         let thumb = homeVC.thumb(forTab: webVC)
         thumb?.isHidden = true
@@ -71,11 +71,17 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         }
         
         
-        webVC.webView.scrollView.showsVerticalScrollIndicator = false
-        let snapshot : UIView = webVC.cardView.snapshotView(afterScreenUpdates: true)! // note that snapshot only works if view is in hierarchy
-        webVC.webView.scrollView.showsVerticalScrollIndicator = true
+        webVC.updateSnapshot()
+        let snapshot : UIView = webVC.webSnapshot!
+        
+        
+        let prevTransform = homeNav.view.transform
+        homeNav.view.transform = .identity // HACK reset to identity so we can get frame
+        
         
         var thumbFrame : CGRect
+        var duration = 0.5
+        
         if thumb != nil {
             // must be after toVC is added
             thumbFrame = containerView.convert(thumb!.frame, from: thumb?.superview)
@@ -84,13 +90,27 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             // animate from bottom
             let y = (homeVC.navigationController?.view.frame.height)!
             thumbFrame = CGRect(origin: CGPoint(x: 0, y: y), size: homeVC.thumbSize)
+            thumbFrame.size.height = 40
+            duration = 0.6
         }
         
         let transitioningThumb = TabThumbnail(frame: thumbFrame)
-        transitioningThumb.frame = isExpanding ? thumbFrame : webVC.cardView.frame
+        
+        let expandedFrame = webVC.cardView.frame
+        
+//        webVC.cardView.frame = isExpanding ? thumbFrame : expandedFrame // NOTE: Would remove need for transitioningthumb
+        
+        transitioningThumb.frame = isExpanding ? thumbFrame : expandedFrame
         transitioningThumb.setSnapshot(snapshot)
         transitioningThumb.isExpanded = !isExpanding
-
+//        transitioningThumb.isUserInteractionEnabled = false
+        transitioningThumb.backgroundColor = webVC.statusBar.back.backgroundColor
+//        transitioningThumb.isHidden = true
+        
+        homeNav.view.transform = self.isExpanding
+            ? .identity
+            : prevTransform
+        
         webVC.cardView.isHidden = true
         
         let END_ALPHA : CGFloat = 0.0
@@ -99,11 +119,30 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
 
         if isExpanding {
             webVC.toolbar.alpha = 0.0
-            webVC.toolbar.frame.origin.y = thumbFrame.origin.y + thumbFrame.height
+            if webVC.webView.url == nil {
+                // keyboard
+                webVC.toolbar.frame.origin.y = max(
+                    expandedFrame.height + 100,
+                    thumbFrame.origin.y + thumbFrame.height
+                )
+            }
+            else {
+                webVC.toolbar.frame.origin.y = webVC.toolbar.frame.origin.y - 40
+            }
+//            webVC.toolbar.frame.origin.y = homeVC.view.frame.height
+//            webVC.toolbar.frame.origin.y = thumbFrame.origin.y + thumbFrame.height
         }
         
         containerView.addSubview(transitioningThumb)
         containerView.bringSubview(toFront: transitioningThumb)
+        
+        // Hack to keep thumbnails from intersecting toolbar
+        let newTabToolbar = homeNav.toolbar!
+        containerView.addSubview(newTabToolbar)
+        containerView.bringSubview(toFront: newTabToolbar)
+        newTabToolbar.transform = isExpanding ? .identity : CGAffineTransform(translationX: 0, y: 54)
+        
+//        containerView.sendSubview(toBack: transitioningThumb)
         
 //        transitioningThumb.addCornerRadiusAnimation(
 //            to: self.isExpanding ? 8.0 : 5.0,
@@ -111,24 +150,42 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
 //        )
         
         
-        UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0.0, usingSpringWithDamping: 0.85, initialSpringVelocity: 0.0, options: [.curveLinear], animations: {
-            
-            transitioningThumb.frame = self.isExpanding ? webVC.cardView.frame : thumbFrame
+        UIView.animate(
+            withDuration: duration,
+            delay: 0.0,
+            usingSpringWithDamping: 0.85,
+            initialSpringVelocity: 0.0,
+            options: .allowUserInteraction,
+            animations: {
+                
+//            webVC.cardView.frame = self.isExpanding ? expandedFrame : thumbFrame
+            transitioningThumb.frame = self.isExpanding ? expandedFrame : thumbFrame
             transitioningThumb.isExpanded = self.isExpanding
             
             homeNav.view.alpha = self.isExpanding ? END_ALPHA : 1.0
+            homeNav.view.transform = self.isExpanding
+                ? CGAffineTransform(scaleX: PRESENT_TAB_BACK_SCALE, y: PRESENT_TAB_BACK_SCALE)
+                : .identity
+                
+                
+            
             webVC.toolbar.alpha = self.isExpanding ? 1.0 : 0.0
             
             webVC.toolbar.frame.origin.y = webVC.cardView.frame.height
             
             homeVC.setNeedsStatusBarAppearanceUpdate()
-
+            newTabToolbar.transform = self.isExpanding ? CGAffineTransform(translationX: 0, y: 54) : .identity
+                
         }, completion: { finished in
             transitionContext.completeTransition(true)
             webVC.cardView.isHidden = false
 //            snapshot.removeFromSuperview()
             thumb?.setSnapshot(snapshot)
+            thumb?.backgroundColor = transitioningThumb.backgroundColor
             transitioningThumb.removeFromSuperview()
+            
+            homeNav.view.addSubview(newTabToolbar)
+            
             
             if self.direction == .dismiss {
                 thumb?.isHidden = false

@@ -10,19 +10,12 @@ import UIKit
 import WebKit
 import OnePasswordExtension
 
-let TOOLBAR_H     : CGFloat = 40.0
-let STATUS_H      : CGFloat = 20.0
-let CORNER_RADIUS : CGFloat = 8.0
-
-
 class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivityItemSource {
     
     var home: HomeViewController!
     var webView: WKWebView!
     
     var searchView: SearchView!
-    var searchDismissScrim: UIScrollView!
-    
     var webViewColor: ColorTransitionController!
     
     var statusBar: ColorStatusBarView!
@@ -39,7 +32,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     var locationBar: LocationBar!
     
     var overflowController: UIAlertController!
-    var stopRefreshAlertAction: UIAlertAction!
+//    var stopRefreshAlertAction: UIAlertAction!
         
     var onePasswordExtensionItem : NSExtensionItem!
     
@@ -143,10 +136,6 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         
         webView.scrollView.contentInset = .zero
         webView.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
-
-//        webView.clipsToBounds = false
-//        webView.scrollView.layer.masksToBounds = false
-//        webView.scrollView.backgroundColor = .clear
         
     }
     
@@ -167,9 +156,12 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        cardView = UIView(frame: cardViewDefaultFrame)
-        
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.layer.cornerRadius = CORNER_RADIUS
+        view.layer.masksToBounds = true
+        
+        
+        cardView = UIView(frame: cardViewDefaultFrame)
         cardView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         cardView.layer.cornerRadius = CORNER_RADIUS
         cardView.layer.masksToBounds = true
@@ -186,21 +178,16 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         view.addSubview(cardView)
         view.addSubview(toolbar)
         
-        toolbar.widthAnchor.constraint(equalTo: cardView.widthAnchor).isActive = true
+//        toolbar.widthAnchor.constraint(equalTo: cardView.widthAnchor).isActive = true
         
         webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: STATUS_H).isActive = true
 //        webView.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
-        webView.leftAnchor.constraint(equalTo: cardView.leftAnchor).isActive = true
+        webView.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
         
-        webView.widthAnchor.constraint(equalTo: cardView.widthAnchor).isActive = true
+        webView.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
         heightConstraint = webView.heightAnchor.constraint(equalTo: view.heightAnchor, constant: (-STATUS_H - TOOLBAR_H))
         heightConstraint.isActive = true
         webView.heightAnchor.constraint(greaterThanOrEqualTo: cardView.heightAnchor, constant: -STATUS_H)
-
-        
-        searchDismissScrim = makeScrim()
-        view.addSubview(searchDismissScrim)
-        
         
         webViewColor = ColorTransitionController(from: webView, inViewController: self)
         
@@ -235,9 +222,9 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         
         if newHeight != keyboardHeight {
             keyboardHeight = newHeight
-            UIView.animate(withDuration: 1.3, animations: {
+//            UIView.animate(withDuration: 0.2, options: .curveEaseInOut, animations: {
                 self.searchSizeDidChange()
-            })
+//            })
         }
     }
     
@@ -260,24 +247,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         topWindow.isHidden = false
     }
         
-    func makeScrim() -> UIScrollView {
-        let scrim = UIScrollView(frame: UIScreen.main.bounds)
-        scrim.autoresizingMask = [.flexibleHeight, .flexibleWidth]
-        scrim.backgroundColor = UIColor.black.withAlphaComponent(0.4)
-        scrim.alpha = 0
-        
-        scrim.keyboardDismissMode = .interactive
-        scrim.alwaysBounceVertical = true
-        
-        let tap = UITapGestureRecognizer(target: self, action: #selector(hideSearch))
-        tap.numberOfTapsRequired = 1
-        tap.isEnabled = true
-        tap.cancelsTouchesInView = false
-        scrim.addGestureRecognizer(tap)
-        
-        return scrim
-    }
-        
+    
     var cardViewDefaultFrame : CGRect {
         return CGRect(
             x: 0,
@@ -299,7 +269,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         ))
         
         locationBar = LocationBar(
-            onTap: self.displaySearch
+            onTap: { self.displaySearch(animated: true) }
         )
         backButton = ToolbarIconButton(
             icon: UIImage(named: "back"),
@@ -332,6 +302,12 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         return toolbar
     }
     
+    var webSnapshot : UIView?
+    func updateSnapshot() {
+        webView.scrollView.showsVerticalScrollIndicator = false
+        webSnapshot = webView.snapshotView(afterScreenUpdates: true)!
+        webView.scrollView.showsVerticalScrollIndicator = true
+    }
     
     override func viewWillAppear(_ animated: Bool) {
         if webView.url == nil {
@@ -484,7 +460,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
 
     // MARK: - Search
     
-    func displaySearch() {
+    func displaySearch(animated: Bool = false) {
         guard !UIMenuController.shared.isMenuVisible else { return }
         
         searchView.prepareToShow()
@@ -498,14 +474,35 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         
         self.locationBar.setAlignment(.left)
         
-        UIView.animate(withDuration: 0.55, delay: 0.0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
-//            self.searchDismissScrim.alpha = 1
-            
+        if animated {
+            UIView.animate(
+                withDuration: 0.55,
+                delay: 0.0,
+                usingSpringWithDamping: 0.9,
+                initialSpringVelocity: 0.0,
+                options: [.curveLinear, .allowUserInteraction],
+                animations: {
+                    
+                self.cardView.frame.size.height = cardH
+                self.toolbar.frame.origin.y = cardH
+                self.toolbar.frame.size.height = self.searchView.frame.height
+                self.locationBar.alpha = 0
+                self.toolbar.layoutIfNeeded()
+                
+                
+                self.backButton.isHidden = true
+                self.forwardButton.isHidden = true
+                self.stopButton.isHidden = true
+                self.actionButton.isHidden = true
+                
+                self.actionButton.alpha = 0
+            })
+        }
+        else {
             self.cardView.frame.size.height = cardH
             self.toolbar.frame.origin.y = cardH
             self.toolbar.frame.size.height = self.searchView.frame.height
             self.locationBar.alpha = 0
-//            self.toolbar.frame.origin.x = -120
             self.toolbar.layoutIfNeeded()
             
             
@@ -515,18 +512,26 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
             self.actionButton.isHidden = true
             
             self.actionButton.alpha = 0
-        })
+            
+        }
         
     }
     
     @objc func hideSearch() {
         
-        searchView.textView.resignFirstResponder()
-//        self.resignFirstResponder()
+        if searchView.textView.isFirstResponder {
+            searchView.textView.resignFirstResponder()
+        }
         
         self.locationBar.setAlignment(.centered)
         
-        UIView.animate(withDuration: 0.55, delay: 0.0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
+        UIView.animate(
+            withDuration: 0.55,
+            delay: 0.0,
+            usingSpringWithDamping: 0.9,
+            initialSpringVelocity: 0.0,
+            options: [.curveLinear, .allowUserInteraction],
+            animations: {
 //            self.searchDismissScrim.alpha = 0
             
             self.cardView.frame = self.cardViewDefaultFrame
@@ -657,18 +662,16 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         
     }
     
-    func updateStopRefreshAlertAction() {
-        if webView.isLoading {
-            stopRefreshAlertAction.setValue("Stop", forKey: "title")
-        }
-        else {
-            stopRefreshAlertAction.setValue("Refresh", forKey: "title")
-        }
-        
-        overflowController.view.setNeedsLayout()
-        
-
-    }
+//    func updateStopRefreshAlertAction() {
+//        if webView.isLoading {
+//            stopRefreshAlertAction.setValue("Stop", forKey: "title")
+//        }
+//        else {
+//            stopRefreshAlertAction.setValue("Refresh", forKey: "title")
+//        }
+//
+//        overflowController.view.setNeedsLayout()
+//    }
     
     func stopOrRefresh(_ action : UIAlertAction) {
         if webView.isLoading { self.webView.stopLoading() }
@@ -703,9 +706,9 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
             self.displayShareSheet()
         }))
         
-        stopRefreshAlertAction = UIAlertAction(title: "_", style: .destructive, handler: stopOrRefresh)
-        updateStopRefreshAlertAction()
-        ac.addAction(stopRefreshAlertAction)
+//        stopRefreshAlertAction = UIAlertAction(title: "_", style: .destructive, handler: stopOrRefresh)
+//        updateStopRefreshAlertAction()
+//        ac.addAction(stopRefreshAlertAction)
         
         
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))

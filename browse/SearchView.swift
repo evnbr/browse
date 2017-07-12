@@ -17,6 +17,9 @@ class SearchView: UIView, UITextViewDelegate {
     var textView : SearchTextView!
     var cancel   : ToolbarTextButton!
     
+    var fullWidthConstraint : NSLayoutConstraint!
+    var roomForCancelConstraint : NSLayoutConstraint!
+    
     var isEnabled : Bool {
         get {
             return self.isUserInteractionEnabled
@@ -42,32 +45,28 @@ class SearchView: UIView, UITextViewDelegate {
         textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 48)
         textView.placeholder = "Where to?"
         
-        textView.backgroundColor = .clear
         textView.font = UIFont(descriptor: .preferredFontDescriptor(withTextStyle: .body), size: 17)
         textView.text = ""
         
         backgroundColor =  .clear
         tintColor = .white
-        textView.textColor = .white
-        textView.placeholderColor = UIColor.white.withAlphaComponent(0.4)
-        textView.keyboardAppearance = .dark
         
-        
-        textView.keyboardType = UIKeyboardType.webSearch
-        textView.returnKeyType = .go
-//        textView.inputAccessoryView = self
-        textView.autocorrectionType = .no
-
         textView.delegate = self
         textView.isScrollEnabled = true
-//        textView.layer.cornerRadius = 5.0
         
+        textView.backgroundColor = UIColor.white.withAlphaComponent(0.25)
+        textView.layer.cornerRadius = CORNER_RADIUS
+        textView.textColor = .white
+        textView.placeholderColor = UIColor.white.withAlphaComponent(0.4)
+        
+        textView.keyboardAppearance = .dark
+        textView.enablesReturnKeyAutomatically = true
+        textView.keyboardType = UIKeyboardType.webSearch
+        textView.returnKeyType = .go
+        textView.autocorrectionType = .no
+
         textView.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(textView)
-
-//        cancel = UIButton(type: .system)
-//        cancel.setTitle("Cancel", for: .normal)
-//        cancel.addTarget(self, action: #selector(hide), for: .primaryActionTriggered)
         
         cancel = ToolbarTextButton(title: "Cancel", withIcon: nil, onTap: {
             self.webViewController.hideSearch()
@@ -83,13 +82,22 @@ class SearchView: UIView, UITextViewDelegate {
         self.addSubview(cancel)
         cancel.autoresizingMask = [.flexibleLeftMargin, .flexibleTopMargin]
         
+        
         self.autoresizingMask = UIViewAutoresizing.flexibleHeight
         translatesAutoresizingMaskIntoConstraints = false
         
+        textView.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 8).isActive = true
+        textView.topAnchor.constraint(equalTo: self.topAnchor, constant: 12).isActive = true
         
-        textView.widthAnchor.constraint(equalTo: self.widthAnchor).isActive = true
-        textView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        self.heightAnchor.constraint(equalTo: textView.heightAnchor).isActive = true
+        fullWidthConstraint = textView.widthAnchor.constraint(equalTo: self.widthAnchor, constant: -16)
+        roomForCancelConstraint = textView.widthAnchor.constraint(equalTo: self.widthAnchor, constant: -cancel.frame.width - 8)
+        fullWidthConstraint.isActive = true
+        roomForCancelConstraint.isActive = false
+        
+//        cancel.leftAnchor.constraint(equalTo: textView.rightAnchor).isActive = true
+//        cancel.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+        
+        self.heightAnchor.constraint(equalTo: textView.heightAnchor, constant: 20).isActive = true
         self.heightAnchor.constraint(lessThanOrEqualToConstant: SEARCHVIEW_MAX_H).isActive = true
         
 //        layer.borderColor = UIColor.red.cgColor
@@ -106,8 +114,9 @@ class SearchView: UIView, UITextViewDelegate {
         
         let leftMargin = cancel.frame.size.width + 28
 
-        textView.textContainerInset = UIEdgeInsetsMake(13, 14, 13, leftMargin)
-
+//        textView.textContainerInset = UIEdgeInsetsMake(13, 14, 13, leftMargin)
+        textView.textContainerInset = UIEdgeInsetsMake(8, 8, 8, 8)
+        
         let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
         var newFrame = textView.frame
         
@@ -118,12 +127,11 @@ class SearchView: UIView, UITextViewDelegate {
         textView.frame = newFrame;
 
         var frame = self.frame
-        frame.size.height = newFrame.size.height
+        frame.size.height = newFrame.size.height + 20
         self.frame = frame
         
 //        textView.invalidateIntrinsicContentSize()
         self.invalidateIntrinsicContentSize()
-        
         
     }
     
@@ -140,15 +148,18 @@ class SearchView: UIView, UITextViewDelegate {
     func textViewDidBeginEditing(_ textView: UITextView) {
         self.isEnabled = true
         
+        fullWidthConstraint.isActive = false
+        roomForCancelConstraint.isActive = true
+        
         self.updateSize()
         
-        textView.transform = CGAffineTransform(translationX: 20, y: 0)
         textView.alpha = 0
-        cancel.transform = CGAffineTransform(translationX: 60, y: 0)
+        cancel.alpha = 0
+        cancel.transform = CGAffineTransform(translationX: 30, y: 0)
 
         UIView.animate(withDuration: 0.3, animations: {
-            textView.transform = .identity
             textView.alpha = 1
+            
             self.cancel.transform = .identity
             self.cancel.alpha = 1
         }, completion: { completed in
@@ -157,24 +168,22 @@ class SearchView: UIView, UITextViewDelegate {
     }
     
     func textViewDidEndEditing(_ textView: UITextView) {
-        textView.transform = .identity
         textView.alpha = 1
         cancel.transform = .identity
 
         self.hide()
-
+        
+        
+        roomForCancelConstraint.isActive = false
+        fullWidthConstraint.isActive = true
+        
         UIView.animate(withDuration: 0.3, animations: {
-            textView.transform = CGAffineTransform(translationX: 30, y: 0)
             textView.alpha = 0
-            self.cancel.transform = CGAffineTransform(translationX: 60, y: 0)
+            self.cancel.transform = CGAffineTransform(translationX: 30, y: 0)
             self.cancel.alpha = 0
             
-//            var frame = self.frame
-//            frame.origin.y = frame.size.height - 36
-//            frame.size.height = TOOLBAR_H
-//            self.frame = frame
-            
         }, completion: { completed in
+            
             self.isEnabled = false
             textView.selectedTextRange = nil
         })
@@ -191,9 +200,7 @@ class SearchView: UIView, UITextViewDelegate {
     
     
     func prepareToShow() {
-//        textView.text = webViewController.editableURL
-//
-//        updateSize()
+        
     }
     
     

@@ -16,12 +16,20 @@ class ToolbarTouchView: UIView {
     
     override var frame : CGRect {
         didSet {
-            layer.cornerRadius = frame.height / 2
-            touchCircle?.frame = CGRect(x: 0, y: 0, width: frame.width + 20, height: frame.width + 20)
-            touchCircle?.layer.cornerRadius = frame.width / 2
+            updateRadius()
         }
     }
     
+    override var intrinsicContentSize: CGSize {
+        return frame.size
+    }
+    
+    
+    func updateRadius() {
+        layer.cornerRadius = frame.height / 2
+        touchCircle?.frame = CGRect(x: 0, y: 0, width: frame.width + 20, height: frame.width + 20)
+        touchCircle?.layer.cornerRadius = frame.width / 2
+    }
     
     init(frame: CGRect, onTap: @escaping () -> Void) {
         action = onTap
@@ -29,7 +37,6 @@ class ToolbarTouchView: UIView {
         super.init(frame: frame)
         backgroundColor = .clear
 //        layer.cornerRadius = 8.0
-        layer.cornerRadius = frame.height / 2
         layer.masksToBounds = true
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(doAction))
@@ -44,8 +51,11 @@ class ToolbarTouchView: UIView {
         touchCircle.isUserInteractionEnabled = false
         touchCircle.alpha = 0
         
+        
         addSubview(touchCircle)
         sendSubview(toBack: touchCircle)
+        
+        updateRadius()
         
         addGestureRecognizer(tap)
     }

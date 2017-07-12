@@ -16,6 +16,10 @@ enum WebViewInteractiveDismissDirection {
     case right
 }
 
+// NOTE: There seems to be a problem when webview.scrollview doesn't exist
+// that silently logs in xcode, but doesn't seem to break anything.
+// Only shows up on blank pages.
+
 class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegate, UIScrollViewDelegate {
     
     var vc : WebViewController!
@@ -23,9 +27,8 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
     
     var view : UIView!
     var toolbar : UIView!
-    var webView : UIView!
+    var webView : WKWebView!
     var statusBar : UIView!
-    var scrollView : UIScrollView!
     var cardView : UIView!
     
     var direction : WebViewInteractiveDismissDirection!
@@ -39,7 +42,6 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         home = vc.home
         webView = vc.webView
         statusBar = vc.statusBar
-        scrollView = vc.webView.scrollView
         cardView = vc.cardView
         toolbar = vc.toolbar
         
@@ -56,7 +58,6 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         edgeDismissPan.addTarget(self, action: #selector(edgeGestureChange(gesture:)))
         edgeDismissPan.cancelsTouchesInView = true
         view.addGestureRecognizer(edgeDismissPan)
-
     }
     
     
@@ -74,15 +75,13 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         }
     }
     
-
-
-    func cancelScroll() {
-        scrollView.isScrollEnabled = false
-        if scrollView.contentOffset.y < 0 {
-            scrollView.contentOffset.y = 0
-        }
-        scrollView.isScrollEnabled = true
-    }
+//    func cancelScroll() {
+//        webView.scrollView.isScrollEnabled = false
+//        if webView.scrollView.contentOffset.y < 0 {
+//            webView.scrollView.contentOffset.y = 0
+//        }
+//        webView.scrollView.isScrollEnabled = true
+//    }
     
     var isInteractiveDismiss : Bool = false
     var startPoint : CGPoint = .zero
@@ -98,25 +97,21 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
             start()
         }
         else if gesture.state == .changed {
-            if isInteractiveDismiss && direction == .left {
+            if isInteractiveDismiss && (direction == .left || direction == .right) {
                 let gesturePos = gesture.translation(in: view)
 
                 
                 let revealProgress = min(gesturePos.x / 200, 1)
                 home.navigationController?.view.alpha = revealProgress * 0.4 // alpha is 0 ... 0.4
+                
+                let scale = PRESENT_TAB_BACK_SCALE + revealProgress * 0.2 * (1 - PRESENT_TAB_BACK_SCALE)
+                home.navigationController?.view.transform = CGAffineTransform(scaleX: scale, y: scale)
+                
                 toolbar.alpha = 1 - (abs(gesturePos.x) / 200)
-
-                if gesturePos.x > DISMISS_POINT_H {
-                    let amountOver : CGFloat = gesturePos.x - DISMISS_POINT_H
-                    cardView.frame.origin.x = DISMISS_POINT_H + amountOver * 0.5
-//                    cardView.frame.origin.x = amountOver * 0.5
-                    
-//                    cardView.frame.origin.y = amountOver * 0.1 + gesturePos.y * (amountOver / 200)
-//                    cardView.frame.size.height = max(view.frame.height - TOOLBAR_H - (amountOver * 0.8 ), THUMB_H * 1.1)
-                }
-                else {
-                    cardView.frame.origin.x = gesturePos.x
-                }
+                
+                let adjustedX = elasticLimit(gesturePos.x)
+                
+                cardView.frame.origin.x = adjustedX
                 
 //                if cardView.frame.origin.y < STATUS_H && gesturePos.x > DISMISS_POINT_H {
 //                    UIView.animate(withDuration: 0.2, animations: {
@@ -146,10 +141,9 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
     }
     
     func considerStarting(gesture: UIPanGestureRecognizer) {
-        let scrollY = scrollView.contentOffset.y
-        
-        let contentH = scrollView.contentSize.height
-        let viewH = scrollView.bounds.height
+        let scrollY = webView.scrollView.contentOffset.y
+        let contentH = webView.scrollView.contentSize.height
+        let viewH = webView.scrollView.bounds.height
         
         let maxScroll = contentH - viewH
 
@@ -185,7 +179,8 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
     
     func start() {
         isInteractiveDismiss = true
-        startScroll = scrollView.contentOffset
+        startScroll = webView.scrollView.contentOffset
+        
         
         if vc.searchView.textView.isFirstResponder {
             // TODO: Maybe make this work even when not nil?
@@ -215,7 +210,7 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         
         let springVel = vel * -0.1
         
-        UIView.animate(withDuration: 0.6, delay: 0.0, usingSpringWithDamping: 0.85, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
+        UIView.animate(withDuration: 0.6, delay: 0.0, usingSpringWithDamping: 0.85, initialSpringVelocity: 0.0, options: .allowUserInteraction, animations: {
             self.vc.resetSizes(withKeyboard: self.shouldRestoreKeyboard)
             self.vc.setNeedsStatusBarAppearanceUpdate()
             self.vc.home.navigationController?.view.alpha = 0
@@ -228,13 +223,19 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         
     }
     
+    func elasticLimit(_ val : CGFloat) -> CGFloat {
+        let resist = 1 - log10(1 + abs(val) / 150) // 1 ... 0.5
+        return val * resist
+    }
+    
     func update(gesture:UIPanGestureRecognizer) {
         
         let gesturePos = gesture.translation(in: view)
-        let adjustedY : CGFloat = gesturePos.y - startPoint.y
+        var adjustedY : CGFloat = gesturePos.y - startPoint.y
         
         if (direction == .top && adjustedY < 0) || (direction == .bottom && adjustedY > 0) {
-//            adjustedY = adjustedY * 0.1
+            
+            
             end()
             vc.resetSizes(withKeyboard: shouldRestoreKeyboard)
             if shouldRestoreKeyboard {  // HACK, COPY PASTED EVERYWHERE
@@ -243,6 +244,9 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
             }
             return
         }
+        
+        adjustedY = elasticLimit(adjustedY)
+        
         
         let statusOffset : CGFloat = 0 // min(STATUS_H, (abs(adjustedY) / 300) * STATUS_H)
         webView.frame.origin.y = STATUS_H - statusOffset
@@ -254,16 +258,17 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         
         // cardView.frame.size.height = max(view.frame.height - TOOLBAR_H - (abs(adjustedY) * 0.9), THUMB_H * 1.1)
         
-        if direction == .bottom && adjustedY < 0 {
-            print("adjusting scroll")
-            scrollView.contentOffset.y = startScroll.y - adjustedY
-        }
+//        if direction == .bottom && adjustedY < 0 {
+//            webView.scrollView.contentOffset.y = startScroll.y - adjustedY
+//        }
         
         toolbar.alpha = 1 - (abs(adjustedY) / 100)
         
         let revealProgress = abs(adjustedY) / 200
         home.navigationController?.view.alpha = revealProgress * 0.4 // alpha is 0 ... 0.4
-        
+        let scale = PRESENT_TAB_BACK_SCALE + revealProgress * 0.2 * (1 - PRESENT_TAB_BACK_SCALE)
+        home.navigationController?.view.transform = CGAffineTransform(scaleX: scale, y: scale)
+
         if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle {
             UIView.animate(withDuration: 0.2, animations: {
                 self.vc.setNeedsStatusBarAppearanceUpdate()
@@ -318,17 +323,18 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
     }
     
     // only recognize verticals
-    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        if gestureRecognizer is UIScreenEdgePanGestureRecognizer { return true }
-        if let panGestureRecognizer = gestureRecognizer as? UIPanGestureRecognizer {
-            let translation = panGestureRecognizer.translation(in: view!)
-            if fabs(translation.x) < fabs(translation.y) {
-                return true
-            }
-            return false
-        }
-        return false
-    }
+//    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+//        if gestureRecognizer is UIScreenEdgePanGestureRecognizer { return true }
+//        if let panGestureRecognizer = gestureRecognizer as? UIPanGestureRecognizer {
+//            let translation = panGestureRecognizer.translation(in: view!)
+//            if fabs(translation.x) < fabs(translation.y) {
+//                print("Beding Interactive Dismiss")
+//                return true
+//            }
+//            return false
+//        }
+//        return false
+//    }
     
     var isInteractiveDismissToolbar : Bool = false
     var interactiveDismissToolbarStartPoint : CGPoint = .zero

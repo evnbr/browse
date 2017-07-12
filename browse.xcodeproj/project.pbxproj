@@ -29,6 +29,7 @@
 		A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE4201ECA661700ED48DB /* Sampler.swift */; };
 		A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */; };
 		A96184821ECEA39200EF3A6F /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96184811ECEA39200EF3A6F /* SearchView.swift */; };
+		A969D4A51F1321EC008A7BC6 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A969D4A41F1321EC008A7BC6 /* Constants.swift */; };
 		A97BF8311EF3B5B900B9ECB4 /* WebViewController+WKUIDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97BF8301EF3B5B900B9ECB4 /* WebViewController+WKUIDelegate.swift */; };
 		A97CB0701EC53DCD005DDBD1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97CB06F1EC53DCD005DDBD1 /* AppDelegate.swift */; };
 		A97CB0721EC53DCD005DDBD1 /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97CB0711EC53DCD005DDBD1 /* WebViewController.swift */; };
@@ -91,6 +92,7 @@
 		A94FE4201ECA661700ED48DB /* Sampler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sampler.swift; sourceTree = "<group>"; };
 		A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebNavigationController.swift; sourceTree = "<group>"; };
 		A96184811ECEA39200EF3A6F /* SearchView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
+		A969D4A41F1321EC008A7BC6 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		A97BF8301EF3B5B900B9ECB4 /* WebViewController+WKUIDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "WebViewController+WKUIDelegate.swift"; sourceTree = "<group>"; };
 		A97CB06C1EC53DCD005DDBD1 /* browse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = browse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A97CB06F1EC53DCD005DDBD1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -198,6 +200,7 @@
 		A97CB06E1EC53DCD005DDBD1 /* browse */ = {
 			isa = PBXGroup;
 			children = (
+				A969D4A41F1321EC008A7BC6 /* Constants.swift */,
 				A97CB06F1EC53DCD005DDBD1 /* AppDelegate.swift */,
 				A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */,
 				A92095901EE34CDC009497A2 /* HomeViewController.swift */,
@@ -546,6 +549,7 @@
 				A908F04C1ECD03B800A74241 /* ColorStatusBarView.swift in Sources */,
 				A97CB0701EC53DCD005DDBD1 /* AppDelegate.swift in Sources */,
 				A97BF8311EF3B5B900B9ECB4 /* WebViewController+WKUIDelegate.swift in Sources */,
+				A969D4A51F1321EC008A7BC6 /* Constants.swift in Sources */,
 				A92095911EE34CDC009497A2 /* HomeViewController.swift in Sources */,
 				A92095841ED90E7B009497A2 /* Blocker.swift in Sources */,
 				A9E4859D1EC8D7BE0021D155 /* ColorTransitionController.swift in Sources */,
