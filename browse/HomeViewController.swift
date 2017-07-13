@@ -98,8 +98,45 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
             // Fallback on earlier versions
         }
         
+        NotificationCenter.default.addObserver(self, selector: #selector(applicationWillResignActive(notification:)), name: NSNotification.Name.UIApplicationWillResignActive, object: UIApplication.shared)
+        
+        collectionView?.performBatchUpdates({
+            let urls = self.getPreviousOpenURLs()
+            for urlStr in urls {
+                let newTab = WebViewController(
+                    home: self,
+                    startingLocation: urlStr
+                )
+                self.tabs.append(newTab)
+                let ip = IndexPath(item: self.tabs.index(of: newTab)!, section: 0)
+                self.collectionView?.insertItems(at: [ ip ])
+            }
+        }, completion: { _ in
+            //
+        })
+        
     }
     
+    @objc func applicationWillResignActive(notification: NSNotification) {
+        print("HomeVC: Will Resign")
+        
+        saveOpenURLs()
+    }
+    
+    func saveOpenURLs() {
+        let openURLStrings : [ String ] = tabs.map{ webVC in
+            if let url : URL = webVC.webView.url { return url.absoluteString }
+            else { return "" }
+        }
+        UserDefaults.standard.setValue(openURLStrings, forKey: "openTabList")
+        
+    }
+    
+    func getPreviousOpenURLs() -> [ String ] {
+        if let openURLStrings : [ String ] = UserDefaults.standard.value(forKey: "openTabList") as? [ String ] {
+            return openURLStrings
+        }
+        return []
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {

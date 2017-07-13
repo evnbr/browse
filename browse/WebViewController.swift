@@ -14,6 +14,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     
     var home: HomeViewController!
     var webView: WKWebView!
+    var startingLocation : String!
     
     var isDisplayingSearch : Bool = false
     var searchView: SearchView!
@@ -107,6 +108,11 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     convenience init(home: HomeViewController) {
         self.init()
         self.home = home
+    }
+    convenience init(home: HomeViewController, startingLocation: String) {
+        self.init()
+        self.home = home
+        self.startingLocation = startingLocation
     }
     
     
@@ -218,6 +224,10 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
 //        }
 //        makeSuperTitle()
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        
+        if startingLocation != nil {
+            navigateToText(startingLocation)
+        }
     }
     
     var keyboardHeight : CGFloat = 250
