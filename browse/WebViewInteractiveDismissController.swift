@@ -107,7 +107,7 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
                 let scale = PRESENT_TAB_BACK_SCALE + revealProgress * 0.2 * (1 - PRESENT_TAB_BACK_SCALE)
                 home.navigationController?.view.transform = CGAffineTransform(scaleX: scale, y: scale)
                 
-                toolbar.alpha = 1 - (abs(gesturePos.x) / 200)
+//                toolbar.alpha = 1 - (abs(gesturePos.x) / 200)
                 
                 let adjustedX = elasticLimit(gesturePos.x)
                 
@@ -182,17 +182,9 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         startScroll = webView.scrollView.contentOffset
         
         
-        if vc.searchView.textView.isFirstResponder {
-            // TODO: Maybe make this work even when not nil?
-            // This depends on some stuff in resetSizes which makes it a mess
-            // if vc.webView.url == nil { shouldRestoreKeyboard = true }
-            
-            vc.searchView.textView.resignFirstResponder()
+        if vc.isDisplayingSearch {
+            vc.hideSearch()
         }
-        
-//        statusBarAnimator = UIViewPropertyAnimator(duration: 2.0, curve: .easeInOut, animations: { 
-//            self.vc.setNeedsStatusBarAppearanceUpdate()
-//        })
         
     }
     
@@ -262,7 +254,7 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
 //            webView.scrollView.contentOffset.y = startScroll.y - adjustedY
 //        }
         
-        toolbar.alpha = 1 - (abs(adjustedY) / 100)
+//        toolbar.alpha = 1 - (abs(adjustedY) / 100)
         
         let revealProgress = abs(adjustedY) / 200
         home.navigationController?.view.alpha = revealProgress * 0.4 // alpha is 0 ... 0.4

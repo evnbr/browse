@@ -26,7 +26,8 @@ class ToolbarTouchView: UIView {
     
     
     func updateRadius() {
-        layer.cornerRadius = frame.height / 2
+//        layer.cornerRadius = frame.height / 2
+        layer.cornerRadius = CORNER_RADIUS
         touchCircle?.frame = CGRect(x: 0, y: 0, width: frame.width + 20, height: frame.width + 20)
         touchCircle?.layer.cornerRadius = frame.width / 2
     }
@@ -80,7 +81,7 @@ class ToolbarTouchView: UIView {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if touches.first != nil {
 //            backgroundColor = tapColor
-
+            updateRadius()
             touchCircle.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
             touchCircle.center = touches.first!.location(in: self)
             

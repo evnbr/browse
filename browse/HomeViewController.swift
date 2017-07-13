@@ -11,22 +11,15 @@ import UIKit
 class HomeViewController: UICollectionViewController, UIViewControllerTransitioningDelegate {
 
     var tabs : [WebViewController] = []
-    var snapshots : [UIView] = []
+    
+    var toolbar : BrowseToolbar!
     
     let reuseIdentifier = "TabCell"
     let sectionInsets = UIEdgeInsets(top: 8.0, left: 6.0, bottom: 8.0, right: 6.0)
     let itemsPerRow : CGFloat = 2
     
     var selectedTab : WebViewController?
-
     let thumbAnimationController = PresentTabAnimationController()
-    
-    var scroll : UIScrollView!
-    
-    lazy var settingsVC : SettingsViewController = SettingsViewController()
-    lazy var bookmarksVC : BookmarksViewController = BookmarksViewController()
-
-    var gradientLayer : CAGradientLayer!
     
     var isFirstLoad = true
     
@@ -66,14 +59,14 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         navigationController?.navigationBar.tintColor = .white
         navigationController?.navigationBar.barStyle = .black
         
-        navigationController?.toolbar.tintColor = .white
-        navigationController?.toolbar.barStyle = .black
-        navigationController?.toolbar.isTranslucent = true
-        navigationController?.toolbar.barTintColor = .black
-        navigationController?.toolbar.alpha = 0.2
-        navigationController?.toolbar.setShadowImage(UIImage(), forToolbarPosition: .any)
-        
-        navigationController?.isToolbarHidden = false
+        toolbar = BrowseToolbar(frame: CGRect(
+            x: 0,
+            y: view.frame.height - TOOLBAR_H,
+            width: view.frame.width,
+            height: TOOLBAR_H
+        ))
+        toolbar.backgroundColor = .black
+        toolbar.autoresizingMask = [ .flexibleTopMargin, .flexibleWidth ]
         
         let addButton = ToolbarTextButton(
             title: "New",
@@ -82,34 +75,31 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         )
         addButton.size = .medium
         
-        toolbarItems = [
-            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-            UIBarButtonItem(customView: addButton),
-            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-        ]
+        let clearButton = ToolbarTextButton(
+            title: "Clear",
+            withIcon: nil, //UIImage(named: "add"),
+            onTap: self.clearTabs
+        )
+        clearButton.size = .medium
         
-
-//        gradientLayer = CAGradientLayer()
-//        gradientLayer.frame = view.bounds
-//        gradientLayer.colors = [
-//            UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: 0.7).cgColor,
-//            UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: 1.0).cgColor]
-//        gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.0);
-//        gradientLayer.endPoint = CGPoint(x: 0.0, y: 0.1);
-//        view.layer.mask = gradientLayer;
-
-        collectionView?.contentInset = UIEdgeInsets(top: STATUS_H, left: 0, bottom: 0, right: 0)
+        toolbar.items = [addButton, clearButton]
+        view.addSubview(toolbar)
+        
+        collectionView?.contentInset = UIEdgeInsets(
+            top: STATUS_H,
+            left: 0,
+            bottom: TOOLBAR_H,
+            right: 0
+        )
+        
         if #available(iOS 11.0, *) {
             collectionView?.contentInsetAdjustmentBehavior = .never
         } else {
             // Fallback on earlier versions
         }
         
-        // showTab(tab: tabs[0], animated: false)
     }
     
-    override func viewWillLayoutSubviews() {
-        gradientLayer?.frame = view.bounds
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -135,6 +125,18 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
             let thumb = self.thumb(forTab: newTab)
             thumb?.isHidden = true
         }
+    }
+    
+    func clearTabs() {
+        collectionView?.performBatchUpdates({
+            for tab in self.tabs {
+                let ip = IndexPath(row: self.tabs.index(of: tab)!, section: 0)
+                self.collectionView?.deleteItems(at: [ip])
+            }
+            self.tabs = []
+        }, completion: { _ in
+            //
+        })
     }
     
     func showRenameThis(_ tab: WebViewController) {
@@ -165,12 +167,10 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     override func viewDidAppear(_ animated: Bool) {
         navigationController?.isNavigationBarHidden = true
         
-        navigationController?.isToolbarHidden = false
-//        navigationController?.isToolbarHidden = false
         
         if isFirstLoad {
             isFirstLoad = false
-            addTab()
+            if tabs.count == 0 { addTab() }
         }
         
     }
@@ -179,18 +179,6 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
-    // MARK - Presenting other views
-
-    func showSettings() {
-        navigationController?.pushViewController(settingsVC, animated: true)
-    }
-    
-    func showBookmarks() {
-        bookmarksVC.homeVC = self
-        navigationController?.pushViewController(bookmarksVC, animated: true)
-    }
-    
 
     
     // MARK - Animation
@@ -243,13 +231,7 @@ extension HomeViewController {
         // Configure the cells
         
         let webVC : WebViewController = tabs[indexPath.row]
-        cell.webVC = webVC
-        if let snap : UIView = webVC.webSnapshot {
-            cell.setSnapshot(snap)
-        }
-        if let color : UIColor = webVC.webViewColor?.top {
-            cell.backgroundColor = color
-        }
+        cell.setWeb(webVC)
         cell.closeTabCallback = closeTab
         
         return cell

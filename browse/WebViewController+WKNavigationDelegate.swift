@@ -32,12 +32,52 @@ extension WebViewController: WKNavigationDelegate {
     }
     
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        
         if (error as NSError).code == NSURLErrorCancelled { return }
-        
         loadingDidChange()
+        
+        print("failed provisional")
+        
         displayError(text: error.localizedDescription)
     }
+    
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        if webView != self.webView {
+            decisionHandler(.allow)
+            return
+        }
+        
+        let app = UIApplication.shared
+        if let url = navigationAction.request.url {
+            if navigationAction.targetFrame == nil { // Handle target="_blank"
+                if app.canOpenURL(url) {
+                    app.open(url, options: [:], completionHandler: nil)
+                    decisionHandler(.cancel)
+                    return
+                }
+            }
+            if url.scheme == "http" || url.scheme == "https" || url.scheme == "about" {
+                decisionHandler(.allow)
+                return
+            }
+//            if url.scheme == "tel" || url.scheme == "mailto" {
+            else {
+                let canOpen = app.canOpenURL(url)
+                decisionHandler(.cancel)
+                let ac = UIAlertController(title: "\(url.absoluteString)", message: "Open this in app?", preferredStyle: .actionSheet)
+                
+                if !canOpen { ac.message = "Not sure if I can open this." }
+                
+                ac.addAction(UIAlertAction(title: "Open", style: .default, handler: { _ in
+                    app.open(url, options: [:], completionHandler: nil)
+                }))
+                ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+                
+                present(ac, animated: true, completion: nil)
+                return
+            }
+        }
+    }
+    
 
         
     func webView(_ webView: WKWebView, didReceiveServerRedirectForProvisionalNavigation navigation: WKNavigation!) {

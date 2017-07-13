@@ -57,6 +57,7 @@ class SearchView: UIView, UITextViewDelegate {
         textView.backgroundColor = UIColor.white.withAlphaComponent(0.25)
         textView.layer.cornerRadius = CORNER_RADIUS
         textView.textColor = .white
+        textView.alpha = 0
         textView.placeholderColor = UIColor.white.withAlphaComponent(0.4)
         
         textView.keyboardAppearance = .dark
@@ -68,9 +69,7 @@ class SearchView: UIView, UITextViewDelegate {
         textView.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(textView)
         
-        cancel = ToolbarTextButton(title: "Cancel", withIcon: nil, onTap: {
-            self.webViewController.hideSearch()
-        })
+        cancel = ToolbarTextButton(title: "Cancel", withIcon: nil, onTap: self.webViewController.hideSearch)
         cancel.size = .medium
         cancel.sizeToFit()
         
@@ -79,6 +78,7 @@ class SearchView: UIView, UITextViewDelegate {
             y: self.frame.size.height - cancel.frame.size.height - 4
         )
         cancel.frame = CGRect(origin: cancelOrigin, size: cancel.frame.size)
+        cancel.alpha = 0
         self.addSubview(cancel)
         cancel.autoresizingMask = [.flexibleLeftMargin, .flexibleTopMargin]
         
@@ -94,16 +94,11 @@ class SearchView: UIView, UITextViewDelegate {
         fullWidthConstraint.isActive = true
         roomForCancelConstraint.isActive = false
         
-//        cancel.leftAnchor.constraint(equalTo: textView.rightAnchor).isActive = true
-//        cancel.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
         
         self.heightAnchor.constraint(equalTo: textView.heightAnchor, constant: 20).isActive = true
         self.heightAnchor.constraint(lessThanOrEqualToConstant: SEARCHVIEW_MAX_H).isActive = true
         
-//        layer.borderColor = UIColor.red.cgColor
-//        layer.borderWidth = 2.0
-//        textView.layer.borderColor = UIColor.cyan.cgColor
-//        textView.layer.borderWidth = 2.0
+        
         
         // TODO this doesn't seem to work
         updateSize()
@@ -171,7 +166,8 @@ class SearchView: UIView, UITextViewDelegate {
         textView.alpha = 1
         cancel.transform = .identity
 
-        self.hide()
+//        self.hide()
+        // this is just a bad idea
         
         
         roomForCancelConstraint.isActive = false
@@ -194,11 +190,6 @@ class SearchView: UIView, UITextViewDelegate {
         webViewController.searchSizeDidChange()
     }
     
-    @objc func hide() {
-        webViewController.hideSearch()
-    }
-    
-    
     func prepareToShow() {
         
     }
@@ -206,7 +197,7 @@ class SearchView: UIView, UITextViewDelegate {
     
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
         if text == "\n" {
-            hide()
+            webViewController.hideSearch()
             webViewController.navigateToText(textView.text!)
             return false
         }

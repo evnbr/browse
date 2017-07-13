@@ -9,10 +9,11 @@
 import UIKit
 
 typealias CloseTabCallback = (UICollectionViewCell) -> Void
-let THUMB_OFFSET_COLLAPSED : CGFloat = 0
+let THUMB_OFFSET_COLLAPSED : CGFloat = 4.0 // 28.0
 
 class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
-
+    
+    var label : UILabel!
     var snap : UIView!
     var overlay : UIView!
     var webVC : WebViewController!
@@ -29,6 +30,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
             _isExpanded = newValue
 //            snap?.frame.origin.y = newValue ? 0 : -STATUS_H
 //            snap?.frame.origin.y = newValue ? STATUS_H : 0
+            label?.alpha = newValue ? 0 : 1
             snap?.frame = frameForSnap(snap)
             layer.borderWidth = newValue ? 0.0 : 1.0
         }
@@ -73,18 +75,12 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        layer.cornerRadius = CORNER_RADIUS
+        layer.cornerRadius = THUMB_RADIUS
         backgroundColor = .clear
         clipsToBounds = true
         
         layer.borderWidth = 1.0
         layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
-        
-//        layer.shadowColor = UIColor.black.cgColor
-//        layer.shadowOpacity = 0.4
-//        layer.shadowOffset = CGSize.zero
-//        layer.shadowRadius = 4
-        
         
         isExpanded = false
         
@@ -101,16 +97,43 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         
         contentView.addSubview(overlay)
         
-//        contentView.translatesAutoresizingMaskIntoConstraints = false
-//        contentView.widthAnchor.constraint(equalTo: self.widthAnchor).isActive = true
-//        contentView.heightAnchor.constraint(equalTo: self.heightAnchor).isActive = true
-//        contentView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
-//        contentView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
+        label = UILabel(frame: CGRect(
+            x: 12,
+            y: 10,
+            width: frame.width - 24,
+            height: 16.0
+        ))
+        label.text = "Duck Duck Go"
+//        label.textAlignment = .center
+        label.font = UIFont.systemFont(ofSize: 13.0)
+        label.textColor = .darkText
+        contentView.addSubview(label)
+        contentView.backgroundColor = .white
     }
-    
+        
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    func setWeb(_ newWebVC : WebViewController) {
+        webVC = newWebVC
+        
+        if let snap : UIView = webVC.webSnapshot {
+            label.isHidden = true
+            setSnapshot(snap)
+        }
+        if let color : UIColor = webVC.webViewColor?.top {
+            backgroundColor = color
+            label.textColor = color.isLight ? .white : .darkText
+        }
+        if let title : String = webVC.webView?.title {
+            label.text = title
+        }
+        else if let title : String = webVC.startingLocation {
+            label.text = "Restored: \(title)"
+        }
+    }
+    
     
     
 //    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -162,18 +185,10 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         
         snap = newSnapshot
         snap.frame = frameForSnap(snap)
-//        snap.autoresizingMask = [.flexibleRightMargin, .flexibleBottomMargin]
         
         contentView.addSubview(snap)
         contentView.sendSubview(toBack: snap)
         
-//        snap.translatesAutoresizingMaskIntoConstraints = false
-        
-//        let aspect = snap.frame.size.height / snap.frame.size.width
-//        snap.topAnchor.constraint(equalTo: contentView.topAnchor, constant: STATUS_H).isActive = true
-//        snap.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
-//        snap.widthAnchor.constraint(equalTo: contentView.widthAnchor).isActive = true
-//        snap.heightAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: aspect).isActive = true
     }
     
     var isDismissing = false
@@ -226,15 +241,9 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     }
 
     override func prepareForReuse() {
-        setPlaceholderSnap()
+        //
     }
     
-    func setPlaceholderSnap() {
-        let snapPlaceholder = UIView(frame: UIScreen.main.bounds)
-        snapPlaceholder.backgroundColor = .darkGray
-        setSnapshot(snapPlaceholder)
-    }
-
     func frameForSnap(_ snap : UIView) -> CGRect {
         let aspect = snap.frame.size.height / snap.frame.size.width
         let W = self.frame.size.width

@@ -15,11 +15,12 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     var home: HomeViewController!
     var webView: WKWebView!
     
+    var isDisplayingSearch : Bool = false
     var searchView: SearchView!
     var webViewColor: ColorTransitionController!
     
     var statusBar: ColorStatusBarView!
-    var toolbar: ColorToolbar!
+    var toolbar: ProgressToolbar!
     
     var errorView: UIView!
     var cardView: UIView!
@@ -65,11 +66,6 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         )
     }
     
-    convenience init(home: HomeViewController) {
-        self.init()
-        self.home = home
-    }
-    
     var displayTitle : String {
         get {
             guard let url = webView.url else { return "" }
@@ -83,6 +79,10 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
             let url = webView.url!
             return url.displayHost
         }
+    }
+    
+    var isBlank : Bool {
+        return webView.url == nil
     }
     
     var isSearching : Bool {
@@ -103,7 +103,13 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     }
     
     // MARK: - Lifecycle
-
+    
+    convenience init(home: HomeViewController) {
+        self.init()
+        self.home = home
+    }
+    
+    
     override func loadView() {
         super.loadView()
         
@@ -177,6 +183,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         
         view.addSubview(cardView)
         view.addSubview(toolbar)
+        view.sendSubview(toBack: toolbar)
         
 //        toolbar.widthAnchor.constraint(equalTo: cardView.widthAnchor).isActive = true
         
@@ -257,11 +264,9 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         )
     }
 
-    func setUpToolbar() -> ColorToolbar {
+    func setUpToolbar() -> ProgressToolbar {
         
-        // let toolbar = (navigationController?.toolbar)!
-        
-        let toolbar = ColorToolbar(frame: CGRect(
+        let toolbar = ProgressToolbar(frame: CGRect(
             x: 0,
             y: UIScreen.main.bounds.size.height - TOOLBAR_H,
             width: UIScreen.main.bounds.size.width,
@@ -288,11 +293,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
             onTap: { self.webView.stopLoading() }
         )
 
-        
-        toolbar.setItems([backButton, forwardButton, locationBar, stopButton, actionButton])
-//        toolbar.leftItems = [backButton, forwardButton]
-//        toolbar.centerItem = locationBar
-//        toolbar.rightItems = [stopButton, actionButton]
+        toolbar.items = [backButton, forwardButton, locationBar, stopButton, actionButton]
         
         toolbar.addSubview(searchView)
         
@@ -310,7 +311,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        if webView.url == nil {
+        if isBlank {
             displaySearch()
         }
         
@@ -463,10 +464,12 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     func displaySearch(animated: Bool = false) {
         guard !UIMenuController.shared.isMenuVisible else { return }
         
+        isDisplayingSearch = true
         searchView.prepareToShow()
         
-//        self.becomeFirstResponder()
-        searchView.textView.becomeFirstResponder()
+        if !searchView.textView.isFirstResponder {
+            searchView.textView.becomeFirstResponder()
+        }
         
         // NOTE: we probably don't have the true keyboard height yet
         
@@ -518,6 +521,8 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     }
     
     @objc func hideSearch() {
+        
+        isDisplayingSearch = false
         
         if searchView.textView.isFirstResponder {
             searchView.textView.resignFirstResponder()
@@ -822,7 +827,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         view.transform = .identity
         cardView.frame = cardViewDefaultFrame
         
-        if webView.url == nil && withKeyboard {
+        if isBlank && withKeyboard {
             // hack for better transition with keyboard
             cardView.frame.size.height = cardViewDefaultFrame.height - keyboardHeight - searchView.frame.height + TOOLBAR_H
         }
@@ -854,7 +859,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         
         locationBar.isLoading = webView.isLoading
         locationBar.isSecure = webView.hasOnlySecureContent
-        locationBar.isSearch = isSearching || webView.url == nil
+        locationBar.isSearch = isSearching || isBlank
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = webView.isLoading
     }

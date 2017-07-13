@@ -9,7 +9,8 @@
 // Webview
 let TOOLBAR_H     : CGFloat = 40.0
 let STATUS_H      : CGFloat = 20.0
-let CORNER_RADIUS : CGFloat = 8.0
+let CORNER_RADIUS : CGFloat = 8.0 //8.0
+let THUMB_RADIUS  : CGFloat = 8.0
 
 // Tab Switcher
 let THUMB_H : CGFloat = 180.0
