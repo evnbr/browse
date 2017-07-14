@@ -23,7 +23,6 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
 
     override func loadView() {
         super.loadView()
-        
     }
     
     override func viewDidLoad() {

@@ -14,11 +14,14 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     
     var home: HomeViewController!
     var webView: WKWebView!
-    var startingLocation : String!
+    
+    var restoredLocation : String?
+    var restoredTitle : String?
+    var restoredColor : UIColor?
     
     var isDisplayingSearch : Bool = false
     var searchView: SearchView!
-    var webViewColor: ColorTransitionController!
+    var colorSampler: ColorTransitionController!
     
     var statusBar: ColorStatusBarView!
     var toolbar: ProgressToolbar!
@@ -47,9 +50,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         if interactiveDismissController.isInteractiveDismiss && (cardView.frame.origin.y > 10) {
             return .lightContent
         }
-        
-        guard webViewColor != nil else { return .default }
-        return webViewColor.top.isLight ? .lightContent : .default
+        return topColor.isLight ? .lightContent : .default
     }
     
     override var prefersStatusBarHidden: Bool {
@@ -68,11 +69,9 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     }
     
     var displayTitle : String {
-        get {
-            guard let url = webView.url else { return "" }
-            if isSearching { return url.searchQuery }
-            else { return displayURL }
-        }
+        guard let url = webView.url else { return "" }
+        if isSearching { return url.searchQuery }
+        else { return displayURL }
     }
     
     var displayURL : String {
@@ -95,7 +94,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         }
     }
     
-    var editableURL : String {
+    var editableLocation : String {
         get {
             guard let url = webView.url else { return "" }
             if isSearching { return url.searchQuery }
@@ -103,16 +102,37 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         }
     }
     
+    var restorableTitle : String? {
+        return webView?.title ?? restoredTitle
+    }
+    var restorableURL : String? {
+        return webView?.url?.absoluteString ?? restoredLocation
+    }
+    var topColor : UIColor {
+        return colorSampler?.top ?? restoredColor ?? .white
+    }
+    
+    var restorableInfo : TabInfo {
+        return TabInfo(
+            title: restorableTitle ?? "",
+            urlString: restorableURL ?? "",
+            color: topColor
+        )
+    }
+    
+    
     // MARK: - Lifecycle
     
     convenience init(home: HomeViewController) {
         self.init()
         self.home = home
     }
-    convenience init(home: HomeViewController, startingLocation: String) {
+    convenience init(home: HomeViewController, restoreInfo : TabInfo) {
         self.init()
         self.home = home
-        self.startingLocation = startingLocation
+        self.restoredColor = restoreInfo.color
+        self.restoredTitle = restoreInfo.title
+        self.restoredLocation = restoreInfo.urlString
     }
     
     
@@ -140,29 +160,22 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         
 //        webView.allowsBackForwardNavigationGestures = true
         
-        // TODO: Prevent webview from layout when resizing, but allow it when 
-        // screen changes size
-        
 //         webView.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
         webView.translatesAutoresizingMaskIntoConstraints = false
         
         webView.scrollView.contentInset = .zero
         webView.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
-        
+        webView.backgroundColor = topColor
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         coordinator.animate(alongsideTransition: { context in
             //
         }, completion: { context in
-            self.updateHeight()
-            self.resignFirstResponder()
+            //
         })
     }
     
-    func updateHeight() {
-//        self.webView.frame.size.height = UIScreen.main.bounds.size.height - TOOLBAR_H - STATUS_H
-    }
     
 
     override func viewDidLoad() {
@@ -177,10 +190,11 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         cardView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         cardView.layer.cornerRadius = CORNER_RADIUS
         cardView.layer.masksToBounds = true
+        cardView.backgroundColor = .red
         
         cardView.addSubview(webView)
         
-        statusBar = ColorStatusBarView()
+        statusBar = ColorStatusBarView(color: topColor)
         cardView.addSubview(statusBar)
         
         searchView = SearchView(for: self)
@@ -191,18 +205,16 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         view.addSubview(toolbar)
         view.sendSubview(toBack: toolbar)
         
-//        toolbar.widthAnchor.constraint(equalTo: cardView.widthAnchor).isActive = true
         
         webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: STATUS_H).isActive = true
-//        webView.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
         webView.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
-        
         webView.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
+        
         heightConstraint = webView.heightAnchor.constraint(equalTo: view.heightAnchor, constant: (-STATUS_H - TOOLBAR_H))
         heightConstraint.isActive = true
         webView.heightAnchor.constraint(greaterThanOrEqualTo: cardView.heightAnchor, constant: -STATUS_H)
         
-        webViewColor = ColorTransitionController(from: webView, inViewController: self)
+        colorSampler = ColorTransitionController(from: webView, inViewController: self)
         
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.title), options: .new, context: nil)
@@ -216,17 +228,10 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         locationBar.addGestureRecognizer(longPress)
         
         loadingDidChange()
-//        if let restored : String = restoreURL() {
-//            navigateToText(restored)
-//        }
-//        else {
-//            navigateToText("evanbrooks.info")
-//        }
-//        makeSuperTitle()
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         
-        if startingLocation != nil {
-            navigateToText(startingLocation)
+        if restoredLocation != nil && restoredLocation != "" {
+            navigateToText(restoredLocation!)
         }
     }
     
@@ -332,7 +337,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         self.setNeedsStatusBarAppearanceUpdate()
 
         
-        webViewColor.startUpdates()
+        colorSampler.startUpdates()
 
         // disable mysterious delays
         // https://stackoverflow.com/questions/19799961/uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen
@@ -361,33 +366,12 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     override func viewDidDisappear(_ animated: Bool) {
         // This is probably called too often, should only be when app closes
         
-        webViewColor.stopUpdates()
-        saveURL()
+        colorSampler.stopUpdates()
     }
     
     func dismissSelf() {
         self.dismiss(animated: true, completion: nil)
     }
-
-    // MARK: - Restore State
-
-    
-    func saveURL() {
-        guard let url_str : String = webView.url?.absoluteString else { return }
-        UserDefaults.standard.setValue(url_str, forKey: "current_url")
-        print("Saved location: \(url_str)")
-    }
-    
-    func restoreURL() -> String! {
-        let saved_url_val = UserDefaults.standard.value(forKey: "current_url")
-        if saved_url_val != nil {
-            let saved_url_str = saved_url_val as! String
-            //            let saved_url = URL(string: saved_url_str)
-            return saved_url_str
-        }
-        return nil
-    }
-
     
     // MARK: - Gestures
     
@@ -459,7 +443,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     }
     
     @objc func copyURL() {
-        UIPasteboard.general.string = self.editableURL
+        UIPasteboard.general.string = self.editableLocation
     }
     
     @objc func pasteURLAndGo() {
@@ -848,6 +832,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     func loadingDidChange() {
         
         locationBar.text = self.displayTitle
+        searchView.textView.text = self.editableLocation
         
         let small = CGAffineTransform(scaleX: 0.6, y: 0.6)
         

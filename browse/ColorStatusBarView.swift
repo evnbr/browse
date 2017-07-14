@@ -23,50 +23,29 @@ extension UIVisualEffectView {
             if v.backgroundColor != nil {
                 v.backgroundColor = nil
             }
-            
-            //            let sat = v.value(forKey: "_saturateFilter")
-            //            let colorOffset = v.value(forKey: "_colorOffsetFilter")
-            //            let blur = v.value(forKey: "_blurFilter")
         }
 
     }
 }
 
 class ColorStatusBarView : UIView {
-    var inner : UIView!
-    var back : UIView!
     var blurView : UIVisualEffectView!
     
     init() {
         let rect = CGRect(
             origin: CGPoint(x: 0, y: 0),
-            size:CGSize(width: UIScreen.main.bounds.size.width, height:20)
+            size:CGSize(width: UIScreen.main.bounds.size.width, height: STATUS_H)
         )
 
         super.init(frame: rect)
         
         self.autoresizingMask = [.flexibleWidth]
-        self.backgroundColor = .clear
-        
-        back = UIView.init(frame: rect)
-        back.autoresizingMask = [.flexibleWidth]
-        back.backgroundColor = .white
-//        back.alpha = 0.7
-        self.addSubview(back)
-        
-//        blurView = UIVisualEffectView(frame: rect, isTransparent: true)
-//        self.addSubview(blurView)
-        
-        inner = UIView()
-        inner.frame = back.bounds
-        inner.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        inner.backgroundColor = .white
-//        back.addSubview(inner)
-        back.clipsToBounds = true
-        
-        self.clipsToBounds = true
-        
-//        isHidden = true
+        self.backgroundColor = .red
+    }
+    
+    convenience init(color: UIColor) {
+        self.init()
+        self.backgroundColor = color
     }
     
     required init?(coder aDecoder: NSCoder) {

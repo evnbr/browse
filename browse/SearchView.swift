@@ -106,8 +106,6 @@ class SearchView: UIView, UITextViewDelegate {
     
     func updateSize() {
         let fixedWidth = textView.frame.size.width
-        
-        let leftMargin = cancel.frame.size.width + 28
 
 //        textView.textContainerInset = UIEdgeInsetsMake(13, 14, 13, leftMargin)
         textView.textContainerInset = UIEdgeInsetsMake(8, 8, 8, 8)

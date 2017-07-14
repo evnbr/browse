@@ -72,13 +72,13 @@ class LocationBar: ToolbarTouchView {
             return shouldShowSpinner
         }
         set {
-//            shouldShowSpinner = newValue
-//            spinner.isHidden = !shouldShowSpinner
-//            
+            shouldShowSpinner = newValue
+            spinner.isHidden = !shouldShowSpinner
+//
 //            lock.isHidden = !shouldShowLock || isSearch || shouldShowSpinner
 //
-//            if newValue { spinner.startAnimating() }
-//            else        { spinner.stopAnimating()  }
+            if newValue { spinner.startAnimating() }
+            else        { spinner.stopAnimating()  }
         }
     }
     

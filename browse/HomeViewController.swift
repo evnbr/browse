@@ -31,11 +31,6 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         return .lightContent
     }
     override var prefersStatusBarHidden: Bool {
-//        guard let webVC = selectedTab else { return false }
-//        if webVC.view.window != nil && !webVC.isBeingDismissed {
-//            return webVC.prefersStatusBarHidden
-//        }
-
         return false
     }
     
@@ -101,11 +96,11 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         NotificationCenter.default.addObserver(self, selector: #selector(applicationWillResignActive(notification:)), name: NSNotification.Name.UIApplicationWillResignActive, object: UIApplication.shared)
         
         collectionView?.performBatchUpdates({
-            let urls = self.getPreviousOpenURLs()
-            for urlStr in urls {
+            let tabsToRestore = self.getPreviousOpenTabs()
+            for info in tabsToRestore {
                 let newTab = WebViewController(
                     home: self,
-                    startingLocation: urlStr
+                    restoreInfo: info
                 )
                 self.tabs.append(newTab)
                 let ip = IndexPath(item: self.tabs.index(of: newTab)!, section: 0)
@@ -118,25 +113,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     }
     
     @objc func applicationWillResignActive(notification: NSNotification) {
-        print("HomeVC: Will Resign")
-        
-        saveOpenURLs()
-    }
-    
-    func saveOpenURLs() {
-        let openURLStrings : [ String ] = tabs.map{ webVC in
-            if let url : URL = webVC.webView.url { return url.absoluteString }
-            else { return "" }
-        }
-        UserDefaults.standard.setValue(openURLStrings, forKey: "openTabList")
-        
-    }
-    
-    func getPreviousOpenURLs() -> [ String ] {
-        if let openURLStrings : [ String ] = UserDefaults.standard.value(forKey: "openTabList") as? [ String ] {
-            return openURLStrings
-        }
-        return []
+        saveOpenTabs()
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -230,29 +207,6 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         return thumbAnimationController
     }
 
-//    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//        for cell in collectionView!.visibleCells {
-//            let cell = cell as! TabThumbnail
-//            
-//            let ip = collectionView!.indexPath(for: cell)!
-//            let intendedFrame = self.collectionViewLayout.layoutAttributesForItem(at: ip)!.frame
-//            
-//            let visibleFrame = cell.superview!.convert(intendedFrame, to: view)
-//            
-//            if visibleFrame.origin.y < 300 {
-//                let amtOver = 300 - visibleFrame.origin.y
-//                let pct = amtOver / 300
-//                
-//                cell.frame.origin.y = intendedFrame.origin.y + amtOver * pct * 0.3
-//                
-//                cell.darkness = pct * 0.5
-//            }
-//            else {
-//                cell.darkness = 0
-//                cell.frame.origin.y = intendedFrame.origin.y
-//            }
-//        }
-//    }
 }
 
 // MARK: - UICollectionViewDataSource
@@ -300,13 +254,10 @@ extension HomeViewController {
     
 }
 
+// MARK: - UICollectionViewDelegateFlowLayout
 extension HomeViewController : UICollectionViewDelegateFlowLayout {
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        //2
-//        let paddingSpace = sectionInsets.left * (itemsPerRow + 1)
-//        let availableWidth = view.frame.width - paddingSpace
-//        let widthPerItem = availableWidth / itemsPerRow
         return thumbSize
     }
     
@@ -339,4 +290,49 @@ extension HomeViewController : UICollectionViewDelegateFlowLayout {
     
 }
 
+// MARK: - Saving and restoring state
+extension HomeViewController {
+    func saveOpenTabs() {
+        let info = tabs.map { tab in tab.restorableInfo.plist}
+        UserDefaults.standard.setValue(info, forKey: "openTabList")
+    }
+    
+    func getPreviousOpenTabs() -> [ TabInfo ] {
+        if let openTabs = UserDefaults.standard.value(forKey: "openTabList") as? [ [ String : Any ]] {
+            let converted : [ TabInfo ] = openTabs.map { dict in
+                let title = dict["title"] as? String ?? ""
+                let urlString = dict["urlString"] as? String ?? ""
+                var color : UIColor
+                if let rgb = dict["color"] as? [ CGFloat ] {
+                    color = UIColor(r: rgb[0], g: rgb[1], b: rgb[2] )
+                }
+                else {
+                    color = UIColor.white
+                }
+                
+                return TabInfo(
+                    title: title,
+                    urlString: urlString ,
+                    color: color
+                )
+            }
+            return converted
+        }
+        return []
+    }
+}
 
+struct TabInfo {
+    var title : String
+    var urlString : String
+    var color: UIColor
+    
+    var plist : NSDictionary {
+        return NSDictionary(dictionary: [
+            "title" : title,
+            "urlString" : urlString,
+            "color" : color.array,
+        ])
+    }
+    
+}

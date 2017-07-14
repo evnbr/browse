@@ -18,6 +18,10 @@ public extension UIColor
         self.init(colorLiteralRed: Float(r), green: Float(g), blue: Float(b), alpha: 1)
     }
     
+    var array : [ CGFloat ] {
+        return self.getRGB()
+    }
+    
     func getRGB() -> Array<CGFloat> {
         if let name : CFString = self.cgColor.colorSpace?.name,
             let components : Array<CGFloat> = self.cgColor.components
@@ -105,3 +109,4 @@ public extension UIColor
     }
     
 }
+

@@ -71,7 +71,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         
         webVC.updateSnapshot()
-        let snapshot : UIView = webVC.webSnapshot!
         
         let prevTransform = homeNav.view.transform
         homeNav.view.transform = .identity // HACK reset to identity so we can get frame
@@ -101,7 +100,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         transitioningThumb.frame = isExpanding ? thumbFrame : expandedFrame
         transitioningThumb.isExpanded = !isExpanding
-        transitioningThumb.backgroundColor = webVC.statusBar.back.backgroundColor
+        transitioningThumb.backgroundColor = webVC.statusBar.backgroundColor
         
         homeNav.view.transform = self.isExpanding
             ? .identity

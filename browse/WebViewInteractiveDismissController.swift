@@ -104,31 +104,13 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
                 let revealProgress = min(gesturePos.x / 200, 1)
                 home.navigationController?.view.alpha = revealProgress * 0.4 // alpha is 0 ... 0.4
                 
-                let scale = PRESENT_TAB_BACK_SCALE + revealProgress * 0.2 * (1 - PRESENT_TAB_BACK_SCALE)
+                let scale = PRESENT_TAB_BACK_SCALE + revealProgress * 0.5 * (1 - PRESENT_TAB_BACK_SCALE)
                 home.navigationController?.view.transform = CGAffineTransform(scaleX: scale, y: scale)
-                
-//                toolbar.alpha = 1 - (abs(gesturePos.x) / 200)
                 
                 let adjustedX = elasticLimit(gesturePos.x)
                 
                 cardView.frame.origin.x = adjustedX
                 
-//                if cardView.frame.origin.y < STATUS_H && gesturePos.x > DISMISS_POINT_H {
-//                    UIView.animate(withDuration: 0.2, animations: {
-//                        self.cardView.frame.origin.y = STATUS_H
-//                    })
-//                }
-//                else if cardView.frame.origin.y > 0 && gesturePos.x < DISMISS_POINT_H {
-//                    UIView.animate(withDuration: 0.2, animations: {
-//                        self.cardView.frame.origin.y = 0
-//
-//                    })
-//                }
-//                if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle {
-//                    UIView.animate(withDuration: 0.2, animations: {
-//                        self.vc.setNeedsStatusBarAppearanceUpdate()
-//                    })
-//                }
                 
             }
         }
@@ -200,8 +182,6 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
     func reset(atVelocity vel : CGFloat = 0.0) {
         end()
         
-        let springVel = vel * -0.1
-        
         UIView.animate(withDuration: 0.6, delay: 0.0, usingSpringWithDamping: 0.85, initialSpringVelocity: 0.0, options: .allowUserInteraction, animations: {
             self.vc.resetSizes(withKeyboard: self.shouldRestoreKeyboard)
             self.vc.setNeedsStatusBarAppearanceUpdate()
@@ -244,21 +224,16 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         webView.frame.origin.y = STATUS_H - statusOffset
         statusBar.frame.origin.y = 0 - statusOffset
         
-        cardView.frame.origin.y = direction == .top
-            ? adjustedY + statusOffset
-            : adjustedY // * -0.2
+        cardView.frame.origin.y = adjustedY
         
-        // cardView.frame.size.height = max(view.frame.height - TOOLBAR_H - (abs(adjustedY) * 0.9), THUMB_H * 1.1)
+        if adjustedY > 0 {
+            cardView.frame.size.height = view.frame.height - TOOLBAR_H - (abs(adjustedY))
+        }
         
-//        if direction == .bottom && adjustedY < 0 {
-//            webView.scrollView.contentOffset.y = startScroll.y - adjustedY
-//        }
-        
-//        toolbar.alpha = 1 - (abs(adjustedY) / 100)
         
         let revealProgress = abs(adjustedY) / 200
         home.navigationController?.view.alpha = revealProgress * 0.4 // alpha is 0 ... 0.4
-        let scale = PRESENT_TAB_BACK_SCALE + revealProgress * 0.2 * (1 - PRESENT_TAB_BACK_SCALE)
+        let scale = PRESENT_TAB_BACK_SCALE + revealProgress * 0.5 * (1 - PRESENT_TAB_BACK_SCALE)
         home.navigationController?.view.transform = CGAffineTransform(scaleX: scale, y: scale)
 
         if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle {

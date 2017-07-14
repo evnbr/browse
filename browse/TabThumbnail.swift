@@ -9,7 +9,7 @@
 import UIKit
 
 typealias CloseTabCallback = (UICollectionViewCell) -> Void
-let THUMB_OFFSET_COLLAPSED : CGFloat = 4.0 // 28.0
+let THUMB_OFFSET_COLLAPSED : CGFloat = 0.0 // 28.0
 
 class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
@@ -103,9 +103,10 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
             width: frame.width - 24,
             height: 16.0
         ))
-        label.text = "Duck Duck Go"
+        label.text = "Blank"
+        label.alpha = 0.5
 //        label.textAlignment = .center
-        label.font = UIFont.systemFont(ofSize: 13.0)
+        label.font = UIFont.systemFont(ofSize: 15.0)
         label.textColor = .darkText
         contentView.addSubview(label)
         contentView.backgroundColor = .white
@@ -122,15 +123,12 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
             label.isHidden = true
             setSnapshot(snap)
         }
-        if let color : UIColor = webVC.webViewColor?.top {
-            backgroundColor = color
-            label.textColor = color.isLight ? .white : .darkText
-        }
-        if let title : String = webVC.webView?.title {
-            label.text = title
-        }
-        else if let title : String = webVC.startingLocation {
-            label.text = "Restored: \(title)"
+        
+        contentView.backgroundColor = webVC.topColor
+        label.textColor = webVC.topColor.isLight ? .white : .darkText
+        
+        if let title : String = webVC.restorableTitle {
+            label.text = "\(title)"
         }
     }
     
@@ -204,6 +202,9 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         else if gesture.state == .changed {
             if isDismissing {
                 let pct = abs(gesturePos.x) / startFrame.width
+                if pct > 0.7 {
+                    alpha = 1 - (pct - 0.7) * 2
+                }
                 
                 frame.origin.x = startFrame.origin.x + gesturePos.x
             }
@@ -220,13 +221,11 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
                 
                 if ( vel.x > 800 || gesturePos.x > frame.width * 0.8 ) {
                     endFrame.origin.x = startFrame.origin.x + startFrame.width
-//                    endFrame.size.width = 0
                     endAlpha = 0
                     closeTabCallback(self)
                 }
                 else if ( vel.x < -800 || gesturePos.x < -frame.width * 0.8 ) {
                     endFrame.origin.x = startFrame.origin.x - frame.width
-//                    endFrame.size.width = 0
                     endAlpha = 0
                     closeTabCallback(self)
                 }
