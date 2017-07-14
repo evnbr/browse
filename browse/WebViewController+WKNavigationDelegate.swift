@@ -49,11 +49,13 @@ extension WebViewController: WKNavigationDelegate {
         let app = UIApplication.shared
         if let url = navigationAction.request.url {
             if navigationAction.targetFrame == nil { // Handle target="_blank"
-                if app.canOpenURL(url) {
-                    app.open(url, options: [:], completionHandler: nil)
-                    decisionHandler(.cancel)
-                    return
-                }
+                decisionHandler(.allow)
+                return
+//                if app.canOpenURL(url) {
+//                    app.open(url, options: [:], completionHandler: nil)
+//                    decisionHandler(.cancel)
+//                    return
+//                }
             }
             if url.scheme == "http" || url.scheme == "https" || url.scheme == "about" {
                 decisionHandler(.allow)

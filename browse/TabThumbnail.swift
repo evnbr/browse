@@ -109,7 +109,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         label.font = UIFont.systemFont(ofSize: 15.0)
         label.textColor = .darkText
         contentView.addSubview(label)
-        contentView.backgroundColor = .white
+        contentView.backgroundColor = .darkGray
     }
         
     required init?(coder aDecoder: NSCoder) {
@@ -156,26 +156,31 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         unTransformedFrame = frame
         
         if touches.first != nil {
-            UIView.animate(withDuration: 0.3, animations: {
+            UIView.animate(withDuration: 1.4, delay: 0, usingSpringWithDamping: 0.3, initialSpringVelocity: 0, options: .curveLinear, animations: {
                 self.transform = CGAffineTransform(scaleX: TAP_SCALE, y: TAP_SCALE)
-                self.alpha = 0.9
-            })
+            }, completion: nil)
         }
     }
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesEnded(touches, with: event)
-        unSelect()
+        // unSelect()
     }
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesCancelled(touches, with: event)
         unSelect()
     }
     
-    func unSelect() {
-        UIView.animate(withDuration: 0.2, delay: 0.0, animations: {
+    func unSelect(animated : Bool = true) {
+        if animated {
+            UIView.animate(withDuration: 0.2, delay: 0.0, animations: {
+                self.transform = .identity
+                self.alpha = 1.0
+            })
+        }
+        else {
             self.transform = .identity
             self.alpha = 1.0
-        })
+        }
     }
     
     func setSnapshot(_ newSnapshot : UIView) {
@@ -240,7 +245,8 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     }
 
     override func prepareForReuse() {
-        //
+        snap?.removeFromSuperview()
+        contentView.backgroundColor = .darkGray
     }
     
     func frameForSnap(_ snap : UIView) -> CGRect {

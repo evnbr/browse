@@ -135,16 +135,18 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         self.restoredLocation = restoreInfo.urlString
     }
     
+    convenience init(home: HomeViewController, withNewTabConfig config: WKWebViewConfiguration) {
+        self.init()
+        self.home = home
+        
+        // load the webview early so we can return it to
+        // the wkuidelegate, which wants to load the request
+        self.webView = loadWebView(withConfig: config)
+    }
     
-    override func loadView() {
-        super.loadView()
-        
-        // --
-        
-        
-        let config = WKWebViewConfiguration()
+    func loadWebView(withConfig config : WKWebViewConfiguration?) -> WKWebView {
+        let config = config ?? WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
-        
         
         let rect = CGRect(
             origin: CGPoint(x: 0, y: STATUS_H),
@@ -153,19 +155,21 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
                 height: UIScreen.main.bounds.size.height - TOOLBAR_H - STATUS_H
             )
         )
-
+        
         webView = WKWebView(frame: rect, configuration: config)
         webView.navigationDelegate = self
         webView.uiDelegate = self  // req'd for target=_blank override
         
-//        webView.allowsBackForwardNavigationGestures = true
+        //        webView.allowsBackForwardNavigationGestures = true
         
-//         webView.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
+        //         webView.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
         webView.translatesAutoresizingMaskIntoConstraints = false
         
         webView.scrollView.contentInset = .zero
         webView.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
         webView.backgroundColor = topColor
+        
+        return webView
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -176,10 +180,12 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         })
     }
     
-    
-
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        if webView == nil {
+            webView = loadWebView(withConfig: nil)
+        }
         
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.layer.cornerRadius = CORNER_RADIUS
@@ -742,6 +748,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         return text.range(of:".") != nil && text.range(of:" ") == nil
     }
     
+    
     func navigateToText(_ text: String) {
         
         errorView?.removeFromSuperview()
@@ -830,6 +837,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     }
     
     func loadingDidChange() {
+        guard isViewLoaded else { return }
         
         locationBar.text = self.displayTitle
         searchView.textView.text = self.editableLocation

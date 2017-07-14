@@ -11,11 +11,9 @@ import WebKit
 
 extension WebViewController : WKUIDelegate {
     
-    // this handles target=_blank links by opening them in the same view
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         if navigationAction.targetFrame == nil {
-            print("Tried to open new window")
-            webView.load(navigationAction.request)
+            return home.openInNewTab(withConfig: configuration)
         }
         return nil
     }

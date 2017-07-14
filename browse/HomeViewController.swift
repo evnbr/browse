@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import WebKit
 
 class HomeViewController: UICollectionViewController, UIViewControllerTransitioningDelegate {
 
@@ -68,14 +69,14 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
             withIcon: nil, //UIImage(named: "add"),
             onTap: self.addTab
         )
-        addButton.size = .medium
+        addButton.size = .small
         
         let clearButton = ToolbarTextButton(
             title: "Clear",
             withIcon: nil, //UIImage(named: "add"),
             onTap: self.clearTabs
         )
-        clearButton.size = .medium
+        clearButton.size = .small
         
         toolbar.items = [addButton, clearButton]
         view.addSubview(toolbar)
@@ -131,7 +132,6 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     func addTab() {
         let newTab = WebViewController(home: self)
         self.showTab(tab: newTab)
-
         
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
             self.tabs.append(newTab)
@@ -139,6 +139,26 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
             let thumb = self.thumb(forTab: newTab)
             thumb?.isHidden = true
         }
+        
+    }
+    
+    // todo: less copypasta with addTab()
+    func openInNewTab(withConfig config: WKWebViewConfiguration) -> WKWebView {
+        
+        let newTab = WebViewController(home: self, withNewTabConfig: config)
+        
+        // if we don't wait for each animation to complete,
+        // the states get weird and the orginal tab gets hidden
+        selectedTab?.dismiss(animated: true, completion: {
+            self.collectionView?.performBatchUpdates({
+                self.tabs.append(newTab)
+                self.collectionView?.insertItems(at: [ IndexPath(item: self.tabs.index(of: newTab)!, section: 0) ])
+            }, completion: { _ in
+                self.showTab(tab: newTab)
+            })
+        })
+        
+        return newTab.webView
     }
     
     func clearTabs() {
@@ -171,7 +191,9 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         tab.modalPresentationStyle = .custom
         tab.transitioningDelegate = self
         
-        present(tab, animated: animated)
+        present(tab, animated: animated, completion: {
+            self.thumb(forTab: tab)?.unSelect(animated: false)
+        })
     }
     
     

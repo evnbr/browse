@@ -15,4 +15,6 @@ let THUMB_RADIUS  : CGFloat = 8.0
 // Tab Switcher
 let THUMB_H : CGFloat = 180.0
 let PRESENT_TAB_BACK_SCALE : CGFloat = 0.95
-let TAP_SCALE : CGFloat = 0.97 //1.025
+//let TAP_SCALE : CGFloat = 0.97
+let TAP_SCALE : CGFloat = 1.02
+
