@@ -150,7 +150,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         return false
     }
     
-    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         unTransformedFrame = frame
@@ -163,7 +162,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     }
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesEnded(touches, with: event)
-        // unSelect()
+//         unSelect()
     }
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesCancelled(touches, with: event)
@@ -177,7 +176,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
                 self.alpha = 1.0
             })
         }
-        else {
+        else {            
             self.transform = .identity
             self.alpha = 1.0
         }

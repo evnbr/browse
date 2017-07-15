@@ -57,7 +57,7 @@ extension WebViewController: WKNavigationDelegate {
 //                    return
 //                }
             }
-            if url.scheme == "http" || url.scheme == "https" || url.scheme == "about" {
+            if url.scheme == "http" || url.scheme == "https" || url.scheme == "about" || url.scheme == "data" {
                 decisionHandler(.allow)
                 return
             }

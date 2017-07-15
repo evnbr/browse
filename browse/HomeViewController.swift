@@ -151,7 +151,11 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         // the states get weird and the orginal tab gets hidden
         selectedTab?.dismiss(animated: true, completion: {
             self.collectionView?.performBatchUpdates({
-                self.tabs.append(newTab)
+//                self.tabs.append(newTab)
+                
+                // below tab that launched it
+                self.tabs.insert(newTab, at: self.tabs.index(of: self.selectedTab!)! + 1)
+                
                 self.collectionView?.insertItems(at: [ IndexPath(item: self.tabs.index(of: newTab)!, section: 0) ])
             }, completion: { _ in
                 self.showTab(tab: newTab)
@@ -260,6 +264,32 @@ extension HomeViewController {
         if let path = collectionView?.indexPath(for: cell) {
             tabs.remove(at: path.row)
             collectionView?.deleteItems(at: [path])
+        }
+    }
+    
+    // TODO: This should be part of a custom layout subclass
+    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard let cv = collectionView else { return }
+        for cell in cv.visibleCells {
+            let ip = cv.indexPath(for: cell)!
+            let intendedFrame = cv.layoutAttributesForItem(at: ip)!.frame
+            let vFrame = view.convert(intendedFrame, from: cell.superview)
+            
+            let scrollLimit = STATUS_H
+            if vFrame.origin.y < scrollLimit {
+                let pctOver = abs(scrollLimit - vFrame.origin.y) / 200
+                cell.frame.origin.y = intendedFrame.origin.y - vFrame.origin.y + scrollLimit
+                cell.alpha = 1 - pctOver
+                let s = 1 - pctOver * 0.05
+                cell.transform = CGAffineTransform(scaleX: s, y: s)
+                cell.isUserInteractionEnabled = false
+            }
+            else {
+                cell.frame.origin.y = intendedFrame.origin.y
+                cell.alpha = 1
+                cell.isUserInteractionEnabled = true
+            }
+            cell.layer.zPosition = CGFloat(ip.row)
         }
     }
     
