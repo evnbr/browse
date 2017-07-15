@@ -33,7 +33,7 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
     ]
     
     var homeVC : HomeViewController!
-    var webVC : WebViewController!
+    var browserVC : WebViewController!
     
     private var table: UITableView!
 
@@ -105,15 +105,9 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         table.deselectRow(at: indexPath, animated: true)
-        if homeVC != nil {
-//            dismissSelf()
-            navigationController?.popToRootViewController(animated: true)
-            homeVC.selectedTab?.navigateToText(bookmarks[indexPath.row])
-            homeVC.showTab(tab: homeVC.selectedTab!)
-        }
-        if webVC != nil {
+        if browserVC != nil {
             dismissSelf()
-            webVC.navigateToText(bookmarks[indexPath.row])
+            browserVC.navigateToText(bookmarks[indexPath.row])
         }
     }
     

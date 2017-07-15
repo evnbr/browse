@@ -27,7 +27,6 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
     
     var view : UIView!
     var toolbar : UIView!
-    var webView : WKWebView!
     var statusBar : UIView!
     var cardView : UIView!
     
@@ -40,7 +39,6 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         self.vc = vc
         view = vc.view
         home = vc.home
-        webView = vc.webView
         statusBar = vc.statusBar
         cardView = vc.cardView
         toolbar = vc.toolbar
@@ -123,9 +121,9 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
     }
     
     func considerStarting(gesture: UIPanGestureRecognizer) {
-        let scrollY = webView.scrollView.contentOffset.y
-        let contentH = webView.scrollView.contentSize.height
-        let viewH = webView.scrollView.bounds.height
+        let scrollY = vc.webView.scrollView.contentOffset.y
+        let contentH = vc.webView.scrollView.contentSize.height
+        let viewH = vc.webView.scrollView.bounds.height
         
         let maxScroll = contentH - viewH
 
@@ -161,13 +159,11 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
     
     func start() {
         isInteractiveDismiss = true
-        startScroll = webView.scrollView.contentOffset
-        
+        startScroll = vc.webView.scrollView.contentOffset
         
         if vc.isDisplayingSearch {
             vc.hideSearch()
         }
-        
     }
     
     func end() {
@@ -221,7 +217,7 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         
         
         let statusOffset : CGFloat = 0 // min(STATUS_H, (abs(adjustedY) / 300) * STATUS_H)
-        webView.frame.origin.y = STATUS_H - statusOffset
+        vc.webView.frame.origin.y = STATUS_H - statusOffset
         statusBar.frame.origin.y = 0 - statusOffset
         
         cardView.frame.origin.y = adjustedY

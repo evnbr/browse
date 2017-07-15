@@ -33,7 +33,7 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
     
     private var colorUpdateTimer : Timer!
 
-    private var webView: WKWebView!
+    var webView: WKWebView!
     
     private var isTopAnimating : Bool = false
     private var isBottomAnimating : Bool = false
@@ -68,9 +68,8 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
         // return deltas.sum > 7.0
     }
     
-    init(from sourceWebView : WKWebView, inViewController vc : WebViewController) {
+    init(inViewController vc : WebViewController) {
         
-        webView = sourceWebView
         wvc = vc
         
         pixel = [0, 0, 0, 0]
@@ -108,82 +107,6 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
         colorUpdateTimer = nil
     }
     
-    func updateSnapshots() {
-        guard UIApplication.shared.applicationState == .active else { return }
-        guard (wvc.isViewLoaded && (wvc.view.window != nil)) else { return }
-        
-        updateTopSnapshot()
-        updateBottomSnapshot()
-        updateBottomBlendSnapshot()
-    }
-    
-    var topSnapshot : UIView!
-    func updateTopSnapshot() {
-        
-        let SAMPLE_H : CGFloat = 4.0
-        
-        topSnapshot?.removeFromSuperview()
-        topSnapshot = webView.resizableSnapshotView(
-            from: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: SAMPLE_H),
-            afterScreenUpdates: false,
-            withCapInsets: .zero
-        )
-//        topSnapshot.frame.origin.y = 7
-        topSnapshot.frame.size.height = STATUS_H
-//        topSnapshot.transform = CGAffineTransform(scaleX: 1, y: TOOLBAR_H / SAMPLE_H)
-        
-        wvc.statusBar.addSubview(topSnapshot)
-//        wvc.statusBar.bringSubview(toFront: wvc.statusBar.blurView)
-    }
-    
-    var bottomSnapshot : UIView!
-    func updateBottomSnapshot() {
-        let SAMPLE_H : CGFloat = 4.0
-        
-        bottomSnapshot?.removeFromSuperview()
-        bottomSnapshot = webView.resizableSnapshotView(
-            from: CGRect(
-                x: 0,
-                y: wvc.webView.frame.height - 4,
-                width: UIScreen.main.bounds.width,
-                height: SAMPLE_H),
-            afterScreenUpdates: false,
-            withCapInsets: .zero
-        )
-        bottomSnapshot.frame.origin.y = 18
-//        bottomSnapshot.frame.size.width = UIScreen.main.bounds.width
-        
-        bottomSnapshot.transform = CGAffineTransform(scaleX: 1, y: 10)
-        
-        wvc.toolbar.addSubview(bottomSnapshot)
-        wvc.toolbar.sendSubview(toBack: bottomSnapshot)
-//        wvc.toolbar.sendSubview(toBack: wvc.toolbar.inner)
-//        wvc.toolbar.sendSubview(toBack: wvc.toolbar.back)
-    }
-    
-    var bottomBlendSnapshot : UIView!
-    func updateBottomBlendSnapshot() {
-        let SAMPLE_H : CGFloat = 4.0
-        
-        bottomBlendSnapshot?.removeFromSuperview()
-        bottomBlendSnapshot = webView.resizableSnapshotView(
-            from: CGRect(
-                x: 0,
-                y: wvc.webView.frame.height - 8,
-                width: UIScreen.main.bounds.width,
-                height: SAMPLE_H),
-            afterScreenUpdates: false,
-            withCapInsets: .zero
-        )
-        bottomBlendSnapshot.frame.origin.y = wvc.webView.frame.height + STATUS_H - 8
-        
-        bottomBlendSnapshot.transform = CGAffineTransform(scaleX: 1, y: 2)
-        
-        wvc.view.addSubview(bottomBlendSnapshot)
-    }
-
-    
-    
     @objc func updateColors() {
         
         guard wvc.shouldUpdateColors else { return }
@@ -198,25 +121,13 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
                 // TODO: if it looks confusing, maybe just go transparent?
                 self.previousTop = self.top
                 self.top = newColor
+                self.wvc.browserTab?.colorSample = newColor // this is a hack
                 self.topDelta = 1000 // self.top?.difference(from: self.previousTop)
                 self.deltas.addSample(value: self.topDelta > 0.3 ? 1 : 0)
                 self.updateTopColor()
-                // self.wvc.updateStatusbarLayering()
             })
         }
         
-//        if !isBottomAnimating {
-//            getColorAtBottomAsync(completion: { newColor in
-//                if !self.isBottomTransitionInteractive {
-//                    self.previousBottom = self.bottom
-//                    self.bottom = newColor
-//                    self.bottomDelta = self.bottom.difference(from: self.previousBottom)
-//                    self.deltas.addSample(value: self.bottomDelta > 0.3 ? 1 : 0)
-//                    self.updateBottomColor()
-//                }
-//            })
-//        }
-
     }
     
     func updateTopColor() {

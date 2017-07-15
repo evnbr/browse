@@ -7,8 +7,6 @@
 //
 //  Based on http://www.appcoda.com/custom-view-controller-transitions-tutorial/
 //  https://www.raywenderlich.com/146692/ios-animation-tutorial-custom-view-controller-presentation-transitions-2
-//
-//  TODO: the homeVC should present the webVC, its backwards now
 
 import UIKit
 
@@ -16,7 +14,6 @@ enum CustomAnimationDirection {
     case present
     case dismiss
 }
-
 
 // https://stackoverflow.com/questions/5948167/uiview-animatewithduration-doesnt-animate-cornerradius-variation
 extension UIView
@@ -54,23 +51,23 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         let containerView = transitionContext.containerView
         
         let homeNav = (isExpanding ? fromVC : toVC) as! UINavigationController
-        let webVC = (isExpanding ? toVC : fromVC) as! WebViewController
+        let browserVC = (isExpanding ? toVC : fromVC) as! WebViewController
         
         let homeVC = homeNav.topViewController as! HomeViewController
         
-        let thumb = homeVC.thumb(forTab: webVC)
+        let thumb = homeVC.thumb(forTab: browserVC.browserTab!)
         thumb?.isHidden = true
 
         if direction == .present {
-            webVC.resetSizes(withKeyboard: webVC.isBlank)
+            browserVC.resetSizes(withKeyboard: browserVC.isBlank)
         }
         
         if isExpanding {
-            containerView.addSubview(webVC.view)
+            containerView.addSubview(browserVC.view)
         }
         
         
-        webVC.updateSnapshot()
+        browserVC.updateSnapshot()
         
         let prevTransform = homeNav.view.transform
         homeNav.view.transform = .identity // HACK reset to identity so we can get frame
@@ -92,40 +89,40 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         }
         
         let transitioningThumb = TabThumbnail(frame: thumbFrame)
-        transitioningThumb.setWeb(webVC)
+        transitioningThumb.setTab(browserVC.browserTab!)
         
-        let expandedFrame = webVC.cardView.frame
+        let expandedFrame = browserVC.cardView.frame
         
-//        webVC.cardView.frame = isExpanding ? thumbFrame : expandedFrame // NOTE: Would remove need for transitioningthumb
+//        browserVC.cardView.frame = isExpanding ? thumbFrame : expandedFrame // NOTE: Would remove need for transitioningthumb
         
         transitioningThumb.frame = isExpanding ? thumbFrame : expandedFrame
         transitioningThumb.isExpanded = !isExpanding
-        transitioningThumb.backgroundColor = webVC.statusBar.backgroundColor
+        transitioningThumb.backgroundColor = browserVC.statusBar.backgroundColor
         
         homeNav.view.transform = self.isExpanding
             ? .identity
             : prevTransform
         
-        webVC.cardView.isHidden = true
+        browserVC.cardView.isHidden = true
         
         let END_ALPHA : CGFloat = 0.0
 
 //        homeNav.view.alpha = isExpanding ? 1.0 : END_ALPHA
 
         if isExpanding {
-            webVC.toolbar.alpha = 0.0
-            if webVC.isBlank {
+            browserVC.toolbar.alpha = 0.0
+            if browserVC.isBlank {
                 // keyboard
-                webVC.toolbar.frame.origin.y = max(
+                browserVC.toolbar.frame.origin.y = max(
                     expandedFrame.height + 100,
                     thumbFrame.origin.y + thumbFrame.height
                 )
             }
             else {
-                webVC.toolbar.frame.origin.y = webVC.toolbar.frame.origin.y - 40
+                browserVC.toolbar.frame.origin.y = browserVC.toolbar.frame.origin.y - 40
             }
-//            webVC.toolbar.frame.origin.y = homeVC.view.frame.height
-//            webVC.toolbar.frame.origin.y = thumbFrame.origin.y + thumbFrame.height
+//            browserVC.toolbar.frame.origin.y = homeVC.view.frame.height
+//            browserVC.toolbar.frame.origin.y = thumbFrame.origin.y + thumbFrame.height
         }
         
         containerView.addSubview(transitioningThumb)
@@ -148,7 +145,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             options: .allowUserInteraction,
             animations: {
                 
-//            webVC.cardView.frame = self.isExpanding ? expandedFrame : thumbFrame
+//            browserVC.cardView.frame = self.isExpanding ? expandedFrame : thumbFrame
             transitioningThumb.frame = self.isExpanding ? expandedFrame : thumbFrame
             transitioningThumb.isExpanded = self.isExpanding
             
@@ -157,8 +154,8 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
                 ? CGAffineTransform(scaleX: PRESENT_TAB_BACK_SCALE, y: PRESENT_TAB_BACK_SCALE)
                 : .identity
                 
-            webVC.toolbar.alpha = self.isExpanding ? 1.0 : 0.0
-            webVC.toolbar.frame.origin.y = webVC.cardView.frame.height
+            browserVC.toolbar.alpha = self.isExpanding ? 1.0 : 0.0
+            browserVC.toolbar.frame.origin.y = browserVC.cardView.frame.height
             
             homeVC.setNeedsStatusBarAppearanceUpdate()
                 
@@ -169,9 +166,9 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             
             transitionContext.completeTransition(true)
             
-            webVC.cardView.isHidden = false
+            browserVC.cardView.isHidden = false
             
-            thumb?.setWeb(webVC)
+            thumb?.setTab(browserVC.browserTab!)
             
             transitioningThumb.removeFromSuperview()
             

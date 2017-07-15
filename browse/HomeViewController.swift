@@ -11,7 +11,9 @@ import WebKit
 
 class HomeViewController: UICollectionViewController, UIViewControllerTransitioningDelegate {
 
-    var tabs : [WebViewController] = []
+    var tabs : [BrowserTab] = []
+    var selectedTab : BrowserTab?
+    var browserVC : WebViewController!
     
     var toolbar : BrowseToolbar!
     
@@ -19,15 +21,13 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     let sectionInsets = UIEdgeInsets(top: 8.0, left: 6.0, bottom: 8.0, right: 6.0)
     let itemsPerRow : CGFloat = 2
     
-    var selectedTab : WebViewController?
     let thumbAnimationController = PresentTabAnimationController()
     
     var isFirstLoad = true
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        guard let webVC = selectedTab else { return .lightContent }
-        if webVC.view.window != nil && !webVC.isBeingDismissed {
-            return webVC.preferredStatusBarStyle
+        if browserVC?.view.window != nil && !browserVC.isBeingDismissed {
+            return browserVC.preferredStatusBarStyle
         }
         return .lightContent
     }
@@ -37,6 +37,8 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        browserVC = WebViewController(home: self)
         
         collectionView?.delaysContentTouches = false
         collectionView?.alwaysBounceVertical = true
@@ -99,8 +101,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         collectionView?.performBatchUpdates({
             let tabsToRestore = self.getPreviousOpenTabs()
             for info in tabsToRestore {
-                let newTab = WebViewController(
-                    home: self,
+                let newTab = BrowserTab(
                     restoreInfo: info
                 )
                 self.tabs.append(newTab)
@@ -130,8 +131,8 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     }
 
     func addTab() {
-        let newTab = WebViewController(home: self)
-        self.showTab(tab: newTab)
+        let newTab = BrowserTab()
+        self.showTab(newTab)
         
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
             self.tabs.append(newTab)
@@ -145,20 +146,20 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     // todo: less copypasta with addTab()
     func openInNewTab(withConfig config: WKWebViewConfiguration) -> WKWebView {
         
-        let newTab = WebViewController(home: self, withNewTabConfig: config)
+        let newTab = BrowserTab(withNewTabConfig: config)
         
         // if we don't wait for each animation to complete,
         // the states get weird and the orginal tab gets hidden
-        selectedTab?.dismiss(animated: true, completion: {
+        browserVC.dismiss(animated: true, completion: {
             self.collectionView?.performBatchUpdates({
 //                self.tabs.append(newTab)
                 
                 // below tab that launched it
                 self.tabs.insert(newTab, at: self.tabs.index(of: self.selectedTab!)! + 1)
-                
-                self.collectionView?.insertItems(at: [ IndexPath(item: self.tabs.index(of: newTab)!, section: 0) ])
+                let ip = IndexPath(item: self.tabs.index(of: newTab)!, section: 0)
+                self.collectionView?.insertItems(at: [ ip ])
             }, completion: { _ in
-                self.showTab(tab: newTab)
+                self.showTab(newTab)
             })
         })
         
@@ -172,30 +173,29 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                 self.collectionView?.deleteItems(at: [ip])
             }
             self.tabs = []
-        }, completion: { _ in
-            //
         })
     }
     
-    func showRenameThis(_ tab: WebViewController) {
-        showTab(tab: tab)
+    func showRenameThis(_ tab: BrowserTab) {
+        showTab(tab)
     }
     
-    func thumb(forTab webVC: WebViewController) -> TabThumbnail! {
+    func thumb(forTab tab: BrowserTab) -> TabThumbnail! {
         //return collectionView?.visibleCells.first as! TabThumbnail!
         return collectionView?.visibleCells.first(where: { (cell) -> Bool in
             let thumb = cell as! TabThumbnail
-            return thumb.webVC == webVC
+            return thumb.browserTab == tab
         }) as! TabThumbnail!
     }
     
-    func showTab(tab: WebViewController, animated: Bool = true) {
+    func showTab(_ tab: BrowserTab, animated: Bool = true) {
         selectedTab = tab
         
-        tab.modalPresentationStyle = .custom
-        tab.transitioningDelegate = self
+        browserVC.setTab(tab)
+        browserVC.modalPresentationStyle = .custom
+        browserVC.transitioningDelegate = self
         
-        present(tab, animated: animated, completion: {
+        present(browserVC, animated: animated, completion: {
             self.thumb(forTab: tab)?.unSelect(animated: false)
         })
     }
@@ -247,8 +247,8 @@ extension HomeViewController {
                                                       for: indexPath) as! TabThumbnail
         // Configure the cells
         
-        let webVC : WebViewController = tabs[indexPath.row]
-        cell.setWeb(webVC)
+        let tab : BrowserTab = tabs[indexPath.row]
+        cell.setTab(tab)
         cell.closeTabCallback = closeTab
         
         return cell
@@ -257,7 +257,7 @@ extension HomeViewController {
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
         
-        showTab(tab: tabs[indexPath.row])
+        showTab(tabs[indexPath.row])
     }
     
     func closeTab(fromCell cell: UICollectionViewCell) {

@@ -16,7 +16,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     var label : UILabel!
     var snap : UIView!
     var overlay : UIView!
-    var webVC : WebViewController!
+    var browserTab : BrowserTab!
     var closeTabCallback : CloseTabCallback!
     
     var unTransformedFrame : CGRect!
@@ -116,18 +116,18 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setWeb(_ newWebVC : WebViewController) {
-        webVC = newWebVC
+    func setTab(_ newTab : BrowserTab) {
+        browserTab = newTab
         
-        if let snap : UIView = webVC.webSnapshot {
+        if let snap : UIView = browserTab.webSnapshot {
             label.isHidden = true
             setSnapshot(snap)
         }
         
-        contentView.backgroundColor = webVC.topColor
-        label.textColor = webVC.topColor.isLight ? .white : .darkText
+        contentView.backgroundColor = browserTab.color
+        label.textColor = browserTab.color.isLight ? .white : .darkText
         
-        if let title : String = webVC.restorableTitle {
+        if let title : String = browserTab.restorableTitle {
             label.text = "\(title)"
         }
     }

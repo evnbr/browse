@@ -14,11 +14,8 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     
     var home: HomeViewController!
     var webView: WKWebView!
-    
-    var restoredLocation : String?
-    var restoredTitle : String?
-    var restoredColor : UIColor?
-    
+    var browserTab: BrowserTab?
+        
     var isDisplayingSearch : Bool = false
     var searchView: SearchView!
     var colorSampler: ColorTransitionController!
@@ -46,11 +43,10 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     // MARK: - Derived properties
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        
         if interactiveDismissController.isInteractiveDismiss && (cardView.frame.origin.y > 10) {
             return .lightContent
         }
-        return topColor.isLight ? .lightContent : .default
+        return statusBar.backgroundColor!.isLight ? .lightContent : .default
     }
     
     override var prefersStatusBarHidden: Bool {
@@ -62,14 +58,14 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
             isViewLoaded
             && view.window != nil
             && !interactiveDismissController.isInteractiveDismiss
-            && !interactiveDismissController.isInteractiveDismissToolbar
             && UIApplication.shared.applicationState == .active
+            && webView != nil
             && webView.scrollView.contentOffset.y >= 0
         )
     }
     
     var displayTitle : String {
-        guard let url = webView.url else { return "" }
+        guard let url = webView?.url else { return "" }
         if isSearching { return url.searchQuery }
         else { return displayURL }
     }
@@ -96,28 +92,10 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     
     var editableLocation : String {
         get {
-            guard let url = webView.url else { return "" }
+            guard let url = webView?.url else { return "" }
             if isSearching { return url.searchQuery }
             else { return url.absoluteString }
         }
-    }
-    
-    var restorableTitle : String? {
-        return webView?.title ?? restoredTitle
-    }
-    var restorableURL : String? {
-        return webView?.url?.absoluteString ?? restoredLocation
-    }
-    var topColor : UIColor {
-        return colorSampler?.top ?? restoredColor ?? .white
-    }
-    
-    var restorableInfo : TabInfo {
-        return TabInfo(
-            title: restorableTitle ?? "",
-            urlString: restorableURL ?? "",
-            color: topColor
-        )
     }
     
     
@@ -127,49 +105,47 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         self.init()
         self.home = home
     }
-    convenience init(home: HomeViewController, restoreInfo : TabInfo) {
-        self.init()
-        self.home = home
-        self.restoredColor = restoreInfo.color
-        self.restoredTitle = restoreInfo.title
-        self.restoredLocation = restoreInfo.urlString
-    }
     
-    convenience init(home: HomeViewController, withNewTabConfig config: WKWebViewConfiguration) {
-        self.init()
-        self.home = home
-        
-        // load the webview early so we can return it to
-        // the wkuidelegate, which wants to load the request
-        self.webView = loadWebView(withConfig: config)
-    }
     
-    func loadWebView(withConfig config : WKWebViewConfiguration?) -> WKWebView {
-        let config = config ?? WKWebViewConfiguration()
-        config.allowsInlineMediaPlayback = true
+    func setTab(_ newTab: BrowserTab ) {
         
-        let rect = CGRect(
-            origin: CGPoint(x: 0, y: STATUS_H),
-            size:CGSize(
-                width: UIScreen.main.bounds.size.width,
-                height: UIScreen.main.bounds.size.height - TOOLBAR_H - STATUS_H
-            )
-        )
+        let oldWebView = webView
+        oldWebView?.removeFromSuperview()
+        oldWebView?.uiDelegate = nil
+        oldWebView?.navigationDelegate = nil
         
-        webView = WKWebView(frame: rect, configuration: config)
+        browserTab = newTab
+        webView = newTab.webView
+        statusBar.backgroundColor = newTab.color
+        webView.backgroundColor = newTab.color
+        
         webView.navigationDelegate = self
-        webView.uiDelegate = self  // req'd for target=_blank override
+        webView.uiDelegate = self
+        webView.scrollView.delegate = interactiveDismissController
         
-        //        webView.allowsBackForwardNavigationGestures = true
+        colorSampler.webView = webView
         
-        //         webView.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
-        webView.translatesAutoresizingMaskIntoConstraints = false
+        cardView.addSubview(webView)
         
-        webView.scrollView.contentInset = .zero
-        webView.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
-        webView.backgroundColor = topColor
+        webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: STATUS_H).isActive = true
+        webView.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
+        webView.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
         
-        return webView
+        heightConstraint = webView.heightAnchor.constraint(equalTo: view.heightAnchor, constant: (-STATUS_H - TOOLBAR_H))
+        heightConstraint.isActive = true
+        webView.heightAnchor.constraint(greaterThanOrEqualTo: cardView.heightAnchor, constant: -STATUS_H)
+        
+        webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
+        webView.addObserver(self, forKeyPath: #keyPath(WKWebView.title), options: .new, context: nil)
+        webView.addObserver(self, forKeyPath: #keyPath(WKWebView.url), options: .new, context: nil)
+        
+        loadingDidChange()
+        
+        if let location = browserTab?.restoredLocation {
+            if location != "" && isBlank {
+                navigateToText(location)
+            }
+        }
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -183,10 +159,6 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if webView == nil {
-            webView = loadWebView(withConfig: nil)
-        }
-        
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.layer.cornerRadius = CORNER_RADIUS
         view.layer.masksToBounds = true
@@ -198,9 +170,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         cardView.layer.masksToBounds = true
         cardView.backgroundColor = .red
         
-        cardView.addSubview(webView)
-        
-        statusBar = ColorStatusBarView(color: topColor)
+        statusBar = ColorStatusBarView()
         cardView.addSubview(statusBar)
         
         searchView = SearchView(for: self)
@@ -212,33 +182,15 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         view.sendSubview(toBack: toolbar)
         
         
-        webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: STATUS_H).isActive = true
-        webView.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
-        webView.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
+        colorSampler = ColorTransitionController(inViewController: self)
         
-        heightConstraint = webView.heightAnchor.constraint(equalTo: view.heightAnchor, constant: (-STATUS_H - TOOLBAR_H))
-        heightConstraint.isActive = true
-        webView.heightAnchor.constraint(greaterThanOrEqualTo: cardView.heightAnchor, constant: -STATUS_H)
-        
-        colorSampler = ColorTransitionController(from: webView, inViewController: self)
-        
-        webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
-        webView.addObserver(self, forKeyPath: #keyPath(WKWebView.title), options: .new, context: nil)
-        webView.addObserver(self, forKeyPath: #keyPath(WKWebView.url), options: .new, context: nil)
-
         interactiveDismissController = WebViewInteractiveDismissController(for: self)
-        webView.scrollView.delegate = interactiveDismissController
-
+        
 
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
         locationBar.addGestureRecognizer(longPress)
         
-        loadingDidChange()
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
-        
-        if restoredLocation != nil && restoredLocation != "" {
-            navigateToText(restoredLocation!)
-        }
     }
     
     var keyboardHeight : CGFloat = 250
@@ -324,10 +276,9 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         return toolbar
     }
     
-    var webSnapshot : UIView?
     func updateSnapshot() {
         webView.scrollView.showsVerticalScrollIndicator = false
-        webSnapshot = webView.snapshotView(afterScreenUpdates: true)!
+        browserTab?.webSnapshot = webView.snapshotView(afterScreenUpdates: true)!
         webView.scrollView.showsVerticalScrollIndicator = true
     }
     
@@ -400,7 +351,7 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
 
     func displayBookmarks() {
         let bc = BookmarksViewController()
-        bc.webVC = self
+        bc.browserVC = self
         present(WebNavigationController(rootViewController: bc), animated: true)
     }
     
@@ -591,44 +542,6 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         
     }
     
-    func webViewCheckFixedNav(completion: @escaping (Bool) -> Void ) {
-        
-        // for some reason this doesn't work during a drag. assuming document coordinates are
-        // not updated live or something?
-//        guard !webView.scrollView.isDragging else {
-//            return
-//        }
-
-        let js = ""
-        + "(function() {"
-        + "function isFixed(el) {"
-        + "    let pos = getComputedStyle(el).position;"
-        + "    if (pos == 'fixed' || pos.includes('sticky')) {"
-        + "        return true;"
-        + "    }"
-        + "    if (el.parentElement) {"
-        + "        return isFixed(el.parentElement);"
-        + "    }"
-        + "    return false;"
-        + "}"
-        + ""
-        + "let el = document.elementFromPoint(2,2);"
-        + "console.log(el);"
-        + "return isFixed(el);"
-        + "})()"
-        
-        webView.evaluateJavaScript(js) { (result, error) in
-            if (result != nil) {
-                let isFixed : Bool = result as! Bool
-                completion(isFixed)
-            }
-            else {
-                // something went wrong
-                completion(false)
-            }
-        }
-    }
-    
     @objc func displayShareSheet() {
         self.resignFirstResponder() // without this, action sheet dismiss animation won't go all the way
         
@@ -667,22 +580,6 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         
     }
     
-//    func updateStopRefreshAlertAction() {
-//        if webView.isLoading {
-//            stopRefreshAlertAction.setValue("Stop", forKey: "title")
-//        }
-//        else {
-//            stopRefreshAlertAction.setValue("Refresh", forKey: "title")
-//        }
-//
-//        overflowController.view.setNeedsLayout()
-//    }
-    
-    func stopOrRefresh(_ action : UIAlertAction) {
-        if webView.isLoading { self.webView.stopLoading() }
-        else { self.webView.reload() }
-    }
-    
     func displayOverflow() {
         
         let ac = UIAlertController(title: title, message: nil, preferredStyle: .actionSheet)
@@ -710,11 +607,6 @@ class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivi
         ac.addAction(UIAlertAction(title: "Share...", style: .default, handler: { action in
             self.displayShareSheet()
         }))
-        
-//        stopRefreshAlertAction = UIAlertAction(title: "_", style: .destructive, handler: stopOrRefresh)
-//        updateStopRefreshAlertAction()
-//        ac.addAction(stopRefreshAlertAction)
-        
         
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         
