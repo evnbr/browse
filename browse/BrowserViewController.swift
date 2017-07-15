@@ -1,5 +1,5 @@
 //
-//  WebViewController.swift
+//  BrowserViewController.swift
 //  browse
 //
 //  Created by Evan Brooks on 5/11/17.
@@ -10,7 +10,7 @@ import UIKit
 import WebKit
 import OnePasswordExtension
 
-class WebViewController: UIViewController, UIGestureRecognizerDelegate, UIActivityItemSource {
+class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIActivityItemSource {
     
     var home: HomeViewController!
     var webView: WKWebView!

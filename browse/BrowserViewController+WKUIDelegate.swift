@@ -1,5 +1,5 @@
 //
-//  WebViewController+WKUIDelegate.swift
+//  BrowserViewController+WKUIDelegate.swift
 //  browse
 //
 //  Created by Evan Brooks on 6/16/17.
@@ -9,7 +9,7 @@
 import UIKit
 import WebKit
 
-extension WebViewController : WKUIDelegate {
+extension BrowserViewController : WKUIDelegate {
     
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         if navigationAction.targetFrame == nil {

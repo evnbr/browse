@@ -33,7 +33,7 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
     ]
     
     var homeVC : HomeViewController!
-    var browserVC : WebViewController!
+    var browserVC : BrowserViewController!
     
     private var table: UITableView!
 

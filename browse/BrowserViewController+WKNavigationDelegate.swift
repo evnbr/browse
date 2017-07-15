@@ -1,5 +1,5 @@
 //
-//  WebViewController+WKNavigationDelegate.swift
+//  BrowserViewController+WKNavigationDelegate.swift
 //  browse
 //
 //  Created by Evan Brooks on 6/17/17.
@@ -9,7 +9,7 @@
 import UIKit
 import WebKit
 
-extension WebViewController: WKNavigationDelegate {
+extension BrowserViewController: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
         errorView?.removeFromSuperview()
         

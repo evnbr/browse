@@ -12,7 +12,7 @@ class SettingsViewController: UIViewController, UITableViewDelegate, UITableView
     
     lazy var settings: [SettingsSection] = Settings.shared.sections
     
-    var sender : WebViewController!
+    var sender : BrowserViewController!
     
     
     private var table: UITableView!

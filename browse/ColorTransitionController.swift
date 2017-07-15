@@ -61,14 +61,14 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
     
     private var deltas : Sampler = Sampler(period: 12)
     
-    private var wvc : WebViewController!
+    private var wvc : BrowserViewController!
 
     public var isFranticallyChanging : Bool {
         return false
         // return deltas.sum > 7.0
     }
     
-    init(inViewController vc : WebViewController) {
+    init(inViewController vc : BrowserViewController) {
         
         wvc = vc
         

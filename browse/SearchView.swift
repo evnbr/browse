@@ -13,7 +13,7 @@ let SEARCHVIEW_MAX_H : CGFloat = 160.0
 
 class SearchView: UIView, UITextViewDelegate {
     
-    var webViewController : WebViewController!
+    var BrowserViewController : BrowserViewController!
     var textView : SearchTextView!
     var cancel   : ToolbarTextButton!
     
@@ -29,7 +29,7 @@ class SearchView: UIView, UITextViewDelegate {
         }
     }
     
-    init(for vc: WebViewController) {
+    init(for vc: BrowserViewController) {
         super.init(frame: CGRect(
             x: 0,
             y: 300,
@@ -37,7 +37,7 @@ class SearchView: UIView, UITextViewDelegate {
             height: 600
         ))
         
-        webViewController = vc
+        BrowserViewController = vc
         
         self.isEnabled = false
         
@@ -69,7 +69,7 @@ class SearchView: UIView, UITextViewDelegate {
         textView.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(textView)
         
-        cancel = ToolbarTextButton(title: "Cancel", withIcon: nil, onTap: self.webViewController.hideSearch)
+        cancel = ToolbarTextButton(title: "Cancel", withIcon: nil, onTap: self.BrowserViewController.hideSearch)
         cancel.size = .medium
         cancel.sizeToFit()
         
@@ -185,7 +185,7 @@ class SearchView: UIView, UITextViewDelegate {
     
     func textViewDidChange(_ textView: UITextView) {
         updateSize()
-        webViewController.searchSizeDidChange()
+        BrowserViewController.searchSizeDidChange()
     }
     
     func prepareToShow() {
@@ -195,8 +195,8 @@ class SearchView: UIView, UITextViewDelegate {
     
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
         if text == "\n" {
-            webViewController.hideSearch()
-            webViewController.navigateToText(textView.text!)
+            BrowserViewController.hideSearch()
+            BrowserViewController.navigateToText(textView.text!)
             return false
         }
         return true

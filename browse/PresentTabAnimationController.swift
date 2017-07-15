@@ -51,7 +51,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         let containerView = transitionContext.containerView
         
         let homeNav = (isExpanding ? fromVC : toVC) as! UINavigationController
-        let browserVC = (isExpanding ? toVC : fromVC) as! WebViewController
+        let browserVC = (isExpanding ? toVC : fromVC) as! BrowserViewController
         
         let homeVC = homeNav.topViewController as! HomeViewController
         

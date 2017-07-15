@@ -22,7 +22,7 @@ enum WebViewInteractiveDismissDirection {
 
 class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegate, UIScrollViewDelegate {
     
-    var vc : WebViewController!
+    var vc : BrowserViewController!
     var home : UIViewController!
     
     var view : UIView!
@@ -33,7 +33,7 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
     var direction : WebViewInteractiveDismissDirection!
     var velocity : CGFloat = 0
     
-    init(for vc : WebViewController) {
+    init(for vc : BrowserViewController) {
         super.init()
         
         self.vc = vc

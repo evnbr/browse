@@ -13,7 +13,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
 
     var tabs : [BrowserTab] = []
     var selectedTab : BrowserTab?
-    var browserVC : WebViewController!
+    var browserVC : BrowserViewController!
     
     var toolbar : BrowseToolbar!
     
@@ -38,7 +38,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        browserVC = WebViewController(home: self)
+        browserVC = BrowserViewController(home: self)
         
         collectionView?.delaysContentTouches = false
         collectionView?.alwaysBounceVertical = true
