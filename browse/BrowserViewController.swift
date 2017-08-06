@@ -160,13 +160,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         super.viewDidLoad()
         
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.layer.cornerRadius = CORNER_RADIUS
+        view.layer.cornerRadius = CARD_RADIUS
         view.layer.masksToBounds = true
         
         
         cardView = UIView(frame: cardViewDefaultFrame)
         cardView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        cardView.layer.cornerRadius = CORNER_RADIUS
+        cardView.layer.cornerRadius = CARD_RADIUS
         cardView.layer.masksToBounds = true
         cardView.backgroundColor = .red
         
@@ -261,12 +261,16 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             icon: UIImage(named: "action"),
             onTap: displayOverflow
         )
+        tabButton = ToolbarIconButton(
+            icon: UIImage(named: "tab"),
+            onTap: dismissSelf
+        )
         stopButton = ToolbarIconButton(
             icon: UIImage(named: "stop"),
             onTap: { self.webView.stopLoading() }
         )
 
-        toolbar.items = [backButton, forwardButton, locationBar, stopButton, actionButton]
+        toolbar.items = [backButton, forwardButton, locationBar, stopButton, tabButton, actionButton]
         
         toolbar.addSubview(searchView)
         
@@ -448,7 +452,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 self.forwardButton.isHidden = true
                 self.stopButton.isHidden = true
                 self.actionButton.isHidden = true
-                
+                self.tabButton.isHidden = true
+                    
                 self.actionButton.alpha = 0
             })
         }
@@ -464,6 +469,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             self.forwardButton.isHidden = true
             self.stopButton.isHidden = true
             self.actionButton.isHidden = true
+            self.tabButton.isHidden = true
             
             self.actionButton.alpha = 0
             
@@ -501,6 +507,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             self.forwardButton.isHidden = false
             self.stopButton.isHidden = false
             self.actionButton.isHidden = false
+            self.tabButton.isHidden = false
             
             self.actionButton.alpha = 1
         })
@@ -508,13 +515,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     
     func searchSizeDidChange() {
-        if searchView != nil && searchView.textView.isFirstResponder {
+        if searchView != nil && isDisplayingSearch {
             let cardH = cardViewDefaultFrame.height - keyboardHeight - searchView.frame.height + TOOLBAR_H
             
-            self.cardView?.frame.size.height = cardH
             self.toolbar?.frame.origin.y = cardH
             self.toolbar?.frame.size.height = self.searchView.frame.height
-                
+            
+            UIView.animate(withDuration: 0.2, animations: {
+                self.cardView?.frame.size.height = cardH
+            })
         }
     }
 
@@ -601,9 +610,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         ac.addAction(UIAlertAction(title: "Passwords", style: .default, handler: { action in
             self.displayPassword()
         }))
-        ac.addAction(UIAlertAction(title: "Bookmarks", style: .default, handler: { action in
-            self.displayBookmarks()
-        }))
+//        ac.addAction(UIAlertAction(title: "Bookmarks", style: .default, handler: { action in
+//            self.displayBookmarks()
+//        }))
         ac.addAction(UIAlertAction(title: "Share...", style: .default, handler: { action in
             self.displayShareSheet()
         }))
@@ -732,7 +741,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         guard isViewLoaded else { return }
         
         locationBar.text = self.displayTitle
-        searchView.textView.text = self.editableLocation
         
         let small = CGAffineTransform(scaleX: 0.6, y: 0.6)
         

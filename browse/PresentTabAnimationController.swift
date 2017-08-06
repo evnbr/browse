@@ -98,6 +98,14 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         transitioningThumb.frame = isExpanding ? thumbFrame : expandedFrame
         transitioningThumb.isExpanded = !isExpanding
         transitioningThumb.backgroundColor = browserVC.statusBar.backgroundColor
+        if !isExpanding {
+            // continue from wherever cardview left off
+            transitioningThumb.layer.cornerRadius = browserVC.cardView.layer.cornerRadius
+        }
+        else {
+            // reset cardview radius
+            browserVC.cardView.layer.cornerRadius = CARD_RADIUS
+        }
         
         homeNav.view.transform = self.isExpanding
             ? .identity

@@ -9,29 +9,34 @@
 import Foundation
 import UIKit
 
+let BOOKMARKS_GLOBAL : [ String ] = [
+    "apple.com",
+    "figma.com",
+    "framer.com",
+    "hoverstat.es",
+    "nytimes.com",
+    "bloomberg.com",
+    "theverge.com",
+    "theoutline.com",
+    "bacca.online",
+    "corndog.love",
+    "marygaudin.com",
+    "instagram.com",
+    "facebook.com",
+    "twitter.com",
+    "medium.com",
+    "greenapplebooks.com",
+    "amazon.com",
+    "fonts.google.com",
+    "flights.google.com",
+    "plus.google.com",
+    "maps.google.com",
+    "wikipedia.org",
+]
+
 class BookmarksViewController : UIViewController, UITableViewDelegate, UITableViewDataSource {
     
-    let bookmarks : Array<String> = [
-        "apple.com",
-        "figma.com",
-        "hoverstat.es",
-        "medium.com",
-        "greenapplebooks.com",
-        "amazon.com",
-        "fonts.google.com",
-        "flights.google.com",
-        "maps.google.com",
-        "plus.google.com",
-        "wikipedia.org",
-        "theverge.com",
-        "framer.com",
-        "nytimes.com",
-        "bloomberg.com",
-        "theoutline.com",
-        "corndog.love",
-        "bacca.online",
-    ]
-    
+    let bookmarks = BOOKMARKS_GLOBAL
     var homeVC : HomeViewController!
     var browserVC : BrowserViewController!
     

@@ -14,8 +14,10 @@ let SEARCHVIEW_MAX_H : CGFloat = 160.0
 class SearchView: UIView, UITextViewDelegate {
     
     var BrowserViewController : BrowserViewController!
+    
     var textView : SearchTextView!
     var cancel   : ToolbarTextButton!
+    var suggestionView : ToolbarTextButton!
     
     var fullWidthConstraint : NSLayoutConstraint!
     var roomForCancelConstraint : NSLayoutConstraint!
@@ -87,17 +89,22 @@ class SearchView: UIView, UITextViewDelegate {
         translatesAutoresizingMaskIntoConstraints = false
         
         textView.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 8).isActive = true
-        textView.topAnchor.constraint(equalTo: self.topAnchor, constant: 12).isActive = true
+        textView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -8).isActive = true
         
         fullWidthConstraint = textView.widthAnchor.constraint(equalTo: self.widthAnchor, constant: -16)
         roomForCancelConstraint = textView.widthAnchor.constraint(equalTo: self.widthAnchor, constant: -cancel.frame.width - 8)
-        fullWidthConstraint.isActive = true
-        roomForCancelConstraint.isActive = false
+        fullWidthConstraint.isActive = false
+        roomForCancelConstraint.isActive = true
         
+        suggestionView = ToolbarTextButton(title: "Suggestion", withIcon: nil, onTap: self.useSuggestion)
+        suggestionView.size = .large
+        suggestionView.alpha = 0
+        addSubview(suggestionView)
+        self.topAnchor.constraint(equalTo: suggestionView.topAnchor)
+        self.leftAnchor.constraint(equalTo: suggestionView.leftAnchor)
         
-        self.heightAnchor.constraint(equalTo: textView.heightAnchor, constant: 20).isActive = true
-        self.heightAnchor.constraint(lessThanOrEqualToConstant: SEARCHVIEW_MAX_H).isActive = true
-        
+//        self.heightAnchor.constraint(equalTo: textView.heightAnchor, constant: 20).isActive = true
+//        self.heightAnchor.constraint(lessThanOrEqualToConstant: SEARCHVIEW_MAX_H).isActive = true
         
         
         // TODO this doesn't seem to work
@@ -121,6 +128,17 @@ class SearchView: UIView, UITextViewDelegate {
 
         var frame = self.frame
         frame.size.height = newFrame.size.height + 20
+        
+        if showSuggestion {
+            frame.size.height = newFrame.size.height + suggestionView.frame.height + 12
+            UIView.animate(withDuration: 0.2, animations: {
+                self.suggestionView.alpha = 1
+            })
+        }
+        else {
+            self.suggestionView.alpha = 0
+        }
+        
         self.frame = frame
         
 //        textView.invalidateIntrinsicContentSize()
@@ -129,9 +147,7 @@ class SearchView: UIView, UITextViewDelegate {
     }
     
     override public var intrinsicContentSize: CGSize {
-        get {
-            return frame.size
-        }
+        return frame.size
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -141,8 +157,8 @@ class SearchView: UIView, UITextViewDelegate {
     func textViewDidBeginEditing(_ textView: UITextView) {
         self.isEnabled = true
         
-        fullWidthConstraint.isActive = false
-        roomForCancelConstraint.isActive = true
+//        fullWidthConstraint.isActive = false
+//        roomForCancelConstraint.isActive = true
         
         self.updateSize()
         
@@ -163,13 +179,11 @@ class SearchView: UIView, UITextViewDelegate {
     func textViewDidEndEditing(_ textView: UITextView) {
         textView.alpha = 1
         cancel.transform = .identity
-
-//        self.hide()
-        // this is just a bad idea
         
+//        roomForCancelConstraint.isActive = false
+//        fullWidthConstraint.isActive = true
         
-        roomForCancelConstraint.isActive = false
-        fullWidthConstraint.isActive = true
+        suggestionView.alpha = 0
         
         UIView.animate(withDuration: 0.3, animations: {
             textView.alpha = 0
@@ -183,13 +197,42 @@ class SearchView: UIView, UITextViewDelegate {
         })
     }
     
+    var showSuggestion : Bool = false
+    func updateSuggestion() {
+        let search = textView.text.lowercased()
+        let results = BOOKMARKS_GLOBAL.filter { bookmark -> Bool in
+            if search.count == 1 {
+                // if just one letter, it better be at beginning
+                return bookmark.lowercased().hasPrefix(search)
+            }
+            else {
+                return bookmark.lowercased().contains(search)
+            }
+        }
+        if let best = results.first {
+            showSuggestion = true
+            suggestionView.text = best
+            suggestionView.sizeToFit()
+        }
+        else {
+            showSuggestion = false
+        }
+    }
+    func useSuggestion() {
+        BrowserViewController.hideSearch()
+        BrowserViewController.navigateToText(suggestionView.text!)
+    }
+    
     func textViewDidChange(_ textView: UITextView) {
+        updateSuggestion()
         updateSize()
         BrowserViewController.searchSizeDidChange()
     }
     
     func prepareToShow() {
-        
+        textView.text = BrowserViewController.editableLocation
+        updateSuggestion()
+        updateSize()
     }
     
     

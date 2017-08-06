@@ -33,6 +33,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
             label?.alpha = newValue ? 0 : 1
             snap?.frame = frameForSnap(snap)
             layer.borderWidth = newValue ? 0.0 : 1.0
+            layer.cornerRadius = newValue ? CARD_RADIUS : THUMB_RADIUS
         }
     }
     

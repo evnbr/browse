@@ -50,12 +50,12 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         dismissPanner.cancelsTouchesInView = true
         view.addGestureRecognizer(dismissPanner)
         
-        let edgeDismissPan = UIScreenEdgePanGestureRecognizer()
-        edgeDismissPan.delegate = self
-        edgeDismissPan.edges = .left
-        edgeDismissPan.addTarget(self, action: #selector(edgeGestureChange(gesture:)))
-        edgeDismissPan.cancelsTouchesInView = true
-        view.addGestureRecognizer(edgeDismissPan)
+//        let edgeDismissPan = UIScreenEdgePanGestureRecognizer()
+//        edgeDismissPan.delegate = self
+//        edgeDismissPan.edges = .left
+//        edgeDismissPan.addTarget(self, action: #selector(edgeGestureChange(gesture:)))
+//        edgeDismissPan.cancelsTouchesInView = true
+//        view.addGestureRecognizer(edgeDismissPan)
     }
     
     
@@ -182,6 +182,7 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
             self.vc.resetSizes(withKeyboard: self.shouldRestoreKeyboard)
             self.vc.setNeedsStatusBarAppearanceUpdate()
             self.vc.home.navigationController?.view.alpha = 0
+            self.cardView.layer.cornerRadius = CARD_RADIUS
         }, completion: nil)
         
         if shouldRestoreKeyboard {  // HACK, COPY PASTED EVERYWHERE
@@ -196,7 +197,7 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         return val * resist
     }
     
-    func update(gesture:UIPanGestureRecognizer) {
+    func update(gesture: UIPanGestureRecognizer) {
         
         let gesturePos = gesture.translation(in: view)
         var adjustedY : CGFloat = gesturePos.y - startPoint.y
@@ -231,11 +232,17 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         home.navigationController?.view.alpha = revealProgress * 0.4 // alpha is 0 ... 0.4
         let scale = PRESENT_TAB_BACK_SCALE + revealProgress * 0.5 * (1 - PRESENT_TAB_BACK_SCALE)
         home.navigationController?.view.transform = CGAffineTransform(scaleX: scale, y: scale)
-
+        
+        cardView.layer.cornerRadius = min(revealProgress * 8 * CORNER_RADIUS, CORNER_RADIUS)
+        
         if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle {
             UIView.animate(withDuration: 0.2, animations: {
                 self.vc.setNeedsStatusBarAppearanceUpdate()
             })
+        }
+        
+        if abs(adjustedY) > 160 {
+            commit()
         }
         
 //        statusBarAnimator.fractionComplete = abs(adjustedY) / 50
