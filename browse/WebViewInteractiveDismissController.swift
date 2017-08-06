@@ -50,12 +50,12 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         dismissPanner.cancelsTouchesInView = true
         view.addGestureRecognizer(dismissPanner)
         
-//        let edgeDismissPan = UIScreenEdgePanGestureRecognizer()
-//        edgeDismissPan.delegate = self
-//        edgeDismissPan.edges = .left
-//        edgeDismissPan.addTarget(self, action: #selector(edgeGestureChange(gesture:)))
-//        edgeDismissPan.cancelsTouchesInView = true
-//        view.addGestureRecognizer(edgeDismissPan)
+        let edgeDismissPan = UIScreenEdgePanGestureRecognizer()
+        edgeDismissPan.delegate = self
+        edgeDismissPan.edges = .left
+        edgeDismissPan.addTarget(self, action: #selector(edgeGestureChange(gesture:)))
+        edgeDismissPan.cancelsTouchesInView = true
+        view.addGestureRecognizer(edgeDismissPan)
     }
     
     
@@ -289,6 +289,13 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
     
     
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+    
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        if gestureRecognizer is UIScreenEdgePanGestureRecognizer {
+            return !vc.webView.canGoBack
+        }
         return true
     }
     
