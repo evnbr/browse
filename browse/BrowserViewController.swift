@@ -270,7 +270,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             onTap: { self.webView.stopLoading() }
         )
 
-        toolbar.items = [backButton, forwardButton, locationBar, stopButton, tabButton, actionButton]
+        toolbar.items = [tabButton, locationBar, stopButton, actionButton]
         
         toolbar.addSubview(searchView)
         
@@ -434,9 +434,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         if animated {
             UIView.animate(
-                withDuration: 0.55,
+                withDuration: 0.5,
                 delay: 0.0,
-                usingSpringWithDamping: 0.9,
+                usingSpringWithDamping: 1,
                 initialSpringVelocity: 0.0,
                 options: [.curveLinear, .allowUserInteraction],
                 animations: {
@@ -453,8 +453,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 self.stopButton.isHidden = true
                 self.actionButton.isHidden = true
                 self.tabButton.isHidden = true
-                    
-                self.actionButton.alpha = 0
             })
         }
         else {
@@ -470,9 +468,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             self.stopButton.isHidden = true
             self.actionButton.isHidden = true
             self.tabButton.isHidden = true
-            
-            self.actionButton.alpha = 0
-            
         }
         
     }
@@ -505,11 +500,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             
             self.backButton.isHidden = false
             self.forwardButton.isHidden = false
-            self.stopButton.isHidden = false
+//            self.stopButton.isHidden = false
             self.actionButton.isHidden = false
             self.tabButton.isHidden = false
             
-            self.actionButton.alpha = 1
         })
     }
     
@@ -521,7 +515,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             self.toolbar?.frame.origin.y = cardH
             self.toolbar?.frame.size.height = self.searchView.frame.height
             
-            UIView.animate(withDuration: 0.2, animations: {
+            UIView.animate(
+                withDuration: 0.4,
+                delay: 0.0,
+                usingSpringWithDamping: 1,
+                initialSpringVelocity: 0,
+                options: .curveLinear,
+                animations: {
                 self.cardView?.frame.size.height = cardH
             })
         }
@@ -751,13 +751,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             self.forwardButton.tintColor = self.webView.canGoForward ? nil : .clear
             self.forwardButton.transform = self.webView.canGoForward ? .identity : small
             
-            self.stopButton.isEnabled = self.webView.isLoading
-            self.stopButton.tintColor = self.webView.isLoading ? nil : .clear
-            self.stopButton.transform = self.webView.isLoading ? .identity : small
+//            self.stopButton.isEnabled = self.webView.isLoading
+//            self.stopButton.tintColor = self.webView.isLoading ? nil : .clear
+//            self.stopButton.transform = self.webView.isLoading ? .identity : small
             
 //            self.forwardButton.isHidden = !self.webView.canGoForward
-//            self.stopButton.isHidden = !self.webView.isLoading
         }
+        self.stopButton.isHidden = !self.webView.isLoading
+        self.actionButton.isHidden = self.webView.isLoading
         
         
         locationBar.isLoading = webView.isLoading

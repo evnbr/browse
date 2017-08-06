@@ -40,7 +40,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
     }
         
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return 0.5
+        return 0.2
     }
     
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -74,7 +74,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         
         var thumbFrame : CGRect
-        var duration = 0.5
+        var duration = 0.4
         
         if thumb != nil {
             // must be after toVC is added
@@ -85,7 +85,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             let y = (homeVC.navigationController?.view.frame.height)!
             thumbFrame = CGRect(origin: CGPoint(x: 0, y: y), size: homeVC.thumbSize)
             thumbFrame.size.height = 40
-            duration = 0.6
+            duration = 0.5
         }
         
         let transitioningThumb = TabThumbnail(frame: thumbFrame)
@@ -148,7 +148,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         UIView.animate(
             withDuration: duration,
             delay: 0.0,
-            usingSpringWithDamping: 0.85,
+            usingSpringWithDamping: 0.9,
             initialSpringVelocity: 0.0,
             options: .allowUserInteraction,
             animations: {

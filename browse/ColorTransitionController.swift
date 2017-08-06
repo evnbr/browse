@@ -23,7 +23,7 @@ enum ColorTransitionStyle {
     case translate
 }
 
-let DURATION = 0.3
+let DURATION = 0.4
 
 class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
     
