@@ -107,27 +107,6 @@ class Settings: NSObject {
         
         super.init()
         
-        NotificationCenter.default.addObserver(self, selector: #selector(updateProtocolRegistration), name: NSNotification.Name(rawValue: "adBlockSettingDidChange"), object: nil)
     }
-    
-    func updateProtocolRegistration() {
-        let newValue : Bool = Settings.shared.blockAds.isOn
-        if newValue { registerProtocol()   }
-        else        { unregisterProtocol() }
-    }
-    
-    func registerProtocol() {
-        URLProtocol.wk_registerScheme("http")
-        URLProtocol.wk_registerScheme("https")
-        URLProtocol.registerClass(BrowseURLProtocol.self)
-    }
-    
-    func unregisterProtocol() {
-        URLProtocol.wk_unregisterScheme("http")
-        URLProtocol.wk_unregisterScheme("https")
-        URLProtocol.unregisterClass(BrowseURLProtocol.self)
-    }
-
-    
 
 }

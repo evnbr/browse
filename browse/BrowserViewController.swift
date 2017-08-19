@@ -594,19 +594,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         let ac = UIAlertController(title: title, message: nil, preferredStyle: .actionSheet)
         self.overflowController = ac
         
-        if Settings.shared.blockAds.isOn {
-            ac.addAction(UIAlertAction(title: "Stop Blocking Ads", style: .default, handler: { action in
-                Settings.shared.blockAds.isOn = false
-                self.webView.reload()
-            }))
-        }
-        else {
-            ac.addAction(UIAlertAction(title: "Block Ads", style: .default, handler: { action in
-                Settings.shared.blockAds.isOn = true
-                self.webView.reload()
-            }))
-        }
-        
         ac.addAction(UIAlertAction(title: "Passwords", style: .default, handler: { action in
             self.displayPassword()
         }))

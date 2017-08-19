@@ -44,8 +44,6 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         collectionView?.alwaysBounceVertical = true
         collectionView?.indicatorStyle = .white
         collectionView?.register(TabThumbnail.self, forCellWithReuseIdentifier: reuseIdentifier)
-
-        Settings.shared.updateProtocolRegistration()
         
         title = ""
         view.backgroundColor = .black
