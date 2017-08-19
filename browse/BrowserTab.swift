@@ -68,6 +68,12 @@ class BrowserTab: NSObject {
             )
         )
         
+        let userContentController = config.userContentController
+        if let ruleList = Blocker.shared.ruleList {
+            print("list added")
+            userContentController.add(ruleList)
+        }
+        
         let webView = WKWebView(frame: rect, configuration: config)
         
         webView.translatesAutoresizingMaskIntoConstraints = false
@@ -75,6 +81,7 @@ class BrowserTab: NSObject {
         webView.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
         webView.backgroundColor = colorSample
         webView.allowsBackForwardNavigationGestures = true
+        
         
         return webView
     }

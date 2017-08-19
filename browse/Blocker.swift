@@ -5,18 +5,17 @@
 //  Created by Evan Brooks on 5/26/17.
 //  Copyright © 2017 Evan Brooks. All rights reserved.
 //
-//  Reference: https://adblockplus.org/filter-cheatsheet
-//  Uses peter lowe's host list from: https://pgl.yoyo.org/adservers/serverlist.php?hostformat=nohtml
-//  TODO:
-//    - Update list on demand?
-//    - Support partial matches and other abp features
+
 
 import UIKit
+import WebKit
+
+let EASYLIST_ID = "easylistrules"
 
 class Blocker: NSObject {
     static let shared = Blocker()
-
-    var hostsToBlock : Set<String>!
+    
+    var ruleList : WKContentRuleList?
     
     var isEnabled : Bool {
         return Settings.shared.blockAds.isOn
@@ -24,55 +23,43 @@ class Blocker: NSObject {
     
     override init() {
         super.init()
-        hostsToBlock = loadHosts()
+        getList()
     }
     
-    func shouldBlockSocial(_ url : URL) -> Bool {
-        guard let host = url.host else { return false }
-        
-        if ( host.contains("facebook.com") || host.contains("twitter.com")) {
-            return true
-        }
-        return false
-    }
-    
-    func shouldBlock(_ url : URL) -> Bool {
-        
-        guard isEnabled else { return false }
-        
-        if let host = url.host {
-            let components = host.components(separatedBy: ".")
-            
-            var hostIsBad = false
-            
-            // tries "test.com", "ads.test.com", "sketchy.ads.test.com"
-            let _ = components.reversed().reduce("", { result, elmt in
-                if hostIsBad { return result }
-                if result == "" { return elmt }
-                if hostsToBlock.contains(result) { hostIsBad = true }
-
-                return elmt + "." + result
-            })
-            return hostIsBad
-        }
-        return false
-    }
-    
-    func loadHosts() -> Set<String> {
-        
-        do {
-            if let path = Bundle.main.path(forResource: "plowe", ofType: "txt"){
-                let data = try String(contentsOfFile:path, encoding: String.Encoding.utf8)
-                let arrayOfStrings = data.components(separatedBy: "\n")
-                
-                let siteSet : Set<String> = Set(arrayOfStrings)
-
-                return siteSet
+    func getList() {
+        WKContentRuleListStore.default().getAvailableContentRuleListIdentifiers { (identifiers) in
+            if identifiers != nil && identifiers!.contains(EASYLIST_ID) {
+                print("existing rules found")
+                WKContentRuleListStore.default().lookUpContentRuleList(forIdentifier: EASYLIST_ID, completionHandler: { (list, error) in
+                    if let list : WKContentRuleList = list {
+                        print("existing rules fetched")
+                        self.ruleList = list
+                    } else {
+                        print("existing rules failed to be fetched")
+                        if (error != nil) { print(error as Any) }
+                    }
+                })
+            } else {
+                print("compiling rules...")
+                do {
+                    if let path = Bundle.main.path(forResource: "easylist", ofType: "json") {
+                        let data = try String(contentsOfFile:path, encoding: String.Encoding.utf8)
+                        WKContentRuleListStore.default().compileContentRuleList(forIdentifier: EASYLIST_ID, encodedContentRuleList: data) { (list, error) in
+                            if let list : WKContentRuleList = list {
+                                print("rules compiled!")
+                                self.ruleList = list
+                            } else {
+                                print("rules failed to be compiled")
+                                if (error != nil) { print(error as Any) }
+                            }
+                        }
+                    } else {
+                        print("rules file not found")
+                    }
+                } catch let error as NSError {
+                    print("rules not compiled: ", error)
+                }
             }
-        } catch let error as NSError {
-            print(error)
         }
-        return []
-
     }
 }

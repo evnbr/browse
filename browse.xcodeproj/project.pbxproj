@@ -11,7 +11,6 @@
 		A908920A1ED547C500A5E9BA /* LocationBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90892091ED547C500A5E9BA /* LocationBar.swift */; };
 		A908F04C1ECD03B800A74241 /* ColorStatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */; };
 		A908F04E1ECD60CD00A74241 /* BookmarksViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */; };
-		A92095821ED8FD7B009497A2 /* plowe.txt in Resources */ = {isa = PBXBuildFile; fileRef = A92095811ED8FD7B009497A2 /* plowe.txt */; };
 		A92095841ED90E7B009497A2 /* Blocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095831ED90E7B009497A2 /* Blocker.swift */; };
 		A92095861ED9E242009497A2 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095851ED9E241009497A2 /* SettingsViewController.swift */; };
 		A92095881ED9E3C0009497A2 /* SettingsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095871ED9E3C0009497A2 /* SettingsTableViewCell.swift */; };
@@ -42,6 +41,7 @@
 		A9DEAE3D1F16C15700CF66BA /* ProgressToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DEAE3C1F16C15700CF66BA /* ProgressToolbar.swift */; };
 		A9DEAE3F1F199E3200CF66BA /* BrowserTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DEAE3E1F199E3200CF66BA /* BrowserTab.swift */; };
 		A9E4859D1EC8D7BE0021D155 /* ColorTransitionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E4859C1EC8D7BE0021D155 /* ColorTransitionController.swift */; };
+		A9EF36D31F48EBF4005112E2 /* easylist.json in Resources */ = {isa = PBXBuildFile; fileRef = A9EF36D21F48EB34005112E2 /* easylist.json */; };
 		E7FD11F16B9CF60BCBD3DD19 /* Pods_browseTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C40CC59AFABD40322DFCDDD7 /* Pods_browseTests.framework */; };
 		F64D20A87990C82DA660E905 /* Pods_browse.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7CBD4E92318735B3DA34E02 /* Pods_browse.framework */; };
 /* End PBXBuildFile section */
@@ -74,7 +74,6 @@
 		A90892091ED547C500A5E9BA /* LocationBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationBar.swift; sourceTree = "<group>"; };
 		A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorStatusBarView.swift; sourceTree = "<group>"; };
 		A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarksViewController.swift; sourceTree = "<group>"; };
-		A92095811ED8FD7B009497A2 /* plowe.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = plowe.txt; sourceTree = "<group>"; };
 		A92095831ED90E7B009497A2 /* Blocker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Blocker.swift; sourceTree = "<group>"; };
 		A92095851ED9E241009497A2 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		A92095871ED9E3C0009497A2 /* SettingsTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsTableViewCell.swift; sourceTree = "<group>"; };
@@ -112,6 +111,7 @@
 		A9DEAE3C1F16C15700CF66BA /* ProgressToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressToolbar.swift; sourceTree = "<group>"; };
 		A9DEAE3E1F199E3200CF66BA /* BrowserTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserTab.swift; sourceTree = "<group>"; };
 		A9E4859C1EC8D7BE0021D155 /* ColorTransitionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorTransitionController.swift; sourceTree = "<group>"; };
+		A9EF36D21F48EB34005112E2 /* easylist.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = easylist.json; sourceTree = "<group>"; };
 		C40CC59AFABD40322DFCDDD7 /* Pods_browseTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_browseTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAFEEFBF73AF0DFBC3AD7745 /* Pods-browse.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-browse.debug.xcconfig"; path = "Pods/Target Support Files/Pods-browse/Pods-browse.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -233,7 +233,7 @@
 				A97CB0761EC53DCD005DDBD1 /* Assets.xcassets */,
 				A97CB07B1EC53DCD005DDBD1 /* Info.plist */,
 				A92095831ED90E7B009497A2 /* Blocker.swift */,
-				A92095811ED8FD7B009497A2 /* plowe.txt */,
+				A9EF36D21F48EB34005112E2 /* easylist.json */,
 			);
 			path = browse;
 			sourceTree = "<group>";
@@ -376,7 +376,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A92095821ED8FD7B009497A2 /* plowe.txt in Resources */,
+				A9EF36D31F48EBF4005112E2 /* easylist.json in Resources */,
 				A97CB0771EC53DCD005DDBD1 /* Assets.xcassets in Resources */,
 				A97CB0751EC53DCD005DDBD1 /* Main.storyboard in Resources */,
 			);
@@ -743,6 +743,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				DEVELOPMENT_TEAM = DJXSN639VG;
 				INFOPLIST_FILE = browse/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = evn.browser;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -760,6 +761,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				DEVELOPMENT_TEAM = DJXSN639VG;
 				INFOPLIST_FILE = browse/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = evn.browser;
 				PRODUCT_NAME = "$(TARGET_NAME)";
