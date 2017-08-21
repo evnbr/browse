@@ -66,7 +66,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         let addButton = ToolbarTextButton(
             title: "New",
-            withIcon: nil, //UIImage(named: "add"),
+            withIcon: UIImage(named: "add"),
             onTap: self.addTab
         )
         addButton.size = .small
@@ -78,7 +78,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         )
         clearButton.size = .small
         
-        toolbar.items = [addButton, clearButton]
+        toolbar.items = [addButton]
         view.addSubview(toolbar)
         
         collectionView?.contentInset = UIEdgeInsets(
@@ -141,11 +141,35 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
     }
     
+    func closeTab(fromCell cell: UICollectionViewCell) {
+        if let path = collectionView?.indexPath(for: cell) {
+            collectionView?.performBatchUpdates({
+                self.tabs.remove(at: path.row)
+                self.collectionView?.deleteItems(at: [path])
+            }, completion: { _ in
+                if self.tabs.count == 0 {
+                    self.addTab()
+                }
+            })
+            
+        }
+    }
+    func clearTabs() {
+        collectionView?.performBatchUpdates({
+            for tab in self.tabs {
+                let ip = IndexPath(row: self.tabs.index(of: tab)!, section: 0)
+                self.collectionView?.deleteItems(at: [ip])
+            }
+            self.tabs = []
+        })
+    }
+    
+    
     // todo: less copypasta with addTab()
     func openInNewTab(withConfig config: WKWebViewConfiguration) -> WKWebView {
         
         let newTab = BrowserTab(withNewTabConfig: config)
-        
+        let prevTab = self.selectedTab!
         // if we don't wait for each animation to complete,
         // the states get weird and the orginal tab gets hidden
         browserVC.dismiss(animated: true, completion: {
@@ -153,7 +177,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
 //                self.tabs.append(newTab)
                 
                 // below tab that launched it
-                self.tabs.insert(newTab, at: self.tabs.index(of: self.selectedTab!)! + 1)
+                self.tabs.insert(newTab, at: self.tabs.index(of: prevTab)! + 1)
                 let ip = IndexPath(item: self.tabs.index(of: newTab)!, section: 0)
                 self.collectionView?.insertItems(at: [ ip ])
             }, completion: { _ in
@@ -164,15 +188,6 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         return newTab.webView
     }
     
-    func clearTabs() {
-        collectionView?.performBatchUpdates({
-            for tab in self.tabs {
-                let ip = IndexPath(row: self.tabs.index(of: tab)!, section: 0)
-                self.collectionView?.deleteItems(at: [ip])
-            }
-            self.tabs = []
-        })
-    }
     
     func showRenameThis(_ tab: BrowserTab) {
         showTab(tab)
@@ -256,13 +271,6 @@ extension HomeViewController {
         collectionView.deselectItem(at: indexPath, animated: true)
         
         showTab(tabs[indexPath.row])
-    }
-    
-    func closeTab(fromCell cell: UICollectionViewCell) {
-        if let path = collectionView?.indexPath(for: cell) {
-            tabs.remove(at: path.row)
-            collectionView?.deleteItems(at: [path])
-        }
     }
     
     // TODO: This should be part of a custom layout subclass

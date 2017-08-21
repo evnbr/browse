@@ -116,7 +116,8 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         let END_ALPHA : CGFloat = 0.0
 
 //        homeNav.view.alpha = isExpanding ? 1.0 : END_ALPHA
-
+        
+        var toolbarEndY = browserVC.cardView.frame.height
         if isExpanding {
             browserVC.toolbar.alpha = 0.0
             if browserVC.isBlank {
@@ -127,10 +128,12 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
                 )
             }
             else {
-                browserVC.toolbar.frame.origin.y = browserVC.toolbar.frame.origin.y - 40
+                browserVC.toolbar.frame.origin.y = browserVC.cardView.frame.height - 40
             }
 //            browserVC.toolbar.frame.origin.y = homeVC.view.frame.height
 //            browserVC.toolbar.frame.origin.y = thumbFrame.origin.y + thumbFrame.height
+        } else {
+            toolbarEndY = browserVC.cardViewDefaultFrame.height - 20
         }
         
         containerView.addSubview(transitioningThumb)
@@ -163,7 +166,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
                 : .identity
                 
             browserVC.toolbar.alpha = self.isExpanding ? 1.0 : 0.0
-            browserVC.toolbar.frame.origin.y = browserVC.cardView.frame.height
+            browserVC.toolbar.frame.origin.y = toolbarEndY
             
             homeVC.setNeedsStatusBarAppearanceUpdate()
                 

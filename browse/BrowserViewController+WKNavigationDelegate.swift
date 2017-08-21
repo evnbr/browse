@@ -18,6 +18,7 @@ extension BrowserViewController: WKNavigationDelegate {
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         
+        loadingFinish()
         loadingDidChange()
         
     }

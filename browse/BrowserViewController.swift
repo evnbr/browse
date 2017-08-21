@@ -122,6 +122,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         webView.navigationDelegate = self
         webView.uiDelegate = self
         webView.scrollView.delegate = interactiveDismissController
+//        webView.scrollView.keyboardDismissMode = .interactive
         
         colorSampler.webView = webView
         
@@ -160,8 +161,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         super.viewDidLoad()
         
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.layer.cornerRadius = CARD_RADIUS
-        view.layer.masksToBounds = true
+        // view.layer.cornerRadius = CARD_RADIUS
+        // view.layer.masksToBounds = true
         
         
         cardView = UIView(frame: cardViewDefaultFrame)
@@ -269,8 +270,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             icon: UIImage(named: "stop"),
             onTap: { self.webView.stopLoading() }
         )
+        
+        locationBar.addSubview(stopButton)
+        stopButton.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
+        stopButton.frame.origin.x = locationBar.frame.width - stopButton.frame.width
 
-        toolbar.items = [tabButton, locationBar, stopButton, actionButton]
+        toolbar.items = [backButton, locationBar, tabButton]
         
         toolbar.addSubview(searchView)
         
@@ -431,6 +436,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         let cardH = cardViewDefaultFrame.height - keyboardHeight - searchView.frame.height + TOOLBAR_H
         
         self.locationBar.setAlignment(.left)
+        self.toolbar.progressView.isHidden = true
         
         if animated {
             UIView.animate(
@@ -446,13 +452,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 self.toolbar.frame.size.height = self.searchView.frame.height
                 self.locationBar.alpha = 0
                 self.toolbar.layoutIfNeeded()
-                
-                
+                    
                 self.backButton.isHidden = true
                 self.forwardButton.isHidden = true
-                self.stopButton.isHidden = true
+//                self.stopButton.isHidden = true
                 self.actionButton.isHidden = true
-                self.tabButton.isHidden = true
+                self.tabButton.alpha = 0
             })
         }
         else {
@@ -465,9 +470,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             
             self.backButton.isHidden = true
             self.forwardButton.isHidden = true
-            self.stopButton.isHidden = true
+//            self.stopButton.isHidden = true
             self.actionButton.isHidden = true
-            self.tabButton.isHidden = true
+            self.tabButton.alpha = 0
         }
         
     }
@@ -481,6 +486,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
         
         self.locationBar.setAlignment(.centered)
+        self.toolbar.progressView.isHidden = false
         
         UIView.animate(
             withDuration: 0.55,
@@ -502,8 +508,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             self.forwardButton.isHidden = false
 //            self.stopButton.isHidden = false
             self.actionButton.isHidden = false
-            self.tabButton.isHidden = false
-            
+            self.tabButton.alpha = 1
         })
     }
     
@@ -738,13 +743,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             self.forwardButton.tintColor = self.webView.canGoForward ? nil : .clear
             self.forwardButton.transform = self.webView.canGoForward ? .identity : small
             
-//            self.stopButton.isEnabled = self.webView.isLoading
-//            self.stopButton.tintColor = self.webView.isLoading ? nil : .clear
-//            self.stopButton.transform = self.webView.isLoading ? .identity : small
+            self.stopButton.isEnabled = self.webView.isLoading
+            self.stopButton.tintColor = self.webView.isLoading ? nil : .clear
+            self.stopButton.transform = self.webView.isLoading ? .identity : small
             
 //            self.forwardButton.isHidden = !self.webView.canGoForward
         }
-        self.stopButton.isHidden = !self.webView.isLoading
+//        self.stopButton.isHidden = !self.webView.isLoading
         self.actionButton.isHidden = self.webView.isLoading
         
         
@@ -753,6 +758,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         locationBar.isSearch = isSearching || isBlank
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = webView.isLoading
+        
+    }
+    
+    func loadingFinish() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: {
+            self.webView.evaluateJavaScript("document.querySelector('input[type=password]')") { (result, error) in
+                print(result ?? "No result")
+            }
+        })
     }
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
@@ -775,4 +789,28 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
 
 }
+
+//extension UIView {
+//    var keyboardAppearance: UIKeyboardAppearance {
+//        return UIKeyboardAppearance.dark
+//    }
+//}
+
+
+private weak var currentFirstResponder: UIResponder?
+
+extension UIResponder {
+    
+    static func firstResponder() -> UIResponder? {
+        currentFirstResponder = nil
+        UIApplication.shared.sendAction(#selector(self.findFirstResponder), to: nil, from: nil, for: nil)
+        return currentFirstResponder
+    }
+    
+    @objc func findFirstResponder(sender: AnyObject) {
+        currentFirstResponder = self
+    }
+    
+}
+
 

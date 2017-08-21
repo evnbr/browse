@@ -12,7 +12,7 @@ import UIKit
 extension UIVisualEffectView {
     public convenience init(frame: CGRect, isTransparent: Bool) {
         
-        self.init(effect: UIBlurEffect(style: .light))
+        self.init(effect: UIBlurEffect(style: .dark))
         self.frame = frame
         self.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 

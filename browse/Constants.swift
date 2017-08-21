@@ -10,7 +10,8 @@
 let TOOLBAR_H     : CGFloat = 36.0
 let STATUS_H      : CGFloat = 22.0
 let CORNER_RADIUS : CGFloat = 8.0 //8.0
-let CARD_RADIUS : CGFloat = 2.0 //8.0
+let CARD_RADIUS   : CGFloat = 4.0 //8.0
+let SEARCH_RADIUS : CGFloat = 18.0
 let THUMB_RADIUS  : CGFloat = 8.0
 
 // Tab Switcher

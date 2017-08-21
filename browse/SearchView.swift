@@ -56,8 +56,8 @@ class SearchView: UIView, UITextViewDelegate {
         textView.delegate = self
         textView.isScrollEnabled = true
         
-        textView.backgroundColor = UIColor.white.withAlphaComponent(0.25)
-        textView.layer.cornerRadius = CORNER_RADIUS
+        textView.backgroundColor = UIColor.white.withAlphaComponent(0.3)
+        textView.layer.cornerRadius = SEARCH_RADIUS
         textView.textColor = .white
         textView.alpha = 0
         textView.placeholderColor = UIColor.white.withAlphaComponent(0.4)
@@ -77,7 +77,7 @@ class SearchView: UIView, UITextViewDelegate {
         
         let cancelOrigin = CGPoint(
             x: self.frame.size.width - cancel.frame.size.width,
-            y: self.frame.size.height - cancel.frame.size.height - 4
+            y: self.frame.size.height - cancel.frame.size.height - 6
         )
         cancel.frame = CGRect(origin: cancelOrigin, size: cancel.frame.size)
         cancel.alpha = 0
@@ -99,9 +99,11 @@ class SearchView: UIView, UITextViewDelegate {
         suggestionView = ToolbarTextButton(title: "Suggestion", withIcon: nil, onTap: self.useSuggestion)
         suggestionView.size = .large
         suggestionView.alpha = 0
+        suggestionView.frame.origin = CGPoint(x: 8, y: 4)
         addSubview(suggestionView)
-        self.topAnchor.constraint(equalTo: suggestionView.topAnchor)
-        self.leftAnchor.constraint(equalTo: suggestionView.leftAnchor)
+//        suggestionView.translatesAutoresizingMaskIntoConstraints = false
+//        suggestionView.topAnchor.constraint(equalTo: self.topAnchor, constant: 8).isActive = true
+//        suggestionView.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 8).isActive = true
         
 //        self.heightAnchor.constraint(equalTo: textView.heightAnchor, constant: 20).isActive = true
 //        self.heightAnchor.constraint(lessThanOrEqualToConstant: SEARCHVIEW_MAX_H).isActive = true
@@ -115,7 +117,7 @@ class SearchView: UIView, UITextViewDelegate {
         let fixedWidth = textView.frame.size.width
 
 //        textView.textContainerInset = UIEdgeInsetsMake(13, 14, 13, leftMargin)
-        textView.textContainerInset = UIEdgeInsetsMake(8, 8, 8, 8)
+        textView.textContainerInset = UIEdgeInsetsMake(9, 12, 9, 12)
         
         let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
         var newFrame = textView.frame
@@ -130,7 +132,7 @@ class SearchView: UIView, UITextViewDelegate {
         frame.size.height = newFrame.size.height + 20
         
         if showSuggestion {
-            frame.size.height = newFrame.size.height + suggestionView.frame.height + 12
+            frame.size.height = newFrame.size.height + suggestionView.frame.height + 16
             UIView.animate(withDuration: 0.2, animations: {
                 self.suggestionView.alpha = 1
             })
@@ -164,8 +166,8 @@ class SearchView: UIView, UITextViewDelegate {
         
         textView.alpha = 0
         cancel.alpha = 0
-        cancel.transform = CGAffineTransform(translationX: 30, y: 0)
-
+//        cancel.transform = CGAffineTransform(translationX: 30, y: 0)
+        
         UIView.animate(withDuration: 0.3, animations: {
             textView.alpha = 1
             
@@ -187,7 +189,7 @@ class SearchView: UIView, UITextViewDelegate {
         
         UIView.animate(withDuration: 0.3, animations: {
             textView.alpha = 0
-            self.cancel.transform = CGAffineTransform(translationX: 30, y: 0)
+//            self.cancel.transform = CGAffineTransform(translationX: 30, y: 0)
             self.cancel.alpha = 0
             
         }, completion: { completed in
@@ -195,6 +197,7 @@ class SearchView: UIView, UITextViewDelegate {
             self.isEnabled = false
             textView.selectedTextRange = nil
         })
+        BrowserViewController.hideSearch()
     }
     
     var showSuggestion : Bool = false

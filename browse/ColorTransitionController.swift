@@ -172,7 +172,6 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
                 self.commitTopChange()
             }
             else {
-                print("Top animation never completed")
                 self.commitTopChange()
             }
         })

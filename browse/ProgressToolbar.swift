@@ -11,7 +11,8 @@ import UIKit
 class ProgressToolbar: BrowseToolbar {
     
     let progressView: UIProgressView = UIProgressView(progressViewStyle: .default)
-
+    
+    
     var progress : Float {
         get {
             return progressView.progress

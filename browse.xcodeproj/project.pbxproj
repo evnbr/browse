@@ -42,6 +42,7 @@
 		A9DEAE3F1F199E3200CF66BA /* BrowserTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DEAE3E1F199E3200CF66BA /* BrowserTab.swift */; };
 		A9E4859D1EC8D7BE0021D155 /* ColorTransitionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E4859C1EC8D7BE0021D155 /* ColorTransitionController.swift */; };
 		A9EF36D31F48EBF4005112E2 /* easylist.json in Resources */ = {isa = PBXBuildFile; fileRef = A9EF36D21F48EB34005112E2 /* easylist.json */; };
+		A9EF36D51F4A6451005112E2 /* WKWebview+Toolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9EF36D41F4A6451005112E2 /* WKWebview+Toolbar.swift */; };
 		E7FD11F16B9CF60BCBD3DD19 /* Pods_browseTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C40CC59AFABD40322DFCDDD7 /* Pods_browseTests.framework */; };
 		F64D20A87990C82DA660E905 /* Pods_browse.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7CBD4E92318735B3DA34E02 /* Pods_browse.framework */; };
 /* End PBXBuildFile section */
@@ -112,6 +113,7 @@
 		A9DEAE3E1F199E3200CF66BA /* BrowserTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserTab.swift; sourceTree = "<group>"; };
 		A9E4859C1EC8D7BE0021D155 /* ColorTransitionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorTransitionController.swift; sourceTree = "<group>"; };
 		A9EF36D21F48EB34005112E2 /* easylist.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = easylist.json; sourceTree = "<group>"; };
+		A9EF36D41F4A6451005112E2 /* WKWebview+Toolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WKWebview+Toolbar.swift"; sourceTree = "<group>"; };
 		C40CC59AFABD40322DFCDDD7 /* Pods_browseTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_browseTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAFEEFBF73AF0DFBC3AD7745 /* Pods-browse.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-browse.debug.xcconfig"; path = "Pods/Target Support Files/Pods-browse/Pods-browse.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -209,6 +211,7 @@
 				A920958E1EDF4AB8009497A2 /* PresentTabAnimationController.swift */,
 				A9DEAE3E1F199E3200CF66BA /* BrowserTab.swift */,
 				A97CB0711EC53DCD005DDBD1 /* BrowserViewController.swift */,
+				A9EF36D41F4A6451005112E2 /* WKWebview+Toolbar.swift */,
 				A92C9C3A1EF8B5E600D8AAA3 /* WebViewInteractiveDismissController.swift */,
 				A92C9C381EF5D66B00D8AAA3 /* BrowserViewController+WKNavigationDelegate.swift */,
 				A97BF8301EF3B5B900B9ECB4 /* BrowserViewController+WKUIDelegate.swift */,
@@ -572,6 +575,7 @@
 				A9DEAE3F1F199E3200CF66BA /* BrowserTab.swift in Sources */,
 				A9E4859D1EC8D7BE0021D155 /* ColorTransitionController.swift in Sources */,
 				A92C9C391EF5D66B00D8AAA3 /* BrowserViewController+WKNavigationDelegate.swift in Sources */,
+				A9EF36D51F4A6451005112E2 /* WKWebview+Toolbar.swift in Sources */,
 				A9DEAE3D1F16C15700CF66BA /* ProgressToolbar.swift in Sources */,
 				A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */,
 				A92095881ED9E3C0009497A2 /* SettingsTableViewCell.swift in Sources */,
