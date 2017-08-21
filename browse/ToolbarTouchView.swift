@@ -69,7 +69,7 @@ class ToolbarTouchView: UIView {
     }
     
     override func tintColorDidChange() {
-        tapColor = UIColor.white.withAlphaComponent(0.3)
+        tapColor = tintColor.isLight ? UIColor.black.withAlphaComponent(0.1) : UIColor.white.withAlphaComponent(0.3)
         
         self.touchCircle?.backgroundColor = self.tapColor
     }

@@ -140,6 +140,35 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.title), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.url), options: .new, context: nil)
         
+        let accesssoryView = UIView(frame: CGRect(x: 0, y: 0, width: 40, height: 44))
+        accesssoryView.tintColor = UIColor.darkText
+//        accesssoryView.backgroundColor = UIColor(r: 0.83, g: 0.84, b: 0.87).withAlphaComponent(0.9)
+        accesssoryView.backgroundColor = UIColor.white.withAlphaComponent(0.9)
+        let blur = UIVisualEffectView(frame: accesssoryView.frame, isTransparent: true)
+        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        accesssoryView.addSubview(blur)
+        
+        let dismissButton = ToolbarTextButton(title: "Done", withIcon: nil) {
+            UIResponder.firstResponder()?.resignFirstResponder()
+        }
+        dismissButton.size = .large
+        dismissButton.sizeToFit()
+        accesssoryView.addSubview(dismissButton)
+        dismissButton.autoresizingMask = .flexibleLeftMargin
+        dismissButton.frame.origin.x = accesssoryView.frame.width - dismissButton.frame.width
+        
+        let passButton = ToolbarIconButton(icon: UIImage(named: "key")) {
+            self.displayPassword()
+        }
+        passButton.frame.size.height = accesssoryView.frame.height
+        passButton.autoresizingMask = .flexibleLeftMargin
+        passButton.frame.origin.x = dismissButton.frame.origin.x - passButton.frame.width - 8
+        
+        accesssoryView.addSubview(passButton)
+        
+        
+        webView.addInputAccessory(toolbar: accesssoryView)
+        
         loadingDidChange()
         
         if let location = browserTab?.restoredLocation {
