@@ -233,10 +233,20 @@ class SearchView: UIView, UITextViewDelegate {
     }
     
     func prepareToShow() {
+        self.tintColor = BrowserViewController.toolbar.tintColor
         textView.text = BrowserViewController.editableLocation
         updateSuggestion()
         updateSize()
     }
+    
+    override func tintColorDidChange() {
+        super.tintColorDidChange()
+        textView.textColor = tintColor
+        textView.backgroundColor = tintColor.isLight ? UIColor.black.withAlphaComponent(0.1) : UIColor.white.withAlphaComponent(0.3)
+        textView.placeholderColor = tintColor.isLight ? UIColor.black.withAlphaComponent(0.4) : UIColor.white.withAlphaComponent(0.4)
+        
+    }
+    
     
     
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {

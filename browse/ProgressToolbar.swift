@@ -46,7 +46,18 @@ class ProgressToolbar: BrowseToolbar {
         progressView.transform = progressView.transform.scaledBy(x: 1, y: 22)
         addSubview(progressView)
         sendSubview(toBack: progressView)
+        
+        let overlay = UIView(frame: self.frame)
+        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        overlay.backgroundColor = UIColor.black.withAlphaComponent(0.1)
+        self.addSubview(overlay)
     }
+    
+    override func tintColorDidChange() {
+        super.tintColorDidChange()
+        progressView.progressTintColor = tintColor.isLight ? UIColor.black.withAlphaComponent(0.1) : UIColor.white.withAlphaComponent(0.3)        
+    }
+    
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")

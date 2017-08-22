@@ -41,6 +41,11 @@ class ColorStatusBarView : UIView {
         
         self.autoresizingMask = [.flexibleWidth]
         self.backgroundColor = .red
+        
+//        let overlay = UIView(frame: self.frame)
+//        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+//        overlay.backgroundColor = UIColor.black.withAlphaComponent(0.1)
+//        self.addSubview(overlay)
     }
     
     convenience init(color: UIColor) {

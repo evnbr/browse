@@ -23,13 +23,13 @@ enum ColorTransitionStyle {
     case translate
 }
 
-let DURATION = 0.4
+let DURATION = 1.5
+let MIN_TIME_BETWEEN_UPDATES = 1.6
 
 class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
     
     let TOOLBAR_H : CGFloat = 36.0
     let STATUS_H : CGFloat = 22.0
-    let MIN_TIME_BETWEEN_UPDATES = 0.2
     
     private var colorUpdateTimer : Timer!
 
@@ -124,18 +124,15 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
             self.topDelta = 1000 // self.top?.difference(from: self.previousTop)
             self.deltas.addSample(value: self.topDelta > 0.3 ? 1 : 0)
             self.updateTopColor()
+            
+            self.getColorAtBottomAsync(completion: { newColor in
+                // TODO: if it looks confusing, maybe just go transparent?
+                self.previousBottom = self.bottom
+                self.bottom = newColor
+                self.bottomDelta = 1000 // self.top?.difference(from: self.previousTop)
+                self.updateBottomColor()
+            })
         })
-//        if !isBottomAnimating && !isBottomTransitionInteractive {
-//            getColorAtBottomAsync(completion: { newColor in
-//                // TODO: if it looks confusing, maybe just go transparent?
-//                self.previousBottom = self.bottom
-//                self.bottom = newColor
-//                self.bottomDelta = 1000 // self.top?.difference(from: self.previousTop)
-//                self.updateBottomColor()
-//            })
-//        }
-        
-        
     }
     
     func updateTopColor() {
