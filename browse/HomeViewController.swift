@@ -37,6 +37,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.view.isHidden = true
         
         browserVC = BrowserViewController(home: self)
         
@@ -108,6 +109,17 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
             }
         }, completion: { _ in
             //
+            if let lastIndex : Int = UserDefaults.standard.value(forKey: "presentedTabIndex") as? Int {
+                if lastIndex > -1 && lastIndex < self.tabs.count {
+                    self.showTab(self.tabs[lastIndex], animated: false, completion: {
+                        self.view.isHidden = false
+                    })
+                } else {
+                    self.view.isHidden = false
+                }
+            } else {
+                self.view.isHidden = false
+            }
         })
         
     }
@@ -201,7 +213,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         }) as! TabThumbnail!
     }
     
-    func showTab(_ tab: BrowserTab, animated: Bool = true) {
+    func showTab(_ tab: BrowserTab, animated: Bool = true, completion: (() -> Void)? = nil) {
         selectedTab = tab
         
         browserVC.setTab(tab)
@@ -210,6 +222,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         present(browserVC, animated: animated, completion: {
             self.thumb(forTab: tab)?.unSelect(animated: false)
+            if let c = completion { c() }
         })
     }
     
@@ -351,8 +364,16 @@ extension HomeViewController : UICollectionViewDelegateFlowLayout {
 // MARK: - Saving and restoring state
 extension HomeViewController {
     func saveOpenTabs() {
-        let info = tabs.map { tab in tab.restorableInfo.plist}
+        let info = tabs.map { tab in tab.restorableInfo.nsDictionary }
         UserDefaults.standard.setValue(info, forKey: "openTabList")
+        
+        if browserVC.isViewLoaded && (browserVC.view.window != nil) {
+            // viewController is visible
+            let index = tabs.index(of: selectedTab!)!
+            UserDefaults.standard.set(index, forKey: "presentedTabIndex")
+        } else {
+            UserDefaults.standard.set(-1, forKey: "presentedTabIndex")
+        }
     }
     
     func getPreviousOpenTabs() -> [ TabInfo ] {
@@ -385,7 +406,7 @@ struct TabInfo {
     var urlString : String
     var color: UIColor
     
-    var plist : NSDictionary {
+    var nsDictionary : NSDictionary {
         return NSDictionary(dictionary: [
             "title" : title,
             "urlString" : urlString,
