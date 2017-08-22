@@ -22,6 +22,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     var statusBar: ColorStatusBarView!
     var toolbar: ProgressToolbar!
+    var accessoryView: UIView!
     
     var errorView: UIView!
     var cardView: UIView!
@@ -140,34 +141,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.title), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.url), options: .new, context: nil)
         
-        let accesssoryView = UIView(frame: CGRect(x: 0, y: 0, width: 40, height: 44))
-        accesssoryView.tintColor = UIColor.darkText
-//        accesssoryView.backgroundColor = UIColor(r: 0.83, g: 0.84, b: 0.87).withAlphaComponent(0.9)
-        accesssoryView.backgroundColor = UIColor.white.withAlphaComponent(0.9)
-        let blur = UIVisualEffectView(frame: accesssoryView.frame, isTransparent: true)
-        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        accesssoryView.addSubview(blur)
-        
-        let dismissButton = ToolbarTextButton(title: "Done", withIcon: nil) {
-            UIResponder.firstResponder()?.resignFirstResponder()
-        }
-        dismissButton.size = .large
-        dismissButton.sizeToFit()
-        accesssoryView.addSubview(dismissButton)
-        dismissButton.autoresizingMask = .flexibleLeftMargin
-        dismissButton.frame.origin.x = accesssoryView.frame.width - dismissButton.frame.width
-        
-        let passButton = ToolbarIconButton(icon: UIImage(named: "key")) {
-            self.displayPassword()
-        }
-        passButton.frame.size.height = accesssoryView.frame.height
-        passButton.autoresizingMask = .flexibleLeftMargin
-        passButton.frame.origin.x = dismissButton.frame.origin.x - passButton.frame.width - 8
-        
-        accesssoryView.addSubview(passButton)
-        
-        
-        webView.addInputAccessory(toolbar: accesssoryView)
+        webView.addInputAccessory(toolbar: accessoryView)
         
         loadingDidChange()
         
@@ -211,6 +185,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         view.addSubview(toolbar)
         view.sendSubview(toBack: toolbar)
         
+        accessoryView = setupAccessoryView()
         
         colorSampler = ColorTransitionController(inViewController: self)
         
@@ -221,10 +196,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         locationBar.addGestureRecognizer(longPress)
         
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
     }
     
+    
     var keyboardHeight : CGFloat = 250
-    @objc func keyboardWillShow(notification:NSNotification) {
+    @objc func keyboardWillShow(notification: NSNotification) {
         let userInfo:NSDictionary = notification.userInfo! as NSDictionary
         let keyboardFrame:NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as! NSValue
         let keyboardRectangle = keyboardFrame.cgRectValue
@@ -236,6 +213,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 self.searchSizeDidChange()
 //            })
         }
+        // Hack to prevent accessory of showing up at bottom
+        accessoryView.isHidden = keyboardHeight < 50
+    }
+    
+    @objc func keyboardWillHide(notification: NSNotification) {
+        // Hack to prevent accessory of showing up at bottom
+        accessoryView.isHidden = true
     }
     
     var topWindow : UIWindow!
@@ -313,6 +297,37 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         return toolbar
     }
+    
+    func setupAccessoryView() -> UIView {
+        let acc = UIView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))
+        acc.tintColor = UIColor.darkText
+        acc.backgroundColor = UIColor(r: 0.83, g: 0.84, b: 0.85).withAlphaComponent(0.95)
+//        acc.backgroundColor = UIColor.white.withAlphaComponent(0.9)
+        let blur = UIVisualEffectView(frame: acc.frame, isTransparent: true)
+        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        acc.addSubview(blur)
+        
+        let dismissButton = ToolbarTextButton(title: "Done", withIcon: nil) {
+            UIResponder.firstResponder()?.resignFirstResponder()
+        }
+        dismissButton.size = .medium
+        dismissButton.sizeToFit()
+        acc.addSubview(dismissButton)
+        dismissButton.autoresizingMask = .flexibleLeftMargin
+        dismissButton.frame.origin.x = acc.frame.width - dismissButton.frame.width
+        
+        let passButton = ToolbarIconButton(icon: UIImage(named: "key")) {
+            self.displayPassword()
+        }
+//        passButton.frame.size.height = acc.frame.height
+        passButton.autoresizingMask = .flexibleLeftMargin
+        passButton.frame.origin.x = dismissButton.frame.origin.x - passButton.frame.width - 8
+        
+        acc.addSubview(passButton)
+        
+        return acc
+    }
+    
     
     func updateSnapshot() {
         webView.scrollView.showsVerticalScrollIndicator = false
@@ -457,14 +472,16 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         searchView.prepareToShow()
         
         if !searchView.textView.isFirstResponder {
+            if !animated { UIView.setAnimationsEnabled(false) }
             searchView.textView.becomeFirstResponder()
+            if !animated { UIView.setAnimationsEnabled(true) }
         }
         
         // NOTE: we probably don't have the true keyboard height yet
         
         let cardH = cardViewDefaultFrame.height - keyboardHeight - searchView.frame.height + TOOLBAR_H
         
-        self.locationBar.setAlignment(.left)
+//        self.locationBar.setAlignment(.left)
         self.toolbar.progressView.isHidden = true
         
         if animated {
@@ -514,7 +531,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             searchView.textView.resignFirstResponder()
         }
         
-        self.locationBar.setAlignment(.centered)
+//        self.locationBar.setAlignment(.centered)
         self.toolbar.progressView.isHidden = false
         
         UIView.animate(
