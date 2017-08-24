@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ProgressToolbar: BrowseToolbar {
+class ProgressToolbar: ColorToolbarView {
     
     let progressView: UIProgressView = UIProgressView(progressViewStyle: .default)
     

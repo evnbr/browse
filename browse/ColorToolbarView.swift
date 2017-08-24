@@ -1,5 +1,5 @@
 //
-//  BrowseToolbar.swift
+//  ColorToolbarView.swift
 //  browse
 //
 //  Created by Evan Brooks on 6/13/17.
@@ -8,8 +8,8 @@
 
 import UIKit
 
-class BrowseToolbar: UIView {
-    let stackView   = UIStackView()
+class ColorToolbarView: GradientColorChangeView {
+    let stackView = UIStackView()
     
     override init(frame: CGRect) {
         super.init(frame: frame)

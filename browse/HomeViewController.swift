@@ -15,7 +15,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     var selectedTab : BrowserTab?
     var browserVC : BrowserViewController!
     
-    var toolbar : BrowseToolbar!
+    var toolbar : ColorToolbarView!
     
     let reuseIdentifier = "TabCell"
     let sectionInsets = UIEdgeInsets(top: 8.0, left: 6.0, bottom: 8.0, right: 6.0)
@@ -56,7 +56,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         navigationController?.navigationBar.tintColor = .white
         navigationController?.navigationBar.barStyle = .black
         
-        toolbar = BrowseToolbar(frame: CGRect(
+        toolbar = ColorToolbarView(frame: CGRect(
             x: 0,
             y: view.frame.height - TOOLBAR_H,
             width: view.frame.width,

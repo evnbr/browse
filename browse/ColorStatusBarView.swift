@@ -28,7 +28,7 @@ extension UIVisualEffectView {
     }
 }
 
-class ColorStatusBarView : UIView {
+class ColorStatusBarView : GradientColorChangeView {
     var blurView : UIVisualEffectView!
     
     init() {

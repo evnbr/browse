@@ -23,8 +23,8 @@ enum ColorTransitionStyle {
     case translate
 }
 
-let DURATION = 1.5
-let MIN_TIME_BETWEEN_UPDATES = 1.6
+let DURATION = 2.0
+let MIN_TIME_BETWEEN_UPDATES = 0.6
 
 class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
     
@@ -46,11 +46,11 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
     private var context: CGContext!
     private var pixel: [CUnsignedChar]
     
-    public var top: UIColor?
-    public var bottom: UIColor?
+    public var top: UIColor = UIColor.clear
+    public var bottom: UIColor = UIColor.clear
     
-    public var previousTop: UIColor?
-    public var previousBottom: UIColor?
+    public var previousTop: UIColor = UIColor.clear
+    public var previousBottom: UIColor = UIColor.clear
     
     public var topDelta: Float = 0.0
     public var bottomDelta: Float = 0.0
@@ -122,7 +122,6 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
             self.top = newColor
             self.wvc.browserTab?.colorSample = newColor // this is a hack
             self.topDelta = 1000 // self.top?.difference(from: self.previousTop)
-            self.deltas.addSample(value: self.topDelta > 0.3 ? 1 : 0)
             self.updateTopColor()
             
             self.getColorAtBottomAsync(completion: { newColor in
@@ -154,48 +153,16 @@ class ColorTransitionController : NSObject, UIGestureRecognizerDelegate {
         self.wvc.toolbar.backgroundColor = self.bottom
     }
     func animateTopToEndState(_ style : ColorTransitionStyle) {
+        self.wvc.statusBar.animateNewColor(toColor: self.top, duration: 1.0, direction: .fromBottom)
         
         UIView.animate(withDuration: DURATION, delay: 0, options: .curveEaseInOut, animations: {
-            if self.topDelta > 0 {
-                if style == .translate && self.topDelta > 0.6 {
-                    self.lastTopTransitionTime = CACurrentMediaTime()
-                } else {
-                    self.wvc.statusBar.backgroundColor = self.top
-                }
-                self.wvc.setNeedsStatusBarAppearanceUpdate()
-            }
+            self.wvc.setNeedsStatusBarAppearanceUpdate()
         }, completion: { completed in
-            if (completed) {
-                self.commitTopChange()
-            }
-            else {
-                self.commitTopChange()
-            }
         })
     }
 
     func animateBottomEndState(_ style : ColorTransitionStyle) {
-        isBottomAnimating = true
-        
-        UIView.animate(withDuration: DURATION, delay: 0, options: .curveEaseInOut, animations: {
-            if self.bottomDelta > 0 {
-                if style == .translate && self.topDelta > 0.6 {
-                    self.lastBottomTransitionTime = CACurrentMediaTime()
-                } else {
-                    self.wvc.toolbar.backgroundColor = self.bottom
-                    self.wvc.toolbar.tintColor = self.bottom!.isLight ? .white : .darkText
-                }
-            }
-        }, completion: { completed in
-            if (completed) {
-                self.commitBottomChange()
-            }
-            else {
-                print("Bottom animation never completed")
-                self.commitBottomChange()
-            }
-            self.isBottomAnimating = false
-        })
+        self.wvc.toolbar.animateNewColor(toColor: self.bottom, duration: DURATION, direction: .fromTop)
     }
     
     var gestureCurrentY : CGFloat = 0.0
