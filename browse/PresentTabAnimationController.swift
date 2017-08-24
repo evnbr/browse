@@ -117,18 +117,18 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
 
 //        homeNav.view.alpha = isExpanding ? 1.0 : END_ALPHA
         
-        var toolbarEndY = browserVC.cardView.frame.height
+        var toolbarEndY = browserVC.cardView.frame.height - browserVC.toolbar.frame.height
         if isExpanding {
             browserVC.toolbar.alpha = 0.0
             if browserVC.isBlank {
                 // keyboard
-                browserVC.toolbar.frame.origin.y = max(
-                    expandedFrame.height + 100,
-                    thumbFrame.origin.y + thumbFrame.height
-                )
+//                browserVC.toolbar.frame.origin.y = max(
+//                    expandedFrame.height + 100,
+//                    thumbFrame.origin.y + thumbFrame.height
+//                )
             }
             else {
-                browserVC.toolbar.frame.origin.y = browserVC.cardView.frame.height - 40
+//                browserVC.toolbar.frame.origin.y = browserVC.cardView.frame.height - 40
             }
 //            browserVC.toolbar.frame.origin.y = homeVC.view.frame.height
 //            browserVC.toolbar.frame.origin.y = thumbFrame.origin.y + thumbFrame.height

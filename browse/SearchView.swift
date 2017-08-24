@@ -233,7 +233,6 @@ class SearchView: UIView, UITextViewDelegate {
     }
     
     func prepareToShow() {
-        self.tintColor = BrowserViewController.toolbar.tintColor
         textView.text = BrowserViewController.editableLocation
         updateSuggestion()
         updateSize()

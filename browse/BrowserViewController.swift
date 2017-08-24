@@ -128,6 +128,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         colorSampler.webView = webView
         
         cardView.addSubview(webView)
+        cardView.bringSubview(toFront: toolbar)
         
         webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: STATUS_H).isActive = true
         webView.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
@@ -172,7 +173,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         cardView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         cardView.layer.cornerRadius = CARD_RADIUS
         cardView.layer.masksToBounds = true
-        cardView.backgroundColor = .red
+//        cardView.backgroundColor = .red
         
         statusBar = ColorStatusBarView()
         cardView.addSubview(statusBar)
@@ -182,8 +183,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         toolbar = setUpToolbar()
         
         view.addSubview(cardView)
-        view.addSubview(toolbar)
-        view.sendSubview(toBack: toolbar)
+        
+        cardView.addSubview(toolbar)
+        cardView.bringSubview(toFront: toolbar)
+        
+//        view.addSubview(toolbar)
+//        view.sendSubview(toBack: toolbar)
         
         accessoryView = setupAccessoryView()
         
@@ -247,7 +252,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             x: 0,
             y: 0,
             width: UIScreen.main.bounds.width,
-            height: UIScreen.main.bounds.height - TOOLBAR_H
+            height: UIScreen.main.bounds.height// - TOOLBAR_H
         )
     }
 
@@ -479,7 +484,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         // NOTE: we probably don't have the true keyboard height yet
         
-        let cardH = cardViewDefaultFrame.height - keyboardHeight - searchView.frame.height + TOOLBAR_H
+        let cardH = cardViewDefaultFrame.height - keyboardHeight
         
 //        self.locationBar.setAlignment(.left)
         self.toolbar.progressView.isHidden = true
@@ -494,7 +499,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 animations: {
                     
                 self.cardView.frame.size.height = cardH
-                self.toolbar.frame.origin.y = cardH
+                self.toolbar.frame.origin.y = cardH - self.searchView.frame.height
                 self.toolbar.frame.size.height = self.searchView.frame.height
                 self.locationBar.alpha = 0
                 self.toolbar.layoutIfNeeded()
@@ -544,7 +549,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 //            self.searchDismissScrim.alpha = 0
             
             self.cardView.frame = self.cardViewDefaultFrame
-            self.toolbar.frame.origin.y = self.cardViewDefaultFrame.height
+            self.toolbar.frame.origin.y = self.cardViewDefaultFrame.height - TOOLBAR_H
             self.toolbar?.frame.size.height = TOOLBAR_H
             self.locationBar.alpha = 1
             
@@ -561,20 +566,22 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     func searchSizeDidChange() {
         if searchView != nil && isDisplayingSearch {
-            let cardH = cardViewDefaultFrame.height - keyboardHeight - searchView.frame.height + TOOLBAR_H
+//            let cardH = cardViewDefaultFrame.height - keyboardHeight - searchView.frame.height + TOOLBAR_H
+            let cardH = cardViewDefaultFrame.height - keyboardHeight
             
-            self.toolbar?.frame.origin.y = cardH
+            self.cardView?.frame.size.height = cardH
+            self.toolbar?.frame.origin.y = cardH - self.searchView.frame.height
             self.toolbar?.frame.size.height = self.searchView.frame.height
             
-            UIView.animate(
-                withDuration: 0.4,
-                delay: 0.0,
-                usingSpringWithDamping: 1,
-                initialSpringVelocity: 0,
-                options: .curveLinear,
-                animations: {
-                self.cardView?.frame.size.height = cardH
-            })
+//            UIView.animate(
+//                withDuration: 0.4,
+//                delay: 0.0,
+//                usingSpringWithDamping: 1,
+//                initialSpringVelocity: 0,
+//                options: .curveLinear,
+//                animations: {
+//                self.cardView?.frame.size.height = cardH
+//            })
         }
     }
 

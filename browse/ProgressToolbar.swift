@@ -12,7 +12,6 @@ class ProgressToolbar: BrowseToolbar {
     
     let progressView: UIProgressView = UIProgressView(progressViewStyle: .default)
     
-    
     var progress : Float {
         get {
             return progressView.progress
@@ -38,12 +37,12 @@ class ProgressToolbar: BrowseToolbar {
         super.init(frame: frame)
         
         progressView.frame = CGRect(
-            origin: CGPoint(x: 0, y: 20),
+            origin: CGPoint(x: 0, y: TOOLBAR_H - 2),
             size:CGSize(width: UIScreen.main.bounds.size.width, height:4)
         )
         progressView.trackTintColor = UIColor.white.withAlphaComponent(0)
         progressView.progressTintColor = UIColor.white.withAlphaComponent(0.25)
-        progressView.transform = progressView.transform.scaledBy(x: 1, y: 22)
+//        progressView.transform = progressView.transform.scaledBy(x: 1, y: 22)
         addSubview(progressView)
         sendSubview(toBack: progressView)
         
@@ -52,10 +51,14 @@ class ProgressToolbar: BrowseToolbar {
         overlay.backgroundColor = UIColor.black.withAlphaComponent(0.1)
         self.addSubview(overlay)
     }
-    
+        
     override func tintColorDidChange() {
         super.tintColorDidChange()
-        progressView.progressTintColor = tintColor.isLight ? UIColor.black.withAlphaComponent(0.1) : UIColor.white.withAlphaComponent(0.3)        
+        subviews.forEach { (v) in
+            v.tintColor = tintColor
+        }
+//        progressView.progressTintColor = tintColor.isLight ? UIColor.black.withAlphaComponent(0.1) : UIColor.white.withAlphaComponent(0.3)
+        progressView.progressTintColor = tintColor
     }
     
     

@@ -108,6 +108,7 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
                 let adjustedX = elasticLimit(gesturePos.x)
                 
                 cardView.frame.origin.x = adjustedX
+                cardView.layer.cornerRadius = min(revealProgress * 8 * CORNER_RADIUS, CORNER_RADIUS)
                 
                 
             }
@@ -224,7 +225,7 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         cardView.frame.origin.y = adjustedY
         
         if adjustedY > 0 {
-            cardView.frame.size.height = view.frame.height - TOOLBAR_H - (abs(adjustedY))
+            cardView.frame.size.height = view.frame.height - (abs(adjustedY))
         }
         
         
