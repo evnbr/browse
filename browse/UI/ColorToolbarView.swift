@@ -25,7 +25,7 @@ class ColorToolbarView: GradientColorChangeView {
         
         stackView.axis  = .horizontal
         stackView.distribution  = .fill
-        stackView.alignment = .center
+        stackView.alignment = .top
         stackView.spacing   = 0.0
         
         stackView.translatesAutoresizingMaskIntoConstraints = false;
@@ -36,8 +36,7 @@ class ColorToolbarView: GradientColorChangeView {
         stackView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         stackView.widthAnchor.constraint(equalTo: self.widthAnchor).isActive = true
     }
-    
-    
+        
     var items : [ UIView ] {
         get {
             return stackView.subviews

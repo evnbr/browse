@@ -30,9 +30,10 @@ class BrowserTab: NSObject {
     
     init(restoreInfo : TabInfo) {
         super.init()
-        self.restoredColor = restoreInfo.color
-        self.restoredTitle = restoreInfo.title
-        self.restoredLocation = restoreInfo.urlString
+        restoredColor = restoreInfo.color
+        bottomColorSample = restoreInfo.color
+        restoredTitle = restoreInfo.title
+        restoredLocation = restoreInfo.urlString
         webView = loadWebView(withConfig: nil)
     }
     
@@ -44,15 +45,16 @@ class BrowserTab: NSObject {
         return webView?.url?.absoluteString ?? restoredLocation
     }
     var color : UIColor {
-        return colorSample ?? restoredColor ?? .white
+        return bottomColorSample ?? restoredColor ?? .white
     }
-    var colorSample : UIColor?
+    var topColorSample : UIColor?
+    var bottomColorSample : UIColor?
     
     var restorableInfo : TabInfo {
         return TabInfo(
             title: restorableTitle ?? "",
             urlString: restorableURL ?? "",
-            color: color
+            color: bottomColorSample ?? .white
         )
     }
     
@@ -61,16 +63,15 @@ class BrowserTab: NSObject {
         config.allowsInlineMediaPlayback = true
         
         let rect = CGRect(
-            origin: CGPoint(x: 0, y: STATUS_H),
+            origin: CGPoint(x: 0, y: Const.shared.statusHeight),
             size:CGSize(
                 width: UIScreen.main.bounds.size.width,
-                height: UIScreen.main.bounds.size.height - TOOLBAR_H - STATUS_H
+                height: UIScreen.main.bounds.size.height - Const.shared.toolbarHeight - Const.shared.statusHeight
             )
         )
         
         let userContentController = config.userContentController
         if let ruleList = Blocker.shared.ruleList {
-            print("list added")
             userContentController.add(ruleList)
         }
         
@@ -79,7 +80,7 @@ class BrowserTab: NSObject {
         webView.translatesAutoresizingMaskIntoConstraints = false
         webView.scrollView.contentInset = .zero
         webView.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
-        webView.backgroundColor = colorSample
+        webView.backgroundColor = bottomColorSample
         webView.allowsBackForwardNavigationGestures = true
         
         

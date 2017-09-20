@@ -37,6 +37,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     
     override func viewDidLoad() {
         super.viewDidLoad()
+
         self.view.isHidden = true
         
         browserVC = BrowserViewController(home: self)
@@ -58,9 +59,9 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         toolbar = ColorToolbarView(frame: CGRect(
             x: 0,
-            y: view.frame.height - TOOLBAR_H,
+            y: view.frame.height - Const.shared.toolbarHeight,
             width: view.frame.width,
-            height: TOOLBAR_H
+            height: Const.shared.toolbarHeight
         ))
         toolbar.backgroundColor = .black
         toolbar.autoresizingMask = [ .flexibleTopMargin, .flexibleWidth ]
@@ -83,9 +84,9 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         view.addSubview(toolbar)
         
         collectionView?.contentInset = UIEdgeInsets(
-            top: STATUS_H,
+            top: Const.shared.statusHeight,
             left: 0,
-            bottom: TOOLBAR_H,
+            bottom: Const.shared.toolbarHeight,
             right: 0
         )
         
@@ -97,6 +98,13 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         NotificationCenter.default.addObserver(self, selector: #selector(applicationWillResignActive(notification:)), name: NSNotification.Name.UIApplicationWillResignActive, object: UIApplication.shared)
         
+        Blocker.shared.onRulesReady({
+            print("rules ready")
+            self.restoreTabs()
+        })
+    }
+    
+    func restoreTabs() {
         collectionView?.performBatchUpdates({
             let tabsToRestore = self.getPreviousOpenTabs()
             for info in tabsToRestore {
@@ -114,6 +122,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                     self.showTab(self.tabs[lastIndex], animated: false, completion: {
                         self.view.isHidden = false
                     })
+                    self.view.isHidden = false
                 } else {
                     self.view.isHidden = false
                 }
@@ -121,7 +130,6 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                 self.view.isHidden = false
             }
         })
-        
     }
     
     @objc func applicationWillResignActive(notification: NSNotification) {
@@ -213,6 +221,17 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         }) as! TabThumbnail!
     }
     
+    func thumbFrame(forTab tab: BrowserTab) -> CGRect? {
+        if let thumb = self.thumb(forTab: tab) {
+            let frame = view.convert(thumb.frame, from: thumb.superview)
+//            print(thumb.frame)
+            return frame
+        }
+        else {
+            return nil
+        }
+    }
+    
     func showTab(_ tab: BrowserTab, animated: Bool = true, completion: (() -> Void)? = nil) {
         selectedTab = tab
         
@@ -232,11 +251,11 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     
     override func viewDidAppear(_ animated: Bool) {
         navigationController?.isNavigationBarHidden = true
-        
+
         
         if isFirstLoad {
             isFirstLoad = false
-            if tabs.count == 0 { addTab() }
+//            if tabs.count == 0 { addTab() }
         }
         
     }
@@ -287,34 +306,34 @@ extension HomeViewController {
     }
     
     // TODO: This should be part of a custom layout subclass
-    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        guard let cv = collectionView else { return }
-        for cell in cv.visibleCells {
-            let ip = cv.indexPath(for: cell)!
-            let intendedFrame = cv.layoutAttributesForItem(at: ip)!.frame
-            let vFrame = view.convert(intendedFrame, from: cell.superview)
-            
-            let scrollLimit = STATUS_H
-            if vFrame.origin.y < scrollLimit {
-                let pctOver = abs(scrollLimit - vFrame.origin.y) / 200
-                cell.frame.origin.y = intendedFrame.origin.y - vFrame.origin.y + scrollLimit
-                cell.alpha = 1 - pctOver
-                let s = 1 - pctOver * 0.05
-                cell.transform = CGAffineTransform(scaleX: s, y: s)
-                cell.isUserInteractionEnabled = false
-            }
-            else {
-                cell.frame.origin.y = intendedFrame.origin.y
-                cell.alpha = 1
-                cell.isUserInteractionEnabled = true
-            }
-            cell.layer.zPosition = CGFloat(ip.row)
-        }
-    }
+//    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+//        guard let cv = collectionView else { return }
+//        for cell in cv.visibleCells {
+//            let ip = cv.indexPath(for: cell)!
+//            let intendedFrame = cv.layoutAttributesForItem(at: ip)!.frame
+//            let vFrame = view.convert(intendedFrame, from: cell.superview)
+//
+//            let scrollLimit = Const.shared.statusHeight
+//            if vFrame.origin.y < scrollLimit {
+//                let pctOver = abs(scrollLimit - vFrame.origin.y) / 200
+//                cell.frame.origin.y = intendedFrame.origin.y - vFrame.origin.y + scrollLimit
+//                cell.alpha = 1 - pctOver
+//                let s = 1 - pctOver * 0.05
+//                cell.transform = CGAffineTransform(scaleX: s, y: s)
+//                cell.isUserInteractionEnabled = false
+//            }
+//            else {
+//                cell.frame.origin.y = intendedFrame.origin.y
+//                cell.alpha = 1
+//                cell.isUserInteractionEnabled = true
+//            }
+//            cell.layer.zPosition = CGFloat(ip.row)
+//        }
+//    }
     
     var thumbSize : CGSize {
         if view.frame.width > 400 {
-            let ratio = view.frame.width / (view.frame.height - TOOLBAR_H - STATUS_H )
+            let ratio = view.frame.width / (view.frame.height - Const.shared.toolbarHeight - Const.shared.statusHeight )
             let w = view.frame.width / 2 - 16
             return CGSize(width: w, height: w / ratio )
         }
@@ -351,13 +370,12 @@ extension HomeViewController : UICollectionViewDelegateFlowLayout {
         return 8.0
     }
     
-    override func collectionView(_ collectionView: UICollectionView,
-                                 moveItemAt source: IndexPath,
-                                 to destination: IndexPath) {
-        let item = tabs.remove(at: source.item)
-        tabs.insert(item, at: destination.item)
-    }
-    
+//    override func collectionView(_ collectionView: UICollectionView,
+//                                 moveItemAt source: IndexPath,
+//                                 to destination: IndexPath) {
+//        let item = tabs.remove(at: source.item)
+//        tabs.insert(item, at: destination.item)
+//    }
     
 }
 

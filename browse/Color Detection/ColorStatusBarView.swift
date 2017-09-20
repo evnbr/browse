@@ -34,7 +34,7 @@ class ColorStatusBarView : GradientColorChangeView {
     init() {
         let rect = CGRect(
             origin: CGPoint(x: 0, y: 0),
-            size:CGSize(width: UIScreen.main.bounds.size.width, height: STATUS_H)
+            size:CGSize(width: UIScreen.main.bounds.size.width, height: Const.shared.statusHeight)
         )
 
         super.init(frame: rect)

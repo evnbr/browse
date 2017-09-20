@@ -37,6 +37,8 @@
 	<string>Websites you are visiting may request your location</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>So you can upload photos to the website you are visiting</string>
+	<key>UILaunchStoryboardName</key>
+	<string>Launch Screen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>

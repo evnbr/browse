@@ -4,4 +4,4 @@
 
 #import <UITextView_Placeholder/UITextView+Placeholder.h>
 
-
+#import <WebKit/WKSnapshotConfiguration.h>

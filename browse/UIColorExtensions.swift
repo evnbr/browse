@@ -15,7 +15,7 @@ public extension UIColor
     static let darkOverlay = UIColor.white.withAlphaComponent(0.08)
     
     convenience init(r: CGFloat, g: CGFloat, b: CGFloat) {
-        self.init(colorLiteralRed: Float(r), green: Float(g), blue: Float(b), alpha: 1)
+        self.init(red: r, green: g, blue: b, alpha: 1)
     }
     
     var array : [ CGFloat ] {

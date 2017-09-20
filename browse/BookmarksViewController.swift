@@ -11,6 +11,9 @@ import UIKit
 
 let BOOKMARKS_GLOBAL : [ String ] = [
     "apple.com",
+    "evanbrooks.info",
+    "evanbrooks.info/bindery",
+    "github.com",
     "figma.com",
     "framer.com",
     "hoverstat.es",

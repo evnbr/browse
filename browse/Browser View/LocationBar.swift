@@ -83,11 +83,11 @@ class LocationBar: ToolbarTouchView {
     }
     
     override var intrinsicContentSize: CGSize {
-        return CGSize(width: 180.0, height: TOOLBAR_H)
+        return CGSize(width: 180.0, height: 40.0)
     }
     
     init(onTap: @escaping () -> Void) {
-        super.init(frame: CGRect(x: 0, y: 0, width: 180, height: TOOLBAR_H), onTap: onTap)
+        super.init(frame: CGRect(x: 0, y: 0, width: 180, height: 40.0), onTap: onTap)
         
         let lockImage = UIImage(named: "lock")!.withRenderingMode(.alwaysTemplate)
         lock = UIImageView(image: lockImage)

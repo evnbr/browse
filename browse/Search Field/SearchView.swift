@@ -13,7 +13,7 @@ let SEARCHVIEW_MAX_H : CGFloat = 160.0
 
 class SearchView: UIView, UITextViewDelegate {
     
-    var BrowserViewController : BrowserViewController!
+    var browserViewController : BrowserViewController!
     
     var textView : SearchTextView!
     var cancel   : ToolbarTextButton!
@@ -39,7 +39,7 @@ class SearchView: UIView, UITextViewDelegate {
             height: 600
         ))
         
-        BrowserViewController = vc
+        browserViewController = vc
         
         self.isEnabled = false
         
@@ -71,7 +71,7 @@ class SearchView: UIView, UITextViewDelegate {
         textView.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(textView)
         
-        cancel = ToolbarTextButton(title: "Cancel", withIcon: nil, onTap: self.BrowserViewController.hideSearch)
+        cancel = ToolbarTextButton(title: "Cancel", withIcon: nil, onTap: self.browserViewController.hideSearch)
         cancel.size = .medium
         cancel.sizeToFit()
         
@@ -197,7 +197,7 @@ class SearchView: UIView, UITextViewDelegate {
             self.isEnabled = false
             textView.selectedTextRange = nil
         })
-        BrowserViewController.hideSearch()
+        browserViewController.hideSearch()
     }
     
     var showSuggestion : Bool = false
@@ -222,18 +222,18 @@ class SearchView: UIView, UITextViewDelegate {
         }
     }
     func useSuggestion() {
-        BrowserViewController.hideSearch()
-        BrowserViewController.navigateToText(suggestionView.text!)
+        browserViewController.hideSearch()
+        browserViewController.navigateToText(suggestionView.text!)
     }
     
     func textViewDidChange(_ textView: UITextView) {
         updateSuggestion()
         updateSize()
-        BrowserViewController.searchSizeDidChange()
+        browserViewController.searchSizeDidChange()
     }
     
     func prepareToShow() {
-        textView.text = BrowserViewController.editableLocation
+        textView.text = browserViewController.editableLocation
         updateSuggestion()
         updateSize()
     }
@@ -250,8 +250,8 @@ class SearchView: UIView, UITextViewDelegate {
     
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
         if text == "\n" {
-            BrowserViewController.hideSearch()
-            BrowserViewController.navigateToText(textView.text!)
+            browserViewController.hideSearch()
+            browserViewController.navigateToText(textView.text!)
             return false
         }
         return true

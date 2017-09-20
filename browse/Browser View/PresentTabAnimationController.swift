@@ -16,10 +16,8 @@ enum CustomAnimationDirection {
 }
 
 // https://stackoverflow.com/questions/5948167/uiview-animatewithduration-doesnt-animate-cornerradius-variation
-extension UIView
-{
-    func addCornerRadiusAnimation(to: CGFloat, duration: CFTimeInterval)
-    {
+extension UIView {
+    func addCornerRadiusAnimation(to: CGFloat, duration: CFTimeInterval) {
         let animation = CABasicAnimation(keyPath:"cornerRadius")
         animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear)
         animation.fromValue = self.layer.cornerRadius
@@ -56,6 +54,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         let homeVC = homeNav.topViewController as! HomeViewController
         
         let thumb = homeVC.thumb(forTab: browserVC.browserTab!)
+        
         thumb?.isHidden = true
 
         if direction == .present {
@@ -68,6 +67,8 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         
         browserVC.updateSnapshot()
+        browserVC.isSnapshotMode = true
+        browserVC.hasStatusbarOffset = !self.isExpanding
         
         let prevTransform = homeNav.view.transform
         homeNav.view.transform = .identity // HACK reset to identity so we can get frame
@@ -79,6 +80,8 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         if thumb != nil {
             // must be after toVC is added
             thumbFrame = containerView.convert(thumb!.frame, from: thumb?.superview)
+            thumbFrame.origin.y -= homeNav.view.frame.origin.y
+            thumbFrame.origin.x -= homeNav.view.frame.origin.x
         }
         else {
             // animate from bottom
@@ -88,30 +91,29 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             duration = 0.5
         }
         
-        let transitioningThumb = TabThumbnail(frame: thumbFrame)
-        transitioningThumb.setTab(browserVC.browserTab!)
+//        let transitioningThumb = TabThumbnail(frame: thumbFrame)
+//        transitioningThumb.setTab(browserVC.browserTab!)
         
         let expandedFrame = browserVC.cardView.frame
         
-//        browserVC.cardView.frame = isExpanding ? thumbFrame : expandedFrame // NOTE: Would remove need for transitioningthumb
         
-        transitioningThumb.frame = isExpanding ? thumbFrame : expandedFrame
-        transitioningThumb.isExpanded = !isExpanding
-        transitioningThumb.backgroundColor = browserVC.statusBar.backgroundColor
+//        transitioningThumb.frame = isExpanding ? thumbFrame : expandedFrame
+//        transitioningThumb.isExpanded = !isExpanding
+//        transitioningThumb.backgroundColor = browserVC.statusBar.backgroundColor
         if !isExpanding {
             // continue from wherever cardview left off
-            transitioningThumb.layer.cornerRadius = browserVC.cardView.layer.cornerRadius
+//            transitioningThumb.layer.cornerRadius = browserVC.cardView.layer.cornerRadius
         }
         else {
             // reset cardview radius
-            browserVC.cardView.layer.cornerRadius = CARD_RADIUS
+//            browserVC.cardView.layer.cornerRadius = Const.shared.cardRadius
         }
         
         homeNav.view.transform = self.isExpanding
             ? .identity
             : prevTransform
         
-        browserVC.cardView.isHidden = true
+//        browserVC.cardView.isHidden = true
         
         let END_ALPHA : CGFloat = 0.0
 
@@ -136,8 +138,8 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             toolbarEndY = browserVC.cardViewDefaultFrame.height - 20
         }
         
-        containerView.addSubview(transitioningThumb)
-        containerView.bringSubview(toFront: transitioningThumb)
+        browserVC.cardView.frame = isExpanding ? thumbFrame : expandedFrame // NOTE: Would remove need for transitioningthumb
+        
         
         // Hack to keep thumbnails from intersecting toolbar
         let newTabToolbar = homeVC.toolbar!
@@ -156,17 +158,20 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             options: .allowUserInteraction,
             animations: {
                 
-//            browserVC.cardView.frame = self.isExpanding ? expandedFrame : thumbFrame
-            transitioningThumb.frame = self.isExpanding ? expandedFrame : thumbFrame
-            transitioningThumb.isExpanded = self.isExpanding
-            
+            browserVC.cardView.frame = self.isExpanding ? expandedFrame : thumbFrame
+//            transitioningThumb.frame = self.isExpanding ? expandedFrame : thumbFrame
+//            transitioningThumb.isExpanded = self.isExpanding
+                
+            homeNav.view.frame.origin = CGPoint.zero
             homeNav.view.alpha = self.isExpanding ? END_ALPHA : 1.0
             homeNav.view.transform = self.isExpanding
                 ? CGAffineTransform(scaleX: PRESENT_TAB_BACK_SCALE, y: PRESENT_TAB_BACK_SCALE)
                 : .identity
                 
+            browserVC.hasStatusbarOffset = self.isExpanding
             browserVC.toolbar.alpha = self.isExpanding ? 1.0 : 0.0
             browserVC.toolbar.frame.origin.y = toolbarEndY
+            browserVC.cardView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
             
             homeVC.setNeedsStatusBarAppearanceUpdate()
                 
@@ -177,11 +182,12 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             
             transitionContext.completeTransition(true)
             
-            browserVC.cardView.isHidden = false
+//            browserVC.cardView.isHidden = false
+            browserVC.isSnapshotMode = false
             
             thumb?.setTab(browserVC.browserTab!)
             
-            transitioningThumb.removeFromSuperview()
+//            transitioningThumb.removeFromSuperview()
             
             homeVC.view.addSubview(newTabToolbar)
             newTabToolbar.isHidden = self.isExpanding

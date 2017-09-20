@@ -1,5 +1,5 @@
 //
-//  WebViewInteractiveDismissController.swift
+//  BrowserViewInteractiveDismiss.swift
 //  browse
 //
 //  Created by Evan Brooks on 6/20/17.
@@ -20,10 +20,10 @@ enum WebViewInteractiveDismissDirection {
 // that silently logs in xcode, but doesn't seem to break anything.
 // Only shows up on blank pages.
 
-class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegate, UIScrollViewDelegate {
+class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIScrollViewDelegate {
     
     var vc : BrowserViewController!
-    var home : UIViewController!
+    var home : HomeViewController!
     
     var view : UIView!
     var toolbar : UIView!
@@ -105,12 +105,13 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
                 let scale = PRESENT_TAB_BACK_SCALE + revealProgress * 0.5 * (1 - PRESENT_TAB_BACK_SCALE)
                 home.navigationController?.view.transform = CGAffineTransform(scaleX: scale, y: scale)
                 
-                let adjustedX = elasticLimit(gesturePos.x)
+//                let adjustedX = elasticLimit(gesturePos.x)
+                let adjustedX = gesturePos.x
                 
                 cardView.frame.origin.x = adjustedX
-                cardView.layer.cornerRadius = min(revealProgress * 8 * CORNER_RADIUS, CORNER_RADIUS)
-                
-                
+                if (Const.shared.cardRadius < Const.shared.thumbRadius) {
+                    cardView.layer.cornerRadius = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
+                }
             }
         }
         else if gesture.state == .ended {
@@ -157,7 +158,7 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
 //    var statusBarAnimator : UIViewPropertyAnimator!
     
     var shouldRestoreKeyboard : Bool = false
-    
+    var thumbStartY : CGFloat = 0.0
     func start() {
         isInteractiveDismiss = true
         startScroll = vc.webView.scrollView.contentOffset
@@ -165,7 +166,13 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
         if vc.isDisplayingSearch {
             vc.hideSearch()
         }
+        
+        if let rect = home.thumbFrame(forTab: vc.browserTab!) {
+            thumbStartY = rect.origin.y
+        }
     }
+    
+    
     
     func end() {
         isInteractiveDismiss = false
@@ -183,7 +190,9 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
             self.vc.resetSizes(withKeyboard: self.shouldRestoreKeyboard)
             self.vc.setNeedsStatusBarAppearanceUpdate()
             self.vc.home.navigationController?.view.alpha = 0
-            self.cardView.layer.cornerRadius = CARD_RADIUS
+            self.home.navigationController?.view.frame.origin.y = 0
+            
+            self.cardView.layer.cornerRadius = Const.shared.cardRadius
         }, completion: nil)
         
         if shouldRestoreKeyboard {  // HACK, COPY PASTED EVERYWHERE
@@ -215,26 +224,34 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
             return
         }
         
-        adjustedY = elasticLimit(adjustedY)
+//        adjustedY = elasticLimit(adjustedY)
         
         
-        let statusOffset : CGFloat = 0 // min(STATUS_H, (abs(adjustedY) / 300) * STATUS_H)
-        vc.webView.frame.origin.y = STATUS_H - statusOffset
+        let statusOffset : CGFloat = 0 // min(Const.shared.statusHeight, (abs(adjustedY) / 300) * Const.shared.statusHeight)
+        vc.webView.frame.origin.y = Const.shared.statusHeight - statusOffset
         statusBar.frame.origin.y = 0 - statusOffset
         
         cardView.frame.origin.y = adjustedY
         
-        if adjustedY > 0 {
-            cardView.frame.size.height = view.frame.height - (abs(adjustedY))
-        }
+//        if adjustedY > 0 {
+//            cardView.frame.size.height = view.frame.height - (abs(adjustedY))
+//        }
         
         
         let revealProgress = abs(adjustedY) / 200
         home.navigationController?.view.alpha = revealProgress * 0.4 // alpha is 0 ... 0.4
         let scale = PRESENT_TAB_BACK_SCALE + revealProgress * 0.5 * (1 - PRESENT_TAB_BACK_SCALE)
+        
         home.navigationController?.view.transform = CGAffineTransform(scaleX: scale, y: scale)
         
-        cardView.layer.cornerRadius = min(revealProgress * 8 * CORNER_RADIUS, CORNER_RADIUS)
+        home.navigationController?.view.frame.origin.y = adjustedY - thumbStartY
+        
+//        cardView.layer.cornerRadius = min(revealProgress * 8 * CORNER_RADIUS, CORNER_RADIUS)
+        
+        if (Const.shared.cardRadius < Const.shared.thumbRadius) {
+            cardView.layer.cornerRadius = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
+        }
+        
         
         if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle {
             UIView.animate(withDuration: 0.2, animations: {
@@ -242,9 +259,9 @@ class WebViewInteractiveDismissController : NSObject, UIGestureRecognizerDelegat
             })
         }
         
-        if abs(adjustedY) > 160 {
-            commit()
-        }
+//        if abs(adjustedY) > 160 {
+//            commit()
+//        }
         
 //        statusBarAnimator.fractionComplete = abs(adjustedY) / 50
     }

@@ -14,15 +14,16 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     var home: HomeViewController!
     var webView: WKWebView!
+    var snap: UIView!
     var browserTab: BrowserTab?
         
     var isDisplayingSearch : Bool = false
     var searchView: SearchView!
-    var colorSampler: ColorTransitionController!
+    var colorSampler: ColorSampler!
     
     var statusBar: ColorStatusBarView!
     var toolbar: ProgressToolbar!
-    var accessoryView: UIView!
+    var accessoryView: GradientColorChangeView!
     
     var errorView: UIView!
     var cardView: UIView!
@@ -39,7 +40,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
     var onePasswordExtensionItem : NSExtensionItem!
     
-    var interactiveDismissController : WebViewInteractiveDismissController!
+    var interactiveDismissController : BrowserViewInteractiveDismiss!
 
     // MARK: - Derived properties
     
@@ -47,7 +48,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         if interactiveDismissController.isInteractiveDismiss && (cardView.frame.origin.y > 10) {
             return .lightContent
         }
-        return statusBar.backgroundColor!.isLight ? .lightContent : .default
+        return statusBar.lastColor.isLight ? .lightContent : .default
     }
     
     override var prefersStatusBarHidden: Bool {
@@ -61,7 +62,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             && !interactiveDismissController.isInteractiveDismiss
             && UIApplication.shared.applicationState == .active
             && webView != nil
-            && webView.scrollView.contentOffset.y >= 0
+            && cardView.frame.origin.y == 0.0
         )
     }
     
@@ -85,8 +86,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var isSearching : Bool {
         get {
             guard let url = webView.url else { return false }
-            let searchURL = "https://duckduckgo.com/?"
-            // let searchURL = "https://www.google.com/search?"
+//            let searchURL = "https://duckduckgo.com/?"
+             let searchURL = "https://www.google.com/search?"
             return url.absoluteString.hasPrefix(searchURL)
         }
     }
@@ -109,6 +110,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     
     func setTab(_ newTab: BrowserTab ) {
+        if newTab === browserTab { return }
         
         let oldWebView = webView
         oldWebView?.removeFromSuperview()
@@ -117,8 +119,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         browserTab = newTab
         webView = newTab.webView
-        statusBar.backgroundColor = newTab.color
-        webView.backgroundColor = newTab.color
+        statusBar.backgroundColor = newTab.topColorSample
+        webView.backgroundColor = newTab.bottomColorSample
+        toolbar.backgroundColor = newTab.bottomColorSample
+        print(newTab.bottomColorSample)
         
         webView.navigationDelegate = self
         webView.uiDelegate = self
@@ -130,13 +134,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         cardView.addSubview(webView)
         cardView.bringSubview(toFront: toolbar)
         
-        webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: STATUS_H).isActive = true
+        webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: Const.shared.statusHeight).isActive = true
         webView.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
         webView.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
         
-        heightConstraint = webView.heightAnchor.constraint(equalTo: view.heightAnchor, constant: (-STATUS_H - TOOLBAR_H))
+        heightConstraint = webView.heightAnchor.constraint(equalTo: view.heightAnchor, constant: (-Const.shared.statusHeight - Const.shared.toolbarHeight))
         heightConstraint.isActive = true
-        webView.heightAnchor.constraint(greaterThanOrEqualTo: cardView.heightAnchor, constant: -STATUS_H)
+        webView.heightAnchor.constraint(greaterThanOrEqualTo: cardView.heightAnchor, constant: -Const.shared.statusHeight)
         
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.title), options: .new, context: nil)
@@ -165,13 +169,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         super.viewDidLoad()
         
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        // view.layer.cornerRadius = CARD_RADIUS
+        // view.layer.cornerRadius = Const.shared.cardRadius
         // view.layer.masksToBounds = true
         
         
         cardView = UIView(frame: cardViewDefaultFrame)
         cardView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        cardView.layer.cornerRadius = CARD_RADIUS
+        cardView.layer.cornerRadius = Const.shared.cardRadius
         cardView.layer.masksToBounds = true
 //        cardView.backgroundColor = .red
         
@@ -192,12 +196,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         accessoryView = setupAccessoryView()
         
-        colorSampler = ColorTransitionController(inViewController: self)
+        colorSampler = ColorSampler(inViewController: self)
         
-        interactiveDismissController = WebViewInteractiveDismissController(for: self)
+        interactiveDismissController = BrowserViewInteractiveDismiss(for: self)
         
 
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
+        longPress.minimumPressDuration = 0.3
         locationBar.addGestureRecognizer(longPress)
         
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
@@ -238,7 +243,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 //        topLabel.font = UIFont.systemFont(ofSize: 12.0)
         topLabel.font = UIFont.systemFont(ofSize: 12.0, weight: UIFont.Weight.semibold)
         topLabel.backgroundColor = .red
-        topLabel.frame = CGRect(x: 0, y: 0, width: 290, height: STATUS_H)
+        topLabel.frame = CGRect(x: 0, y: 0, width: 290, height: Const.shared.statusHeight)
         topLabel.center = topWindow.center
         topLabel.textAlignment = .center
         
@@ -252,7 +257,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             x: 0,
             y: 0,
             width: UIScreen.main.bounds.width,
-            height: UIScreen.main.bounds.height// - TOOLBAR_H
+            height: UIScreen.main.bounds.height// - Const.shared.toolbarHeight
         )
     }
 
@@ -260,9 +265,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         let toolbar = ProgressToolbar(frame: CGRect(
             x: 0,
-            y: UIScreen.main.bounds.size.height - TOOLBAR_H,
+            y: UIScreen.main.bounds.size.height - Const.shared.toolbarHeight,
             width: UIScreen.main.bounds.size.width,
-            height: TOOLBAR_H
+            height: Const.shared.toolbarHeight
         ))
         
         locationBar = LocationBar(
@@ -303,8 +308,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         return toolbar
     }
     
-    func setupAccessoryView() -> UIView {
-        let acc = UIView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))
+    func setupAccessoryView() -> GradientColorChangeView {
+        let acc = GradientColorChangeView(frame: CGRect(x: 0, y: 0, width: 375, height: 48))
         acc.tintColor = UIColor.darkText
         acc.backgroundColor = UIColor(r: 0.83, g: 0.84, b: 0.85).withAlphaComponent(0.95)
 //        acc.backgroundColor = UIColor.white.withAlphaComponent(0.9)
@@ -333,10 +338,38 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         return acc
     }
     
+    var hasStatusbarOffset : Bool {
+        get {
+            return snap.frame.origin.y > 0
+        }
+        set {
+            snap.frame.origin.y = newValue ? Const.shared.statusHeight : 0
+        }
+    }
+    var isSnapshotMode : Bool {
+        get {
+            return snap?.isHidden ?? false
+        }
+        set {
+            if newValue {
+                snap.isHidden = false
+//                    snap.frame.size.width = 100
+                cardView.addSubview(snap)
+                snap.frame.origin.y = Const.shared.statusHeight
+                snap.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
+                webView.isHidden = true
+            } else {
+//                browserTab?.webSnapshot?.isHidden = true
+                webView.isHidden = false
+            }
+        }
+    }
+    
     
     func updateSnapshot() {
         webView.scrollView.showsVerticalScrollIndicator = false
-        browserTab?.webSnapshot = webView.snapshotView(afterScreenUpdates: true)!
+        snap = webView.snapshotView(afterScreenUpdates: true)!
+        browserTab?.webSnapshot = snap
         webView.scrollView.showsVerticalScrollIndicator = true
     }
     
@@ -353,7 +386,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 
         
         colorSampler.startUpdates()
-
+        
         // disable mysterious delays
         // https://stackoverflow.com/questions/19799961/uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen
         let window = view.window!
@@ -393,7 +426,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     @objc func longPressURL(recognizer: UIGestureRecognizer) {
         if recognizer.state == .began {
             
-            displayEditMenu()
+//            displayEditMenu()
+            displayOverflow()
             recognizer.isEnabled = false
             recognizer.isEnabled = true
         }
@@ -549,8 +583,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 //            self.searchDismissScrim.alpha = 0
             
             self.cardView.frame = self.cardViewDefaultFrame
-            self.toolbar.frame.origin.y = self.cardViewDefaultFrame.height - TOOLBAR_H
-            self.toolbar?.frame.size.height = TOOLBAR_H
+            self.toolbar.frame.origin.y = self.cardViewDefaultFrame.height - Const.shared.toolbarHeight
+            self.toolbar?.frame.size.height = Const.shared.toolbarHeight
             self.locationBar.alpha = 1
             
             self.toolbar.layoutIfNeeded()
@@ -566,7 +600,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     func searchSizeDidChange() {
         if searchView != nil && isDisplayingSearch {
-//            let cardH = cardViewDefaultFrame.height - keyboardHeight - searchView.frame.height + TOOLBAR_H
+//            let cardH = cardViewDefaultFrame.height - keyboardHeight - searchView.frame.height + Const.shared.toolbarHeight
             let cardH = cardViewDefaultFrame.height - keyboardHeight
             
             self.cardView?.frame.size.height = cardH
@@ -652,8 +686,23 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         let ac = UIAlertController(title: title, message: nil, preferredStyle: .actionSheet)
         self.overflowController = ac
         
-        ac.addAction(UIAlertAction(title: "Passwords", style: .default, handler: { action in
-            self.displayPassword()
+//        ac.addAction(UIAlertAction(title: "Passwords", style: .default, handler: { action in
+//            self.displayPassword()
+//        }))
+        ac.addAction(UIAlertAction(title: "Refresh", style: .default, handler: { action in
+            self.webView.reload()
+        }))
+//        ac.addAction(UIAlertAction(title: "Hard Refresh", style: .default, handler: { action in
+//            self.webView.reloadFromOrigin()
+//        }))
+        if (UIPasteboard.general.hasStrings) {
+            ac.addAction(UIAlertAction(title: "Paste and go", style: .default, handler: { action in
+                self.pasteURLAndGo()
+            }))
+        }
+        
+        ac.addAction(UIAlertAction(title: "Copy", style: .default, handler: { action in
+            self.copyURL()
         }))
 //        ac.addAction(UIAlertAction(title: "Bookmarks", style: .default, handler: { action in
 //            self.displayBookmarks()
@@ -713,8 +762,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
         else {
             let query = text.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
-            let searchURL = "https://duckduckgo.com/?q="
-//            let searchURL = "https://www.google.com/search?q="
+//            let searchURL = "https://duckduckgo.com/?q="
+            let searchURL = "https://www.google.com/search?q="
             let url = URL(string: searchURL + query)!
             
             if let btn = locationBar {
@@ -770,13 +819,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     func resetSizes(withKeyboard : Bool = false) {
         view.frame = UIScreen.main.bounds
         statusBar.frame.origin.y = 0
-        webView.frame.origin.y = STATUS_H
+        webView.frame.origin.y = Const.shared.statusHeight
         view.transform = .identity
         cardView.frame = cardViewDefaultFrame
         
         if isBlank && withKeyboard {
             // hack for better transition with keyboard
-            cardView.frame.size.height = cardViewDefaultFrame.height - keyboardHeight - searchView.frame.height + TOOLBAR_H
+            cardView.frame.size.height = cardViewDefaultFrame.height - keyboardHeight
         }
         
         toolbar.alpha = 1

@@ -28,12 +28,12 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         }
         set {
             _isExpanded = newValue
-//            snap?.frame.origin.y = newValue ? 0 : -STATUS_H
-//            snap?.frame.origin.y = newValue ? STATUS_H : 0
+//            snap?.frame.origin.y = newValue ? 0 : -Const.shared.statusHeight
+//            snap?.frame.origin.y = newValue ? Const.shared.statusHeight : 0
             label?.alpha = newValue ? 0 : 1
             snap?.frame = frameForSnap(snap)
             layer.borderWidth = newValue ? 0.0 : 1.0
-            layer.cornerRadius = newValue ? CARD_RADIUS : THUMB_RADIUS
+            layer.cornerRadius = newValue ? Const.shared.cardRadius : Const.shared.thumbRadius
         }
     }
     
@@ -76,7 +76,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        layer.cornerRadius = THUMB_RADIUS
+        layer.cornerRadius = Const.shared.thumbRadius
         backgroundColor = .clear
         clipsToBounds = true
         
@@ -110,7 +110,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         label.font = UIFont.systemFont(ofSize: 15.0)
         label.textColor = .darkText
         contentView.addSubview(label)
-        contentView.backgroundColor = .darkGray
+        contentView.backgroundColor = .white
     }
         
     required init?(coder aDecoder: NSCoder) {
@@ -125,8 +125,10 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
             setSnapshot(snap)
         }
         
-        contentView.backgroundColor = browserTab.color
-        label.textColor = browserTab.color.isLight ? .white : .darkText
+        if let color : UIColor = browserTab.bottomColorSample {
+            contentView.backgroundColor = color
+            label.textColor = color.isLight ? .white : .darkText
+        }
         
         if let title : String = browserTab.restorableTitle {
             label.text = "\(title)"
@@ -254,8 +256,8 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         let W = self.frame.size.width
         return CGRect(
             x: 0,
-            y: _isExpanded ? STATUS_H : THUMB_OFFSET_COLLAPSED,
-//            y: STATUS_H,
+            y: _isExpanded ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED,
+//            y: Const.shared.statusHeight,
             width: W,
             height: aspect * W
         )

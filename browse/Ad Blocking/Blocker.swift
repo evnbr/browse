@@ -23,10 +23,18 @@ class Blocker: NSObject {
     
     override init() {
         super.init()
-        getList()
     }
     
-    func getList() {
+    func onRulesReady(_ callback: @escaping () -> ()) {
+        if (ruleList != nil) {
+            callback()
+        }
+        else {
+            getList(callback)
+        }
+    }
+    
+    func getList(_ done: @escaping () -> ()) {
         WKContentRuleListStore.default().getAvailableContentRuleListIdentifiers { (identifiers) in
             if identifiers != nil && identifiers!.contains(EASYLIST_ID) {
                 print("existing rules found")
@@ -34,9 +42,11 @@ class Blocker: NSObject {
                     if let list : WKContentRuleList = list {
                         print("existing rules fetched")
                         self.ruleList = list
+                        done()
                     } else {
                         print("existing rules failed to be fetched")
                         if (error != nil) { print(error as Any) }
+                        done()
                     }
                 })
             } else {
@@ -48,16 +58,20 @@ class Blocker: NSObject {
                             if let list : WKContentRuleList = list {
                                 print("rules compiled!")
                                 self.ruleList = list
+                                done()
                             } else {
                                 print("rules failed to be compiled")
                                 if (error != nil) { print(error as Any) }
+                                done()
                             }
                         }
                     } else {
                         print("rules file not found")
+                        done()
                     }
                 } catch let error as NSError {
                     print("rules not compiled: ", error)
+                    done()
                 }
             }
         }
