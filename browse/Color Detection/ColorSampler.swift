@@ -102,6 +102,8 @@ class ColorSampler : NSObject, UIGestureRecognizerDelegate {
     func stopUpdates() {
         colorUpdateTimer?.invalidate()
         colorUpdateTimer = nil
+        wvc.statusBar.cancelColorChange()
+        wvc.toolbar.cancelColorChange()
     }
     
     @objc func updateColors() {

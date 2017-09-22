@@ -65,6 +65,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         ))
         toolbar.backgroundColor = .black
         toolbar.autoresizingMask = [ .flexibleTopMargin, .flexibleWidth ]
+        toolbar.layer.zPosition = 100
         
         let addButton = ToolbarTextButton(
             title: "New",
@@ -221,6 +222,59 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         }) as! TabThumbnail!
     }
     
+    var visibleCells: [TabThumbnail] {
+        guard let cv = collectionView else { return [] }
+        return cv.visibleCells as! [TabThumbnail]
+    }
+    
+    var visibleCellsAbove: [TabThumbnail] {
+        var above : [TabThumbnail] = []
+        var isAbove = true
+        for thumb in visibleCells {
+            if thumb.browserTab == selectedTab {
+                isAbove = false
+            }
+            if isAbove {
+                above.append(thumb)
+            }
+        }
+        return above
+    }
+    var visibleCellsBelow: [TabThumbnail] {
+        var below : [TabThumbnail] = []
+        var isBelow = false
+        for thumb in visibleCells {
+            if thumb.browserTab == selectedTab {
+                isBelow = true
+            }
+            else if isBelow {
+                below.append(thumb)
+            }
+        }
+        return below
+    }
+    
+    func setCollapsed(_ newVal : Bool) {
+        guard let cv = collectionView else { return }
+        if (newVal) {
+            let scrollTop = cv.contentOffset.y + Const.shared.statusHeight
+            for cell in visibleCellsAbove {
+                cell.frame.origin.y = scrollTop
+            }
+            for cell in visibleCellsBelow {
+                cell.frame.origin.y = scrollTop + view.frame.height
+            }
+        }
+        else {
+            for cell in visibleCells {
+                let ip = cv.indexPath(for: cell)!
+                let intendedFrame = cv.layoutAttributesForItem(at: ip)!.frame
+                cell.frame = intendedFrame
+            }
+        }
+        
+    }
+    
     func thumbFrame(forTab tab: BrowserTab) -> CGRect? {
         if let thumb = self.thumb(forTab: tab) {
             let frame = view.convert(thumb.frame, from: thumb.superview)
@@ -306,30 +360,30 @@ extension HomeViewController {
     }
     
     // TODO: This should be part of a custom layout subclass
-//    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//        guard let cv = collectionView else { return }
-//        for cell in cv.visibleCells {
-//            let ip = cv.indexPath(for: cell)!
-//            let intendedFrame = cv.layoutAttributesForItem(at: ip)!.frame
-//            let vFrame = view.convert(intendedFrame, from: cell.superview)
-//
-//            let scrollLimit = Const.shared.statusHeight
-//            if vFrame.origin.y < scrollLimit {
-//                let pctOver = abs(scrollLimit - vFrame.origin.y) / 200
-//                cell.frame.origin.y = intendedFrame.origin.y - vFrame.origin.y + scrollLimit
-//                cell.alpha = 1 - pctOver
-//                let s = 1 - pctOver * 0.05
-//                cell.transform = CGAffineTransform(scaleX: s, y: s)
-//                cell.isUserInteractionEnabled = false
-//            }
-//            else {
-//                cell.frame.origin.y = intendedFrame.origin.y
-//                cell.alpha = 1
-//                cell.isUserInteractionEnabled = true
-//            }
-//            cell.layer.zPosition = CGFloat(ip.row)
-//        }
-//    }
+    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard let cv = collectionView else { return }
+        for cell in cv.visibleCells {
+            let ip = cv.indexPath(for: cell)!
+            let intendedFrame = cv.layoutAttributesForItem(at: ip)!.frame
+            let vFrame = view.convert(intendedFrame, from: cell.superview)
+
+            let scrollLimit = Const.shared.statusHeight
+            if vFrame.origin.y < scrollLimit {
+                let pctOver = abs(scrollLimit - vFrame.origin.y) / 200
+                cell.frame.origin.y = intendedFrame.origin.y - vFrame.origin.y + scrollLimit
+                cell.alpha = 1 - pctOver
+                let s = 1 - pctOver * 0.05
+                cell.transform = CGAffineTransform(scaleX: s, y: s)
+                cell.isUserInteractionEnabled = false
+            }
+            else {
+                cell.frame.origin.y = intendedFrame.origin.y
+                cell.alpha = 1
+                cell.isUserInteractionEnabled = true
+            }
+            cell.layer.zPosition = CGFloat(ip.row)
+        }
+    }
     
     var thumbSize : CGSize {
         if view.frame.width > 400 {
@@ -337,8 +391,8 @@ extension HomeViewController {
             let w = view.frame.width / 2 - 16
             return CGSize(width: w, height: w / ratio )
         }
-        return CGSize(width: view.frame.width - sectionInsets.left - sectionInsets.right, height: THUMB_H)
-//        return CGSize(width: view.frame.width, height: THUMB_H)
+//        return CGSize(width: view.frame.width - sectionInsets.left - sectionInsets.right, height: THUMB_H)
+        return CGSize(width: view.frame.width - sectionInsets.left - sectionInsets.right, height: 300)
     }
     
     
@@ -367,7 +421,7 @@ extension HomeViewController : UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 8.0
+        return -120.0
     }
     
 //    override func collectionView(_ collectionView: UICollectionView,
@@ -399,18 +453,26 @@ extension HomeViewController {
             let converted : [ TabInfo ] = openTabs.map { dict in
                 let title = dict["title"] as? String ?? ""
                 let urlString = dict["urlString"] as? String ?? ""
-                var color : UIColor
-                if let rgb = dict["color"] as? [ CGFloat ] {
-                    color = UIColor(r: rgb[0], g: rgb[1], b: rgb[2] )
+                var topColor : UIColor
+                var bottomColor : UIColor
+                if let rgb = dict["topColor"] as? [ CGFloat ] {
+                    topColor = UIColor(r: rgb[0], g: rgb[1], b: rgb[2] )
                 }
                 else {
-                    color = UIColor.white
+                    topColor = UIColor.white
                 }
-                
+                if let rgb = dict["bottomColor"] as? [ CGFloat ] {
+                    bottomColor = UIColor(r: rgb[0], g: rgb[1], b: rgb[2] )
+                }
+                else {
+                    bottomColor = UIColor.white
+                }
+
                 return TabInfo(
                     title: title,
-                    urlString: urlString ,
-                    color: color
+                    urlString: urlString,
+                    topColor: topColor,
+                    bottomColor: bottomColor
                 )
             }
             return converted
@@ -422,13 +484,15 @@ extension HomeViewController {
 struct TabInfo {
     var title : String
     var urlString : String
-    var color: UIColor
+    var topColor: UIColor
+    var bottomColor: UIColor
     
     var nsDictionary : NSDictionary {
         return NSDictionary(dictionary: [
             "title" : title,
             "urlString" : urlString,
-            "color" : color.array,
+            "topColor" : topColor.array,
+            "bottomColor" : bottomColor.array,
         ])
     }
     

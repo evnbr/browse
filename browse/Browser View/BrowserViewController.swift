@@ -119,10 +119,20 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         browserTab = newTab
         webView = newTab.webView
-        statusBar.backgroundColor = newTab.topColorSample
+        cardView.backgroundColor = newTab.bottomColorSample
         webView.backgroundColor = newTab.bottomColorSample
-        toolbar.backgroundColor = newTab.bottomColorSample
-        print(newTab.bottomColorSample)
+        
+        // Without this, the old color flickers through
+        // for some mysterious reason.
+        if let newTop = newTab.topColorSample {
+            statusBar.backgroundColor = newTop
+            let _ = statusBar.animateGradient(toColor: newTop, duration: 0.1, direction: .fromBottom)
+        }
+        if let newBottom = newTab.bottomColorSample {
+            toolbar.backgroundColor = newBottom
+            let _ = toolbar.animateGradient(toColor: newBottom, duration: 0.1, direction: .fromTop)
+        }
+
         
         webView.navigationDelegate = self
         webView.uiDelegate = self
@@ -172,6 +182,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         // view.layer.cornerRadius = Const.shared.cardRadius
         // view.layer.masksToBounds = true
         
+        view.layer.shadowColor = UIColor.black.cgColor
+        view.layer.shadowOffset = .zero
+        view.layer.shadowRadius = 4
+        view.layer.shadowOpacity = 0.3
+
         
         cardView = UIView(frame: cardViewDefaultFrame)
         cardView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -340,10 +355,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     var hasStatusbarOffset : Bool {
         get {
-            return snap.frame.origin.y > 0
+            return snap.frame.origin.y == Const.shared.statusHeight
         }
         set {
-            snap.frame.origin.y = newValue ? Const.shared.statusHeight : 0
+            statusBar.label.textColor = toolbar.tintColor
+            statusBar.label.text = webView.url?.displayHost
+            statusBar.label.alpha = newValue ? 0 : 1
+            
+            statusBar.frame.size.height = newValue ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED
+            snap.frame.origin.y = newValue ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED
         }
     }
     var isSnapshotMode : Bool {
@@ -385,7 +405,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         self.setNeedsStatusBarAppearanceUpdate()
 
         
-        colorSampler.startUpdates()
+        self.colorSampler.startUpdates()
         
         // disable mysterious delays
         // https://stackoverflow.com/questions/19799961/uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen
@@ -412,8 +432,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     
     override func viewDidDisappear(_ animated: Bool) {
-        // This is probably called too often, should only be when app closes
-        
         colorSampler.stopUpdates()
     }
     

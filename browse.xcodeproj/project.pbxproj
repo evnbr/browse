@@ -208,10 +208,9 @@
 		A90F51261F7178C000221815 /* Browser View */ = {
 			isa = PBXGroup;
 			children = (
-				A920958E1EDF4AB8009497A2 /* PresentTabAnimationController.swift */,
 				A97CB0711EC53DCD005DDBD1 /* BrowserViewController.swift */,
 				A92C9C3A1EF8B5E600D8AAA3 /* BrowserViewInteractiveDismiss.swift */,
-				A9DEAE3C1F16C15700CF66BA /* ProgressToolbar.swift */,
+				A920958E1EDF4AB8009497A2 /* PresentTabAnimationController.swift */,
 				A90892091ED547C500A5E9BA /* LocationBar.swift */,
 			);
 			path = "Browser View";
@@ -231,6 +230,7 @@
 		A90F51281F7178FF00221815 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				A9DEAE3C1F16C15700CF66BA /* ProgressToolbar.swift */,
 				A98483271EEFCFE200E821AE /* ColorToolbarView.swift */,
 				A92095941EE3E0DA009497A2 /* ToolbarTouchView.swift */,
 				A99328461F098E270045EBAA /* ToolbarTextButton.swift */,
@@ -819,7 +819,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = evn.browser;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "browse/Bridging-Header.h";
-				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
@@ -836,7 +836,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = evn.browser;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "browse/Bridging-Header.h";
-				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				SWIFT_VERSION = 4.0;
 			};
 			name = Release;

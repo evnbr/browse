@@ -30,8 +30,8 @@ class BrowserTab: NSObject {
     
     init(restoreInfo : TabInfo) {
         super.init()
-        restoredColor = restoreInfo.color
-        bottomColorSample = restoreInfo.color
+        topColorSample = restoreInfo.topColor
+        bottomColorSample = restoreInfo.bottomColor
         restoredTitle = restoreInfo.title
         restoredLocation = restoreInfo.urlString
         webView = loadWebView(withConfig: nil)
@@ -39,7 +39,7 @@ class BrowserTab: NSObject {
     
     var restorableTitle : String? {
         if webView?.url == nil { return restoredTitle }
-        return webView?.title ?? restoredTitle
+        return webView?.url?.displayHost ?? restoredTitle
     }
     var restorableURL : String? {
         return webView?.url?.absoluteString ?? restoredLocation
@@ -54,7 +54,8 @@ class BrowserTab: NSObject {
         return TabInfo(
             title: restorableTitle ?? "",
             urlString: restorableURL ?? "",
-            color: bottomColorSample ?? .white
+            topColor: bottomColorSample ?? .white,
+            bottomColor: bottomColorSample ?? .white
         )
     }
     

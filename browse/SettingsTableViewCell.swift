@@ -23,7 +23,7 @@ class SettingsTableViewCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func toggleSwitch(sender: UISwitch) {
+    @objc func toggleSwitch(sender: UISwitch) {
         self.item.isOn = sender.isOn
     }
 

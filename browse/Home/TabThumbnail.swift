@@ -9,7 +9,6 @@
 import UIKit
 
 typealias CloseTabCallback = (UICollectionViewCell) -> Void
-let THUMB_OFFSET_COLLAPSED : CGFloat = 0.0 // 28.0
 
 class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
@@ -32,7 +31,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
 //            snap?.frame.origin.y = newValue ? Const.shared.statusHeight : 0
             label?.alpha = newValue ? 0 : 1
             snap?.frame = frameForSnap(snap)
-            layer.borderWidth = newValue ? 0.0 : 1.0
+//            layer.borderWidth = newValue ? 0.0 : 1.0
             layer.cornerRadius = newValue ? Const.shared.cardRadius : Const.shared.thumbRadius
         }
     }
@@ -76,12 +75,18 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        layer.cornerRadius = Const.shared.thumbRadius
+        layer.cornerRadius = Const.shared.thumbRadius 
         backgroundColor = .clear
-        clipsToBounds = true
+//        clipsToBounds = true
         
-        layer.borderWidth = 1.0
-        layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
+//        layer.borderWidth = 1.0
+//        layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
+//        layer.borderColor = UIColor.black.cgColor
+        
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOffset = .zero
+        layer.shadowRadius = 4
+        layer.shadowOpacity = 0.3
         
         isExpanded = false
         
@@ -96,6 +101,9 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         overlay.backgroundColor = .red
         overlay.alpha = 0
         
+        contentView.layer.cornerRadius = Const.shared.thumbRadius
+        contentView.clipsToBounds = true
+
         contentView.addSubview(overlay)
         
         label = UILabel(frame: CGRect(
@@ -105,9 +113,8 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
             height: 16.0
         ))
         label.text = "Blank"
-        label.alpha = 0.5
 //        label.textAlignment = .center
-        label.font = UIFont.systemFont(ofSize: 15.0)
+        label.font = UIFont.systemFont(ofSize: THUMB_TITLE)
         label.textColor = .darkText
         contentView.addSubview(label)
         contentView.backgroundColor = .white
@@ -121,11 +128,11 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         browserTab = newTab
         
         if let snap : UIView = browserTab.webSnapshot {
-            label.isHidden = true
+//            label.isHidden = true
             setSnapshot(snap)
         }
         
-        if let color : UIColor = browserTab.bottomColorSample {
+        if let color : UIColor = browserTab.topColorSample {
             contentView.backgroundColor = color
             label.textColor = color.isLight ? .white : .darkText
         }
@@ -158,8 +165,10 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         unTransformedFrame = frame
         
         if touches.first != nil {
-            UIView.animate(withDuration: 1.4, delay: 0, usingSpringWithDamping: 0.3, initialSpringVelocity: 0, options: .curveLinear, animations: {
-                self.transform = CGAffineTransform(scaleX: TAP_SCALE, y: TAP_SCALE)
+            UIView.animate(withDuration: 1.4, delay: 0, usingSpringWithDamping: 0.4, initialSpringVelocity: 0, options: .curveLinear, animations: {
+//                self.transform = CGAffineTransform(scaleX: TAP_SCALE, y: TAP_SCALE)
+//                self.transform = CGAffineTransform(translationX: 0, y: -16)
+                self.snap?.alpha = 0.7
             }, completion: nil)
         }
     }
@@ -177,11 +186,15 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
             UIView.animate(withDuration: 0.2, delay: 0.0, animations: {
                 self.transform = .identity
                 self.alpha = 1.0
+                self.layer.shadowRadius = 4
+                self.snap?.alpha = 1
             })
         }
         else {            
             self.transform = .identity
             self.alpha = 1.0
+            self.darkness = 0
+            self.snap?.alpha = 1
         }
     }
     
@@ -256,7 +269,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         let W = self.frame.size.width
         return CGRect(
             x: 0,
-            y: _isExpanded ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED,
+            y: THUMB_OFFSET_COLLAPSED, //_isExpanded ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED,
 //            y: Const.shared.statusHeight,
             width: W,
             height: aspect * W

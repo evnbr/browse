@@ -26,7 +26,6 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     
     var gradientHolder: UIView!
     
-    var isColorChanging: Bool = false
     var lastColor: UIColor = UIColor.clear
     
     var isLight : Bool {
@@ -36,6 +35,8 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     override var frame : CGRect {
         didSet {
             gradientLayer.frame = self.bounds
+            gradientLayer2.frame = self.bounds
+            gradientLayer3.frame = self.bounds
         }
     }
     
@@ -71,14 +72,21 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         fatalError("init(coder:) has not been implemented")
     }
     
+    func cancelColorChange() {
+        gradientLayer.removeAllAnimations()
+        gradientLayer2.removeAllAnimations()
+        gradientLayer3.removeAllAnimations()
+        
+        gradientView.isHidden = true
+        gradientView2.isHidden = true
+        gradientView3.isHidden = true
+    }
+    
     func animateGradient(
         toColor: UIColor,
         duration: CFTimeInterval,
         direction: GradientColorChangeDirection ) -> Bool {
         
-        guard !isColorChanging else {
-            return false
-        }
         guard !toColor.isEqual(lastColor) else {
             return false
         }
@@ -86,17 +94,14 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         var gLayer : CAGradientLayer
         var gView : UIView
         if gradientView.isHidden {
-            print("using v1")
             gLayer = gradientLayer
             gView = gradientView!
         }
         else if gradientView2.isHidden {
-            print("using v2")
             gLayer = gradientLayer2
             gView = gradientView2!
         }
         else if gradientView3.isHidden {
-            print("using v3")
             gLayer = gradientLayer3
             gView = gradientView3!
         }
@@ -105,15 +110,15 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
             return false
         }
         
-        
         var endLoc: [NSNumber]
+        var beginLoc: [NSNumber]
         if direction == .fromTop {
             gLayer.colors = [
                 toColor.cgColor,
                 toColor.withAlphaComponent(0.5).cgColor,
                 toColor.withAlphaComponent(0).cgColor
             ]
-            gLayer.locations = [0, 0.02, 0.05]
+            beginLoc = [0, 0.02, 0.05]
             endLoc = [0.2, 5, 20]
         } else {
             gLayer.colors = [
@@ -121,21 +126,16 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
                 toColor.withAlphaComponent(0.5).cgColor,
                 toColor.cgColor
             ]
-            gLayer.locations = [0.95, 0.98, 1]
+            beginLoc = [0.95, 0.98, 1]
             endLoc = [-20, -5, 0.8]
         }
-        
+        gLayer.locations = beginLoc
         lastColor = toColor
-        
-        CATransaction.begin()
-        CATransaction.setCompletionBlock({
-            self.backgroundColor = self.lastColor
-            gView.isHidden = true
-            gLayer.removeAnimation(forKey: "boundsChange")
-        })
+
         
         let colorChangeAnimation = CABasicAnimation(keyPath: "locations")
         colorChangeAnimation.duration = duration
+        colorChangeAnimation.fromValue = beginLoc
         colorChangeAnimation.toValue = endLoc
         colorChangeAnimation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
         colorChangeAnimation.fillMode = kCAFillModeForwards
@@ -145,6 +145,13 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         gradientHolder.bringSubview(toFront: gView)
         gView.isHidden = false
         
+        CATransaction.begin()
+        CATransaction.setCompletionBlock({
+            self.backgroundColor = self.lastColor
+            gView.isHidden = true
+            gLayer.removeAnimation(forKey: "boundsChange")
+        })
+
         gLayer.add(colorChangeAnimation, forKey: "boundsChange")
         CATransaction.commit()
         

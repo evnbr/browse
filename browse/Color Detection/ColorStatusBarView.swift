@@ -30,6 +30,7 @@ extension UIVisualEffectView {
 
 class ColorStatusBarView : GradientColorChangeView {
     var blurView : UIVisualEffectView!
+    var label : UILabel!
     
     init() {
         let rect = CGRect(
@@ -46,6 +47,18 @@ class ColorStatusBarView : GradientColorChangeView {
 //        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 //        overlay.backgroundColor = UIColor.black.withAlphaComponent(0.1)
 //        self.addSubview(overlay)
+        label = UILabel(frame: CGRect(
+            x: 12,
+            y: 10,
+            width: frame.width - 24,
+            height: 16.0
+        ))
+        label.text = "Blank"
+        //        label.textAlignment = .center
+        label.font = UIFont.systemFont(ofSize: THUMB_TITLE)
+        label.textColor = .darkText
+        self.addSubview(label)
+
     }
     
     convenience init(color: UIColor) {

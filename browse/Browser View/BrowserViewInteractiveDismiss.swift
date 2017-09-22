@@ -210,7 +210,7 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
     func update(gesture: UIPanGestureRecognizer) {
         
         let gesturePos = gesture.translation(in: view)
-        var adjustedY : CGFloat = gesturePos.y - startPoint.y
+        let adjustedY : CGFloat = gesturePos.y - startPoint.y
         
         if (direction == .top && adjustedY < 0) || (direction == .bottom && adjustedY > 0) {
             
@@ -244,7 +244,7 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         
         home.navigationController?.view.transform = CGAffineTransform(scaleX: scale, y: scale)
         
-        home.navigationController?.view.frame.origin.y = adjustedY - thumbStartY
+//        home.navigationController?.view.frame.origin.y = adjustedY - thumbStartY
         
 //        cardView.layer.cornerRadius = min(revealProgress * 8 * CORNER_RADIUS, CORNER_RADIUS)
         
