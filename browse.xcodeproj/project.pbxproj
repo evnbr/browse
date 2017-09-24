@@ -12,6 +12,7 @@
 		A908F04C1ECD03B800A74241 /* ColorStatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */; };
 		A908F04E1ECD60CD00A74241 /* BookmarksViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */; };
 		A90F51211F70C6CB00221815 /* UIImageColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90F51201F70C6CB00221815 /* UIImageColors.swift */; };
+		A91372071F777511002C160B /* ultimateAdblockList.json in Resources */ = {isa = PBXBuildFile; fileRef = A91372061F777511002C160B /* ultimateAdblockList.json */; };
 		A92095841ED90E7B009497A2 /* Blocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095831ED90E7B009497A2 /* Blocker.swift */; };
 		A92095861ED9E242009497A2 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095851ED9E241009497A2 /* SettingsViewController.swift */; };
 		A92095881ED9E3C0009497A2 /* SettingsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095871ED9E3C0009497A2 /* SettingsTableViewCell.swift */; };
@@ -79,6 +80,7 @@
 		A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorStatusBarView.swift; sourceTree = "<group>"; };
 		A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarksViewController.swift; sourceTree = "<group>"; };
 		A90F51201F70C6CB00221815 /* UIImageColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageColors.swift; sourceTree = "<group>"; };
+		A91372061F777511002C160B /* ultimateAdblockList.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ultimateAdblockList.json; sourceTree = "<group>"; };
 		A92095831ED90E7B009497A2 /* Blocker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Blocker.swift; sourceTree = "<group>"; };
 		A92095851ED9E241009497A2 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		A92095871ED9E3C0009497A2 /* SettingsTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsTableViewCell.swift; sourceTree = "<group>"; };
@@ -199,7 +201,6 @@
 			children = (
 				A9E4859C1EC8D7BE0021D155 /* ColorSampler.swift */,
 				A90F51201F70C6CB00221815 /* UIImageColors.swift */,
-				A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */,
 				A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */,
 			);
 			path = "Color Detection";
@@ -212,6 +213,7 @@
 				A92C9C3A1EF8B5E600D8AAA3 /* BrowserViewInteractiveDismiss.swift */,
 				A920958E1EDF4AB8009497A2 /* PresentTabAnimationController.swift */,
 				A90892091ED547C500A5E9BA /* LocationBar.swift */,
+				A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */,
 			);
 			path = "Browser View";
 			sourceTree = "<group>";
@@ -243,6 +245,7 @@
 			isa = PBXGroup;
 			children = (
 				A92095831ED90E7B009497A2 /* Blocker.swift */,
+				A91372061F777511002C160B /* ultimateAdblockList.json */,
 				A9EF36D21F48EB34005112E2 /* easylist.json */,
 			);
 			path = "Ad Blocking";
@@ -446,6 +449,7 @@
 			files = (
 				A9EF36D31F48EBF4005112E2 /* easylist.json in Resources */,
 				A97CB0771EC53DCD005DDBD1 /* Assets.xcassets in Resources */,
+				A91372071F777511002C160B /* ultimateAdblockList.json in Resources */,
 				A9D4B8C11F72F6D6006F0F18 /* Launch Screen.storyboard in Resources */,
 				A97CB0751EC53DCD005DDBD1 /* Main.storyboard in Resources */,
 			);
