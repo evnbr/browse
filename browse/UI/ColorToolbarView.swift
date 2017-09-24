@@ -21,10 +21,8 @@ class ColorToolbarView: GradientColorChangeView {
         autoresizingMask = [.flexibleTopMargin, .flexibleWidth]
 //        translatesAutoresizingMaskIntoConstraints = false
         
-        
-        
         stackView.axis  = .horizontal
-        stackView.distribution  = .fill
+        stackView.distribution  = .fillProportionally
         stackView.alignment = .top
         stackView.spacing   = 0.0
         
@@ -49,6 +47,13 @@ class ColorToolbarView: GradientColorChangeView {
         }
     }
     
+    override func tintColorDidChange() {
+        super.tintColorDidChange()
+        subviews.forEach { (v) in
+            v.tintColor = tintColor
+        }
+    }
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

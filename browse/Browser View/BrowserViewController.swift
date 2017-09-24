@@ -291,8 +291,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         let toolbar = ProgressToolbar(frame: CGRect(
             x: 0,
-            y: UIScreen.main.bounds.size.height - Const.shared.toolbarHeight,
-            width: UIScreen.main.bounds.size.width,
+            y: cardView.frame.height - Const.shared.toolbarHeight,
+            width: cardView.frame.width,
             height: Const.shared.toolbarHeight
         ))
         
@@ -420,13 +420,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         self.colorSampler.startUpdates()
         
-        // disable mysterious delays
-        // https://stackoverflow.com/questions/19799961/uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen
-//        let window = view.window!
-//        let gr0 = window.gestureRecognizers![0] as UIGestureRecognizer
-//        let gr1 = window.gestureRecognizers![1] as UIGestureRecognizer
-//        gr0.delaysTouchesBegan = false
-//        gr1.delaysTouchesBegan = false
+//         disable mysterious delays
+//         https://stackoverflow.com/questions/19799961/uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen
+        let window = view.window!
+        let gr0 = window.gestureRecognizers![0] as UIGestureRecognizer
+        let gr1 = window.gestureRecognizers![1] as UIGestureRecognizer
+        gr0.delaysTouchesBegan = false
+        gr1.delaysTouchesBegan = false
         
     }
 

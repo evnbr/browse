@@ -21,6 +21,10 @@ class ToolbarIconButton: ToolbarTouchView {
         }
     }
 
+    override var intrinsicContentSize: CGSize {
+        return CGSize(width: 48, height: Const.shared.toolbarHeight)
+    }
+
     init(icon: UIImage?, onTap: @escaping () -> Void) {        
         super.init(frame: CGRect(x: 0, y: 0, width: 48, height: Const.shared.toolbarHeight), onTap: onTap)
         
@@ -28,7 +32,7 @@ class ToolbarIconButton: ToolbarTouchView {
         iconView = UIImageView(image: iconTemplate)
         
         addSubview(iconView)
-        
+        iconView.translatesAutoresizingMaskIntoConstraints = false
         iconView.center = self.center
         
         iconView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
@@ -38,5 +42,6 @@ class ToolbarIconButton: ToolbarTouchView {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
 
 }

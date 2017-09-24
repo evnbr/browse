@@ -54,7 +54,7 @@ class ColorStatusBarView : GradientColorChangeView {
             height: 16.0
         ))
         label.text = "Blank"
-        //        label.textAlignment = .center
+        label.alpha = 0
         label.font = UIFont.systemFont(ofSize: THUMB_TITLE)
         label.textColor = .darkText
         self.addSubview(label)

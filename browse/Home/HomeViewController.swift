@@ -489,8 +489,8 @@ struct TabInfo {
         return NSDictionary(dictionary: [
             "title" : title,
             "urlString" : urlString,
-            "topColor" : topColor.array,
-            "bottomColor" : bottomColor.array,
+            "topColor" : topColor.getRGB(),
+            "bottomColor" : bottomColor.getRGB(),
         ])
     }
     

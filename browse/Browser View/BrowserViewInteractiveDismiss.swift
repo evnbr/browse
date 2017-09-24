@@ -255,10 +255,12 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         
 //        home.navigationController?.view.frame.origin.y = adjustedY - thumbStartY
         
-        var idx = 0 // there must be a way to do this swiftily but i don't have internet access rn
-        for cell in home.visibleCellsAbove {
-            cell.frame.origin.y = (adjustedY / 5) * CGFloat(idx)
-            idx += 1
+        if let cv = home.collectionView {
+            for cell in home.visibleCellsAbove {
+                if let idx = cv.indexPath(for: cell)?.item {
+                    cell.frame.origin.y = (adjustedY / 5) * CGFloat(idx)
+                }
+            }
         }
         
 //        cardView.layer.cornerRadius = min(revealProgress * 8 * CORNER_RADIUS, CORNER_RADIUS)

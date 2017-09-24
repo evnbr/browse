@@ -119,7 +119,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
                 toColor.withAlphaComponent(0).cgColor
             ]
             beginLoc = [0, 0.02, 0.05]
-            endLoc = [0.2, 5, 20]
+            endLoc = [0.5, 5, 20]
         } else {
             gLayer.colors = [
                 toColor.withAlphaComponent(0).cgColor,
@@ -127,7 +127,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
                 toColor.cgColor
             ]
             beginLoc = [0.95, 0.98, 1]
-            endLoc = [-20, -5, 0.8]
+            endLoc = [-20, -5, 0.5]
         }
         gLayer.locations = beginLoc
         lastColor = toColor

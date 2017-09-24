@@ -18,29 +18,31 @@ public extension UIColor
         self.init(red: r, green: g, blue: b, alpha: 1)
     }
     
-    var array : [ CGFloat ] {
-        return self.getRGB()
-    }
-    
+//    var array : [ CGFloat ] {
+//        return self.getRGB()
+//    }
+//
     func getRGB() -> Array<CGFloat> {
-        if let name : CFString = self.cgColor.colorSpace?.name,
+        if let name : CFString = self.cgColor.colorSpace?.name {
             let components : Array<CGFloat> = self.cgColor.components
-        {
-            if name == CGColorSpace.extendedSRGB && components.count == 4 {
+            if components.count == 4 {
                 return components
             }
             else if name == CGColorSpace.extendedGray && components.count == 2 {
                 let gray = components[0]
                 return [gray, gray, gray, 0]
             }
+            print("unkonwn name: \(name), components: \(components.count)")
+            print(components)
             return [0,0,0,1]
         }
+        print("no name")
         return [0,0,0,1]
     }
     
     var isLight : Bool {
         get {
-            let components = self.getRGB()
+            let components = self.cgColor.components //self.getRGB()
             
             let r = components[0]
             let g = components[1]
