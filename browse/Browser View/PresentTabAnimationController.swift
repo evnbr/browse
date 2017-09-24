@@ -64,9 +64,17 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         if isExpanding {
             containerView.addSubview(browserVC.view)
         }
+        else {
+            for cell in homeVC.visibleCellsBelow {
+                cell.frame.origin.y = containerView.frame.height
+            }
+        }
         
         
-        browserVC.updateSnapshot()
+        if !self.isExpanding {
+            browserVC.updateSnapshot()
+        }
+        
         browserVC.isSnapshotMode = true
         browserVC.hasStatusbarOffset = !self.isExpanding
         
@@ -142,10 +150,17 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         
         let cellsMovedToFront = homeVC.visibleCellsBelow
-        for cell in cellsMovedToFront {
-            containerView.addSubview(cell)
+        if let cv = homeVC.collectionView {
+            for cell in cellsMovedToFront {
+                containerView.addSubview(cell)
+                if self.isExpanding {
+                    let ip = cv.indexPath(for: cell)!
+                    let intendedFrame = cv.layoutAttributesForItem(at: ip)!.frame
+                    let convertedFrame = containerView.convert(intendedFrame, from: cv)
+                    cell.frame = convertedFrame
+                }
+            }
         }
-        
         // Hack to keep thumbnails from intersecting toolbar
         let newTabToolbar = homeVC.toolbar!
         containerView.addSubview(newTabToolbar)
@@ -157,7 +172,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         UIView.animate(
             withDuration: duration,
             delay: 0.0,
-            usingSpringWithDamping: 0.9,
+            usingSpringWithDamping: 0.95,
             initialSpringVelocity: 0.0,
             options: .allowUserInteraction,
             animations: {
@@ -174,6 +189,9 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
                 
             if self.isExpanding {
                 homeVC.setCollapsed(true)
+                for cell in homeVC.visibleCellsBelow {
+                    cell.frame.origin.y = containerView.frame.height
+                }
             }
             else {
                 if let cv = homeVC.collectionView {

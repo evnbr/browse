@@ -23,7 +23,7 @@ enum ColorTransitionStyle {
     case translate
 }
 
-let DURATION = 0.8
+let DURATION = 0.5
 let MIN_TIME_BETWEEN_UPDATES = 0.15
 
 class ColorSampler : NSObject, UIGestureRecognizerDelegate {
@@ -146,7 +146,7 @@ class ColorSampler : NSObject, UIGestureRecognizerDelegate {
                 self.top = colors.background
                 
                 self.wvc.browserTab?.topColorSample = self.top // this is a hack
-                let didChange = self.wvc.statusBar.animateGradient(toColor: self.top, duration: 1.0, direction: .fromBottom)
+                let didChange = self.wvc.statusBar.animateGradient(toColor: self.top, duration: DURATION, direction: .fromBottom)
                 
                 if didChange {
                     UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {

@@ -87,6 +87,8 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         layer.shadowOffset = .zero
         layer.shadowRadius = 4
         layer.shadowOpacity = 0.3
+        layer.shouldRasterize = true
+        layer.rasterizationScale = UIScreen.main.scale
         
         isExpanded = false
         
@@ -107,7 +109,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         contentView.addSubview(overlay)
         
         label = UILabel(frame: CGRect(
-            x: 12,
+            x: 16,
             y: 10,
             width: frame.width - 24,
             height: 16.0
@@ -262,6 +264,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     override func prepareForReuse() {
         snap?.removeFromSuperview()
         contentView.backgroundColor = .darkGray
+        label.text = "Blank"
     }
     
     func frameForSnap(_ snap : UIView) -> CGRect {

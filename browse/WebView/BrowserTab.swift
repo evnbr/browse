@@ -82,6 +82,7 @@ class BrowserTab: NSObject {
         webView.scrollView.contentInset = .zero
         webView.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
         webView.backgroundColor = bottomColorSample
+        webView.isOpaque = false
         webView.allowsBackForwardNavigationGestures = true
         
         

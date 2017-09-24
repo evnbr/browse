@@ -228,30 +228,28 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     }
     
     var visibleCellsAbove: [TabThumbnail] {
-        var above : [TabThumbnail] = []
-        var isAbove = true
-        for thumb in visibleCells {
-            if thumb.browserTab == selectedTab {
-                isAbove = false
-            }
-            if isAbove {
-                above.append(thumb)
-            }
+        guard let cv = collectionView else { return [] }
+        guard let selTab = selectedTab else { return [] }
+        guard tabs.contains(selTab) else { return [] }
+        guard let thumb = thumb(forTab: selTab) else { return [] }
+        guard let selIndexPath = cv.indexPath(for: thumb) else { return [] }
+
+        return visibleCells.filter{ cell in
+            let index : Int = cv.indexPath(for: cell)!.item
+            return index < selIndexPath.item
         }
-        return above
     }
     var visibleCellsBelow: [TabThumbnail] {
-        var below : [TabThumbnail] = []
-        var isBelow = false
-        for thumb in visibleCells {
-            if thumb.browserTab == selectedTab {
-                isBelow = true
-            }
-            else if isBelow {
-                below.append(thumb)
-            }
+        guard let cv = collectionView else { return [] }
+        guard let selTab = selectedTab else { return [] }
+        guard tabs.contains(selTab) else { return [] }
+        guard let thumb = thumb(forTab: selTab) else { return [] }
+        guard let selIndexPath = cv.indexPath(for: thumb) else { return [] }
+
+        return visibleCells.filter{ cell in
+            let index : Int = cv.indexPath(for: cell)!.item
+            return index > selIndexPath.item
         }
-        return below
     }
     
     func setCollapsed(_ newVal : Bool) {
@@ -373,7 +371,7 @@ extension HomeViewController {
                 cell.frame.origin.y = intendedFrame.origin.y - vFrame.origin.y + scrollLimit
                 cell.alpha = 1 - pctOver
                 let s = 1 - pctOver * 0.05
-                cell.transform = CGAffineTransform(scaleX: s, y: s)
+//                cell.transform = CGAffineTransform(scaleX: s, y: s)
                 cell.isUserInteractionEnabled = false
             }
             else {

@@ -16,6 +16,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var webView: WKWebView!
     var snap: UIView!
     var browserTab: BrowserTab?
+    
+    var heightConstraint : NSLayoutConstraint!
+    var topConstraint : NSLayoutConstraint!
         
     var isDisplayingSearch : Bool = false
     var searchView: SearchView!
@@ -122,6 +125,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         cardView.backgroundColor = newTab.bottomColorSample
         webView.backgroundColor = newTab.bottomColorSample
         
+        if snap != nil && snap.isDescendant(of: cardView) {
+            snap?.removeFromSuperview()
+        }
+        snap = newTab.webSnapshot
+        
         // Without this, the old color flickers through
         // for some mysterious reason.
         if let newTop = newTab.topColorSample {
@@ -143,8 +151,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         cardView.addSubview(webView)
         cardView.bringSubview(toFront: toolbar)
+        cardView.bringSubview(toFront: statusBar)
         
-        webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: Const.shared.statusHeight).isActive = true
+        topConstraint = webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: Const.shared.statusHeight)
+        topConstraint.isActive = true
+        
         webView.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
         webView.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
         
@@ -358,12 +369,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             return snap.frame.origin.y == Const.shared.statusHeight
         }
         set {
-            statusBar.label.textColor = toolbar.tintColor
             statusBar.label.text = webView.url?.displayHost
             statusBar.label.alpha = newValue ? 0 : 1
             
             statusBar.frame.size.height = newValue ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED
-            snap.frame.origin.y = newValue ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED
+            snap?.frame.origin.y = newValue ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED
         }
     }
     var isSnapshotMode : Bool {
@@ -371,12 +381,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             return snap?.isHidden ?? false
         }
         set {
-            if newValue {
+            if newValue && snap != nil {
                 snap.isHidden = false
 //                    snap.frame.size.width = 100
                 cardView.addSubview(snap)
-                snap.frame.origin.y = Const.shared.statusHeight
                 snap.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
+                snap.frame.origin.y = Const.shared.statusHeight
+                snap.frame.size.width = cardView.frame.width
+                snap.alpha = 1
                 webView.isHidden = true
             } else {
 //                browserTab?.webSnapshot?.isHidden = true
@@ -387,6 +399,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     
     func updateSnapshot() {
+        snap?.removeFromSuperview()
         webView.scrollView.showsVerticalScrollIndicator = false
         snap = webView.snapshotView(afterScreenUpdates: true)!
         browserTab?.webSnapshot = snap
@@ -409,15 +422,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         // disable mysterious delays
         // https://stackoverflow.com/questions/19799961/uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen
-        let window = view.window!
-        let gr0 = window.gestureRecognizers![0] as UIGestureRecognizer
-        let gr1 = window.gestureRecognizers![1] as UIGestureRecognizer
-        gr0.delaysTouchesBegan = false
-        gr1.delaysTouchesBegan = false
+//        let window = view.window!
+//        let gr0 = window.gestureRecognizers![0] as UIGestureRecognizer
+//        let gr1 = window.gestureRecognizers![1] as UIGestureRecognizer
+//        gr0.delaysTouchesBegan = false
+//        gr1.delaysTouchesBegan = false
         
     }
-    var heightConstraint : NSLayoutConstraint!
-    
+
     override func viewWillLayoutSubviews() {
         // because it keeps getting deactivated every time
         // the view is removed from the hierarchy
@@ -710,9 +722,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         ac.addAction(UIAlertAction(title: "Refresh", style: .default, handler: { action in
             self.webView.reload()
         }))
-//        ac.addAction(UIAlertAction(title: "Hard Refresh", style: .default, handler: { action in
-//            self.webView.reloadFromOrigin()
-//        }))
+        ac.addAction(UIAlertAction(title: "Full Refresh", style: .default, handler: { action in
+            self.webView.reloadFromOrigin()
+        }))
         if (UIPasteboard.general.hasStrings) {
             ac.addAction(UIAlertAction(title: "Paste and go", style: .default, handler: { action in
                 self.pasteURLAndGo()
@@ -880,15 +892,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         UIApplication.shared.isNetworkActivityIndicatorVisible = webView.isLoading
         
     }
-    
-    func loadingFinish() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: {
-            self.webView.evaluateJavaScript("document.querySelector('input[type=password]')") { (result, error) in
-                print(result ?? "No result")
-            }
-        })
-    }
-    
+        
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "estimatedProgress" {
             toolbar.progress = Float(webView.estimatedProgress)

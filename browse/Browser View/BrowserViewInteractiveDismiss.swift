@@ -65,8 +65,17 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         let viewH = scrollView.bounds.height
 
         
-        if contentH > viewH && scrollView.contentOffset.y < 0 && !scrollView.isDecelerating {
-            scrollView.contentOffset.y = 0
+        if contentH > viewH && scrollView.contentOffset.y < 0 {
+            if scrollView.isDecelerating {
+                // disguise overscroll as shifting card
+                let overscroll = scrollView.contentOffset.y
+                cardView.frame.origin.y = -overscroll
+                vc.topConstraint.constant = Const.shared.statusHeight + overscroll
+//                scrollView.frame.origin.y = overscroll
+            }
+            else {
+                scrollView.contentOffset.y = 0
+            }
         }
         else if isInteractiveDismiss {
             scrollView.contentOffset.y = max(startScroll.y, 0)
@@ -245,6 +254,12 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         home.navigationController?.view.transform = CGAffineTransform(scaleX: scale, y: scale)
         
 //        home.navigationController?.view.frame.origin.y = adjustedY - thumbStartY
+        
+        var idx = 0 // there must be a way to do this swiftily but i don't have internet access rn
+        for cell in home.visibleCellsAbove {
+            cell.frame.origin.y = (adjustedY / 5) * CGFloat(idx)
+            idx += 1
+        }
         
 //        cardView.layer.cornerRadius = min(revealProgress * 8 * CORNER_RADIUS, CORNER_RADIUS)
         
