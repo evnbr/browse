@@ -33,6 +33,8 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
     var direction : WebViewInteractiveDismissDirection!
     var velocity : CGFloat = 0
     
+    var backFeedback: UIView!
+    
     init(for vc : BrowserViewController) {
         super.init()
         
@@ -43,6 +45,21 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         cardView = vc.cardView
         toolbar = vc.toolbar
         
+//        backFeedback = UIView(frame: CGRect(x: 0, y: view.frame.height/2, width: 64, height: 64))
+        backFeedback = ToolbarIconButton(icon: UIImage(named: "back"), onTap: {})
+        backFeedback.frame = CGRect(x: 0, y: view.frame.height/2, width: 64, height: 64)
+        backFeedback.layer.cornerRadius = 32
+        backFeedback.backgroundColor = .black
+        backFeedback.tintColor = .white
+        backFeedback.alpha = 0
+        
+        backFeedback.clipsToBounds = false
+        backFeedback.layer.shadowColor = UIColor.black.cgColor
+        backFeedback.layer.shadowOffset = .zero
+        backFeedback.layer.shadowRadius = 4
+        backFeedback.layer.shadowOpacity = 0.3
+
+//        view.addSubview(backFeedback)
         
         let dismissPanner = UIPanGestureRecognizer()
         dismissPanner.delegate = self
@@ -61,9 +78,10 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
+        print(scrollView.contentInset)
+        
         let contentH = scrollView.contentSize.height
         let viewH = scrollView.bounds.height
-
         
         if contentH > viewH && scrollView.contentOffset.y < 0 {
             if scrollView.isDecelerating {
@@ -80,6 +98,7 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         else if isInteractiveDismiss {
             scrollView.contentOffset.y = max(startScroll.y, 0)
         }
+        
     }
     
 //    func cancelScroll() {
@@ -94,7 +113,8 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
     var startPoint : CGPoint = .zero
     var startScroll : CGPoint = .zero
     
-    let DISMISS_POINT_H : CGFloat = 50
+    let dismissPointX : CGFloat = 150
+    let backPointX : CGFloat = 120
     let DISMISS_POINT_V : CGFloat = 300
 
     @objc func edgeGestureChange(gesture:UIScreenEdgePanGestureRecognizer) {
@@ -102,6 +122,8 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         if gesture.state == .began {
             direction = .left
             start()
+            backFeedback.frame.origin.y = gesture.location(in: view).y - 72
+            vc.showToolbar()
         }
         else if gesture.state == .changed {
             if isInteractiveDismiss && (direction == .left || direction == .right) {
@@ -117,17 +139,65 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
 //                let adjustedX = elasticLimit(gesturePos.x)
                 let adjustedX = gesturePos.x
                 
-                cardView.frame.origin.x = adjustedX
-                if (Const.shared.cardRadius < Const.shared.thumbRadius) {
-                    cardView.layer.cornerRadius = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
+                
+//                if vc.webView.canGoBack && adjustedX > dismissPointX {
+//                    cardView.frame.origin.x = adjustedX - dismissPointX
+//                    if (Const.shared.cardRadius < Const.shared.thumbRadius) {
+//                        cardView.layer.cornerRadius = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
+//                    }
+//                }
+                if !vc.webView.canGoBack {
+                    cardView.frame.origin.x = adjustedX
+                    if (Const.shared.cardRadius < Const.shared.thumbRadius) {
+                        cardView.layer.cornerRadius = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
+                    }
                 }
+                else {
+                    cardView.frame.origin.x = 0
+                }
+                
+                let showBackProgress = min(gesturePos.x / backPointX, 1)
+                let backToFarProgress = min(1 - (gesturePos.x - dismissPointX) / 50, 1)
+                
+//                cardView.frame.origin.y = gesturePos.y
+                backFeedback.frame.origin.x = adjustedX - backFeedback.frame.width
+//                if abs(gesturePos.y) > 50 {
+//                    backFeedback.alpha = 0
+//                }
+                if vc.webView.canGoBack && adjustedX > backPointX {
+                    backFeedback.alpha = 1
+                    backFeedback.backgroundColor = .black
+                    backFeedback.tintColor = .white
+                }
+                else if !vc.webView.canGoBack {
+                    backFeedback.alpha = 0
+                }
+//                else if adjustedX > dismissPointX {
+//                    backFeedback.alpha = backToFarProgress
+//                }
+                else {
+                    backFeedback.backgroundColor = .white
+                    backFeedback.tintColor = .black
+                    backFeedback.alpha = 1
+                }
+
             }
         }
         else if gesture.state == .ended {
             let gesturePos = gesture.translation(in: view)
             
-            if gesturePos.x > DISMISS_POINT_H { commit() }
-            else { reset() }
+            if cardView.frame.origin.y > DISMISS_POINT_V {
+                commit()
+            }
+            else if !vc.webView.canGoBack && cardView.frame.origin.x > dismissPointX {
+                commit()
+            }
+            else if vc.webView.canGoBack && gesturePos.x > backPointX {
+                commitBack()
+            }
+            else {
+                reset()
+            }
         }
     }
     
@@ -141,6 +211,13 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         
         let gesturePos = gesture.translation(in: view)
 
+        if gesturePos.y > 0 {
+            vc.showToolbar()
+        }
+        else {
+            vc.hideToolbar()
+        }
+        
         if contentH > viewH {
             if scrollY == 0 && gesturePos.y > 0 {
                 direction = .top
@@ -190,6 +267,27 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
     func commit() {
         end()
         vc.dismissSelf()
+        
+        UIView.animate(withDuration: 0.25, delay: 0.0, options: .curveEaseInOut, animations: {
+            self.backFeedback.frame.origin.x = -self.backFeedback.frame.width
+        })
+    }
+    
+    func commitBack() {
+        end()
+        vc.webView.goBack()
+
+        UIView.animate(withDuration: 0.25, delay: 0.0, options: .curveEaseInOut, animations: {
+            self.vc.resetSizes(withKeyboard: self.shouldRestoreKeyboard)
+            self.vc.home.navigationController?.view.alpha = 0
+            self.home.navigationController?.view.frame.origin.y = 0
+            self.backFeedback.alpha = 0
+            self.backFeedback.frame.origin.x = self.view.frame.width
+            
+            self.cardView.layer.cornerRadius = Const.shared.cardRadius
+        }, completion: { completed in
+            self.backFeedback.transform = .identity
+        })
     }
     
     func reset(atVelocity vel : CGFloat = 0.0) {
@@ -200,7 +298,8 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
             self.vc.setNeedsStatusBarAppearanceUpdate()
             self.vc.home.navigationController?.view.alpha = 0
             self.home.navigationController?.view.frame.origin.y = 0
-            
+            self.backFeedback.frame.origin.x = -self.backFeedback.frame.width
+
             self.cardView.layer.cornerRadius = Const.shared.cardRadius
         }, completion: nil)
         
@@ -327,12 +426,12 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         return true
     }
     
-    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        if gestureRecognizer is UIScreenEdgePanGestureRecognizer {
-            return !vc.webView.canGoBack
-        }
-        return true
-    }
+//    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+//        if gestureRecognizer is UIScreenEdgePanGestureRecognizer {
+//            return !vc.webView.canGoBack
+//        }
+//        return true
+//    }
     
     // only recognize verticals
 //    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {

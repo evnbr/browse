@@ -22,7 +22,7 @@ class ColorToolbarView: GradientColorChangeView {
 //        translatesAutoresizingMaskIntoConstraints = false
         
         stackView.axis  = .horizontal
-        stackView.distribution  = .fillProportionally
+        stackView.distribution  = .fill
         stackView.alignment = .top
         stackView.spacing   = 0.0
         

@@ -419,7 +419,7 @@ extension HomeViewController : UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return -120.0
+        return thumbSize.height * -0.4// -120.0
     }
     
 //    override func collectionView(_ collectionView: UICollectionView,

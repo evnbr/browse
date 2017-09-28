@@ -129,7 +129,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         var toolbarEndY = browserVC.cardView.frame.height - browserVC.toolbar.frame.height
         if isExpanding {
-            browserVC.toolbar.alpha = 0.0
             if browserVC.isBlank {
                 // keyboard
 //                browserVC.toolbar.frame.origin.y = max(
@@ -210,7 +209,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             }
                 
             browserVC.hasStatusbarOffset = self.isExpanding
-            browserVC.toolbar.alpha = self.isExpanding ? 1.0 : 0.0
             browserVC.toolbar.frame.origin.y = toolbarEndY
             browserVC.cardView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
             

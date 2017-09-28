@@ -50,6 +50,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         didSet {
             if !isDismissing {
                 snap?.frame = frameForSnap(snap)
+                overlay?.frame = bounds
                 unTransformedFrame = frame
             }
         }
@@ -99,12 +100,16 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         addGestureRecognizer(dismissPanner)
         
         overlay = UIView(frame: frame)
-        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        overlay.backgroundColor = .red
+        overlay.translatesAutoresizingMaskIntoConstraints = false
+//        overlay.widthAnchor.constraint(equalTo: contentView.widthAnchor).isActive = true
+//        overlay.heightAnchor.constraint(equalTo: contentView.heightAnchor).isActive = true
+        overlay.backgroundColor = UIColor.gray.withAlphaComponent(0.3)
         overlay.alpha = 0
         
         contentView.layer.cornerRadius = Const.shared.thumbRadius
         contentView.clipsToBounds = true
+//        contentView.frame.size.height = 300
+//        contentView.heightAnchor.constraint(equalToConstant: 300)
 
         contentView.addSubview(overlay)
         
@@ -136,6 +141,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         
         if let color : UIColor = browserTab.topColorSample {
             contentView.backgroundColor = color
+            overlay.backgroundColor = color.isLight ? .lightTouch : .darkTouch
             label.textColor = color.isLight ? .white : .darkText
         }
         
@@ -167,11 +173,10 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         unTransformedFrame = frame
         
         if touches.first != nil {
-            UIView.animate(withDuration: 1.4, delay: 0, usingSpringWithDamping: 0.4, initialSpringVelocity: 0, options: .curveLinear, animations: {
-//                self.transform = CGAffineTransform(scaleX: TAP_SCALE, y: TAP_SCALE)
-//                self.transform = CGAffineTransform(translationX: 0, y: -16)
-                self.snap?.alpha = 0.7
-            }, completion: nil)
+            self.overlay.alpha = 1
+//            UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: {
+//                self.overlay.alpha = CGFloat(1)
+//            }, completion: nil)
         }
     }
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -190,6 +195,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
                 self.alpha = 1.0
                 self.layer.shadowRadius = 4
                 self.snap?.alpha = 1
+                self.overlay.alpha = 0
             })
         }
         else {            
@@ -197,6 +203,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
             self.alpha = 1.0
             self.darkness = 0
             self.snap?.alpha = 1
+            self.overlay.alpha = 0
         }
     }
     
@@ -241,12 +248,12 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
                 var endFrame : CGRect = startFrame
                 var endAlpha : CGFloat = 1
                 
-                if ( vel.x > 800 || gesturePos.x > frame.width * 0.8 ) {
+                if ( vel.x > 800 || gesturePos.x > frame.width * 0.5 ) {
                     endFrame.origin.x = startFrame.origin.x + startFrame.width
                     endAlpha = 0
                     closeTabCallback(self)
                 }
-                else if ( vel.x < -800 || gesturePos.x < -frame.width * 0.8 ) {
+                else if ( vel.x < -800 || gesturePos.x < -frame.width * 0.5 ) {
                     endFrame.origin.x = startFrame.origin.x - frame.width
                     endAlpha = 0
                     closeTabCallback(self)

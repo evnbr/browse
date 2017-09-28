@@ -80,11 +80,17 @@ class BrowserTab: NSObject {
         
         webView.translatesAutoresizingMaskIntoConstraints = false
         webView.scrollView.contentInset = .zero
-        webView.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
         webView.backgroundColor = bottomColorSample
         webView.isOpaque = false
         webView.allowsBackForwardNavigationGestures = true
         
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
+//        webView.layer.borderWidth = 1
+//        webView.layer.borderColor = UIColor.red.cgColor
+        
+//        webView.scrollView.layer.borderWidth = 1
+//        webView.scrollView.layer.borderColor = UIColor.cyan.cgColor
+
         
         return webView
     }

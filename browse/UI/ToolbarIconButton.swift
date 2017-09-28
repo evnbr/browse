@@ -37,6 +37,8 @@ class ToolbarIconButton: ToolbarTouchView {
         
         iconView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
         iconView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
+        
+        self.setContentHuggingPriority(.defaultHigh, for: .horizontal)
     }
     
     required init?(coder aDecoder: NSCoder) {
