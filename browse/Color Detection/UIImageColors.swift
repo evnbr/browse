@@ -183,13 +183,23 @@ extension UIImage {
         
         for x in 0..<width {
             for y in 0..<height {
-                let pixel: Int = ((width * y) + x) * 4
-                imageColors.add(UIColor(
-                    red: CGFloat(data[pixel + 2]) / 255,
-                    green: CGFloat(data[pixel + 1]) / 255,
-                    blue: CGFloat(data[pixel]) / 255,
-                    alpha: 1.0
-                ))
+                if x < 20 || x > width - 20 {
+                    // Only count pixels within 20px of sides
+                    let pixel: Int = ((width * y) + x) * 4
+                    let color = UIColor(
+                        red: CGFloat(data[pixel + 2]) / 255,
+                        green: CGFloat(data[pixel + 1]) / 255,
+                        blue: CGFloat(data[pixel]) / 255,
+                        alpha: 1.0
+                    )
+                    imageColors.add(color)
+                    if x < 5 || x > width - 5 {
+                        // boost very edges
+                        imageColors.add(color)
+                        imageColors.add(color)
+                        imageColors.add(color)
+                    }
+                }
             }
         }
         
