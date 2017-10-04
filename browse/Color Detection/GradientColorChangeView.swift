@@ -93,6 +93,8 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
 //        gLayer.frame = self.bounds
         
         CATransaction.begin()
+        CATransaction.setDisableActions(true)
+
         var endLoc: [NSNumber]
         var beginLoc: [NSNumber]
         if direction == .fromTop {
