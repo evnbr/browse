@@ -20,7 +20,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var heightConstraint : NSLayoutConstraint!
     var topConstraint : NSLayoutConstraint!
     var accessoryHeightConstraint : NSLayoutConstraint!
-        
+    var toolbarHeightConstraint : NSLayoutConstraint!
+    var toolbarBottomConstraint : NSLayoutConstraint!
+
     var isDisplayingSearch : Bool = false
     var searchView: SearchView!
     var colorSampler: ColorSampler!
@@ -229,6 +231,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         cardView.addSubview(toolbar)
         cardView.bringSubview(toFront: toolbar)
         
+        toolbar.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
+        toolbar.widthAnchor.constraint(equalTo: cardView.widthAnchor).isActive = true
+        toolbarBottomConstraint = toolbar.bottomAnchor.constraint(equalTo: cardView.bottomAnchor)
+        toolbarBottomConstraint.isActive = true
+        
 //        view.addSubview(toolbar)
 //        view.sendSubview(toBack: toolbar)
         
@@ -301,35 +308,32 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     func hideToolbar() {
-        
         guard !webView.isLoading else { return }
         guard !isDisplayingSearch else { return }
         
-        UIView.animate(
-            withDuration: 0.2,
-            delay: 0,
-            options: .curveEaseInOut,
-            animations: {
-                self.heightConstraint.constant = -Const.shared.statusHeight
-//                self.webView.frame.size.height = self.cardView.frame.height - Const.shared.statusHeight
-//                self.webView.scrollView.frame.size.height = self.webView.frame.size.height
-//                self.webView.scrollView.contentInset.bottom = 0
-                self.toolbar.frame.origin.y = self.cardView.frame.height
-        })
-    }
-    func showToolbar() {
-        guard !isDisplayingSearch else { return }
+        self.heightConstraint.constant = -Const.shared.statusHeight
+        self.toolbarHeightConstraint.constant = 0
 
         UIView.animate(
             withDuration: 0.2,
             delay: 0,
             options: .curveEaseInOut,
             animations: {
-                self.heightConstraint.constant = -Const.shared.toolbarHeight - Const.shared.statusHeight
-//                self.webView.frame.size.height = self.cardView.frame.height - Const.shared.statusHeight - Const.shared.toolbarHeight
-//                self.webView.scrollView.frame.size.height = self.webView.frame.size.height
-//                self.webView.scrollView.contentInset.bottom = Const.shared.toolbarHeight
-                self.toolbar.frame.origin.y = self.cardView.frame.height - Const.shared.toolbarHeight
+                self.cardView.layoutIfNeeded()
+        })
+    }
+    func showToolbar() {
+        guard !isDisplayingSearch else { return }
+
+        self.heightConstraint.constant = -Const.shared.toolbarHeight - Const.shared.statusHeight
+        self.toolbarHeightConstraint.constant = Const.shared.toolbarHeight
+
+        UIView.animate(
+            withDuration: 0.2,
+            delay: 0,
+            options: [.curveEaseInOut, .allowAnimatedContent],
+            animations: {
+                self.cardView.layoutIfNeeded()
         })
     }
 
@@ -337,10 +341,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         let toolbar = ProgressToolbar(frame: CGRect(
             x: 0,
-            y: cardView.frame.height - Const.shared.toolbarHeight,
+            y: 0,
             width: cardView.frame.width,
             height: Const.shared.toolbarHeight
         ))
+        toolbar.translatesAutoresizingMaskIntoConstraints = false
+        toolbarHeightConstraint = toolbar.heightAnchor.constraint(equalToConstant: Const.shared.toolbarHeight)
+        toolbarHeightConstraint.isActive = true
         
         locationBar = LocationBar(
             onTap: { self.displaySearch(animated: true) }
@@ -486,6 +493,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         // because it keeps getting deactivated every time
         // the view is removed from the hierarchy
         heightConstraint.isActive = true
+        toolbarBottomConstraint.isActive = true
     }
     
     override func didReceiveMemoryWarning() {
@@ -615,8 +623,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 animations: {
                     
                 self.cardView.frame.size.height = cardH
-                self.toolbar.frame.origin.y = cardH - self.searchView.frame.height
-                self.toolbar.frame.size.height = self.searchView.frame.height
+//                self.toolbar.frame.origin.y = cardH - self.searchView.frame.height
+                self.toolbarHeightConstraint.constant = self.searchView.frame.height
+
                 self.locationBar.alpha = 0
                 self.toolbar.layoutIfNeeded()
                     
@@ -629,8 +638,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
         else {
             self.cardView.frame.size.height = cardH
-            self.toolbar.frame.origin.y = cardH
-            self.toolbar.frame.size.height = self.searchView.frame.height
+//            self.toolbar.frame.origin.y = cardH
+            self.toolbarHeightConstraint.constant = self.searchView.frame.height
             self.locationBar.alpha = 0
             self.toolbar.layoutIfNeeded()
             
@@ -665,8 +674,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 //            self.searchDismissScrim.alpha = 0
             
             self.cardView.frame = self.cardViewDefaultFrame
-            self.toolbar.frame.origin.y = self.cardViewDefaultFrame.height - Const.shared.toolbarHeight
-            self.toolbar?.frame.size.height = Const.shared.toolbarHeight
+//            self.toolbar.frame.origin.y = self.cardViewDefaultFrame.height - Const.shared.toolbarHeight
+            self.toolbarHeightConstraint.constant = Const.shared.toolbarHeight
             self.locationBar.alpha = 1
             
             self.toolbar.layoutIfNeeded()
@@ -682,22 +691,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     func searchSizeDidChange() {
         if searchView != nil && isDisplayingSearch {
-//            let cardH = cardViewDefaultFrame.height - keyboardHeight - searchView.frame.height + Const.shared.toolbarHeight
             let cardH = cardViewDefaultFrame.height - keyboardHeight
-            
             self.cardView?.frame.size.height = cardH
-            self.toolbar?.frame.origin.y = cardH - self.searchView.frame.height
-            self.toolbar?.frame.size.height = self.searchView.frame.height
-            
-//            UIView.animate(
-//                withDuration: 0.4,
-//                delay: 0.0,
-//                usingSpringWithDamping: 1,
-//                initialSpringVelocity: 0,
-//                options: .curveLinear,
-//                animations: {
-//                self.cardView?.frame.size.height = cardH
-//            })
+            self.toolbarHeightConstraint.constant = self.searchView.frame.height
         }
     }
 
