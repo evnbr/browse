@@ -20,10 +20,6 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     let gradientLayer2: CAGradientLayer = CAGradientLayer()
     let gradientLayer3: CAGradientLayer = CAGradientLayer()
     
-    var gradientView: UIView!
-    var gradientView2: UIView!
-    var gradientView3: UIView!
-    
     var gradientHolder: UIView!
     
     var lastColor: UIColor = UIColor.clear
@@ -49,22 +45,14 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         addSubview(gradientHolder)
         sendSubview(toBack: gradientHolder)
         
+        gradientHolder.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        gradientHolder.widthAnchor.constraint(equalTo: self.widthAnchor).isActive = true
+        gradientHolder.heightAnchor.constraint(equalTo: self.heightAnchor).isActive = true
+        
+        
         for layer in [gradientLayer, gradientLayer2, gradientLayer3] {
             layer.frame = self.bounds
             layer.colors = [UIColor.clear.cgColor, UIColor.clear.cgColor]
-        }
-        
-        gradientView = UIView(frame: self.bounds)
-        gradientView2 = UIView(frame: self.bounds)
-        gradientView3 = UIView(frame: self.bounds)
-        gradientView.layer.addSublayer(gradientLayer)
-        gradientView2.layer.addSublayer(gradientLayer2)
-        gradientView3.layer.addSublayer(gradientLayer3)
-        
-        for view in [gradientView, gradientView2, gradientView3] {
-            view?.isHidden = true
-            view?.autoresizingMask  = [ .flexibleWidth, .flexibleHeight ]
-            gradientHolder.addSubview(view!)
         }
     }
     
@@ -76,10 +64,6 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         gradientLayer.removeAllAnimations()
         gradientLayer2.removeAllAnimations()
         gradientLayer3.removeAllAnimations()
-        
-        gradientView.isHidden = true
-        gradientView2.isHidden = true
-        gradientView3.isHidden = true
     }
     
     func animateGradient(
@@ -92,42 +76,39 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         }
         
         var gLayer : CAGradientLayer
-        var gView : UIView
-        if gradientView.isHidden {
+        if gradientLayer.superlayer == nil {
             gLayer = gradientLayer
-            gView = gradientView!
         }
-        else if gradientView2.isHidden {
+        else if gradientLayer2.superlayer == nil  {
             gLayer = gradientLayer2
-            gView = gradientView2!
         }
-        else if gradientView3.isHidden {
+        else if gradientLayer3.superlayer == nil  {
             gLayer = gradientLayer3
-            gView = gradientView3!
         }
         else {
             print("all grads in use")
             return false
         }
+//        let gLayer = CAGradientLayer()
+//        gLayer.frame = self.bounds
         
+        CATransaction.begin()
         var endLoc: [NSNumber]
         var beginLoc: [NSNumber]
         if direction == .fromTop {
             gLayer.colors = [
                 toColor.cgColor,
-                toColor.withAlphaComponent(0.5).cgColor,
                 toColor.withAlphaComponent(0).cgColor
             ]
-            beginLoc = [0, 0.02, 0.05]
-            endLoc = [0.5, 5, 20]
+            beginLoc = [0, 0.05]
+            endLoc = [1, 5]
         } else {
             gLayer.colors = [
                 toColor.withAlphaComponent(0).cgColor,
-                toColor.withAlphaComponent(0.5).cgColor,
                 toColor.cgColor
             ]
-            beginLoc = [0.95, 0.98, 1]
-            endLoc = [-20, -5, 0.5]
+            beginLoc = [0.95, 1]
+            endLoc = [-5, 0]
         }
         gLayer.locations = beginLoc
         lastColor = toColor
@@ -137,25 +118,26 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         colorChangeAnimation.duration = duration
         colorChangeAnimation.fromValue = beginLoc
         colorChangeAnimation.toValue = endLoc
-        colorChangeAnimation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
+        colorChangeAnimation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
         colorChangeAnimation.fillMode = kCAFillModeForwards
         colorChangeAnimation.isRemovedOnCompletion = false
 //        colorChangeAnimation.delegate = self
         
-        gradientHolder.bringSubview(toFront: gView)
-        gView.isHidden = false
         
-        CATransaction.begin()
         CATransaction.setCompletionBlock({
-            self.backgroundColor = self.lastColor
-            gView.isHidden = true
-            gLayer.removeAnimation(forKey: "boundsChange")
+            self.backgroundColor = toColor
+            gLayer.removeAnimation(forKey: "gradientChange")
+            gLayer.removeFromSuperlayer()
+            gLayer.contents = nil
         })
+        gradientHolder.setNeedsDisplay()
+        gLayer.add(colorChangeAnimation, forKey: "gradientChange")
+        gradientHolder.layer.addSublayer(gLayer)
 
-        gLayer.add(colorChangeAnimation, forKey: "boundsChange")
         CATransaction.commit()
         
-        UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseInOut, animations: {
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
+//            self.gradientHolder.backgroundColor = toColor
             self.tintColor = toColor.isLight ? .white : .darkText
         }, completion: nil)
         
