@@ -115,11 +115,11 @@ class ColorSampler : NSObject, UIGestureRecognizerDelegate {
         lastSampledColorsTime = now
         
         let sampleH : CGFloat = 8
-        let sampleW : CGFloat = 16
+        let sampleW : CGFloat = webView.frame.width
         let bottomConfig = WKSnapshotConfiguration()
         bottomConfig.rect = CGRect(
             x: webView.frame.width - sampleW,
-            y: webView.frame.height - sampleH,
+            y: wvc.cardView.frame.height - Const.shared.statusHeight - Const.shared.toolbarHeight - sampleH,
             width: sampleW,
             height: sampleH
         )
