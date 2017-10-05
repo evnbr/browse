@@ -957,7 +957,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             
             if (webView.title != "" && webView.title != title) {
                 title = webView.title
-                print("Title change: \(title!)")
             }
         }
         else if keyPath == "url" {

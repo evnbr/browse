@@ -44,6 +44,7 @@
 		A9D4B8C11F72F6D6006F0F18 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */; };
 		A9DEAE3D1F16C15700CF66BA /* ProgressToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DEAE3C1F16C15700CF66BA /* ProgressToolbar.swift */; };
 		A9DEAE3F1F199E3200CF66BA /* BrowserTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DEAE3E1F199E3200CF66BA /* BrowserTab.swift */; };
+		A9E422811F86B4FD0028B4CA /* StackingCollectionViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E422801F86B4FD0028B4CA /* StackingCollectionViewLayout.swift */; };
 		A9E4859D1EC8D7BE0021D155 /* ColorSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E4859C1EC8D7BE0021D155 /* ColorSampler.swift */; };
 		A9EF36D31F48EBF4005112E2 /* easylist.json in Resources */ = {isa = PBXBuildFile; fileRef = A9EF36D21F48EB34005112E2 /* easylist.json */; };
 		A9EF36D51F4A6451005112E2 /* WKWebview+Toolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9EF36D41F4A6451005112E2 /* WKWebview+Toolbar.swift */; };
@@ -119,6 +120,7 @@
 		A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		A9DEAE3C1F16C15700CF66BA /* ProgressToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressToolbar.swift; sourceTree = "<group>"; };
 		A9DEAE3E1F199E3200CF66BA /* BrowserTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserTab.swift; sourceTree = "<group>"; };
+		A9E422801F86B4FD0028B4CA /* StackingCollectionViewLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = StackingCollectionViewLayout.swift; path = "browse/Tab Switcher/StackingCollectionViewLayout.swift"; sourceTree = SOURCE_ROOT; };
 		A9E4859C1EC8D7BE0021D155 /* ColorSampler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorSampler.swift; sourceTree = "<group>"; };
 		A9EF36D21F48EB34005112E2 /* easylist.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = easylist.json; sourceTree = "<group>"; };
 		A9EF36D41F4A6451005112E2 /* WKWebview+Toolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WKWebview+Toolbar.swift"; sourceTree = "<group>"; };
@@ -186,14 +188,15 @@
 			path = "Search Field";
 			sourceTree = "<group>";
 		};
-		A90F51241F71785E00221815 /* Home */ = {
+		A90F51241F71785E00221815 /* Tab Switcher */ = {
 			isa = PBXGroup;
 			children = (
 				A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */,
 				A92095901EE34CDC009497A2 /* HomeViewController.swift */,
 				A92095921EE36483009497A2 /* TabThumbnail.swift */,
+				A9E422801F86B4FD0028B4CA /* StackingCollectionViewLayout.swift */,
 			);
-			path = Home;
+			path = "Tab Switcher";
 			sourceTree = "<group>";
 		};
 		A90F51251F71787800221815 /* Color Detection */ = {
@@ -288,7 +291,7 @@
 			children = (
 				A97CB06F1EC53DCD005DDBD1 /* AppDelegate.swift */,
 				A969D4A41F1321EC008A7BC6 /* Constants.swift */,
-				A90F51241F71785E00221815 /* Home */,
+				A90F51241F71785E00221815 /* Tab Switcher */,
 				A90F51271F7178D700221815 /* WebView */,
 				A90F51261F7178C000221815 /* Browser View */,
 				A90F51251F71787800221815 /* Color Detection */,
@@ -630,6 +633,7 @@
 			files = (
 				A92C9C3B1EF8B5E600D8AAA3 /* BrowserViewInteractiveDismiss.swift in Sources */,
 				A90F51211F70C6CB00221815 /* UIImageColors.swift in Sources */,
+				A9E422811F86B4FD0028B4CA /* StackingCollectionViewLayout.swift in Sources */,
 				A96184821ECEA39200EF3A6F /* SearchView.swift in Sources */,
 				A98483281EEFCFE200E821AE /* ColorToolbarView.swift in Sources */,
 				A92095931EE36483009497A2 /* TabThumbnail.swift in Sources */,

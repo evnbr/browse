@@ -42,6 +42,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         browserVC = BrowserViewController(home: self)
         
+        collectionView?.collectionViewLayout = StackingCollectionViewLayout()
         collectionView?.delaysContentTouches = false
         collectionView?.alwaysBounceVertical = true
         collectionView?.indicatorStyle = .white
@@ -156,6 +157,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
             self.tabs.append(newTab)
             self.collectionView?.insertItems(at: [ IndexPath(item: self.tabs.index(of: newTab)!, section: 0) ])
+            self.collectionViewLayout.invalidateLayout() // todo: shouldn't the layout just know?
             let thumb = self.thumb(forTab: newTab)
             thumb?.isHidden = true
         }
@@ -201,6 +203,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                 self.tabs.insert(newTab, at: self.tabs.index(of: prevTab)! + 1)
                 let ip = IndexPath(item: self.tabs.index(of: newTab)!, section: 0)
                 self.collectionView?.insertItems(at: [ ip ])
+                self.collectionViewLayout.invalidateLayout() // todo: shouldn't the layout just know?
             }, completion: { _ in
                 self.showTab(newTab)
             })
@@ -357,31 +360,6 @@ extension HomeViewController {
         showTab(tabs[indexPath.row])
     }
     
-    // TODO: This should be part of a custom layout subclass
-    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        guard let cv = collectionView else { return }
-        for cell in cv.visibleCells {
-            let ip = cv.indexPath(for: cell)!
-            let intendedFrame = cv.layoutAttributesForItem(at: ip)!.frame
-            let vFrame = view.convert(intendedFrame, from: cell.superview)
-
-            let scrollLimit = Const.shared.statusHeight
-            if vFrame.origin.y < scrollLimit {
-                let pctOver = abs(scrollLimit - vFrame.origin.y) / 200
-                cell.frame.origin.y = intendedFrame.origin.y - vFrame.origin.y + scrollLimit
-                cell.alpha = 1 - pctOver
-                let s = 1 - pctOver * 0.05
-//                cell.transform = CGAffineTransform(scaleX: s, y: s)
-                cell.isUserInteractionEnabled = false
-            }
-            else {
-                cell.frame.origin.y = intendedFrame.origin.y
-                cell.alpha = 1
-                cell.isUserInteractionEnabled = true
-            }
-            cell.layer.zPosition = CGFloat(ip.row)
-        }
-    }
     
     var thumbSize : CGSize {
         if view.frame.width > 400 {
@@ -402,33 +380,33 @@ extension HomeViewController : UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return thumbSize
     }
-    
-    
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        insetForItem section: Int) -> UIEdgeInsets {
-        return sectionInsets
-    }
-    
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        insetForSectionAt section: Int) -> UIEdgeInsets {
-        return sectionInsets
-    }
-    
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return thumbSize.height * -0.4// -120.0
-    }
-    
-//    override func collectionView(_ collectionView: UICollectionView,
-//                                 moveItemAt source: IndexPath,
-//                                 to destination: IndexPath) {
-//        let item = tabs.remove(at: source.item)
-//        tabs.insert(item, at: destination.item)
+//
+//
+//    func collectionView(_ collectionView: UICollectionView,
+//                        layout collectionViewLayout: UICollectionViewLayout,
+//                        insetForItem section: Int) -> UIEdgeInsets {
+//        return sectionInsets
 //    }
-    
+//
+//    func collectionView(_ collectionView: UICollectionView,
+//                        layout collectionViewLayout: UICollectionViewLayout,
+//                        insetForSectionAt section: Int) -> UIEdgeInsets {
+//        return sectionInsets
+//    }
+//
+//    func collectionView(_ collectionView: UICollectionView,
+//                        layout collectionViewLayout: UICollectionViewLayout,
+//                        minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+//        return thumbSize.height * -0.4// -120.0
+//    }
+//
+////    override func collectionView(_ collectionView: UICollectionView,
+////                                 moveItemAt source: IndexPath,
+////                                 to destination: IndexPath) {
+////        let item = tabs.remove(at: source.item)
+////        tabs.insert(item, at: destination.item)
+////    }
+//
 }
 
 // MARK: - Saving and restoring state

@@ -162,7 +162,7 @@ extension UIImage {
         let blackColor = UIColor(red: 0, green: 0, blue: 0, alpha: 1)
         let whiteColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1)
         
-        let randomColorsThreshold = Int(CGFloat(height) * 0.01)
+        let randomColorsThreshold = 0//Int(CGFloat(height) * 0.01)
         let sortedColorComparator: Comparator = { (main, other) -> ComparisonResult in
             let m = main as! PCCountedColor, o = other as! PCCountedColor
             if m.count < o.count {
@@ -208,7 +208,7 @@ extension UIImage {
         let sortedColors = NSMutableArray(capacity: imageColors.count)
         while let kolor = enumerator.nextObject() as? UIColor {
             let colorCount = imageColors.count(for: kolor)
-            if randomColorsThreshold < colorCount  {
+            if colorCount > randomColorsThreshold {
                 sortedColors.add(PCCountedColor(color: kolor, count: colorCount))
             }
         }

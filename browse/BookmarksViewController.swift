@@ -13,6 +13,7 @@ let BOOKMARKS_GLOBAL : [ String ] = [
     "apple.com",
     "evanbrooks.info",
     "evanbrooks.info/bindery",
+    "dropbox.design",
     "github.com",
     "figma.com",
     "framer.com",

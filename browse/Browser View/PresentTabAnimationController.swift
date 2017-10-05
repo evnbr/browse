@@ -209,7 +209,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             }
                 
             browserVC.hasStatusbarOffset = self.isExpanding
-            browserVC.toolbar.frame.origin.y = toolbarEndY
+//            browserVC.toolbar.frame.origin.y = toolbarEndY
             browserVC.cardView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
             
             homeVC.setNeedsStatusBarAppearanceUpdate()

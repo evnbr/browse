@@ -85,6 +85,7 @@ class BrowserTab: NSObject {
         webView.allowsBackForwardNavigationGestures = true
         
         webView.scrollView.contentInsetAdjustmentBehavior = .never
+        webView.scrollView.clipsToBounds = false
 //        webView.layer.borderWidth = 1
 //        webView.layer.borderColor = UIColor.red.cgColor
         

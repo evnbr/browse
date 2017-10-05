@@ -43,10 +43,10 @@ class ColorStatusBarView : GradientColorChangeView {
         self.autoresizingMask = [.flexibleWidth]
         self.backgroundColor = .red
         
-//        let overlay = UIView(frame: self.frame)
+//        let overlay = UIVisualEffectView(frame: self.frame, isTransparent: true)
 //        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-//        overlay.backgroundColor = UIColor.black.withAlphaComponent(0.1)
 //        self.addSubview(overlay)
+        
         label = UILabel(frame: CGRect(
             x: 16 ,
             y: 10,

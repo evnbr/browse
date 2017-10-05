@@ -74,11 +74,13 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         edgeDismissPan.cancelsTouchesInView = true
         view.addGestureRecognizer(edgeDismissPan)
     }
-    
-    
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
-        print(scrollView.contentInset)
+    func scrollViewDidScrollToTop(_ scrollView: UIScrollView) {
+        vc.showToolbar()
+    }
+    
+    var prevScrollY : CGFloat = 0
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
         let contentH = scrollView.contentSize.height
         let viewH = scrollView.bounds.height
@@ -86,10 +88,11 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         if contentH > viewH && scrollView.contentOffset.y < 0 {
             if scrollView.isDecelerating {
                 // disguise overscroll as shifting card
-                let overscroll = scrollView.contentOffset.y
-                cardView.frame.origin.y = -overscroll
-                vc.topConstraint.constant = Const.shared.statusHeight + overscroll
-//                scrollView.frame.origin.y = overscroll
+                vc.webView.scrollView.backgroundColor = vc.statusBar.backgroundColor
+//                let overscroll = scrollView.contentOffset.y
+//                cardView.frame.origin.y -= overscroll
+//                cardView.frame.origin.y = elasticLimit(cardView.frame.origin.y)
+//                scrollView.contentOffset.y = 0
             }
             else {
                 scrollView.contentOffset.y = 0
@@ -99,15 +102,29 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
             scrollView.contentOffset.y = max(startScroll.y, 0)
         }
         
+        let scrollDelta = scrollView.contentOffset.y - prevScrollY
+        prevScrollY = scrollView.contentOffset.y
+        
+        if scrollView.isDragging && !vc.isDisplayingSearch && scrollView.contentOffset.y > 0 && !vc.webView.isLoading   {
+            let newH = vc.toolbar.frame.height - scrollDelta
+            let toolbarH = max(0, min(Const.shared.toolbarHeight, newH))
+            
+//            vc.toolbar.frame.size.height = toolbarH
+            vc.toolbarHeightConstraint.constant = toolbarH
+            vc.heightConstraint.constant = -toolbarH - Const.shared.statusHeight
+
+        }
     }
     
-//    func cancelScroll() {
-//        webView.scrollView.isScrollEnabled = false
-//        if webView.scrollView.contentOffset.y < 0 {
-//            webView.scrollView.contentOffset.y = 0
-//        }
-//        webView.scrollView.isScrollEnabled = true
-//    }
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        guard scrollView.contentOffset.y > 0 else { return }
+        if vc.toolbar.frame.height < (Const.shared.toolbarHeight / 2) {
+            vc.hideToolbar()
+        }
+        else {
+            vc.showToolbar()
+        }
+    }
     
     var isInteractiveDismiss : Bool = false
     var startPoint : CGPoint = .zero
@@ -210,15 +227,9 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
 
         
         let gesturePos = gesture.translation(in: view)
-
-        if gesturePos.y > 0 {
-            vc.showToolbar()
-        }
-        else {
-            vc.hideToolbar()
-        }
         
         if contentH > viewH {
+            // Body scrollable, cancel at scrollPos 0
             if scrollY == 0 && gesturePos.y > 0 {
                 direction = .top
                 startPoint = gesturePos
@@ -231,6 +242,7 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
             }
         }
         else {
+            // Inner div is scrollable, body always scrollPos, 0 cancel at scrollPos -1
             if scrollY < 0 && gesturePos.y > 0 {
                 direction = .top
                 startPoint = gesturePos
@@ -357,7 +369,7 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         if let cv = home.collectionView {
             for cell in home.visibleCellsAbove {
                 if let idx = cv.indexPath(for: cell)?.item {
-                    cell.frame.origin.y = (adjustedY / 5) * CGFloat(idx)
+                    cell.frame.origin.y = (adjustedY / 4) * CGFloat(idx) + cv.contentOffset.y + Const.shared.statusHeight
                 }
             }
         }
@@ -397,6 +409,7 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
             else if !isInteractiveDismiss {
                 considerStarting(gesture: gesture)
             }
+            
         }
             
         else if gesture.state == .ended {

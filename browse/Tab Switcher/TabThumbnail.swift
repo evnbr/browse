@@ -91,6 +91,8 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         layer.shouldRasterize = true
         layer.rasterizationScale = UIScreen.main.scale
         
+//        layer.anchorPoint.y = 0
+        
         isExpanded = false
         
         let dismissPanner = UIPanGestureRecognizer()
@@ -99,7 +101,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
 //        dismissPanner.cancelsTouchesInView = true
         addGestureRecognizer(dismissPanner)
         
-        overlay = UIView(frame: frame)
+        overlay = UIView(frame: bounds)
         overlay.translatesAutoresizingMaskIntoConstraints = false
 //        overlay.widthAnchor.constraint(equalTo: contentView.widthAnchor).isActive = true
 //        overlay.heightAnchor.constraint(equalTo: contentView.heightAnchor).isActive = true
@@ -173,10 +175,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         unTransformedFrame = frame
         
         if touches.first != nil {
-            self.overlay.alpha = 1
-//            UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: {
-//                self.overlay.alpha = CGFloat(1)
-//            }, completion: nil)
+            self.overlay.alpha = 0.5
         }
     }
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -191,10 +190,8 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     func unSelect(animated : Bool = true) {
         if animated {
             UIView.animate(withDuration: 0.2, delay: 0.0, animations: {
-                self.transform = .identity
-                self.alpha = 1.0
-                self.layer.shadowRadius = 4
-                self.snap?.alpha = 1
+//                self.transform = .identity
+//                self.alpha = 1.0
                 self.overlay.alpha = 0
             })
         }

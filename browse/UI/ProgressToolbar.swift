@@ -47,10 +47,10 @@ class ProgressToolbar: ColorToolbarView {
         addSubview(progressView)
         sendSubview(toBack: progressView)
         
-        let overlay = UIView(frame: self.frame)
-        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        overlay.backgroundColor = UIColor.black.withAlphaComponent(0.1)
-        self.addSubview(overlay)
+//        let overlay = UIView(frame: self.frame)
+//        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+//        overlay.backgroundColor = UIColor.black.withAlphaComponent(0.1)
+//        self.addSubview(overlay)
     }
         
     override func tintColorDidChange() {

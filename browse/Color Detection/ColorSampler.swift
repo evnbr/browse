@@ -23,7 +23,7 @@ enum ColorTransitionStyle {
     case translate
 }
 
-let DURATION = 0.5
+let DURATION = 1.0
 let MIN_TIME_BETWEEN_UPDATES = 0.15
 
 class ColorSampler : NSObject, UIGestureRecognizerDelegate {
@@ -114,7 +114,7 @@ class ColorSampler : NSObject, UIGestureRecognizerDelegate {
         guard ( now - lastSampledColorsTime > MIN_TIME_BETWEEN_UPDATES )  else { return }
         lastSampledColorsTime = now
         
-        let sampleH : CGFloat = 8
+        let sampleH : CGFloat = 12
         let sampleW : CGFloat = webView.frame.width
         let bottomConfig = WKSnapshotConfiguration()
         bottomConfig.rect = CGRect(

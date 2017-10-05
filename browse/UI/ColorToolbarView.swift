@@ -33,6 +33,7 @@ class ColorToolbarView: GradientColorChangeView {
 //        stackView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
         stackView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         stackView.widthAnchor.constraint(equalTo: self.widthAnchor).isActive = true
+        
     }
         
     var items : [ UIView ] {

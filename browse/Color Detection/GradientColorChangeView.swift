@@ -130,16 +130,14 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
             self.backgroundColor = toColor
             gLayer.removeAnimation(forKey: "gradientChange")
             gLayer.removeFromSuperlayer()
-            gLayer.contents = nil
         })
-        gradientHolder.setNeedsDisplay()
-        gLayer.add(colorChangeAnimation, forKey: "gradientChange")
-        gradientHolder.layer.addSublayer(gLayer)
+//        gLayer.add(colorChangeAnimation, forKey: "gradientChange")
+//        gradientHolder.layer.addSublayer(gLayer)
 
         CATransaction.commit()
         
         UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
-//            self.gradientHolder.backgroundColor = toColor
+            self.backgroundColor = toColor
             self.tintColor = toColor.isLight ? .white : .darkText
         }, completion: nil)
         
