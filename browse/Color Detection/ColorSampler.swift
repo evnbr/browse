@@ -114,7 +114,7 @@ class ColorSampler : NSObject, UIGestureRecognizerDelegate {
         guard ( now - lastSampledColorsTime > MIN_TIME_BETWEEN_UPDATES )  else { return }
         lastSampledColorsTime = now
         
-        let sampleH : CGFloat = 12
+        let sampleH : CGFloat = 8
         let sampleW : CGFloat = webView.frame.width
         let bottomConfig = WKSnapshotConfiguration()
         bottomConfig.rect = CGRect(

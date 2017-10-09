@@ -19,7 +19,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
 //         self.window?.layer.speed = 0.1
         
-        
         return true
     }
 

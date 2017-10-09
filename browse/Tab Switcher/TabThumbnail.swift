@@ -86,8 +86,8 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         
         layer.shadowColor = UIColor.black.cgColor
         layer.shadowOffset = .zero
-        layer.shadowRadius = 4
-        layer.shadowOpacity = 0.3
+        layer.shadowRadius = Const.shared.shadowRadius
+        layer.shadowOpacity = Const.shared.shadowOpacity
         layer.shouldRasterize = true
         layer.rasterizationScale = UIScreen.main.scale
         
@@ -175,7 +175,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         unTransformedFrame = frame
         
         if touches.first != nil {
-            self.overlay.alpha = 0.5
+            self.overlay.alpha = 0.7
         }
     }
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -266,9 +266,15 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     }
 
     override func prepareForReuse() {
+        super.prepareForReuse()
         snap?.removeFromSuperview()
         contentView.backgroundColor = .darkGray
         label.text = "Blank"
+    }
+    
+    override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
+        super.apply(layoutAttributes)
+        layer.zPosition = CGFloat(layoutAttributes.zIndex)
     }
     
     func frameForSnap(_ snap : UIView) -> CGRect {

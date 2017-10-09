@@ -9,7 +9,7 @@
 import UIKit
 
 let itemSpacing : CGFloat = 160
-let itemHeight : CGFloat = 400
+let itemHeight : CGFloat = 320
 
 class StackingCollectionViewLayout: UICollectionViewFlowLayout {
     
@@ -37,11 +37,11 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
             
             var intendedFrame = CGRect(
                 origin: CGPoint(
-                    x: 0,
+                    x: 12,
                     y: CGFloat(i) * itemSpacing
                 ),
                 size: CGSize(
-                    width: collectionView!.bounds.width,
+                    width: collectionView!.bounds.width - 24,
                     height: itemHeight
                 )
             )
@@ -55,10 +55,6 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
                 let s = 1 - pctOver * 0.05
                 attributes.transform = CGAffineTransform(scaleX: s, y: s)
             }
-//            if distFromTop < 200 {
-//                let distFromShrinkingPoint = abs(200 - distFromTop)
-//                intendedFrame.origin.y = intendedFrame.origin.y + distFromShrinkingPoint * 0.7
-//            }
 
             attributes.frame = intendedFrame
             attributes.zIndex = i * 20

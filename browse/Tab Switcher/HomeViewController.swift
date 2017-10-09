@@ -124,7 +124,6 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                     self.showTab(self.tabs[lastIndex], animated: false, completion: {
                         self.view.isHidden = false
                     })
-                    self.view.isHidden = false
                 } else {
                     self.view.isHidden = false
                 }
@@ -193,6 +192,8 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         let newTab = BrowserTab(withNewTabConfig: config)
         let prevTab = self.selectedTab!
+        newTab.parentTab = prevTab
+
         // if we don't wait for each animation to complete,
         // the states get weird and the orginal tab gets hidden
         browserVC.dismiss(animated: true, completion: {

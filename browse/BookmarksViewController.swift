@@ -69,7 +69,6 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
         
         table = UITableView(frame:self.view.frame)
 //        table.contentInset = .init(top: 0, left: 0, bottom: 200, right: 0) // TODO: why?
-        self.automaticallyAdjustsScrollViewInsets = true
 
         table.register(UITableViewCell.self, forCellReuseIdentifier: "MyCell")
         table.dataSource = self

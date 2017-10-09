@@ -42,7 +42,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var locationBar: LocationBar!
     
     var overflowController: UIAlertController!
-//    var stopRefreshAlertAction: UIAlertAction!
         
     var onePasswordExtensionItem : NSExtensionItem!
     
@@ -61,6 +60,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         return false
     }
     
+    var isShowingToolbar : Bool {
+        return toolbarHeightConstraint.constant > 0
+    }
+    
     var shouldUpdateColors : Bool {
         return (
             isViewLoaded
@@ -68,7 +71,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             && !interactiveDismissController.isInteractiveDismiss
             && UIApplication.shared.applicationState == .active
             && webView != nil
+            && !(webView.alpha < 1)
+            && !(webView.scrollView.contentOffset.y < 0)
             && abs(cardView.frame.origin.y) < 1.0
+            && abs(cardView.frame.origin.x) < 1.0
         )
     }
     
@@ -150,8 +156,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             toolbar.backgroundColor = .white
             cardView.backgroundColor = .white
             webView.backgroundColor = .white
-            let _ = toolbar.animateGradient(toColor: .white, duration: 0.1, direction: .fromTop)
         }
+
 
         
         webView.navigationDelegate = self
@@ -209,8 +215,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         view.layer.shadowColor = UIColor.black.cgColor
         view.layer.shadowOffset = .zero
-        view.layer.shadowRadius = 4
-        view.layer.shadowOpacity = 0.3
+        view.layer.shadowRadius = Const.shared.shadowRadius
+        view.layer.shadowOpacity = Const.shared.shadowOpacity
 
         
         cardView = UIView(frame: cardViewDefaultFrame)
@@ -307,7 +313,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         )
     }
     
-    func hideToolbar() {
+    func hideToolbar(animated : Bool = true) {
+        guard !webView.scrollView.isScrollable else { return }
         guard !webView.isLoading else { return }
         guard !isDisplayingSearch else { return }
         
@@ -322,14 +329,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 self.cardView.layoutIfNeeded()
         })
     }
-    func showToolbar() {
+    func showToolbar(animated : Bool = true) {
         guard !isDisplayingSearch else { return }
 
         self.heightConstraint.constant = -Const.shared.toolbarHeight - Const.shared.statusHeight
         self.toolbarHeightConstraint.constant = Const.shared.toolbarHeight
 
         UIView.animate(
-            withDuration: 0.2,
+            withDuration: animated ? 0.2 : 0,
             delay: 0,
             options: [.curveEaseInOut, .allowAnimatedContent],
             animations: {
@@ -469,7 +476,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         if isBlank {
             displaySearch()
         }
-        
+        showToolbar()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -966,13 +973,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 
 }
 
-//extension UIView {
-//    var keyboardAppearance: UIKeyboardAppearance {
-//        return UIKeyboardAppearance.dark
-//    }
-//}
-
-
 private weak var currentFirstResponder: UIResponder?
 
 extension UIResponder {
@@ -988,5 +988,3 @@ extension UIResponder {
     }
     
 }
-
-

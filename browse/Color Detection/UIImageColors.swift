@@ -183,7 +183,7 @@ extension UIImage {
         
         for x in 0..<width {
             for y in 0..<height {
-                if x < 20 || x > width - 20 {
+                if x < 16 || x > width - 16 {
                     // Only count pixels within 20px of sides
                     let pixel: Int = ((width * y) + x) * 4
                     let color = UIColor(

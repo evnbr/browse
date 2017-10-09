@@ -36,7 +36,6 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         }
     }
     
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
         
@@ -69,7 +68,8 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     func animateGradient(
         toColor: UIColor,
         duration: CFTimeInterval,
-        direction: GradientColorChangeDirection ) -> Bool {
+        direction: GradientColorChangeDirection )
+        -> Bool {
         
         guard !toColor.isEqual(lastColor) else {
             return false
@@ -143,18 +143,6 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         
         return true
     }
-    
-//    func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
-//        if !flag {
-//            print("never completed")
-//        }
-//        backgroundColor = lastColor
-//
-//        gradientLayer.removeAnimation(forKey: "boundsChange")
-//        gradientLayer.isHidden = true
-//
-//        isColorChanging = false
-//    }
     
 
 }

@@ -43,18 +43,19 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
     
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
         
-        let fromVC = transitionContext.viewController(forKey: UITransitionContextViewControllerKey.from)!
-        let toVC = transitionContext.viewController(forKey: UITransitionContextViewControllerKey.to)!
+        let fromVC = transitionContext.viewController(forKey: .from)!
+        let toVC = transitionContext.viewController(forKey: .to)!
         
         let containerView = transitionContext.containerView
         
         let homeNav = (isExpanding ? fromVC : toVC) as! UINavigationController
         let browserVC = (isExpanding ? toVC : fromVC) as! BrowserViewController
-        
         let homeVC = homeNav.topViewController as! HomeViewController
         
+        // TODO: This is not necessarily the correct thumb.
+        // When swapping between tabs it gets mixed up.
+        homeVC.visibleCells.forEach { $0.isHidden = false }
         let thumb = homeVC.thumb(forTab: browserVC.browserTab!)
-        
         thumb?.isHidden = true
 
         if direction == .present {
@@ -70,7 +71,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             }
         }
         
-        
         if !self.isExpanding {
             browserVC.updateSnapshot()
         }
@@ -83,7 +83,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         
         var thumbFrame : CGRect
-        var duration = 0.4
         
         if thumb != nil {
             // must be after toVC is added
@@ -96,56 +95,18 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             let y = (homeVC.navigationController?.view.frame.height)!
             thumbFrame = CGRect(origin: CGPoint(x: 0, y: y), size: homeVC.thumbSize)
             thumbFrame.size.height = 40
-            duration = 0.5
         }
-        
-//        let transitioningThumb = TabThumbnail(frame: thumbFrame)
-//        transitioningThumb.setTab(browserVC.browserTab!)
         
         let expandedFrame = browserVC.cardView.frame
-        
-        
-//        transitioningThumb.frame = isExpanding ? thumbFrame : expandedFrame
-//        transitioningThumb.isExpanded = !isExpanding
-//        transitioningThumb.backgroundColor = browserVC.statusBar.backgroundColor
-        if !isExpanding {
-            // continue from wherever cardview left off
-//            transitioningThumb.layer.cornerRadius = browserVC.cardView.layer.cornerRadius
-        }
-        else {
-            // reset cardview radius
-//            browserVC.cardView.layer.cornerRadius = Const.shared.cardRadius
-        }
         
         homeNav.view.transform = self.isExpanding
             ? .identity
             : prevTransform
         
-//        browserVC.cardView.isHidden = true
-        
         let END_ALPHA : CGFloat = 0.0
-
-//        homeNav.view.alpha = isExpanding ? 1.0 : END_ALPHA
         
-        var toolbarEndY = browserVC.cardView.frame.height - browserVC.toolbar.frame.height
-        if isExpanding {
-            if browserVC.isBlank {
-                // keyboard
-//                browserVC.toolbar.frame.origin.y = max(
-//                    expandedFrame.height + 100,
-//                    thumbFrame.origin.y + thumbFrame.height
-//                )
-            }
-            else {
-//                browserVC.toolbar.frame.origin.y = browserVC.cardView.frame.height - 40
-            }
-//            browserVC.toolbar.frame.origin.y = homeVC.view.frame.height
-//            browserVC.toolbar.frame.origin.y = thumbFrame.origin.y + thumbFrame.height
-        } else {
-            toolbarEndY = browserVC.cardViewDefaultFrame.height - 20
-        }
         
-        browserVC.cardView.frame = isExpanding ? thumbFrame : expandedFrame // NOTE: Would remove need for transitioningthumb
+        browserVC.cardView.frame = isExpanding ? thumbFrame : expandedFrame
         
         
         let cellsMovedToFront = homeVC.visibleCellsBelow
@@ -169,16 +130,14 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         newTabToolbar.transform = isExpanding ? .identity : CGAffineTransform(translationX: 0, y: Const.shared.toolbarHeight)
         
         UIView.animate(
-            withDuration: duration,
+            withDuration: 0.5,
             delay: 0.0,
-            usingSpringWithDamping: 0.95,
+            usingSpringWithDamping: 0.85,
             initialSpringVelocity: 0.0,
             options: .allowUserInteraction,
             animations: {
                 
             browserVC.cardView.frame = self.isExpanding ? expandedFrame : thumbFrame
-//            transitioningThumb.frame = self.isExpanding ? expandedFrame : thumbFrame
-//            transitioningThumb.isExpanded = self.isExpanding
                 
             homeNav.view.frame.origin = CGPoint.zero
             homeNav.view.alpha = self.isExpanding ? END_ALPHA : 1.0
@@ -209,7 +168,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             }
                 
             browserVC.hasStatusbarOffset = self.isExpanding
-//            browserVC.toolbar.frame.origin.y = toolbarEndY
             browserVC.cardView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
             
             homeVC.setNeedsStatusBarAppearanceUpdate()
@@ -217,9 +175,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             newTabToolbar.transform = self.isExpanding ? CGAffineTransform(translationX: 0, y: Const.shared.toolbarHeight) : .identity
                 
         }, completion: { finished in
-            
-            transitionContext.completeTransition(true)
-            
             browserVC.isSnapshotMode = false
             
             thumb?.setTab(browserVC.browserTab!)
@@ -234,11 +189,11 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             newTabToolbar.isHidden = self.isExpanding
             
             if self.direction == .dismiss {
-                thumb?.isHidden = false
+                homeVC.visibleCells.forEach { $0.isHidden = false }
                 homeVC.setNeedsStatusBarAppearanceUpdate()
             }
             
-
+            transitionContext.completeTransition(true)
         })
     }
 }

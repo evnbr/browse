@@ -195,6 +195,7 @@
 				A92095901EE34CDC009497A2 /* HomeViewController.swift */,
 				A92095921EE36483009497A2 /* TabThumbnail.swift */,
 				A9E422801F86B4FD0028B4CA /* StackingCollectionViewLayout.swift */,
+				A920958E1EDF4AB8009497A2 /* PresentTabAnimationController.swift */,
 			);
 			path = "Tab Switcher";
 			sourceTree = "<group>";
@@ -214,7 +215,6 @@
 			children = (
 				A97CB0711EC53DCD005DDBD1 /* BrowserViewController.swift */,
 				A92C9C3A1EF8B5E600D8AAA3 /* BrowserViewInteractiveDismiss.swift */,
-				A920958E1EDF4AB8009497A2 /* PresentTabAnimationController.swift */,
 				A90892091ED547C500A5E9BA /* LocationBar.swift */,
 				A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */,
 			);

@@ -13,6 +13,7 @@ class BrowserTab: NSObject {
     
     var webView: WKWebView!
     var webSnapshot : UIView?
+    var parentTab : BrowserTab?
     
     var restoredLocation : String?
     var restoredTitle : String?
@@ -81,17 +82,11 @@ class BrowserTab: NSObject {
         webView.translatesAutoresizingMaskIntoConstraints = false
         webView.scrollView.contentInset = .zero
         webView.backgroundColor = bottomColorSample
-        webView.isOpaque = false
-        webView.allowsBackForwardNavigationGestures = true
+//        webView.isOpaque = false
+//        webView.allowsBackForwardNavigationGestures = true
         
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.scrollView.clipsToBounds = false
-//        webView.layer.borderWidth = 1
-//        webView.layer.borderColor = UIColor.red.cgColor
-        
-//        webView.scrollView.layer.borderWidth = 1
-//        webView.scrollView.layer.borderColor = UIColor.cyan.cgColor
-
         
         return webView
     }
