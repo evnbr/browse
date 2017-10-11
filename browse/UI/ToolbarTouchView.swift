@@ -11,50 +11,26 @@ import UIKit
 class ToolbarTouchView: UIView {
 
     var action: () -> Void
-    var tapColor : UIColor = UIColor.black.withAlphaComponent(0.08)
-    var touchCircle : UIView?
-    
-    override var frame : CGRect {
-        didSet {
-            updateRadius()
-        }
-    }
+    var tapColor : UIColor = .lightTouch
     
     override var intrinsicContentSize: CGSize {
         return frame.size
     }
     
     
-    func updateRadius() {
-        layer.cornerRadius = frame.height / 2
-//        layer.cornerRadius = CORNER_RADIUS
-        touchCircle?.frame = CGRect(x: 0, y: 0, width: frame.width + 20, height: frame.width + 20)
-        touchCircle?.layer.cornerRadius = frame.width / 2
-    }
-    
     init(frame: CGRect, onTap: @escaping () -> Void) {
         action = onTap
 
         super.init(frame: frame)
         backgroundColor = .clear
-//        layer.cornerRadius = 8.0
         layer.masksToBounds = true
+        layer.cornerRadius = frame.height / 2
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(doAction))
         tap.numberOfTapsRequired = 1
         tap.isEnabled = true
         tap.cancelsTouchesInView = false
-        
-//        touchCircle = UIView(frame: CGRect(x: 0, y: 0, width: frame.width + 20, height: frame.width + 20))
-//        touchCircle.layer.masksToBounds = true
-//        touchCircle.center = self.center
-//        touchCircle.layer.cornerRadius = frame.width / 2
-//        touchCircle.isUserInteractionEnabled = false
-//        touchCircle.alpha = 0
-//        addSubview(touchCircle)
-//        sendSubview(toBack: touchCircle)
-        
-        updateRadius()
+        tap.delaysTouchesBegan = false
         
         addGestureRecognizer(tap)
     }
@@ -71,23 +47,11 @@ class ToolbarTouchView: UIView {
     override func tintColorDidChange() {
         super.tintColorDidChange()
         tapColor = tintColor.isLight ? .darkTouch : .lightTouch
-        self.touchCircle?.backgroundColor = self.tapColor
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if touches.first != nil {
-//            backgroundColor = tapColor
-            updateRadius()
-            touchCircle?.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
-            touchCircle?.center = touches.first!.location(in: self)
-            
-//            let endScale = (frame.width + 2 * abs(frame.width / 2 - touchCircle?.center.x)) / frame.width ?? 1
-            
-            UIView.animate(withDuration: 0.25, delay: 0.0, options: .curveEaseIn, animations: {
-                self.backgroundColor = self.tapColor
-                self.touchCircle?.alpha = 1
-//                self.touchCircle?.transform = CGAffineTransform(scaleX: endScale, y: endScale)
-            })
+            select()
         }
     }
     
@@ -109,7 +73,12 @@ class ToolbarTouchView: UIView {
     func deSelect() {
         UIView.animate(withDuration: 0.6, delay: 0.0, options: .curveEaseInOut, animations: {
             self.backgroundColor = .clear
-            self.touchCircle?.alpha = 0
+        })
+    }
+    func select() {
+        tapColor = tintColor.isLight ? .darkTouch : .lightTouch
+        UIView.animate(withDuration: 0.15, delay: 0.0, options: .curveEaseIn, animations: {
+            self.backgroundColor = self.tapColor
         })
     }
 

@@ -138,7 +138,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         if snap != nil && snap.isDescendant(of: cardView) {
             snap?.removeFromSuperview()
         }
-        snap = newTab.webSnapshot
+        snap = newTab.webSnapshot?.snapshotView(afterScreenUpdates: false)
+        updateSnapshotPosition()
         
         // Without this, the old color flickers through
         // for some mysterious reason.
@@ -178,10 +179,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         webView.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
         
         heightConstraint = webView.heightAnchor.constraint(equalTo: view.heightAnchor, constant: (-Const.shared.statusHeight - Const.shared.toolbarHeight))
-        //        heightConstraint = webView.heightAnchor.constraint(equalTo: view.heightAnchor, constant: (-Const.shared.statusHeight))
-//        heightConstraint = webView.heightAnchor.constraint(equalTo: view.heightAnchor, constant: (-100))
         heightConstraint.isActive = true
-//        webView.heightAnchor.constraint(greaterThanOrEqualTo: cardView.heightAnchor, constant: -Const.shared.statusHeight)
         
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.title), options: .new, context: nil)
@@ -210,20 +208,17 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         super.viewDidLoad()
         
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        // view.layer.cornerRadius = Const.shared.cardRadius
-        // view.layer.masksToBounds = true
         
-        view.layer.shadowColor = UIColor.black.cgColor
-        view.layer.shadowOffset = .zero
-        view.layer.shadowRadius = Const.shared.shadowRadius
-        view.layer.shadowOpacity = Const.shared.shadowOpacity
+//        view.layer.shadowColor = UIColor.black.cgColor
+//        view.layer.shadowOffset = .zero
+//        view.layer.shadowRadius = Const.shared.shadowRadius
+//        view.layer.shadowOpacity = Const.shared.shadowOpacity
 
         
         cardView = UIView(frame: cardViewDefaultFrame)
         cardView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         cardView.layer.cornerRadius = Const.shared.cardRadius
         cardView.layer.masksToBounds = true
-//        cardView.backgroundColor = .red
         
         statusBar = ColorStatusBarView()
         cardView.addSubview(statusBar)
@@ -254,6 +249,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
         longPress.minimumPressDuration = 0.4
+        longPress.cancelsTouchesInView = false
+        longPress.delaysTouchesBegan = false
         locationBar.addGestureRecognizer(longPress)
         
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
@@ -314,11 +311,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     func hideToolbar(animated : Bool = true) {
-        guard !webView.scrollView.isScrollable else { return }
+        guard webView.scrollView.isScrollable else { return }
         guard !webView.isLoading else { return }
         guard !isDisplayingSearch else { return }
         
-        self.heightConstraint.constant = -Const.shared.statusHeight
+//        self.heightConstraint.constant = -Const.shared.statusHeight
         self.toolbarHeightConstraint.constant = 0
 
         UIView.animate(
@@ -326,13 +323,18 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             delay: 0,
             options: .curveEaseInOut,
             animations: {
-                self.cardView.layoutIfNeeded()
-        })
+                self.view.layoutIfNeeded()
+                self.webView.scrollView.contentInset.bottom = -Const.shared.toolbarHeight
+            }, completion: { _ in
+                self.webView.scrollView.contentInset.bottom = 0
+                self.heightConstraint.constant = -Const.shared.statusHeight
+            }
+        )
     }
     func showToolbar(animated : Bool = true) {
         guard !isDisplayingSearch else { return }
 
-        self.heightConstraint.constant = -Const.shared.toolbarHeight - Const.shared.statusHeight
+//        self.heightConstraint.constant = -Const.shared.toolbarHeight - Const.shared.statusHeight
         self.toolbarHeightConstraint.constant = Const.shared.toolbarHeight
 
         UIView.animate(
@@ -340,8 +342,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             delay: 0,
             options: [.curveEaseInOut, .allowAnimatedContent],
             animations: {
-                self.cardView.layoutIfNeeded()
-        })
+                self.view.layoutIfNeeded()
+                self.webView.scrollView.contentInset.bottom = 0
+            }, completion: { _ in
+                self.webView.scrollView.contentInset.bottom = 0
+                self.heightConstraint.constant = -Const.shared.statusHeight - Const.shared.toolbarHeight
+            }
+        )
     }
 
     func setUpToolbar() -> ProgressToolbar {
@@ -449,18 +456,27 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         set {
             if newValue && snap != nil {
                 snap.isHidden = false
-//                    snap.frame.size.width = 100
-                cardView.addSubview(snap)
-                snap.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
-                snap.frame.origin.y = Const.shared.statusHeight
-                snap.frame.size.width = cardView.frame.width
-                snap.alpha = 1
+                updateSnapshotPosition()
                 webView.isHidden = true
             } else {
-//                browserTab?.webSnapshot?.isHidden = true
                 webView.isHidden = false
+                snap?.removeFromSuperview()
             }
         }
+    }
+    
+    func updateSnapshotPosition() {
+        guard snap != nil else { return }
+        if snap.superview !== cardView {
+            cardView.addSubview(snap)
+        }
+        
+        let aspect = snap.frame.height / snap.frame.width
+
+        snap.frame.size = CGSize(
+            width: cardView.frame.width,
+            height: cardView.frame.width * aspect
+        )
     }
     
     
@@ -468,8 +484,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         snap?.removeFromSuperview()
         webView.scrollView.showsVerticalScrollIndicator = false
         snap = webView.snapshotView(afterScreenUpdates: true)!
-        browserTab?.webSnapshot = snap
+        snap.autoresizingMask = [.flexibleRightMargin, .flexibleBottomMargin]
         webView.scrollView.showsVerticalScrollIndicator = true
+        
+        // duplicate
+        browserTab?.webSnapshot = snap.snapshotView(afterScreenUpdates: true)
+        browserTab?.webSnapshot?.autoresizingMask = [.flexibleRightMargin, .flexibleBottomMargin]
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -480,7 +500,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        webView.scrollView.contentInset = .zero
+//        webView.scrollView.contentInset = .zero
         self.setNeedsStatusBarAppearanceUpdate()
 
         
@@ -493,7 +513,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         let gr1 = window.gestureRecognizers![1] as UIGestureRecognizer
         gr0.delaysTouchesBegan = false
         gr1.delaysTouchesBegan = false
-        
     }
 
     override func viewWillLayoutSubviews() {
@@ -605,6 +624,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         guard !UIMenuController.shared.isMenuVisible else { return }
         
         isDisplayingSearch = true
+        searchView.isUserInteractionEnabled = true
         searchView.prepareToShow()
         
         if !searchView.textView.isFirstResponder {
@@ -617,9 +637,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         let cardH = cardViewDefaultFrame.height - keyboardHeight
         
-//        self.locationBar.setAlignment(.left)
         self.toolbar.progressView.isHidden = true
-        
+
         if animated {
             UIView.animate(
                 withDuration: 0.5,
@@ -630,7 +649,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 animations: {
                     
                 self.cardView.frame.size.height = cardH
-//                self.toolbar.frame.origin.y = cardH - self.searchView.frame.height
                 self.toolbarHeightConstraint.constant = self.searchView.frame.height
 
                 self.locationBar.alpha = 0
@@ -638,14 +656,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                     
                 self.backButton.isHidden = true
                 self.forwardButton.isHidden = true
-//                self.stopButton.isHidden = true
                 self.actionButton.isHidden = true
                 self.tabButton.alpha = 0
             })
         }
         else {
             self.cardView.frame.size.height = cardH
-//            self.toolbar.frame.origin.y = cardH
             self.toolbarHeightConstraint.constant = self.searchView.frame.height
             self.locationBar.alpha = 0
             self.toolbar.layoutIfNeeded()
@@ -667,10 +683,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         if searchView.textView.isFirstResponder {
             searchView.textView.resignFirstResponder()
         }
-        
-//        self.locationBar.setAlignment(.centered)
-        self.toolbar.progressView.isHidden = false
-        
+        searchView.isUserInteractionEnabled = false
+        toolbar.progressView.isHidden = false
+        locationBar.backgroundColor = locationBar.tapColor
+
         UIView.animate(
             withDuration: 0.55,
             delay: 0.0,
@@ -678,20 +694,18 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             initialSpringVelocity: 0.0,
             options: [.curveLinear, .allowUserInteraction],
             animations: {
-//            self.searchDismissScrim.alpha = 0
             
-            self.cardView.frame = self.cardViewDefaultFrame
-//            self.toolbar.frame.origin.y = self.cardViewDefaultFrame.height - Const.shared.toolbarHeight
-            self.toolbarHeightConstraint.constant = Const.shared.toolbarHeight
-            self.locationBar.alpha = 1
+                self.cardView.frame = self.cardViewDefaultFrame
+                self.toolbarHeightConstraint.constant = Const.shared.toolbarHeight
+                self.locationBar.alpha = 1
+                self.locationBar.backgroundColor = .clear
             
-            self.toolbar.layoutIfNeeded()
-            
-            self.backButton.isHidden = false
-            self.forwardButton.isHidden = false
-//            self.stopButton.isHidden = false
-            self.actionButton.isHidden = false
-            self.tabButton.alpha = 1
+                self.toolbar.layoutIfNeeded()
+                
+                self.backButton.isHidden = false
+                self.forwardButton.isHidden = false
+                self.actionButton.isHidden = false
+                self.tabButton.alpha = 1
         })
     }
     

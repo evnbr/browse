@@ -20,23 +20,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
     var unTransformedFrame : CGRect!
     
-    private var _isExpanded : Bool = false
-    var isExpanded : Bool {
-        get {
-            return snap.frame.origin.y != 0
-        }
-        set {
-            _isExpanded = newValue
-//            snap?.frame.origin.y = newValue ? 0 : -Const.shared.statusHeight
-//            snap?.frame.origin.y = newValue ? Const.shared.statusHeight : 0
-            label?.alpha = newValue ? 0 : 1
-            snap?.frame = frameForSnap(snap)
-//            layer.borderWidth = newValue ? 0.0 : 1.0
-            layer.cornerRadius = newValue ? Const.shared.cardRadius : Const.shared.thumbRadius
-        }
-    }
-    
-    
     var darkness : CGFloat {
         get {
             return overlay.alpha
@@ -78,22 +61,15 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         
         layer.cornerRadius = Const.shared.thumbRadius 
         backgroundColor = .clear
-//        clipsToBounds = true
         
-//        layer.borderWidth = 1.0
-//        layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
-//        layer.borderColor = UIColor.black.cgColor
-        
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOffset = .zero
-        layer.shadowRadius = Const.shared.shadowRadius
-        layer.shadowOpacity = Const.shared.shadowOpacity
-        layer.shouldRasterize = true
-        layer.rasterizationScale = UIScreen.main.scale
+//        layer.shadowColor = UIColor.black.cgColor
+//        layer.shadowOffset = .zero
+//        layer.shadowRadius = Const.shared.shadowRadius
+//        layer.shadowOpacity = Const.shared.shadowOpacity
+//        layer.shouldRasterize = true
+//        layer.rasterizationScale = UIScreen.main.scale
         
 //        layer.anchorPoint.y = 0
-        
-        isExpanded = false
         
         let dismissPanner = UIPanGestureRecognizer()
         dismissPanner.delegate = self
@@ -176,11 +152,14 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         
         if touches.first != nil {
             self.overlay.alpha = 0.7
+            UIView.animate(withDuration: 0.15, delay: 0.0, animations: {
+                self.transform = CGAffineTransform(scaleX: 0.98, y: 0.98)
+            })
         }
     }
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesEnded(touches, with: event)
-//         unSelect()
+        unSelect()
     }
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesCancelled(touches, with: event)
@@ -190,16 +169,12 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     func unSelect(animated : Bool = true) {
         if animated {
             UIView.animate(withDuration: 0.2, delay: 0.0, animations: {
-//                self.transform = .identity
-//                self.alpha = 1.0
+                self.transform = .identity
                 self.overlay.alpha = 0
             })
         }
         else {            
             self.transform = .identity
-            self.alpha = 1.0
-            self.darkness = 0
-            self.snap?.alpha = 1
             self.overlay.alpha = 0
         }
     }
@@ -212,7 +187,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         
         contentView.addSubview(snap)
         contentView.sendSubview(toBack: snap)
-        
     }
     
     var isDismissing = false
@@ -278,14 +252,12 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     }
     
     func frameForSnap(_ snap : UIView) -> CGRect {
-        let aspect = snap.frame.size.height / snap.frame.size.width
-        let W = self.frame.size.width
+        let aspect = snap.frame.height / snap.frame.width
         return CGRect(
             x: 0,
-            y: THUMB_OFFSET_COLLAPSED, //_isExpanded ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED,
-//            y: Const.shared.statusHeight,
-            width: W,
-            height: aspect * W
+            y: THUMB_OFFSET_COLLAPSED,
+            width: frame.width,
+            height: aspect * frame.width
         )
     }
 

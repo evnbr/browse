@@ -12,7 +12,6 @@ import WebKit
 class HomeViewController: UICollectionViewController, UIViewControllerTransitioningDelegate {
 
     var tabs : [BrowserTab] = []
-    var selectedTab : BrowserTab?
     var browserVC : BrowserViewController!
     
     var toolbar : ColorToolbarView!
@@ -42,7 +41,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         browserVC = BrowserViewController(home: self)
         
-        collectionView?.collectionViewLayout = StackingCollectionViewLayout()
+//        collectionView?.collectionViewLayout = StackingCollectionViewLayout()
         collectionView?.delaysContentTouches = false
         collectionView?.alwaysBounceVertical = true
         collectionView?.indicatorStyle = .white
@@ -191,23 +190,16 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     func openInNewTab(withConfig config: WKWebViewConfiguration) -> WKWebView {
         
         let newTab = BrowserTab(withNewTabConfig: config)
-        let prevTab = self.selectedTab!
+        let prevTab = browserVC.browserTab!
         newTab.parentTab = prevTab
 
-        // if we don't wait for each animation to complete,
-        // the states get weird and the orginal tab gets hidden
-        browserVC.dismiss(animated: true, completion: {
-            self.collectionView?.performBatchUpdates({
-//                self.tabs.append(newTab)
-                
-                // below tab that launched it
-                self.tabs.insert(newTab, at: self.tabs.index(of: prevTab)! + 1)
-                let ip = IndexPath(item: self.tabs.index(of: newTab)!, section: 0)
-                self.collectionView?.insertItems(at: [ ip ])
-                self.collectionViewLayout.invalidateLayout() // todo: shouldn't the layout just know?
-            }, completion: { _ in
-                self.showTab(newTab)
-            })
+        self.collectionView?.performBatchUpdates({
+            self.tabs.insert(newTab, at: self.tabs.index(of: prevTab)! + 1)
+            let ip = IndexPath(item: self.tabs.index(of: newTab)!, section: 0)
+            self.collectionView?.insertItems(at: [ ip ])
+            self.collectionViewLayout.invalidateLayout() // todo: shouldn't the layout just know?
+        }, completion: { _ in
+            self.browserVC.interactiveDismissController.swapTo(childTab: newTab)
         })
         
         return newTab.webView
@@ -226,6 +218,13 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         }) as! TabThumbnail!
     }
     
+    var currentIndexPath : IndexPath? {
+        guard let cv = collectionView else { return nil }
+        guard let tab = browserVC.browserTab else { return nil }
+        guard let thumb = thumb(forTab: tab) else { return nil }
+        return cv.indexPath(for: thumb)
+    }
+
     var visibleCells: [TabThumbnail] {
         guard let cv = collectionView else { return [] }
         return cv.visibleCells as! [TabThumbnail]
@@ -233,10 +232,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     
     var visibleCellsAbove: [TabThumbnail] {
         guard let cv = collectionView else { return [] }
-        guard let selTab = selectedTab else { return [] }
-        guard tabs.contains(selTab) else { return [] }
-        guard let thumb = thumb(forTab: selTab) else { return [] }
-        guard let selIndexPath = cv.indexPath(for: thumb) else { return [] }
+        guard let selIndexPath = currentIndexPath else { return [] }
 
         return visibleCells.filter{ cell in
             let index : Int = cv.indexPath(for: cell)!.item
@@ -245,10 +241,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     }
     var visibleCellsBelow: [TabThumbnail] {
         guard let cv = collectionView else { return [] }
-        guard let selTab = selectedTab else { return [] }
-        guard tabs.contains(selTab) else { return [] }
-        guard let thumb = thumb(forTab: selTab) else { return [] }
-        guard let selIndexPath = cv.indexPath(for: thumb) else { return [] }
+        guard let selIndexPath = currentIndexPath else { return [] }
 
         return visibleCells.filter{ cell in
             let index : Int = cv.indexPath(for: cell)!.item
@@ -256,41 +249,80 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         }
     }
     
-    func setCollapsed(_ newVal : Bool) {
+    func setThumbPosition(expanded: Bool, offsetY: CGFloat = 0, offsetHeight: CGFloat = 0) {
         guard let cv = collectionView else { return }
-        if (newVal) {
-            let scrollTop = cv.contentOffset.y + Const.shared.statusHeight
-            for cell in visibleCellsAbove {
-                cell.frame.origin.y = scrollTop
-            }
-            for cell in visibleCellsBelow {
-                cell.frame.origin.y = scrollTop + view.frame.height
+        
+        if (expanded) {
+            if let ip = currentIndexPath {
+                let selectedThumbFrame = cv.layoutAttributesForItem(at: ip)!.frame
+                let convertedFrame = view.convert(selectedThumbFrame, from: cv)
+                let shiftUp = -convertedFrame.origin.y
+                let shiftDown = view.frame.height - convertedFrame.origin.y - convertedFrame.height
+                
+                for cell in visibleCellsAbove {
+                    let ip = cv.indexPath(for: cell)!
+                    cell.frame = cv.layoutAttributesForItem(at: ip)!.frame
+                    cell.frame.origin.y += shiftUp + offsetY
+                }
+                for cell in visibleCellsBelow {
+                    let ip = cv.indexPath(for: cell)!
+                    cell.frame = cv.layoutAttributesForItem(at: ip)!.frame
+                    cell.frame.origin.y += shiftDown + offsetY - offsetHeight
+                }
             }
         }
         else {
             for cell in visibleCells {
                 let ip = cv.indexPath(for: cell)!
-                let intendedFrame = cv.layoutAttributesForItem(at: ip)!.frame
-                cell.frame = intendedFrame
+                cell.frame = cv.layoutAttributesForItem(at: ip)!.frame
             }
         }
         
+        
+//        if (newVal) {
+//
+//            guard let selTab = browserVC.browserTab else { return }
+//            guard tabs.contains(selTab) else { return }
+//            guard let thumb = thumb(forTab: selTab) else { return }
+//            guard let selIndexPath = cv.indexPath(for: thumb) else { return }
+//            let selectedThumbFrame = cv.layoutAttributesForItem(at: selIndexPath)!.frame
+//            let convertedFrame = view.convert(selectedThumbFrame, from: thumb.superview)
+//            let shiftUp = convertedFrame.origin.y
+//            let shiftDown = view.frame.height - convertedFrame.origin.y - convertedFrame.height
+//
+//            for cell in visibleCells {
+//                let ip = cv.indexPath(for: cell)!
+//                let intendedFrame = cv.layoutAttributesForItem(at: ip)!.frame
+//                cell.frame = intendedFrame
+//            }
+//
+//            for cell in visibleCellsAbove {
+//                cell.frame.origin.y -= shiftUp
+//            }
+//            for cell in visibleCellsBelow {
+//                cell.frame.origin.y += shiftDown
+//            }
+//        }
+//        else {
+//            for cell in visibleCells {
+//                let ip = cv.indexPath(for: cell)!
+//                let intendedFrame = cv.layoutAttributesForItem(at: ip)!.frame
+//                cell.frame = intendedFrame
+//            }
+//        }
     }
     
-    func thumbFrame(forTab tab: BrowserTab) -> CGRect? {
-        if let thumb = self.thumb(forTab: tab) {
-            let frame = view.convert(thumb.frame, from: thumb.superview)
-//            print(thumb.frame)
-            return frame
-        }
-        else {
-            return nil
-        }
-    }
+//    func thumbFrame(forTab tab: BrowserTab) -> CGRect? {
+//        if let thumb = self.thumb(forTab: tab) {
+//            let frame = view.convert(thumb.frame, from: thumb.superview)
+//            return frame
+//        }
+//        else {
+//            return nil
+//        }
+//    }
     
     func showTab(_ tab: BrowserTab, animated: Bool = true, completion: (() -> Void)? = nil) {
-        selectedTab = tab
-        
         browserVC.setTab(tab)
         browserVC.modalPresentationStyle = .custom
         browserVC.transitioningDelegate = self
@@ -369,9 +401,8 @@ extension HomeViewController {
             return CGSize(width: w, height: w / ratio )
         }
 //        return CGSize(width: view.frame.width - sectionInsets.left - sectionInsets.right, height: THUMB_H)
-        return CGSize(width: view.frame.width - sectionInsets.left - sectionInsets.right, height: 300)
+        return CGSize(width: view.frame.width - sectionInsets.left - sectionInsets.right, height: THUMB_H)
     }
-    
     
 }
 
@@ -379,27 +410,28 @@ extension HomeViewController {
 extension HomeViewController : UICollectionViewDelegateFlowLayout {
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        
         return thumbSize
     }
-//
-//
-//    func collectionView(_ collectionView: UICollectionView,
-//                        layout collectionViewLayout: UICollectionViewLayout,
-//                        insetForItem section: Int) -> UIEdgeInsets {
-//        return sectionInsets
-//    }
-//
-//    func collectionView(_ collectionView: UICollectionView,
-//                        layout collectionViewLayout: UICollectionViewLayout,
-//                        insetForSectionAt section: Int) -> UIEdgeInsets {
-//        return sectionInsets
-//    }
-//
-//    func collectionView(_ collectionView: UICollectionView,
-//                        layout collectionViewLayout: UICollectionViewLayout,
-//                        minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-//        return thumbSize.height * -0.4// -120.0
-//    }
+
+
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        insetForItem section: Int) -> UIEdgeInsets {
+        return sectionInsets
+    }
+
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        insetForSectionAt section: Int) -> UIEdgeInsets {
+        return sectionInsets
+    }
+
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 8
+    }
 //
 ////    override func collectionView(_ collectionView: UICollectionView,
 ////                                 moveItemAt source: IndexPath,
@@ -418,7 +450,7 @@ extension HomeViewController {
         
         if browserVC.isViewLoaded && (browserVC.view.window != nil) {
             // viewController is visible
-            let index = tabs.index(of: selectedTab!)!
+            let index = tabs.index(of: browserVC.browserTab!)!
             UserDefaults.standard.set(index, forKey: "presentedTabIndex")
         } else {
             UserDefaults.standard.set(-1, forKey: "presentedTabIndex")

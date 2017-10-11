@@ -66,9 +66,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             containerView.addSubview(browserVC.view)
         }
         else {
-            for cell in homeVC.visibleCellsBelow {
-                cell.frame.origin.y = containerView.frame.height
-            }
         }
         
         if !self.isExpanding {
@@ -81,12 +78,15 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         let prevTransform = homeNav.view.transform
         homeNav.view.transform = .identity // HACK reset to identity so we can get frame
         
-        
         var thumbFrame : CGRect
         
         if thumb != nil {
             // must be after toVC is added
-            thumbFrame = containerView.convert(thumb!.frame, from: thumb?.superview)
+            let cv = homeVC.collectionView!
+            let selIndexPath = cv.indexPath(for: thumb!)!
+            let selectedThumbFrame = cv.layoutAttributesForItem(at: selIndexPath)!.frame
+
+            thumbFrame = containerView.convert(selectedThumbFrame, from: thumb?.superview)
             thumbFrame.origin.y -= homeNav.view.frame.origin.y
             thumbFrame.origin.x -= homeNav.view.frame.origin.x
         }
@@ -107,20 +107,21 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         
         browserVC.cardView.frame = isExpanding ? thumbFrame : expandedFrame
+        browserVC.updateSnapshotPosition()
+
         
-        
-        let cellsMovedToFront = homeVC.visibleCellsBelow
-        if let cv = homeVC.collectionView {
-            for cell in cellsMovedToFront {
-                containerView.addSubview(cell)
-                if self.isExpanding {
-                    let ip = cv.indexPath(for: cell)!
-                    let intendedFrame = cv.layoutAttributesForItem(at: ip)!.frame
-                    let convertedFrame = containerView.convert(intendedFrame, from: cv)
-                    cell.frame = convertedFrame
-                }
-            }
-        }
+//        let cellsMovedToFront = homeVC.visibleCellsBelow
+//        if let cv = homeVC.collectionView {
+//            for cell in cellsMovedToFront {
+//                containerView.addSubview(cell)
+//                if self.isExpanding {
+//                    let ip = cv.indexPath(for: cell)!
+//                    let intendedFrame = cv.layoutAttributesForItem(at: ip)!.frame
+//                    let convertedFrame = containerView.convert(intendedFrame, from: cv)
+//                    cell.frame = convertedFrame
+//                }
+//            }
+//        }
         // Hack to keep thumbnails from intersecting toolbar
         let newTabToolbar = homeVC.toolbar!
         containerView.addSubview(newTabToolbar)
@@ -138,37 +139,14 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             animations: {
                 
             browserVC.cardView.frame = self.isExpanding ? expandedFrame : thumbFrame
-                
-            homeNav.view.frame.origin = CGPoint.zero
-            homeNav.view.alpha = self.isExpanding ? END_ALPHA : 1.0
-            homeNav.view.transform = self.isExpanding
-                ? CGAffineTransform(scaleX: PRESENT_TAB_BACK_SCALE, y: PRESENT_TAB_BACK_SCALE)
-                : .identity
-                
-            if self.isExpanding {
-                homeVC.setCollapsed(true)
-                for cell in homeVC.visibleCellsBelow {
-                    cell.frame.origin.y = containerView.frame.height
-                }
-            }
-            else {
-                if let cv = homeVC.collectionView {
-                    for cell in homeVC.visibleCellsAbove {
-                        let ip = cv.indexPath(for: cell)!
-                        let intendedFrame = cv.layoutAttributesForItem(at: ip)!.frame
-                        cell.frame = intendedFrame
-                    }
-                    for cell in homeVC.visibleCellsBelow {
-                        let ip = cv.indexPath(for: cell)!
-                        let intendedFrame = cv.layoutAttributesForItem(at: ip)!.frame
-                        let convertedFrame = containerView.convert(intendedFrame, from: cv)
-                        cell.frame = convertedFrame
-                    }
-                }
-            }
-                
             browserVC.hasStatusbarOffset = self.isExpanding
             browserVC.cardView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
+
+            homeNav.view.alpha = self.isExpanding ? END_ALPHA : 1.0
+            
+            browserVC.updateSnapshotPosition()
+
+            homeVC.setThumbPosition(expanded: self.isExpanding)
             
             homeVC.setNeedsStatusBarAppearanceUpdate()
                 
@@ -178,13 +156,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             browserVC.isSnapshotMode = false
             
             thumb?.setTab(browserVC.browserTab!)
-            
-            for cell in cellsMovedToFront {
-                cell.frame = homeVC.collectionView!.convert(cell.frame, from: cell.superview)
-                homeVC.collectionView?.addSubview(cell)
-            }
-            homeVC.setCollapsed(self.isExpanding)
-            
+                        
             homeVC.view.addSubview(newTabToolbar)
             newTabToolbar.isHidden = self.isExpanding
             

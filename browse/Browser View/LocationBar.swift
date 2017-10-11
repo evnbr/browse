@@ -16,7 +16,6 @@ enum LocationBarAlignment {
 class LocationBar: ToolbarTouchView {
     
     var label = UILabel()
-    var spinner : UIActivityIndicatorView!
     var lock : UIImageView!
     var magnify : UIImageView!
     
@@ -26,7 +25,6 @@ class LocationBar: ToolbarTouchView {
     
     
     private var shouldShowLock : Bool = false
-    private var shouldShowSpinner : Bool = false
 
     var text : String? {
         get {
@@ -53,7 +51,7 @@ class LocationBar: ToolbarTouchView {
         }
         set {
             shouldShowLock = newValue
-            lock.isHidden = !shouldShowLock || isSearch || shouldShowSpinner
+            lock.isHidden = !shouldShowLock || isSearch
         }
     }
     
@@ -63,22 +61,15 @@ class LocationBar: ToolbarTouchView {
         }
         set {
             magnify.isHidden = !newValue
-            lock.isHidden = !shouldShowLock || isSearch || shouldShowSpinner
+            lock.isHidden = !shouldShowLock || isSearch
         }
     }
     
     var isLoading : Bool {
         get {
-            return shouldShowSpinner
+            return false
         }
         set {
-            shouldShowSpinner = newValue
-//            spinner.isHidden = !shouldShowSpinner
-//
-//            lock.isHidden = !shouldShowLock || isSearch || shouldShowSpinner
-//
-//            if newValue { spinner.startAnimating() }
-//            else        { spinner.stopAnimating()  }
         }
     }
     
@@ -100,9 +91,6 @@ class LocationBar: ToolbarTouchView {
         label.setContentHuggingPriority(UILayoutPriority(rawValue: 0), for: .horizontal)
 //        label.sizeToFit()
         
-        spinner = UIActivityIndicatorView(activityIndicatorStyle: .gray)
-//        spinner.frame = CGRect(x: 0, y: 0, width: 12, height: 12)
-        spinner.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
         
         // https://stackoverflow.com/questions/30728062/add-views-in-uistackview-programmatically
         let stackView   = UIStackView()
@@ -111,7 +99,6 @@ class LocationBar: ToolbarTouchView {
         stackView.alignment = .center
         stackView.spacing   = 6.0
         
-        stackView.addArrangedSubview(spinner)
         stackView.addArrangedSubview(lock)
         stackView.addArrangedSubview(magnify)
         stackView.addArrangedSubview(label)
@@ -130,9 +117,6 @@ class LocationBar: ToolbarTouchView {
         isSecure = false
         isSearch = false
         isLoading = false
-        
-//        layer.borderColor = UIColor.red.cgColor
-//        layer.borderWidth = 0.5
         
     }
     
@@ -158,7 +142,6 @@ class LocationBar: ToolbarTouchView {
     override func tintColorDidChange() {
         super.tintColorDidChange()
         label.textColor = tintColor
-        spinner.color = tintColor
     }
 
 }

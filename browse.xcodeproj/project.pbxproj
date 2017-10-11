@@ -191,7 +191,6 @@
 		A90F51241F71785E00221815 /* Tab Switcher */ = {
 			isa = PBXGroup;
 			children = (
-				A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */,
 				A92095901EE34CDC009497A2 /* HomeViewController.swift */,
 				A92095921EE36483009497A2 /* TabThumbnail.swift */,
 				A9E422801F86B4FD0028B4CA /* StackingCollectionViewLayout.swift */,
@@ -291,6 +290,7 @@
 			children = (
 				A97CB06F1EC53DCD005DDBD1 /* AppDelegate.swift */,
 				A969D4A41F1321EC008A7BC6 /* Constants.swift */,
+				A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */,
 				A90F51241F71785E00221815 /* Tab Switcher */,
 				A90F51271F7178D700221815 /* WebView */,
 				A90F51261F7178C000221815 /* Browser View */,

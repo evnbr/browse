@@ -20,6 +20,7 @@ extension BrowserViewController: WKNavigationDelegate {
         loadingDidChange()
     }
     
+    
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         
         loadingDidChange()

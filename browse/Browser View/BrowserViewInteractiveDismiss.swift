@@ -91,22 +91,25 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         
         let dismissPanner = UIPanGestureRecognizer()
         dismissPanner.delegate = self
-        dismissPanner.addTarget(self, action: #selector(panGestureChange(gesture:)))
-        dismissPanner.cancelsTouchesInView = true
+        dismissPanner.addTarget(self, action: #selector(verticalPan(gesture:)))
+        dismissPanner.cancelsTouchesInView = false
+        dismissPanner.delaysTouchesBegan = false
         view.addGestureRecognizer(dismissPanner)
         
         let backDismissPan = UIScreenEdgePanGestureRecognizer()
         backDismissPan.delegate = self
         backDismissPan.edges = .left
-        backDismissPan.addTarget(self, action: #selector(backGestureChange(gesture:)))
-        backDismissPan.cancelsTouchesInView = true
+        backDismissPan.addTarget(self, action: #selector(leftEdgePan(gesture:)))
+        backDismissPan.cancelsTouchesInView = false
+        backDismissPan.delaysTouchesBegan = false
         view.addGestureRecognizer(backDismissPan)
         
         let forwardDismissPan = UIScreenEdgePanGestureRecognizer()
         forwardDismissPan.delegate = self
         forwardDismissPan.edges = .right
-        forwardDismissPan.addTarget(self, action: #selector(forwardGestureChange(gesture:)))
-        forwardDismissPan.cancelsTouchesInView = true
+        forwardDismissPan.addTarget(self, action: #selector(rightEdgePan(gesture:)))
+        forwardDismissPan.cancelsTouchesInView = false
+        forwardDismissPan.delaysTouchesBegan = false
         view.addGestureRecognizer(forwardDismissPan)
     }
         
@@ -149,7 +152,14 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
             let toolbarH = max(0, min(Const.shared.toolbarHeight, newH))
             
             vc.toolbarHeightConstraint.constant = toolbarH
-            vc.heightConstraint.constant = -toolbarH - Const.shared.statusHeight
+//            vc.heightConstraint.constant = -toolbarH - Const.shared.statusHeight
+            
+            if vc.heightConstraint.constant < -Const.shared.statusHeight { // webview is short
+                scrollView.contentInset.bottom = -Const.shared.toolbarHeight + toolbarH
+            }
+            else {
+                scrollView.contentInset.bottom = -Const.shared.toolbarHeight + toolbarH + Const.shared.toolbarHeight
+            }
         }
     }
     
@@ -169,10 +179,6 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         let gesturePos = gesture.translation(in: view)
         
         let revealProgress = min(abs(gesturePos.x) / 200, 1)
-        home.navigationController?.view.alpha = revealProgress * 0.4 // alpha is 0 ... 0.4
-        
-        let scale = PRESENT_TAB_BACK_SCALE + revealProgress * 0.5 * (1 - PRESENT_TAB_BACK_SCALE)
-        home.navigationController?.view.transform = CGAffineTransform(scaleX: scale, y: scale)
         
         let adjustedX = gesturePos.x
         
@@ -195,7 +201,6 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
                 }
             }
             else if canGoBackToParent {
-                home.navigationController?.view.alpha = 0
                 cardView.frame.origin.x = elasticLimit(adjustedX)
                 
                 let prog = abs(gesturePos.x) / 300
@@ -209,10 +214,48 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
                 
                 cardView.frame.origin.y = prog * yHint + yGestureInfluence
             }
+            else {
+                // COPY PASTED A
+                home.navigationController?.view.alpha = revealProgress * 0.7 // alpha is 0 ... 0.4
+                cardView.frame.origin.x = elasticLimit(adjustedX)
+
+                let prog = abs(gesturePos.x) / 300
+                let yHint : CGFloat = 60
+                let yShift = prog * yHint + yGestureInfluence * 0.2
+                let heightShrink = prog * yHint * 2
+                cardView.frame.origin.y = yShift
+                cardView.frame.size.height = vc.cardViewDefaultFrame.size.height - heightShrink
+                
+                if (Const.shared.cardRadius < Const.shared.thumbRadius) {
+                    cardView.layer.cornerRadius = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
+                }
+                
+                home.setThumbPosition(expanded: true, offsetY: cardView.frame.origin.y, offsetHeight: heightShrink)
+            }
         }
         else if direction == .right
         && vc.webView.canGoForward {
             mockCardView.frame.origin.x = adjustedX + mockCardView.frame.width + mockCardViewSpacer
+        }
+        else {
+            // COPY PASTED A
+            home.navigationController?.view.alpha = revealProgress * 0.7 // alpha is 0 ... 0.4
+            cardView.frame.origin.x = elasticLimit(adjustedX)
+            
+            let prog = abs(gesturePos.x) / 300
+            let yHint : CGFloat = 60
+            cardView.frame.origin.y = prog * yHint + yGestureInfluence * 0.2
+            cardView.frame.size.height = vc.cardViewDefaultFrame.size.height - (prog * yHint * 2)
+            
+            if (Const.shared.cardRadius < Const.shared.thumbRadius) {
+                cardView.layer.cornerRadius = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
+            }
+        }
+        
+        if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle {
+            UIView.animate(withDuration: 0.2, animations: {
+                self.vc.setNeedsStatusBarAppearanceUpdate()
+            })
         }
     }
     
@@ -227,30 +270,20 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
             commitDismiss()
         }
         else if gesturePos.x > backPointX {
-            if (vc.webView.canGoBack) {
-                commit(action: .back)
-            }
-            else if canGoBackToParent {
-                commit(action: .toParent)
-            }
-            else {
-                commitDismiss()
-            }
+            if vc.webView.canGoBack { commit(action: .back) }
+            else if canGoBackToParent { commit(action: .toParent) }
+            else { commitDismiss() }
         }
         else if gesturePos.x < -backPointX {
-            if (vc.webView.canGoForward) {
-                commit(action: .forward)
-            }
-            else {
-                commitDismiss()
-            }
+            if vc.webView.canGoForward { commit(action: .forward) }
+            else { commitDismiss() }
         }
         else {
             reset()
         }
     }
     
-    @objc func backGestureChange(gesture:UIScreenEdgePanGestureRecognizer) {
+    @objc func leftEdgePan(gesture:UIScreenEdgePanGestureRecognizer) {
 
         if gesture.state == .began {
             direction = .left
@@ -272,7 +305,7 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         }
     }
     
-    @objc func forwardGestureChange(gesture:UIScreenEdgePanGestureRecognizer) {
+    @objc func rightEdgePan(gesture:UIScreenEdgePanGestureRecognizer) {
         if gesture.state == .began {
             direction = .right
             startGesture()
@@ -319,9 +352,14 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
     
     
     var shouldRestoreKeyboard : Bool = false
+    
+    var tabSwitcherStartScroll : CGFloat = 0
+
     func startGesture() {
         isInteractiveDismiss = true
         startScroll = vc.webView.scrollView.contentOffset
+        
+        tabSwitcherStartScroll = home.collectionView?.contentOffset.y ?? 0
         
         if vc.isDisplayingSearch {
             vc.hideSearch()
@@ -337,9 +375,33 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         vc.dismiss(animated: true, completion: nil)
     }
     
+    func swapTo(childTab: BrowserTab) {
+        let parentMock = cardView.snapshotView(afterScreenUpdates: false)!
+        
+        vc.view.insertSubview(parentMock, belowSubview: cardView)
+        vc.setTab(childTab)
+        cardView.frame.origin.y = cardView.frame.height + mockCardViewSpacer
+        
+        UIView.animate(
+            withDuration: 0.6,
+            delay: 0.0,
+            usingSpringWithDamping: 0.85,
+            initialSpringVelocity: 0.0,
+            options: .allowUserInteraction,
+            animations: {
+                self.cardView.frame.origin = .zero
+                parentMock.frame.origin.y = -parentMock.frame.height - self.mockCardViewSpacer
+            }, completion: { done in
+                parentMock.removeFromSuperview()
+            }
+        )
+    }
+    
     func commit(action: GestureNavigationAction) {
         let mockContent = cardView.snapshotView(afterScreenUpdates: false)
-        if mockContent != nil { mockCardView.addSubview(mockContent!) }
+        if mockContent != nil {
+            mockCardView.addSubview(mockContent!)
+        }
         cardView.backgroundColor = .white
         vc.toolbar.backgroundColor = .white
         vc.statusBar.backgroundColor = .white
@@ -423,8 +485,9 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
             animations: {
                 self.vc.resetSizes(withKeyboard: self.shouldRestoreKeyboard)
                 self.vc.setNeedsStatusBarAppearanceUpdate()
-                self.vc.home.navigationController?.view.alpha = 0
-                self.home.navigationController?.view.frame.origin.y = 0
+                
+                self.home.navigationController?.view.alpha = 0
+                self.home.setThumbPosition(expanded: true)
                 
                 let w = self.mockCardView.frame.width + self.mockCardViewSpacer
                 if self.mockCardView.frame.origin.y < 0 {
@@ -446,7 +509,7 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         return val * resist
     }
     
-    func update(gesture: UIPanGestureRecognizer) {
+    func verticalChange(gesture: UIPanGestureRecognizer) {
         
         let gesturePos = gesture.translation(in: view)
         let adjustedY : CGFloat = gesturePos.y - startPoint.y
@@ -465,23 +528,14 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         
         cardView.frame.origin.y = adjustedY
         
+        home.setThumbPosition(expanded: true, offsetY: adjustedY, offsetHeight: 0)
+        
 //        if adjustedY > 0 {
 //            cardView.frame.size.height = view.frame.height - (abs(adjustedY))
 //        }
         
         let revealProgress = abs(adjustedY) / 200
         home.navigationController?.view.alpha = revealProgress * 0.4 // alpha is 0 ... 0.4
-        let scale = PRESENT_TAB_BACK_SCALE + revealProgress * 0.5 * (1 - PRESENT_TAB_BACK_SCALE)
-        
-        home.navigationController?.view.transform = CGAffineTransform(scaleX: scale, y: scale)
-        
-        if let cv = home.collectionView {
-            for cell in home.visibleCellsAbove {
-                if let idx = cv.indexPath(for: cell)?.item {
-                    cell.frame.origin.y = (adjustedY / 4) * CGFloat(idx) + cv.contentOffset.y + Const.shared.statusHeight
-                }
-            }
-        }
         
         if (Const.shared.cardRadius < Const.shared.thumbRadius) {
             cardView.layer.cornerRadius = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
@@ -497,13 +551,13 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
     }
     
     
-    @objc func panGestureChange(gesture: UIPanGestureRecognizer) {
+    @objc func verticalPan(gesture: UIPanGestureRecognizer) {
         if gesture.state == .began {
             considerStarting(gesture: gesture)
         }
         else if gesture.state == .changed {
             if isInteractiveDismiss && !(direction == .left || direction == .right) {
-                update(gesture: gesture)
+                verticalChange(gesture: gesture)
             }
             else if !isInteractiveDismiss {
                 considerStarting(gesture: gesture)
