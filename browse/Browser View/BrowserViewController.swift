@@ -45,12 +45,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
     var onePasswordExtensionItem : NSExtensionItem!
     
-    var interactiveDismissController : BrowserViewInteractiveDismiss!
+    var gestureController : BrowserGestureController!
 
     // MARK: - Derived properties
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        if interactiveDismissController.isInteractiveDismiss && (cardView.frame.origin.y > 10) {
+        if gestureController.isInteractiveDismiss && (cardView.frame.origin.y > 10) {
             return .lightContent
         }
         return statusBar.lastColor.isLight ? .lightContent : .default
@@ -68,10 +68,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         return (
             isViewLoaded
             && view.window != nil
-            && !interactiveDismissController.isInteractiveDismiss
+            && !gestureController.isInteractiveDismiss
             && UIApplication.shared.applicationState == .active
             && webView != nil
-            && !(webView.alpha < 1)
+            && !hideUntilNavigationDone
             && !(webView.scrollView.contentOffset.y < 0)
             && abs(cardView.frame.origin.y) < 1.0
             && abs(cardView.frame.origin.x) < 1.0
@@ -112,6 +112,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
     }
     
+    var hideUntilNavigationDone : Bool {
+        get {
+            return webView.alpha < 1
+        }
+        set {
+            webView.alpha = newValue ? 0 : 1
+        }
+    }
+    
     
     // MARK: - Lifecycle
     
@@ -138,19 +147,25 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         if snap != nil && snap.isDescendant(of: cardView) {
             snap?.removeFromSuperview()
         }
-        snap = newTab.webSnapshot?.snapshotView(afterScreenUpdates: false)
-        updateSnapshotPosition()
+        snap = nil
+        if let img = newTab.history.current?.snapshot {
+            snap = UIImageView(image: img)
+            updateSnapshotPosition()
+        }
         
-        // Without this, the old color flickers through
-        // for some mysterious reason.
         if let newTop = newTab.topColorSample {
             statusBar.backgroundColor = newTop
+            // TODO: just need to reset tint color, dont need animate gradient
             let _ = statusBar.animateGradient(toColor: newTop, duration: 0.1, direction: .fromBottom)
+        }
+        else {
+            statusBar.backgroundColor = .white
         }
         if let newBottom = newTab.bottomColorSample {
             toolbar.backgroundColor = newBottom
             cardView.backgroundColor = newBottom
             webView.backgroundColor = newBottom
+            // TODO: just need to reset tint color, dont need animate gradient
             let _ = toolbar.animateGradient(toColor: newBottom, duration: 0.1, direction: .fromTop)
         }
         else {
@@ -158,13 +173,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             cardView.backgroundColor = .white
             webView.backgroundColor = .white
         }
-
-
         
         webView.navigationDelegate = self
         webView.uiDelegate = self
-        webView.scrollView.delegate = interactiveDismissController
-//        webView.scrollView.keyboardDismissMode = .interactive
+        webView.scrollView.delegate = gestureController
         
         colorSampler.webView = webView
         
@@ -184,7 +196,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.title), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.url), options: .new, context: nil)
-        
+        webView.addObserver(self, forKeyPath: #keyPath(WKWebView.canGoBack), options: .new, context: nil)
+        webView.addObserver(self, forKeyPath: #keyPath(WKWebView.canGoForward), options: .new, context: nil)
+
         webView.addInputAccessory(toolbar: accessoryView)
         
         loadingDidChange()
@@ -208,12 +222,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         super.viewDidLoad()
         
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        
-//        view.layer.shadowColor = UIColor.black.cgColor
-//        view.layer.shadowOffset = .zero
-//        view.layer.shadowRadius = Const.shared.shadowRadius
-//        view.layer.shadowOpacity = Const.shared.shadowOpacity
-
         
         cardView = UIView(frame: cardViewDefaultFrame)
         cardView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -244,7 +252,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         colorSampler = ColorSampler(inViewController: self)
         
-        interactiveDismissController = BrowserViewInteractiveDismiss(for: self)
+        gestureController = BrowserGestureController(for: self)
         
 
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
@@ -253,10 +261,18 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         longPress.delaysTouchesBegan = false
         locationBar.addGestureRecognizer(longPress)
         
+        let historyPress = UILongPressGestureRecognizer(target: self, action: #selector(showHistory))
+        backButton.addGestureRecognizer(historyPress)
+        
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
     }
     
+    @objc func showHistory(_ : Any?) {
+        let history = HistoryViewController(collectionViewLayout: UICollectionViewFlowLayout() )
+        let hNav = UINavigationController(rootViewController: history)
+        present(hNav, animated: true, completion: nil)
+    }
     
     var keyboardHeight : CGFloat = 250
     @objc func keyboardWillShow(notification: NSNotification) {
@@ -315,8 +331,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         guard !webView.isLoading else { return }
         guard !isDisplayingSearch else { return }
         
-//        self.heightConstraint.constant = -Const.shared.statusHeight
-        self.toolbarHeightConstraint.constant = 0
+//        self.toolbarHeightConstraint.constant = 0
 
         UIView.animate(
             withDuration: 0.2,
@@ -326,16 +341,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 self.view.layoutIfNeeded()
                 self.webView.scrollView.contentInset.bottom = -Const.shared.toolbarHeight
             }, completion: { _ in
-                self.webView.scrollView.contentInset.bottom = 0
-                self.heightConstraint.constant = -Const.shared.statusHeight
+//                self.webView.scrollView.contentInset.bottom = 0
+//                self.heightConstraint.constant = -Const.shared.statusHeight
             }
         )
     }
     func showToolbar(animated : Bool = true) {
         guard !isDisplayingSearch else { return }
 
-//        self.heightConstraint.constant = -Const.shared.toolbarHeight - Const.shared.statusHeight
-        self.toolbarHeightConstraint.constant = Const.shared.toolbarHeight
+//        self.toolbarHeightConstraint.constant = Const.shared.toolbarHeight
 
         UIView.animate(
             withDuration: animated ? 0.2 : 0,
@@ -345,8 +359,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 self.view.layoutIfNeeded()
                 self.webView.scrollView.contentInset.bottom = 0
             }, completion: { _ in
-                self.webView.scrollView.contentInset.bottom = 0
-                self.heightConstraint.constant = -Const.shared.statusHeight - Const.shared.toolbarHeight
+//                self.webView.scrollView.contentInset.bottom = 0
+//                self.heightConstraint.constant = -Const.shared.statusHeight - Const.shared.toolbarHeight
             }
         )
     }
@@ -437,18 +451,19 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         return acc
     }
     
-    var hasStatusbarOffset : Bool {
-        get {
-            return snap.frame.origin.y == Const.shared.statusHeight
-        }
-        set {
-            statusBar.label.text = webView.url?.displayHost
-            statusBar.label.alpha = newValue ? 0 : 1
-            
-            statusBar.frame.size.height = newValue ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED
-            snap?.frame.origin.y = newValue ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED
-        }
-    }
+//    var hasStatusbarOffset : Bool {
+//        get {
+//            return snap.frame.origin.y == Const.shared.statusHeight
+//        }
+//        set {
+//            statusBar.label.text = webView.url?.displayHost
+//            statusBar.label.alpha = newValue ? 0 : 1
+//
+//            statusBar.frame.size.height = newValue ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED
+//            snap?.frame.origin.y = newValue ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED
+//        }
+//    }
+    var isExpandedSnapshotMode : Bool = false
     var isSnapshotMode : Bool {
         get {
             return snap?.isHidden ?? false
@@ -465,10 +480,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
     }
     
-    func updateSnapshotPosition() {
+    func updateSnapshotPosition(fromBottom: Bool = false) {
         guard snap != nil else { return }
         if snap.superview !== cardView {
             cardView.addSubview(snap)
+            cardView.bringSubview(toFront: statusBar)
         }
         
         let aspect = snap.frame.height / snap.frame.width
@@ -477,6 +493,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             width: cardView.frame.width,
             height: cardView.frame.width * aspect
         )
+        
+        statusBar.label.alpha = isExpandedSnapshotMode ? 0 : 1
+        statusBar.frame.size.height = isExpandedSnapshotMode ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED
+        snap.frame.origin.y = isExpandedSnapshotMode ? Const.shared.statusHeight : (fromBottom ? -400 : THUMB_OFFSET_COLLAPSED)
     }
     
     
@@ -487,9 +507,16 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         snap.autoresizingMask = [.flexibleRightMargin, .flexibleBottomMargin]
         webView.scrollView.showsVerticalScrollIndicator = true
         
-        // duplicate
-        browserTab?.webSnapshot = snap.snapshotView(afterScreenUpdates: true)
-        browserTab?.webSnapshot?.autoresizingMask = [.flexibleRightMargin, .flexibleBottomMargin]
+        // Image snapshot
+        webView.takeSnapshot(with: nil, completionHandler: { (image, error) in
+            if let img : UIImage = image {
+                self.browserTab?.history.current?.snapshot = img
+            }
+        })
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        statusBar.label.text = webView.url?.displayHost
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -782,7 +809,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     func displayOverflow() {
         
-        let ac = UIAlertController(title: title, message: nil, preferredStyle: .actionSheet)
+        let ac = UIAlertController(title: webView.title, message: webView.url?.absoluteString, preferredStyle: .actionSheet)
         self.overflowController = ac
         
 //        ac.addAction(UIAlertAction(title: "Passwords", style: .default, handler: { action in
@@ -791,24 +818,47 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         ac.addAction(UIAlertAction(title: "Refresh", style: .default, handler: { action in
             self.webView.reload()
         }))
-        ac.addAction(UIAlertAction(title: "Full Refresh", style: .default, handler: { action in
-            self.webView.reloadFromOrigin()
-        }))
-        if (UIPasteboard.general.hasStrings) {
-            ac.addAction(UIAlertAction(title: "Paste and go", style: .default, handler: { action in
-                self.pasteURLAndGo()
-            }))
-        }
+//        ac.addAction(UIAlertAction(title: "Full Refresh", style: .default, handler: { action in
+//            self.webView.reloadFromOrigin()
+//        }))
         
-        ac.addAction(UIAlertAction(title: "Copy", style: .default, handler: { action in
+        ac.addAction(UIAlertAction(title: "Copy URL", style: .default, handler: { action in
             self.copyURL()
         }))
+        
 //        ac.addAction(UIAlertAction(title: "Bookmarks", style: .default, handler: { action in
 //            self.displayBookmarks()
 //        }))
         ac.addAction(UIAlertAction(title: "Share...", style: .default, handler: { action in
             self.displayShareSheet()
         }))
+        
+        let pasteAction = UIAlertAction(title: "Paste and go", style: .default, handler: { action in
+            self.pasteURLAndGo()
+        })
+        ac.addAction(pasteAction)
+
+        pasteAction.isEnabled = false
+        // Avoid blocking UI if pasting from another device
+        DispatchQueue.global(qos: .userInitiated).async {
+            if (UIPasteboard.general.hasStrings) {
+                if let str = UIPasteboard.general.string {
+                    var pasted = str
+                    if pasted.count > 32 {
+                        pasted = "\(pasted[...pasted.index(pasted.startIndex, offsetBy: 32)])..."
+                    }
+                    DispatchQueue.main.async {
+                        if self.isProbablyURL(pasted) {
+                            pasteAction.setValue("Go to \"\(pasted)\"", forKey: "title")
+                        }
+                        else {
+                            pasteAction.setValue("Search \"\(pasted)\"", forKey: "title")
+                        }
+                        pasteAction.isEnabled = true
+                    }
+                }
+            }
+        }
         
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         
@@ -965,26 +1015,24 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = webView.isLoading
         
+        if hideUntilNavigationDone && webView.estimatedProgress == 1 {
+            UIView.animate(withDuration: 0.1, delay: 0.1, animations: {
+                self.hideUntilNavigationDone = false
+            }, completion: nil)
+        }
+        
+        if browserTab?.history.current == nil
+            && webView.backForwardList.currentItem != nil {
+            browserTab?.history.current = HistoryItem(parent: nil, from: webView.backForwardList.currentItem!)
+        }
     }
         
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "estimatedProgress" {
             toolbar.progress = Float(webView.estimatedProgress)
-            
-            loadingDidChange()
         }
-        else if keyPath == "title" {
-            loadingDidChange()
-            
-            if (webView.title != "" && webView.title != title) {
-                title = webView.title
-            }
-        }
-        else if keyPath == "url" {
-            loadingDidChange()
-        }
+        loadingDidChange()
     }
-
 }
 
 private weak var currentFirstResponder: UIResponder?

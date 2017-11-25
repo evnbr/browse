@@ -167,11 +167,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
             collectionView?.performBatchUpdates({
                 self.tabs.remove(at: path.row)
                 self.collectionView?.deleteItems(at: [path])
-            }, completion: { _ in
-                if self.tabs.count == 0 {
-                    self.addTab()
-                }
-            })
+            }, completion: nil)
             
         }
     }
@@ -199,7 +195,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
             self.collectionView?.insertItems(at: [ ip ])
             self.collectionViewLayout.invalidateLayout() // todo: shouldn't the layout just know?
         }, completion: { _ in
-            self.browserVC.interactiveDismissController.swapTo(childTab: newTab)
+            self.browserVC.gestureController.swapTo(childTab: newTab)
         })
         
         return newTab.webView
@@ -219,11 +215,16 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     }
     
     var currentIndexPath : IndexPath? {
+        guard let thumb = currentThumb else { return nil }
         guard let cv = collectionView else { return nil }
-        guard let tab = browserVC.browserTab else { return nil }
-        guard let thumb = thumb(forTab: tab) else { return nil }
         return cv.indexPath(for: thumb)
     }
+    
+    var currentThumb : TabThumbnail? {
+        guard let tab = browserVC.browserTab else { return nil }
+        return thumb(forTab: tab)
+    }
+
 
     var visibleCells: [TabThumbnail] {
         guard let cv = collectionView else { return [] }
@@ -259,15 +260,33 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                 let shiftUp = -convertedFrame.origin.y
                 let shiftDown = view.frame.height - convertedFrame.origin.y - convertedFrame.height
                 
+                currentThumb?.isHidden = true
+                
                 for cell in visibleCellsAbove {
                     let ip = cv.indexPath(for: cell)!
                     cell.frame = cv.layoutAttributesForItem(at: ip)!.frame
                     cell.frame.origin.y += shiftUp + offsetY
+                    cell.isHidden = false
                 }
                 for cell in visibleCellsBelow {
                     let ip = cv.indexPath(for: cell)!
                     cell.frame = cv.layoutAttributesForItem(at: ip)!.frame
                     cell.frame.origin.y += shiftDown + offsetY - offsetHeight
+                    cell.isHidden = false
+                }
+            }
+            else {
+                if let lastIndexPath = cv.indexPathsForVisibleItems.sorted(by: { $0.row < $1.row }).last {
+                    let selectedThumbFrame = cv.layoutAttributesForItem(at: lastIndexPath)!.frame
+                    let convertedFrame = view.convert(selectedThumbFrame, from: cv)
+                    let shiftUp = -convertedFrame.origin.y - convertedFrame.height
+                    
+                    for cell in visibleCells {
+                        let ip = cv.indexPath(for: cell)!
+                        cell.frame = cv.layoutAttributesForItem(at: ip)!.frame
+                        cell.frame.origin.y += shiftUp
+                        cell.isHidden = false
+                    }
                 }
             }
         }
@@ -277,50 +296,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                 cell.frame = cv.layoutAttributesForItem(at: ip)!.frame
             }
         }
-        
-        
-//        if (newVal) {
-//
-//            guard let selTab = browserVC.browserTab else { return }
-//            guard tabs.contains(selTab) else { return }
-//            guard let thumb = thumb(forTab: selTab) else { return }
-//            guard let selIndexPath = cv.indexPath(for: thumb) else { return }
-//            let selectedThumbFrame = cv.layoutAttributesForItem(at: selIndexPath)!.frame
-//            let convertedFrame = view.convert(selectedThumbFrame, from: thumb.superview)
-//            let shiftUp = convertedFrame.origin.y
-//            let shiftDown = view.frame.height - convertedFrame.origin.y - convertedFrame.height
-//
-//            for cell in visibleCells {
-//                let ip = cv.indexPath(for: cell)!
-//                let intendedFrame = cv.layoutAttributesForItem(at: ip)!.frame
-//                cell.frame = intendedFrame
-//            }
-//
-//            for cell in visibleCellsAbove {
-//                cell.frame.origin.y -= shiftUp
-//            }
-//            for cell in visibleCellsBelow {
-//                cell.frame.origin.y += shiftDown
-//            }
-//        }
-//        else {
-//            for cell in visibleCells {
-//                let ip = cv.indexPath(for: cell)!
-//                let intendedFrame = cv.layoutAttributesForItem(at: ip)!.frame
-//                cell.frame = intendedFrame
-//            }
-//        }
     }
-    
-//    func thumbFrame(forTab tab: BrowserTab) -> CGRect? {
-//        if let thumb = self.thumb(forTab: tab) {
-//            let frame = view.convert(thumb.frame, from: thumb.superview)
-//            return frame
-//        }
-//        else {
-//            return nil
-//        }
-//    }
     
     func showTab(_ tab: BrowserTab, animated: Bool = true, completion: (() -> Void)? = nil) {
         browserVC.setTab(tab)
@@ -343,7 +319,6 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         if isFirstLoad {
             isFirstLoad = false
-//            if tabs.count == 0 { addTab() }
         }
         
     }
@@ -400,7 +375,6 @@ extension HomeViewController {
             let w = view.frame.width / 2 - 16
             return CGSize(width: w, height: w / ratio )
         }
-//        return CGSize(width: view.frame.width - sectionInsets.left - sectionInsets.right, height: THUMB_H)
         return CGSize(width: view.frame.width - sectionInsets.left - sectionInsets.right, height: THUMB_H)
     }
     

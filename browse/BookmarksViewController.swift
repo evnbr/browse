@@ -37,7 +37,8 @@ let BOOKMARKS_GLOBAL : [ String ] = [
     "maps.google.com",
     "wikipedia.org",
     "tachyons.io",
-    "postlight.com"
+    "postlight.com",
+    "playlab.org"
 ]
 
 class BookmarksViewController : UIViewController, UITableViewDelegate, UITableViewDataSource {
@@ -63,12 +64,9 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
         title = "Bookmarks"
         navigationController?.navigationBar.tintColor = .white
         navigationController?.navigationBar.barStyle = .blackTranslucent
-//        navigationController?.navigationBar.isTranslucent = false
-//        navigationController?.navigationBar.barTintColor = .clear
         
         
         table = UITableView(frame:self.view.frame)
-//        table.contentInset = .init(top: 0, left: 0, bottom: 200, right: 0) // TODO: why?
 
         table.register(UITableViewCell.self, forCellReuseIdentifier: "MyCell")
         table.dataSource = self

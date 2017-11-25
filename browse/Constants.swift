@@ -32,7 +32,7 @@ class Const: NSObject {
         toolbarHeight = isX ? 48 : 40
         statusHeight = isX ? 44 : 22
         thumbRadius = isX ? 32 : 16
-        cardRadius = isX ? 40 : 8
+        cardRadius = isX ? 40 : 4
 
         super.init()
     }

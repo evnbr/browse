@@ -12,12 +12,13 @@ import WebKit
 class BrowserTab: NSObject {
     
     var webView: WKWebView!
-    var webSnapshot : UIView?
     var parentTab : BrowserTab?
     
     var restoredLocation : String?
     var restoredTitle : String?
     var restoredColor : UIColor?
+    
+    var history : HistorTree = HistorTree()
     
     override init() {
         super.init()
@@ -82,8 +83,6 @@ class BrowserTab: NSObject {
         webView.translatesAutoresizingMaskIntoConstraints = false
         webView.scrollView.contentInset = .zero
         webView.backgroundColor = bottomColorSample
-//        webView.isOpaque = false
-//        webView.allowsBackForwardNavigationGestures = true
         
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.scrollView.clipsToBounds = false

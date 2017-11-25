@@ -103,14 +103,14 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
                 toColor.withAlphaComponent(0).cgColor
             ]
             beginLoc = [0, 0.05]
-            endLoc = [1, 5]
+            endLoc = [1, 1.05]
         } else {
             gLayer.colors = [
                 toColor.withAlphaComponent(0).cgColor,
                 toColor.cgColor
             ]
             beginLoc = [0.95, 1]
-            endLoc = [-5, 0]
+            endLoc = [-0.05, 0]
         }
         gLayer.locations = beginLoc
         lastColor = toColor
@@ -131,13 +131,13 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
             gLayer.removeAnimation(forKey: "gradientChange")
             gLayer.removeFromSuperlayer()
         })
-//        gLayer.add(colorChangeAnimation, forKey: "gradientChange")
-//        gradientHolder.layer.addSublayer(gLayer)
+        gLayer.add(colorChangeAnimation, forKey: "gradientChange")
+        gradientHolder.layer.addSublayer(gLayer)
 
         CATransaction.commit()
         
-        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
-            self.backgroundColor = toColor
+        UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: {
+//            self.backgroundColor = toColor
             self.tintColor = toColor.isLight ? .white : .darkText
         }, completion: nil)
         

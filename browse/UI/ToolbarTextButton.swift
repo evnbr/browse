@@ -99,7 +99,6 @@ class ToolbarTextButton: ToolbarTouchView {
         addSubview(stackView)
         stackView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
         stackView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
-        
     }
     
     required init?(coder aDecoder: NSCoder) {

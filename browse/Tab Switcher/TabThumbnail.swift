@@ -13,10 +13,15 @@ typealias CloseTabCallback = (UICollectionViewCell) -> Void
 class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
     var label : UILabel!
-    var snap : UIView!
+//    var snap : UIView!
     var overlay : UIView!
     var browserTab : BrowserTab!
     var closeTabCallback : CloseTabCallback!
+    
+    var snapTopOffsetConstraint : NSLayoutConstraint!
+    var snapAspectConstraint : NSLayoutConstraint!
+    
+    var snapView : UIImageView!
     
     var unTransformedFrame : CGRect!
     
@@ -32,7 +37,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     override var frame : CGRect {
         didSet {
             if !isDismissing {
-                snap?.frame = frameForSnap(snap)
+//                snap?.frame = frameForSnap(snap)
                 overlay?.frame = bounds
                 unTransformedFrame = frame
             }
@@ -42,7 +47,16 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         super.layoutSubviews()
         
         // there should be a way to do this with autolayout but couldn't figure it out
-        snap?.frame = frameForSnap(snap)
+//        snap?.frame = frameForSnap(snap)
+    }
+    
+    var clipSnapFromBottom : Bool {
+        get {
+            return snapTopOffsetConstraint.constant < 0
+        }
+        set {
+            snapTopOffsetConstraint.constant = newValue ? -400 : THUMB_OFFSET_COLLAPSED
+        }
     }
     
     
@@ -62,13 +76,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         layer.cornerRadius = Const.shared.thumbRadius 
         backgroundColor = .clear
         
-//        layer.shadowColor = UIColor.black.cgColor
-//        layer.shadowOffset = .zero
-//        layer.shadowRadius = Const.shared.shadowRadius
-//        layer.shadowOpacity = Const.shared.shadowOpacity
-//        layer.shouldRasterize = true
-//        layer.rasterizationScale = UIScreen.main.scale
-        
 //        layer.anchorPoint.y = 0
         
         let dismissPanner = UIPanGestureRecognizer()
@@ -77,19 +84,26 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
 //        dismissPanner.cancelsTouchesInView = true
         addGestureRecognizer(dismissPanner)
         
+        snapView = UIImageView(frame: bounds)
+        snapView.contentMode = .scaleAspectFit
+        snapView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(snapView)
+        snapTopOffsetConstraint = snapView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: THUMB_OFFSET_COLLAPSED)
+        snapTopOffsetConstraint.isActive = true
+        snapView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
+        snapView.widthAnchor.constraint(equalTo: contentView.widthAnchor).isActive = true
+        snapAspectConstraint = snapView.heightAnchor.constraint(equalTo: snapView.widthAnchor, multiplier: 1, constant: 0)
+        snapAspectConstraint.isActive = true
+
         overlay = UIView(frame: bounds)
         overlay.translatesAutoresizingMaskIntoConstraints = false
-//        overlay.widthAnchor.constraint(equalTo: contentView.widthAnchor).isActive = true
-//        overlay.heightAnchor.constraint(equalTo: contentView.heightAnchor).isActive = true
         overlay.backgroundColor = UIColor.gray.withAlphaComponent(0.3)
         overlay.alpha = 0
-        
+        contentView.addSubview(overlay)
+
         contentView.layer.cornerRadius = Const.shared.thumbRadius
         contentView.clipsToBounds = true
-//        contentView.frame.size.height = 300
-//        contentView.heightAnchor.constraint(equalToConstant: 300)
 
-        contentView.addSubview(overlay)
         
         label = UILabel(frame: CGRect(
             x: 16,
@@ -112,9 +126,8 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     func setTab(_ newTab : BrowserTab) {
         browserTab = newTab
         
-        if let snap : UIView = browserTab.webSnapshot {
-//            label.isHidden = true
-            setSnapshot(snap)
+        if let img : UIImage = browserTab.history.current?.snapshot {
+            setSnapshot(img)
         }
         
         if let color : UIColor = browserTab.topColorSample {
@@ -128,11 +141,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         }
     }
     
-    
-    
-//    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-//        return true
-//    }
     
     // only recognize horizontals
     override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -179,14 +187,24 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         }
     }
     
-    func setSnapshot(_ newSnapshot : UIView) {
-        snap?.removeFromSuperview()
-        
-        snap = newSnapshot
-        snap.frame = frameForSnap(snap)
-        
-        contentView.addSubview(snap)
-        contentView.sendSubview(toBack: snap)
+//    func setSnapshot(_ newSnapshot : UIView) {
+//        snap?.removeFromSuperview()
+//
+//        snap = newSnapshot
+//        snap.frame = frameForSnap(snap)
+//
+//        contentView.addSubview(snap)
+//        contentView.sendSubview(toBack: snap)
+//    }
+    
+    func setSnapshot(_ newImage : UIImage) {
+        let newAspect = newImage.size.height / newImage.size.width
+        if newAspect != snapAspectConstraint.multiplier {
+            snapView.removeConstraint(snapAspectConstraint)
+            snapAspectConstraint = snapView.heightAnchor.constraint(equalTo: snapView.widthAnchor, multiplier: newAspect, constant: 0)
+            snapAspectConstraint.isActive = true
+        }
+        snapView.image = newImage
     }
     
     var isDismissing = false
@@ -241,7 +259,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
 
     override func prepareForReuse() {
         super.prepareForReuse()
-        snap?.removeFromSuperview()
+        snapView.image = nil
         contentView.backgroundColor = .darkGray
         label.text = "Blank"
     }

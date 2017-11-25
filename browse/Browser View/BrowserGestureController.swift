@@ -22,6 +22,14 @@ enum GestureNavigationAction {
     case toParent
 }
 
+func clip(_ val: CGFloat) -> CGFloat {
+    return max(0, min(1, val))
+}
+
+func blend(from: CGFloat, to: CGFloat, by pct: CGFloat) -> CGFloat {
+    return from + (to - from) * pct;
+}
+
 
 extension UIScrollView {
     var isScrollable : Bool {
@@ -35,7 +43,7 @@ extension UIScrollView {
     }
 }
 
-class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIScrollViewDelegate {
+class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScrollViewDelegate {
     
     var vc : BrowserViewController!
     var home : HomeViewController!
@@ -180,6 +188,12 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         
         let revealProgress = min(abs(gesturePos.x) / 200, 1)
         
+        let rad = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
+        if (Const.shared.cardRadius < Const.shared.thumbRadius) {
+            cardView.layer.cornerRadius = rad
+            mockCardView.layer.cornerRadius = rad
+        }
+
         let adjustedX = gesturePos.x
         
         let yGestureInfluence = gesturePos.y * 0.7
@@ -188,47 +202,68 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
 
         if direction == .left {
             if vc.webView.canGoBack {
+                
+                let verticalProgress = clip(yGestureInfluence / 200)
+                
+                cardView.frame.origin.x = blend(from: adjustedX, to: elasticLimit(adjustedX), by: verticalProgress)
+                
                 if yGestureInfluence < dismissPointY {
-                    mockCardView.frame.origin.x = adjustedX - mockCardView.frame.width - mockCardViewSpacer
-                    cardView.frame.origin.y = 0 + yGestureInfluence * 0.3
-                    mockCardView.frame.origin.y = 0 + yGestureInfluence * 0.2
+                    let mockX = cardView.frame.origin.x - mockCardView.frame.width - mockCardViewSpacer;
+                    if mockCardView.frame.origin.x + mockCardView.frame.width < 0 {
+                        UIView.animate(withDuration: 0.2, animations: {
+                            self.mockCardView.frame.origin.x = mockX
+                        })
+                    }
+                    else {
+                        mockCardView.frame.origin.x = mockX
+                    }
+                    cardView.frame.origin.y = abs(yGestureInfluence) > 20
+                        ? (yGestureInfluence - 20) * 0.3 : 0
                 }
                 else {
-                    UIView.animate(withDuration: 0.1, animations: {
+                    UIView.animate(withDuration: 0.2, animations: {
                         self.mockCardView.frame.origin.x = -self.mockCardView.frame.width - self.mockCardViewSpacer
                     })
-                    cardView.frame.origin.y = 0 + yGestureInfluence
+                    let constrained = dismissPointY * 0.3
+                    cardView.frame.origin.y = constrained + (yGestureInfluence - dismissPointY)
                 }
-            }
-            else if canGoBackToParent {
-                cardView.frame.origin.x = elasticLimit(adjustedX)
                 
-                let prog = abs(gesturePos.x) / 300
-                let yHint : CGFloat = 60
-
-                mockCardView.frame.origin.x = 0
-                mockCardView.frame.origin.y = -mockCardView.frame.height + prog * yHint - mockCardViewSpacer + yGestureInfluence
-//                mockCardView.frame.size.height = prog * 200 - mockCardViewSpacer
-                toParentIcon.alpha = revealProgress
-                toParentIcon.frame.origin.x = cardView.frame.origin.x / 2
-                
-                cardView.frame.origin.y = prog * yHint + yGestureInfluence
+                let vProgress = abs(cardView.frame.origin.y / 200)
+                home.navigationController?.view.alpha = vProgress * 0.7 // alpha is 0 ... 0.4
+                home.setThumbPosition(expanded: true, offsetY: cardView.frame.origin.y, offsetHeight: 0)
             }
+//            else if canGoBackToParent {
+//                cardView.frame.origin.x = elasticLimit(adjustedX)
+//                
+//                let prog = abs(gesturePos.x) / 300
+//                let yHint : CGFloat = 60
+//
+//                mockCardView.alpha = revealProgress * 0.7 // alpha is 0 ... 0.4
+//                mockCardView.frame.origin.x = 0
+//                mockCardView.frame.size.height = THUMB_H
+//                mockCardView.frame.origin.y = -mockCardView.frame.height + prog * yHint - mockCardViewSpacer + yGestureInfluence
+//                toParentIcon.alpha = revealProgress
+//                toParentIcon.frame.origin.x = cardView.frame.origin.x / 2
+//                
+//                cardView.frame.origin.y = prog * yHint + yGestureInfluence
+//                
+//            }
             else {
                 // COPY PASTED A
                 home.navigationController?.view.alpha = revealProgress * 0.7 // alpha is 0 ... 0.4
                 cardView.frame.origin.x = elasticLimit(adjustedX)
 
+                if canGoBackToParent {
+                    toParentIcon.alpha = revealProgress
+                    toParentIcon.frame.origin.x = cardView.frame.origin.x / 2
+                }
+
                 let prog = abs(gesturePos.x) / 300
-                let yHint : CGFloat = 60
-                let yShift = prog * yHint + yGestureInfluence * 0.2
-                let heightShrink = prog * yHint * 2
+                let yHint : CGFloat = 20
+                let yShift = prog * yHint + yGestureInfluence
+                let heightShrink = prog * yHint * 2 + yShift * 1.3
                 cardView.frame.origin.y = yShift
                 cardView.frame.size.height = vc.cardViewDefaultFrame.size.height - heightShrink
-                
-                if (Const.shared.cardRadius < Const.shared.thumbRadius) {
-                    cardView.layer.cornerRadius = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
-                }
                 
                 home.setThumbPosition(expanded: true, offsetY: cardView.frame.origin.y, offsetHeight: heightShrink)
             }
@@ -244,12 +279,12 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
             
             let prog = abs(gesturePos.x) / 300
             let yHint : CGFloat = 60
-            cardView.frame.origin.y = prog * yHint + yGestureInfluence * 0.2
-            cardView.frame.size.height = vc.cardViewDefaultFrame.size.height - (prog * yHint * 2)
-            
-            if (Const.shared.cardRadius < Const.shared.thumbRadius) {
-                cardView.layer.cornerRadius = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
-            }
+            let yShift = prog * yHint + yGestureInfluence * 0.2
+            let heightShrink = prog * yHint * 2
+            cardView.frame.origin.y = yShift
+            cardView.frame.size.height = vc.cardViewDefaultFrame.size.height - heightShrink
+
+            home.setThumbPosition(expanded: true, offsetY: cardView.frame.origin.y, offsetHeight: heightShrink)
         }
         
         if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle {
@@ -270,8 +305,18 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
             commitDismiss()
         }
         else if gesturePos.x > backPointX {
-            if vc.webView.canGoBack { commit(action: .back) }
-            else if canGoBackToParent { commit(action: .toParent) }
+            if vc.webView.canGoBack {
+                if mockCardView.frame.origin.x + mockCardView.frame.width > backPointX {
+                    commit(action: .back)
+                }
+                else { commitDismiss() }
+            }
+            else if canGoBackToParent {
+                if cardView.frame.origin.y > dismissPointY {
+                    commit(action: .toParent)
+                }
+                else { commitDismiss() }
+            }
             else { commitDismiss() }
         }
         else if gesturePos.x < -backPointX {
@@ -291,7 +336,9 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
             vc.showToolbar()
             if !vc.webView.canGoBack {
                 if let parent = vc.browserTab?.parentTab {
-                    if let snap = parent.webSnapshot?.snapshotView(afterScreenUpdates: false) {
+                    if let img = parent.history.current?.snapshot {
+                        let snap = UIImageView(image: img)
+                        snap.sizeToFit()
                         mockCardView.addSubview(snap)
                     }
                 }
@@ -377,6 +424,9 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
     
     func swapTo(childTab: BrowserTab) {
         let parentMock = cardView.snapshotView(afterScreenUpdates: false)!
+        parentMock.contentMode = .top
+        parentMock.clipsToBounds = true
+        parentMock.layer.cornerRadius = Const.shared.cardRadius
         
         vc.view.insertSubview(parentMock, belowSubview: cardView)
         vc.setTab(childTab)
@@ -390,6 +440,7 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
             options: .allowUserInteraction,
             animations: {
                 self.cardView.frame.origin = .zero
+                parentMock.frame.size.height = THUMB_H
                 parentMock.frame.origin.y = -parentMock.frame.height - self.mockCardViewSpacer
             }, completion: { done in
                 parentMock.removeFromSuperview()
@@ -406,15 +457,13 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         vc.toolbar.backgroundColor = .white
         vc.statusBar.backgroundColor = .white
         
-        let webViewToHide = vc.webView
-        webViewToHide?.alpha = 0
-        
-        
         if action == .back {
             vc.webView.goBack()
+            vc.hideUntilNavigationDone = true
         }
         else if action == .forward {
             vc.webView.goForward()
+            vc.hideUntilNavigationDone = true
         }
         else if action == .toParent {
             if let parent = self.vc.browserTab?.parentTab {
@@ -427,7 +476,9 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         let cardOrigin = cardView.frame.origin
         if (action == .toParent) {
             cardView.frame.size = mockCardView.frame.size
+            cardView.alpha = mockCardView.alpha
             mockCardView.frame.size = vc.cardViewDefaultFrame.size
+            mockCardView.alpha = 1
         }
         cardView.frame.origin = mockCardView.frame.origin
         
@@ -441,11 +492,10 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
             options: .allowUserInteraction,
             animations: {
             if action == .toParent {
+                self.cardView.alpha = 1
                 self.cardView.frame = self.vc.cardViewDefaultFrame
                 self.mockCardView.frame.origin.x = 0
                 self.mockCardView.frame.origin.y = self.cardView.frame.height
-                self.toParentIcon.frame.origin.x = -self.toParentIcon.frame.width
-                self.toParentIcon.alpha = 0
             }
             else if action == .back {
                 self.cardView.frame.origin = .zero
@@ -455,6 +505,10 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
                 self.cardView.frame.origin = .zero
                 self.mockCardView.frame.origin.x = -self.cardView.frame.width - self.mockCardViewSpacer
             }
+            self.toParentIcon.frame.origin.x = -self.toParentIcon.frame.width
+            self.toParentIcon.alpha = 0
+            self.cardView.layer.cornerRadius = Const.shared.cardRadius
+            self.mockCardView.layer.cornerRadius = Const.shared.cardRadius
         }, completion: { completed in
             
             self.vc.resetSizes(withKeyboard: self.shouldRestoreKeyboard)
@@ -468,9 +522,6 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
             
             UIView.animate(withDuration: 0.2, animations: {
                 self.home.setNeedsStatusBarAppearanceUpdate()
-            })
-            UIView.animate(withDuration: 0.15, delay: 0.2, animations: {
-                webViewToHide?.alpha = 1
             })
         })
     }
@@ -491,6 +542,7 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
                 
                 let w = self.mockCardView.frame.width + self.mockCardViewSpacer
                 if self.mockCardView.frame.origin.y < 0 {
+                    self.mockCardView.alpha = 0
                     self.mockCardView.frame.origin.y = -self.mockCardView.frame.height
                     self.toParentIcon.frame.origin.x = -self.toParentIcon.frame.width
                     self.toParentIcon.alpha = 0
@@ -501,7 +553,14 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
                     self.mockCardView.frame.origin.x = -w
                 }
                 self.cardView.layer.cornerRadius = Const.shared.cardRadius
-        }, completion: nil)
+                self.mockCardView.layer.cornerRadius = Const.shared.cardRadius
+            }, completion: { _ in
+                self.mockCardView.alpha = 1
+                self.mockCardView.frame.size = self.vc.cardViewDefaultFrame.size
+                self.mockCardView.frame.origin.x = -self.mockCardView.frame.width
+                self.mockCardView.frame.origin.y = 0
+            }
+        )
     }
     
     func elasticLimit(_ val : CGFloat) -> CGFloat {
@@ -512,7 +571,7 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
     func verticalChange(gesture: UIPanGestureRecognizer) {
         
         let gesturePos = gesture.translation(in: view)
-        let adjustedY : CGFloat = gesturePos.y - startPoint.y
+        var adjustedY : CGFloat = gesturePos.y - startPoint.y
         
         if (direction == .top && adjustedY < 0) || (direction == .bottom && adjustedY > 0) {
             endGesture()
@@ -528,11 +587,18 @@ class BrowserViewInteractiveDismiss : NSObject, UIGestureRecognizerDelegate, UIS
         
         cardView.frame.origin.y = adjustedY
         
-        home.setThumbPosition(expanded: true, offsetY: adjustedY, offsetHeight: 0)
+        let shrinkBy = min((vc.cardViewDefaultFrame.height - THUMB_H - Const.shared.toolbarHeight), abs(adjustedY) * 1.3)
+        if adjustedY > 0 {
+//            cardView.frame.size.height = view.frame.height - shrinkBy
+//            vc.toolbarHeightConstraint.constant = max(0, Const.shared.toolbarHeight - shrinkBy)
+            vc.toolbarHeightConstraint.constant = max(0, Const.shared.toolbarHeight)
+        }
         
-//        if adjustedY > 0 {
-//            cardView.frame.size.height = view.frame.height - (abs(adjustedY))
-//        }
+        home.setThumbPosition(
+            expanded: true,
+            offsetY: adjustedY,
+            offsetHeight: shrinkBy
+        )
         
         let revealProgress = abs(adjustedY) / 200
         home.navigationController?.view.alpha = revealProgress * 0.4 // alpha is 0 ... 0.4

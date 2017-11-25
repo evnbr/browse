@@ -9,8 +9,7 @@
 import Foundation
 import UIKit
 
-public extension UIColor
-{
+public extension UIColor {
     static let lightOverlay = UIColor.white.withAlphaComponent(0.2)
     static let darkOverlay = UIColor.white.withAlphaComponent(0.08)
     
@@ -21,10 +20,6 @@ public extension UIColor
         self.init(red: r, green: g, blue: b, alpha: 1)
     }
     
-//    var array : [ CGFloat ] {
-//        return self.getRGB()
-//    }
-//
     func getRGB() -> Array<CGFloat> {
         if let name : CFString = self.cgColor.colorSpace?.name {
             let components : Array<CGFloat> = self.cgColor.components

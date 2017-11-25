@@ -23,8 +23,8 @@ enum ColorTransitionStyle {
     case translate
 }
 
-let DURATION = 1.0
-let MIN_TIME_BETWEEN_UPDATES = 0.15
+let DURATION = 0.3
+let MIN_TIME_BETWEEN_UPDATES = 0.1
 
 class ColorSampler : NSObject, UIGestureRecognizerDelegate {
         
@@ -127,10 +127,12 @@ class ColorSampler : NSObject, UIGestureRecognizerDelegate {
             image?.getColors(scaleDownSize: bottomConfig.rect.size) { colors in
                 self.previousBottom = self.bottom
                 self.bottom = colors.background
-                
                 self.wvc.browserTab?.bottomColorSample = self.bottom // this is a hack
-                self.wvc.cardView.backgroundColor = self.bottom // this is a hack
-                let _ = self.wvc.toolbar.animateGradient(toColor: self.bottom, duration: DURATION, direction: .fromTop)
+
+                if self.wvc.shouldUpdateColors {
+                    self.wvc.cardView.backgroundColor = self.bottom // this is a hack
+                    let _ = self.wvc.toolbar.animateGradient(toColor: self.bottom, duration: DURATION, direction: .fromTop)
+                }
             }
         }
         let topConfig = WKSnapshotConfiguration()
@@ -144,14 +146,16 @@ class ColorSampler : NSObject, UIGestureRecognizerDelegate {
             image?.getColors(scaleDownSize: topConfig.rect.size) { colors in
                 self.previousTop = self.top
                 self.top = colors.background
-                
                 self.wvc.browserTab?.topColorSample = self.top // this is a hack
-                let didChange = self.wvc.statusBar.animateGradient(toColor: self.top, duration: DURATION, direction: .fromBottom)
-                
-                if didChange {
-                    UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
-                        self.wvc.setNeedsStatusBarAppearanceUpdate()
-                    })
+
+                if self.wvc.shouldUpdateColors {
+                    let didChange = self.wvc.statusBar.animateGradient(toColor: self.top, duration: DURATION, direction: .fromBottom)
+                    
+                    if didChange {
+                        UIView.animate(withDuration: 0.15, delay: 0, options: .curveEaseInOut, animations: {
+                            self.wvc.setNeedsStatusBarAppearanceUpdate()
+                        })
+                    }
                 }
             }
         }
@@ -179,14 +183,6 @@ class ColorSampler : NSObject, UIGestureRecognizerDelegate {
         animateTopToEndState(.fade)
     }
     
-    
-    func commitTopChange() {
-        self.wvc.statusBar.backgroundColor = self.top
-    }
-    
-    func commitBottomChange() {
-        self.wvc.toolbar.backgroundColor = self.bottom
-    }
     func animateTopToEndState(_ style : ColorTransitionStyle) {
         let didChange = self.wvc.statusBar.animateGradient(toColor: self.top, duration: 1.0, direction: .fromBottom)
         
