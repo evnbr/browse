@@ -28,12 +28,19 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         return lastColor.isLight
     }
     
-    override var frame : CGRect {
-        didSet {
-            gradientLayer.frame = self.bounds
-            gradientLayer2.frame = self.bounds
-            gradientLayer3.frame = self.bounds
-        }
+//    override var frame : CGRect {
+//        didSet {
+//            gradientLayer.frame = self.bounds
+//            gradientLayer2.frame = self.bounds
+//            gradientLayer3.frame = self.bounds
+//        }
+//    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        gradientLayer.frame = self.bounds
+        gradientLayer2.frame = self.bounds
+        gradientLayer3.frame = self.bounds
     }
     
     override init(frame: CGRect) {
@@ -102,15 +109,15 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
                 toColor.cgColor,
                 toColor.withAlphaComponent(0).cgColor
             ]
-            beginLoc = [0, 0.05]
-            endLoc = [1, 1.05]
+            beginLoc = [-1, 0.05]
+            endLoc = [1, 3]
         } else {
             gLayer.colors = [
                 toColor.withAlphaComponent(0).cgColor,
                 toColor.cgColor
             ]
-            beginLoc = [0.95, 1]
-            endLoc = [-0.05, 0]
+            beginLoc = [0.95, 2]
+            endLoc = [-2, 0]
         }
         gLayer.locations = beginLoc
         lastColor = toColor
@@ -136,7 +143,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
 
         CATransaction.commit()
         
-        UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: {
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
 //            self.backgroundColor = toColor
             self.tintColor = toColor.isLight ? .white : .darkText
         }, completion: nil)

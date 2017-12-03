@@ -9,7 +9,7 @@
 import UIKit
 
 let itemSpacing : CGFloat = 160
-let itemHeight : CGFloat = 320
+let itemHeight : CGFloat = THUMB_H
 
 class StackingCollectionViewLayout: UICollectionViewFlowLayout {
     
@@ -37,11 +37,11 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
             
             var intendedFrame = CGRect(
                 origin: CGPoint(
-                    x: 12,
+                    x: THUMB_INSET ,
                     y: CGFloat(i) * itemSpacing
                 ),
                 size: CGSize(
-                    width: collectionView!.bounds.width - 24,
+                    width: collectionView!.bounds.width - THUMB_INSET * 2,
                     height: itemHeight
                 )
             )

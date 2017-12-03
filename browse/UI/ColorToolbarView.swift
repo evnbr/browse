@@ -29,11 +29,14 @@ class ColorToolbarView: GradientColorChangeView {
         stackView.translatesAutoresizingMaskIntoConstraints = false;
         
         addSubview(stackView)
-        stackView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
-//        stackView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
-        stackView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        stackView.widthAnchor.constraint(equalTo: self.widthAnchor).isActive = true
         
+        let toolbarInset : CGFloat = 4.0
+//        let roomForIndicator : CGFloat = Const.shared.toolbarHeight - Const.shared.buttonHeight
+        stackView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
+        stackView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+//        stackView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -roomForIndicator).isActive = true
+        stackView.leftAnchor.constraint(equalTo: self.leftAnchor, constant: toolbarInset).isActive = true
+        stackView.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -toolbarInset).isActive = true
     }
         
     var items : [ UIView ] {

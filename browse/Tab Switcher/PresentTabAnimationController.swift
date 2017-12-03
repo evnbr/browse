@@ -85,40 +85,47 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             clipSnapFromBottom = browserVC.cardView.frame.origin.y < 0 && abs(browserVC.cardView.frame.origin.x) < 50
         }
         
-        browserVC.isSnapshotMode = true
         browserVC.isExpandedSnapshotMode = !self.isExpanding
+        browserVC.isSnapshotMode = true
         
         let prevTransform = homeNav.view.transform
         homeNav.view.transform = .identity // HACK reset to identity so we can get frame
         
-        var thumbFrame : CGRect
+//        var thumbFrame : CGRect
+        var thumbCenter : CGPoint
         
         if thumb != nil {
             // must be after toVC is added
             let cv = homeVC.collectionView!
             let selIndexPath = cv.indexPath(for: thumb!)!
-            let selectedThumbFrame = cv.layoutAttributesForItem(at: selIndexPath)!.frame
+//            let selectedThumbFrame = cv.layoutAttributesForItem(at: selIndexPath)!.frame
+            let selectedThumbCenter = cv.layoutAttributesForItem(at: selIndexPath)!.center
 
-            thumbFrame = containerView.convert(selectedThumbFrame, from: thumb?.superview)
-            thumbFrame.origin.y -= homeNav.view.frame.origin.y
-            thumbFrame.origin.x -= homeNav.view.frame.origin.x
+//            thumbFrame = containerView.convert(selectedThumbFrame, from: thumb?.superview)
+            
+            thumbCenter = containerView.convert(selectedThumbCenter, from: thumb?.superview)
+            //            thumbFrame.origin.y -= homeNav.view.frame.origin.y
+            //            thumbFrame.origin.x -= homeNav.view.frame.origin.x
+
         }
         else {
             // animate from bottom
             let y = (homeVC.navigationController?.view.frame.height)!
-            thumbFrame = CGRect(origin: CGPoint(x: 0, y: y), size: homeVC.thumbSize)
-            thumbFrame.size.height = 40
+            thumbCenter = CGPoint(x: homeVC.view.center.x, y: y)
+//            thumbFrame = CGRect(origin: CGPoint(x: 0, y: y), size: homeVC.thumbSize)
+//            thumbFrame.size.height = 40
         }
         
-        let expandedFrame = browserVC.cardView.frame
-        
-        homeNav.view.transform = self.isExpanding
-            ? .identity
-            : prevTransform
+        let expandedCenter = browserVC.cardView.center
+        let expandedBounds = browserVC.cardView.bounds
+        let thumbBounds = CGRect(origin: .zero, size: homeVC.thumbSize)
+
+        homeNav.view.transform = self.isExpanding ? .identity : prevTransform
         
         let END_ALPHA : CGFloat = 0.0
         
-        browserVC.cardView.frame = isExpanding ? thumbFrame : expandedFrame
+        browserVC.cardView.center = isExpanding ? thumbCenter : expandedCenter
+        browserVC.cardView.bounds = isExpanding ? thumbBounds : expandedBounds
         browserVC.updateSnapshotPosition(fromBottom: clipSnapFromBottom)
 
         
@@ -129,7 +136,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         newTabToolbar.isHidden = false
         newTabToolbar.transform = isExpanding ? .identity : CGAffineTransform(translationX: 0, y: Const.shared.toolbarHeight)
-        
+
         UIView.animate(
             withDuration: 0.5,
             delay: 0.0,
@@ -138,7 +145,10 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             options: .allowUserInteraction,
             animations: {
                 
-            browserVC.cardView.frame = self.isExpanding ? expandedFrame : thumbFrame
+            browserVC.cardView.center = self.isExpanding ? expandedCenter : thumbCenter
+            browserVC.cardView.bounds = self.isExpanding ? expandedBounds : thumbBounds
+                
+            browserVC.cardView.transform = .identity
             browserVC.isExpandedSnapshotMode = self.isExpanding
             browserVC.updateSnapshotPosition(fromBottom: clipSnapFromBottom)
 
@@ -151,7 +161,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
                 homeVC.setThumbPosition(
                     expanded: true,
                     offsetY: 0,
-                    offsetHeight: browserVC.cardViewDefaultFrame.height - browserVC.cardView.frame.height
+                    offsetHeight: browserVC.cardViewDefaultFrame.height - browserVC.cardView.bounds.height
                 )
             } else {
                 homeVC.setThumbPosition(expanded: false)

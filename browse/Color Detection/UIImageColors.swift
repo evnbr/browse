@@ -147,7 +147,7 @@ extension UIImage {
         var scaleDownSize = scaleDownSize
         if scaleDownSize == CGSize.zero {
             let ratio = self.size.width / self.size.height
-            let r_width: CGFloat = 250
+            let r_width: CGFloat = 320
             scaleDownSize = CGSize(width: r_width, height: r_width / ratio)
         }
         let cgImage = self.resizeForUIImageColors(newSize: scaleDownSize).cgImage!
@@ -159,8 +159,7 @@ extension UIImage {
         let width: Int = cgImage.width
         let height: Int = cgImage.height
         
-        let blackColor = UIColor(red: 0, green: 0, blue: 0, alpha: 1)
-        let whiteColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1)
+        let fallbackColor = UIColor.cyan
         
         let randomColorsThreshold = 0//Int(CGFloat(height) * 0.01)
         let sortedColorComparator: Comparator = { (main, other) -> ComparisonResult in
@@ -218,7 +217,7 @@ extension UIImage {
         if 0 < sortedColors.count {
             proposedEdgeColor = sortedColors.object(at: 0) as! PCCountedColor
         } else {
-            proposedEdgeColor = PCCountedColor(color: blackColor, count: 1)
+            proposedEdgeColor = PCCountedColor(color: fallbackColor, count: 1)
         }
         
 //        if proposedEdgeColor.color.isBlackOrWhite && 0 < sortedColors.count {

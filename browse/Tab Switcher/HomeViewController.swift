@@ -17,7 +17,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     var toolbar : ColorToolbarView!
     
     let reuseIdentifier = "TabCell"
-    let sectionInsets = UIEdgeInsets(top: 8.0, left: 6.0, bottom: 8.0, right: 6.0)
+    let sectionInsets = UIEdgeInsets(top: 8.0, left: THUMB_INSET, bottom: 8.0, right: THUMB_INSET)
     let itemsPerRow : CGFloat = 2
     
     let thumbAnimationController = PresentTabAnimationController()
@@ -264,14 +264,14 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                 
                 for cell in visibleCellsAbove {
                     let ip = cv.indexPath(for: cell)!
-                    cell.frame = cv.layoutAttributesForItem(at: ip)!.frame
-                    cell.frame.origin.y += shiftUp + offsetY
+                    cell.center = cv.layoutAttributesForItem(at: ip)!.center
+                    cell.center.y += shiftUp + offsetY
                     cell.isHidden = false
                 }
                 for cell in visibleCellsBelow {
                     let ip = cv.indexPath(for: cell)!
-                    cell.frame = cv.layoutAttributesForItem(at: ip)!.frame
-                    cell.frame.origin.y += shiftDown + offsetY - offsetHeight
+                    cell.center = cv.layoutAttributesForItem(at: ip)!.center
+                    cell.center.y += shiftDown + offsetY - offsetHeight
                     cell.isHidden = false
                 }
             }
@@ -283,8 +283,8 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                     
                     for cell in visibleCells {
                         let ip = cv.indexPath(for: cell)!
-                        cell.frame = cv.layoutAttributesForItem(at: ip)!.frame
-                        cell.frame.origin.y += shiftUp
+                        cell.center = cv.layoutAttributesForItem(at: ip)!.center
+                        cell.center.y += shiftUp
                         cell.isHidden = false
                     }
                 }
@@ -293,7 +293,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         else {
             for cell in visibleCells {
                 let ip = cv.indexPath(for: cell)!
-                cell.frame = cv.layoutAttributesForItem(at: ip)!.frame
+                cell.center = cv.layoutAttributesForItem(at: ip)!.center
             }
         }
     }

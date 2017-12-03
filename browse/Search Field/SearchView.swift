@@ -62,7 +62,7 @@ class SearchView: UIView, UITextViewDelegate {
         textView.alpha = 0
         textView.placeholderColor = UIColor.white.withAlphaComponent(0.4)
         
-        textView.keyboardAppearance = .dark
+        textView.keyboardAppearance = .light
         textView.enablesReturnKeyAutomatically = true
         textView.keyboardType = UIKeyboardType.webSearch
         textView.returnKeyType = .go
@@ -85,8 +85,7 @@ class SearchView: UIView, UITextViewDelegate {
         cancel.autoresizingMask = [.flexibleLeftMargin, .flexibleTopMargin]
         
         
-        self.autoresizingMask = UIViewAutoresizing.flexibleHeight
-        translatesAutoresizingMaskIntoConstraints = false
+        self.translatesAutoresizingMaskIntoConstraints = false
         
         textView.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 8).isActive = true
         textView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -8).isActive = true
@@ -243,7 +242,8 @@ class SearchView: UIView, UITextViewDelegate {
         textView.textColor = tintColor
         textView.backgroundColor = tintColor.isLight ? UIColor.black.withAlphaComponent(0.1) : UIColor.white.withAlphaComponent(0.3)
         textView.placeholderColor = tintColor.isLight ? UIColor.black.withAlphaComponent(0.4) : UIColor.white.withAlphaComponent(0.4)
-        
+        textView.keyboardAppearance = tintColor.isLight ? .light : .dark
+
     }
     
     

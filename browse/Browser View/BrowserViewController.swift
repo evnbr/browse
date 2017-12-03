@@ -265,6 +265,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         backButton.addGestureRecognizer(historyPress)
         
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardDidChangeFrame, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
     }
     
@@ -276,16 +277,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     var keyboardHeight : CGFloat = 250
     @objc func keyboardWillShow(notification: NSNotification) {
-        let userInfo:NSDictionary = notification.userInfo! as NSDictionary
-        let keyboardFrame:NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as! NSValue
+        let userInfo: NSDictionary = notification.userInfo! as NSDictionary
+        let keyboardFrame: NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as! NSValue
         let keyboardRectangle = keyboardFrame.cgRectValue
         let newHeight = keyboardRectangle.height
         
         if newHeight != keyboardHeight {
             keyboardHeight = newHeight
-//            UIView.animate(withDuration: 0.2, options: .curveEaseInOut, animations: {
-                self.searchSizeDidChange()
-//            })
+            self.searchSizeDidChange()
         }
         // Hack to prevent accessory of showing up at bottom
 //        accessoryView.isHidden = keyboardHeight < 50
@@ -331,7 +330,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         guard !webView.isLoading else { return }
         guard !isDisplayingSearch else { return }
         
-//        self.toolbarHeightConstraint.constant = 0
+        self.toolbarHeightConstraint.constant = 0
 
         UIView.animate(
             withDuration: 0.2,
@@ -340,6 +339,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             animations: {
                 self.view.layoutIfNeeded()
                 self.webView.scrollView.contentInset.bottom = -Const.shared.toolbarHeight
+                self.webView.scrollView.scrollIndicatorInsets.bottom = -Const.shared.toolbarHeight
+
+                self.locationBar.alpha = 0
+                self.backButton.alpha = 0
+                self.tabButton.alpha = 0
             }, completion: { _ in
 //                self.webView.scrollView.contentInset.bottom = 0
 //                self.heightConstraint.constant = -Const.shared.statusHeight
@@ -349,7 +353,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     func showToolbar(animated : Bool = true) {
         guard !isDisplayingSearch else { return }
 
-//        self.toolbarHeightConstraint.constant = Const.shared.toolbarHeight
+        self.toolbarHeightConstraint.constant = Const.shared.toolbarHeight
 
         UIView.animate(
             withDuration: animated ? 0.2 : 0,
@@ -358,6 +362,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             animations: {
                 self.view.layoutIfNeeded()
                 self.webView.scrollView.contentInset.bottom = 0
+                self.webView.scrollView.scrollIndicatorInsets.bottom = 0
+
+                self.locationBar.alpha = 1
+                self.backButton.alpha = 1
+                self.tabButton.alpha = 1
             }, completion: { _ in
 //                self.webView.scrollView.contentInset.bottom = 0
 //                self.heightConstraint.constant = -Const.shared.statusHeight - Const.shared.toolbarHeight
@@ -410,7 +419,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         toolbar.addSubview(searchView)
         
         searchView.topAnchor.constraint(equalTo: toolbar.topAnchor).isActive = true
+        searchView.centerXAnchor.constraint(equalTo: toolbar.centerXAnchor).isActive = true
         searchView.widthAnchor.constraint(equalTo: toolbar.widthAnchor).isActive = true
+//        searchView.widthAnchor.constraint(lessThanOrEqualToConstant: 320.0).isActive = true
         
 //        toolbar.alpha = 0.5
         
@@ -487,11 +498,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             cardView.bringSubview(toFront: statusBar)
         }
         
-        let aspect = snap.frame.height / snap.frame.width
+        let aspect = snap.bounds.height / snap.bounds.width
 
         snap.frame.size = CGSize(
-            width: cardView.frame.width,
-            height: cardView.frame.width * aspect
+            width: cardView.bounds.width,
+            height: cardView.bounds.width * aspect
         )
         
         statusBar.label.alpha = isExpandedSnapshotMode ? 0 : 1
@@ -662,9 +673,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         // NOTE: we probably don't have the true keyboard height yet
         
-        let cardH = cardViewDefaultFrame.height - keyboardHeight
-        
         self.toolbar.progressView.isHidden = true
+        
+        self.toolbarBottomConstraint.constant = -keyboardHeight
 
         if animated {
             UIView.animate(
@@ -675,8 +686,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 options: [.curveLinear, .allowUserInteraction],
                 animations: {
                     
-                self.cardView.frame.size.height = cardH
-                self.toolbarHeightConstraint.constant = self.searchView.frame.height
+//                self.cardView.frame.size.height = cardH
+//                self.cardView.layer.cornerRadius = 8
+
+                self.toolbarHeightConstraint.constant = self.searchView.bounds.height
 
                 self.locationBar.alpha = 0
                 self.toolbar.layoutIfNeeded()
@@ -688,7 +701,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             })
         }
         else {
-            self.cardView.frame.size.height = cardH
+//            self.cardView.frame.size.height = cardH
+//            self.cardView.layer.cornerRadius = 8
+
             self.toolbarHeightConstraint.constant = self.searchView.frame.height
             self.locationBar.alpha = 0
             self.toolbar.layoutIfNeeded()
@@ -714,6 +729,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         toolbar.progressView.isHidden = false
         locationBar.backgroundColor = locationBar.tapColor
 
+        self.toolbarBottomConstraint.constant = 0
+        
         UIView.animate(
             withDuration: 0.55,
             delay: 0.0,
@@ -722,7 +739,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             options: [.curveLinear, .allowUserInteraction],
             animations: {
             
-                self.cardView.frame = self.cardViewDefaultFrame
+//                self.cardView.bounds.size = self.cardViewDefaultFrame.size
+//                self.cardView.center = self.view.center
+//                self.cardView.layer.cornerRadius = Const.shared.cardRadius
+
                 self.toolbarHeightConstraint.constant = Const.shared.toolbarHeight
                 self.locationBar.alpha = 1
                 self.locationBar.backgroundColor = .clear
@@ -739,9 +759,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     func searchSizeDidChange() {
         if searchView != nil && isDisplayingSearch {
-            let cardH = cardViewDefaultFrame.height - keyboardHeight
-            self.cardView?.frame.size.height = cardH
+//            let cardH = cardViewDefaultFrame.height - keyboardHeight
+//            self.cardView?.frame.size.height = cardH
+            self.toolbarBottomConstraint.constant = -keyboardHeight
             self.toolbarHeightConstraint.constant = self.searchView.frame.height
+            self.toolbar.layoutIfNeeded()
         }
     }
 
@@ -969,12 +991,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         view.frame = UIScreen.main.bounds
         statusBar.frame.origin.y = 0
         webView.frame.origin.y = Const.shared.statusHeight
-        view.transform = .identity
-        cardView.frame = cardViewDefaultFrame
+        cardView.transform = .identity
+        cardView.bounds.size = cardViewDefaultFrame.size
+        cardView.center = view.center
         
         if isBlank && withKeyboard {
             // hack for better transition with keyboard
-            cardView.frame.size.height = cardViewDefaultFrame.height - keyboardHeight
+//            cardView.frame.size.height = cardViewDefaultFrame.height - keyboardHeight
         }
         
 //        toolbar.alpha = 1

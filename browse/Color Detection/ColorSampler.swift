@@ -23,8 +23,8 @@ enum ColorTransitionStyle {
     case translate
 }
 
-let DURATION = 0.3
-let MIN_TIME_BETWEEN_UPDATES = 0.1
+let DURATION = 0.9
+let MIN_TIME_BETWEEN_UPDATES = 0.15
 
 class ColorSampler : NSObject, UIGestureRecognizerDelegate {
         
@@ -114,12 +114,12 @@ class ColorSampler : NSObject, UIGestureRecognizerDelegate {
         guard ( now - lastSampledColorsTime > MIN_TIME_BETWEEN_UPDATES )  else { return }
         lastSampledColorsTime = now
         
-        let sampleH : CGFloat = 8
-        let sampleW : CGFloat = webView.frame.width
+        let sampleH : CGFloat = 5
+        let sampleW : CGFloat = webView.bounds.width
         let bottomConfig = WKSnapshotConfiguration()
         bottomConfig.rect = CGRect(
-            x: webView.frame.width - sampleW,
-            y: wvc.cardView.frame.height - Const.shared.statusHeight - Const.shared.toolbarHeight - sampleH,
+            x: 0,
+            y: wvc.cardView.bounds.height - (-wvc.toolbarBottomConstraint.constant) - Const.shared.statusHeight - wvc.toolbarHeightConstraint.constant - sampleH,
             width: sampleW,
             height: sampleH
         )
@@ -152,30 +152,13 @@ class ColorSampler : NSObject, UIGestureRecognizerDelegate {
                     let didChange = self.wvc.statusBar.animateGradient(toColor: self.top, duration: DURATION, direction: .fromBottom)
                     
                     if didChange {
-                        UIView.animate(withDuration: 0.15, delay: 0, options: .curveEaseInOut, animations: {
+                        UIView.animate(withDuration: 0.2, delay: 0.1, options: .curveEaseInOut, animations: {
                             self.wvc.setNeedsStatusBarAppearanceUpdate()
                         })
                     }
                 }
             }
         }
-        
-        
-//        getColorAtTopAsync(completion: { newColor in
-//            // TODO: if it looks confusing, maybe just go transparent?
-//            self.previousTop = self.top
-//            self.top = newColor
-//            self.topDelta = 1000 // self.top?.difference(from: self.previousTop)
-//            self.updateTopColor()
-//
-//            self.getColorAtBottomAsync(completion: { newColor in
-//                // TODO: if it looks confusing, maybe just go transparent?
-//                self.previousBottom = self.bottom
-//                self.bottom = newColor
-//                self.bottomDelta = 1000 // self.top?.difference(from: self.previousTop)
-//                self.updateBottomColor()
-//            })
-//        })
     }
     
     func updateTopColor() {
@@ -192,115 +175,5 @@ class ColorSampler : NSObject, UIGestureRecognizerDelegate {
             })
         }
     }
-    
-    func blendColors(_ colors: UIColor...) -> UIColor {
-        let average : UIColor = UIColor.average(colors)
-        
-        // Remove outliers
-        let blendable : Array<UIColor> = colors.filter({ $0.difference(from: average) < 0.5 })
-        
-        if blendable.count > 1 {
-
-            return UIColor.average(blendable)
-        }
-        else {
-            let distribution : Float = colors.map({ $0.difference(from: average) }).reduce(0, +)
-            if distribution < Float(colors.count) * 1.0 {
-                return average
-            }
-            for c in colors {
-                if c.difference(from: UIColor.white) < 0.3 {
-                    return c
-                }
-            }
-            for c in colors {
-                if c.difference(from: UIColor.black) < 0.3 {
-                    return c
-                }
-            }
-            return UIColor.black
-        }
-    }
-    
-    func getColorAtTopAsync(completion: @escaping (UIColor) -> Void ) {
-        let size = self.webView.bounds.size
-        
-        getColorAsync( x: 5, y: 5, completion: { colorAtTopLeft in
-            self.getColorAsync( x: size.width - 5,   y: 5, completion: { colorAtTopRight in
-                
-                if colorAtTopLeft.difference(from: UIColor.white) < 1 {
-                    completion(colorAtTopLeft)
-                }
-                else if colorAtTopRight.difference(from: UIColor.white) < 1 {
-                    completion(colorAtTopRight)
-                }
-                else {
-                    let color = self.blendColors(colorAtTopLeft, colorAtTopRight)
-                    completion(color)
-                }
-            })
-        })
-    }
-
-    
-    func getColorAtBottomAsync(completion: @escaping (UIColor) -> Void) {
-        let size = self.webView.bounds.size
-
-        getColorAsync(x: 2, y: size.height - 2, completion: { colorAtBottomLeft in
-        
-            self.getColorAsync( x: size.width - 2, y: size.height - 2, completion: { colorAtBottomRight in
-            
-                if colorAtBottomLeft.difference(from: colorAtBottomRight) < 1 {
-                    let color = self.blendColors(colorAtBottomLeft, colorAtBottomRight)
-                    completion(color)
-                }
-                else {
-                    self.getColorAsync( x: 2, y: size.height - 24, completion: { colorAtBottomLeftUp in
-                        self.getColorAsync( x: size.width - 2,   y: size.height - 24, completion: { colorAtBottomRightUp in
-                            let color = self.blendColors(
-                                colorAtBottomLeftUp,
-                                colorAtBottomLeft,
-                                colorAtBottomRightUp,
-                                colorAtBottomRight
-                            )
-                            completion(color)
-                        })
-                    })
-                }
-            })
-        })
-
-    }
-    
-    // adds a frame before and after sampling
-    func getColorAsync(x: CGFloat, y: CGFloat, completion: @escaping (UIColor) -> Void) {
-        
-        DispatchQueue.main.async {
-            let color = self.getColorAt(x: x, y: y)
-            DispatchQueue.main.async {
-                completion(color)
-            }
-        }
-    }
-
-    
-    func getColorAt(x: CGFloat, y: CGFloat) -> UIColor {
-        
-        context!.translateBy(x: -x, y: -y )
-        
-        UIGraphicsPushContext(context!);
-        webView.drawHierarchy(in: webView.bounds, afterScreenUpdates: false)
-        UIGraphicsPopContext();
-        
-        context!.translateBy(x: x, y: y ) // Reset transform because context reused
-
-        
-        let color = UIColor( r: CGFloat(pixel[0])/255.0,
-                             g: CGFloat(pixel[1])/255.0,
-                             b: CGFloat(pixel[2])/255.0 )
-        
-        return color
-    }
-
     
 }
