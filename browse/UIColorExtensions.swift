@@ -66,16 +66,38 @@ public extension UIColor {
     }
 
     
+//    func withBrightness(_ amount : CGFloat) -> UIColor {
+//        let components : Array<CGFloat> = self.getRGB()
+//
+//        if components.count < 3 { return self }
+//
+//        let r = components[0] * amount
+//        let g = components[1] * amount
+//        let b = components[2] * amount
+//
+//        return UIColor(r: r, g: g, b: b)
+//    }
+    
     func withBrightness(_ amount : CGFloat) -> UIColor {
-        let components : Array<CGFloat> = self.getRGB()
+        var h = CGFloat()
+        var s = CGFloat()
+        var b = CGFloat()
+        var a = CGFloat()
         
-        if components.count < 3 { return self }
+        self.getHue(&h, saturation: &s, brightness: &b, alpha: &a)
         
-        let r = components[0] * amount
-        let g = components[1] * amount
-        let b = components[2] * amount
+        return UIColor(hue: h, saturation: s, brightness: min(1, max(b * amount, 0)), alpha: a)
+    }
+    
+    func saturated() -> UIColor {
+        var h = CGFloat()
+        var s = CGFloat()
+        var b = CGFloat()
+        var a = CGFloat()
+
+        self.getHue(&h, saturation: &s, brightness: &b, alpha: &a)
         
-        return UIColor(r: r, g: g, b: b)
+        return UIColor(hue: h, saturation: 1, brightness: 0.5, alpha: a)
     }
     
     // http://www.sthoughts.com/2015/11/16/swift-2-1-uicolor-calculating-color-and-brightness-difference/

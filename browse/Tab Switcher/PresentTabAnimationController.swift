@@ -15,19 +15,11 @@ enum CustomAnimationDirection {
     case dismiss
 }
 
-// https://stackoverflow.com/questions/5948167/uiview-animatewithduration-doesnt-animate-cornerradius-variation
-extension UIView {
-    func addCornerRadiusAnimation(to: CGFloat, duration: CFTimeInterval) {
-        let animation = CABasicAnimation(keyPath:"cornerRadius")
-        animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear)
-        animation.fromValue = self.layer.cornerRadius
-        animation.toValue = to
-        animation.duration = duration
-        self.layer.add(animation, forKey: "cornerRadius")
-        self.layer.cornerRadius = to
+extension UIScrollView {
+    func cancelScroll() {
+        setContentOffset(self.contentOffset, animated: false)
     }
 }
-
 
 class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitioning {
     
@@ -85,6 +77,9 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             clipSnapFromBottom = browserVC.cardView.frame.origin.y < 0 && abs(browserVC.cardView.frame.origin.x) < 50
         }
         
+        let scrollView = browserVC.webView.scrollView
+        scrollView.isScrollEnabled = false
+        scrollView.cancelScroll()
         browserVC.isExpandedSnapshotMode = !self.isExpanding
         browserVC.isSnapshotMode = true
         
@@ -173,7 +168,8 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
                 
         }, completion: { finished in
             browserVC.isSnapshotMode = false
-            
+            browserVC.webView.scrollView.isScrollEnabled = true
+
             thumb?.setTab(browserVC.browserTab!)
             thumb?.clipSnapFromBottom = clipSnapFromBottom
                         

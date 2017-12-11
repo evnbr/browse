@@ -26,6 +26,11 @@ enum ColorTransitionStyle {
 let DURATION = 0.9
 let MIN_TIME_BETWEEN_UPDATES = 0.15
 
+
+protocol ColorSamplerDelegate {
+    
+}
+
 class ColorSampler : NSObject, UIGestureRecognizerDelegate {
         
     private var colorUpdateTimer : Timer?
@@ -55,15 +60,8 @@ class ColorSampler : NSObject, UIGestureRecognizerDelegate {
     var lastSampledColorsTime : CFTimeInterval = 0.0
     var lastTopTransitionTime : CFTimeInterval = 0.0
     var lastBottomTransitionTime : CFTimeInterval = 0.0
-    
-    private var deltas : Sampler = Sampler(period: 12)
-    
+        
     private var wvc : BrowserViewController!
-
-    public var isFranticallyChanging : Bool {
-        return false
-        // return deltas.sum > 7.0
-    }
     
     init(inViewController vc : BrowserViewController) {
         

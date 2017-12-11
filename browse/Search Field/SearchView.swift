@@ -158,18 +158,13 @@ class SearchView: UIView, UITextViewDelegate {
     func textViewDidBeginEditing(_ textView: UITextView) {
         self.isEnabled = true
         
-//        fullWidthConstraint.isActive = false
-//        roomForCancelConstraint.isActive = true
-        
         self.updateSize()
         
         textView.alpha = 0
         cancel.alpha = 0
-//        cancel.transform = CGAffineTransform(translationX: 30, y: 0)
         
         UIView.animate(withDuration: 0.3, animations: {
             textView.alpha = 1
-            
             self.cancel.transform = .identity
             self.cancel.alpha = 1
         }, completion: { completed in

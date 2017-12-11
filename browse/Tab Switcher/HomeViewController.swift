@@ -41,7 +41,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         browserVC = BrowserViewController(home: self)
         
-//        collectionView?.collectionViewLayout = StackingCollectionViewLayout()
+        collectionView?.collectionViewLayout = StackingCollectionViewLayout()
         collectionView?.delaysContentTouches = false
         collectionView?.alwaysBounceVertical = true
         collectionView?.indicatorStyle = .white

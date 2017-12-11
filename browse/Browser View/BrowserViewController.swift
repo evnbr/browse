@@ -34,6 +34,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var errorView: UIView!
     var cardView: UIView!
 
+    let keyboardBack = UIView()
+    
     var backButton: ToolbarIconButton!
     var stopButton: ToolbarIconButton!
     var forwardButton: ToolbarIconButton!
@@ -181,6 +183,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         colorSampler.webView = webView
         
         cardView.addSubview(webView)
+        cardView.bringSubview(toFront: keyboardBack)
         cardView.bringSubview(toFront: toolbar)
         cardView.bringSubview(toFront: statusBar)
         
@@ -245,6 +248,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         toolbarBottomConstraint = toolbar.bottomAnchor.constraint(equalTo: cardView.bottomAnchor)
         toolbarBottomConstraint.isActive = true
         
+        keyboardBack.translatesAutoresizingMaskIntoConstraints = false
+        keyboardBack.backgroundColor = .cyan
+        cardView.addSubview(keyboardBack)
+        keyboardBack.centerXAnchor.constraint(equalTo: toolbar.centerXAnchor).isActive = true
+        keyboardBack.widthAnchor.constraint(equalTo: toolbar.widthAnchor).isActive = true
+        keyboardBack.bottomAnchor.constraint(equalTo: cardView.bottomAnchor).isActive = true
+        keyboardBack.topAnchor.constraint(equalTo: toolbar.bottomAnchor).isActive = true
+
 //        view.addSubview(toolbar)
 //        view.sendSubview(toBack: toolbar)
         
@@ -487,6 +498,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             } else {
                 webView.isHidden = false
                 snap?.removeFromSuperview()
+                updateStatusbar()
             }
         }
     }
@@ -504,10 +516,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             width: cardView.bounds.width,
             height: cardView.bounds.width * aspect
         )
-        
+        snap.frame.origin.y = isExpandedSnapshotMode ? Const.shared.statusHeight : (fromBottom ? -400 : THUMB_OFFSET_COLLAPSED)
+
+        updateStatusbar()
+    }
+    
+    func updateStatusbar() {
         statusBar.label.alpha = isExpandedSnapshotMode ? 0 : 1
         statusBar.frame.size.height = isExpandedSnapshotMode ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED
-        snap.frame.origin.y = isExpandedSnapshotMode ? Const.shared.statusHeight : (fromBottom ? -400 : THUMB_OFFSET_COLLAPSED)
     }
     
     
@@ -677,6 +693,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         self.toolbarBottomConstraint.constant = -keyboardHeight
 
+        keyboardBack.backgroundColor = toolbar.isLight
+            ? toolbar.lastColor.withBrightness(2.5)
+            : toolbar.lastColor.saturated()
+
         if animated {
             UIView.animate(
                 withDuration: 0.5,
@@ -686,9 +706,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 options: [.curveLinear, .allowUserInteraction],
                 animations: {
                     
-//                self.cardView.frame.size.height = cardH
-//                self.cardView.layer.cornerRadius = 8
-
                 self.toolbarHeightConstraint.constant = self.searchView.bounds.height
 
                 self.locationBar.alpha = 0
