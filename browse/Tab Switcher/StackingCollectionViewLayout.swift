@@ -51,7 +51,7 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
             let pctOver = abs(distFromTop) / 200
 
             if distFromTop < 0 {
-                intendedFrame.origin.y = intendedFrame.origin.y - distFromTop
+                intendedFrame.origin.y = intendedFrame.origin.y - distFromTop * 0.9
                 let s = 1 - pctOver * 0.05
                 attributes.transform = CGAffineTransform(scaleX: s, y: s)
             }

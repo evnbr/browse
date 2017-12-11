@@ -28,6 +28,10 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
     var isExpanding : Bool {
         return direction == .present
     }
+    var isDismissing : Bool {
+        return direction == .dismiss
+    }
+
         
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         return 0.2
@@ -60,8 +64,8 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         else {
             homeVC.setThumbPosition(
                 expanded: true,
-                offsetY: browserVC.cardView.frame.origin.y,
-                offsetHeight: (browserVC.cardViewDefaultFrame.height - browserVC.cardView.frame.height)
+                offsetY: 0, //browserVC.cardView.frame.origin.y,
+                offsetHeight: (browserVC.cardViewDefaultFrame.height - browserVC.cardView.bounds.height)
             )
         }
         
@@ -123,6 +127,9 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         browserVC.cardView.bounds = isExpanding ? thumbBounds : expandedBounds
         browserVC.updateSnapshotPosition(fromBottom: clipSnapFromBottom)
 
+        for cell in homeVC.visibleCellsBelow {
+            containerView.addSubview(cell)
+        }
         
         // Hack to keep thumbnails from intersecting toolbar
         let newTabToolbar = homeVC.toolbar!
@@ -161,6 +168,10 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             } else {
                 homeVC.setThumbPosition(expanded: false)
             }
+            for cell in homeVC.visibleCellsBelow {
+                cell.center.y += -homeVC.collectionView!.contentOffset.y
+            }
+
             
             homeVC.setNeedsStatusBarAppearanceUpdate()
                 
@@ -176,8 +187,13 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             homeVC.view.addSubview(newTabToolbar)
             newTabToolbar.isHidden = self.isExpanding
             
-            if self.direction == .dismiss {
+            for cell in homeVC.visibleCellsBelow {
+                homeVC.collectionView?.addSubview(cell)
+            }
+            
+            if self.isDismissing {
                 homeVC.visibleCells.forEach { $0.isHidden = false }
+                homeVC.setThumbPosition(expanded: false)
                 homeVC.setNeedsStatusBarAppearanceUpdate()
             }
             

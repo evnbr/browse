@@ -48,14 +48,14 @@ class ColorStatusBarView : GradientColorChangeView {
 //        self.addSubview(overlay)
         
         label = UILabel(frame: CGRect(
-            x: 16 ,
-            y: 10,
+            x: 24 ,
+            y: 12,
             width: frame.width - 24,
             height: 16.0
         ))
         label.text = "Blank"
         label.alpha = 0
-        label.font = UIFont.systemFont(ofSize: THUMB_TITLE)
+        label.font = Const.shared.thumbTitle
         label.textColor = .darkText
         self.addSubview(label)
 

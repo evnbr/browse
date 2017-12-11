@@ -43,12 +43,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
             }
         }
     }
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        
-        // there should be a way to do this with autolayout but couldn't figure it out
-//        snap?.frame = frameForSnap(snap)
-    }
     
     var clipSnapFromBottom : Bool {
         get {
@@ -106,14 +100,13 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
 
         
         label = UILabel(frame: CGRect(
-            x: 16,
-            y: 10,
+            x: 24,
+            y: 12,
             width: frame.width - 24,
             height: 16.0
         ))
         label.text = "Blank"
-//        label.textAlignment = .center
-        label.font = UIFont.systemFont(ofSize: THUMB_TITLE)
+        label.font = Const.shared.thumbTitle
         label.textColor = .darkText
         contentView.addSubview(label)
         contentView.backgroundColor = .white
@@ -186,16 +179,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
             self.overlay.alpha = 0
         }
     }
-    
-//    func setSnapshot(_ newSnapshot : UIView) {
-//        snap?.removeFromSuperview()
-//
-//        snap = newSnapshot
-//        snap.frame = frameForSnap(snap)
-//
-//        contentView.addSubview(snap)
-//        contentView.sendSubview(toBack: snap)
-//    }
     
     func setSnapshot(_ newImage : UIImage) {
         let newAspect = newImage.size.height / newImage.size.width

@@ -43,8 +43,12 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         collectionView?.collectionViewLayout = StackingCollectionViewLayout()
         collectionView?.delaysContentTouches = false
+        
         collectionView?.alwaysBounceVertical = true
+        collectionView?.scrollIndicatorInsets.bottom = Const.shared.toolbarHeight
+        collectionView?.scrollIndicatorInsets.top = Const.shared.statusHeight
         collectionView?.indicatorStyle = .white
+        
         collectionView?.register(TabThumbnail.self, forCellWithReuseIdentifier: reuseIdentifier)
         
         title = ""
@@ -265,13 +269,15 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                 for cell in visibleCellsAbove {
                     let ip = cv.indexPath(for: cell)!
                     cell.center = cv.layoutAttributesForItem(at: ip)!.center
-                    cell.center.y += shiftUp + offsetY
+//                    cell.center.y += shiftUp + offsetY
+                    cell.center.y = Const.shared.statusHeight + collectionView!.contentOffset.y + cell.bounds.height / 2
                     cell.isHidden = false
                 }
                 for cell in visibleCellsBelow {
                     let ip = cv.indexPath(for: cell)!
                     cell.center = cv.layoutAttributesForItem(at: ip)!.center
-                    cell.center.y += shiftDown + offsetY - offsetHeight
+//                    cell.center.y += shiftDown + offsetY - offsetHeight
+                    cell.center.y = Const.shared.statusHeight + collectionView!.contentOffset.y + view.bounds.height + cell.bounds.height / 2
                     cell.isHidden = false
                 }
             }

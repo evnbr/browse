@@ -238,7 +238,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 
                 let vProgress = abs(cardView.frame.origin.y / 200)
                 home.navigationController?.view.alpha = vProgress * 0.7 // alpha is 0 ... 0.4
-                home.setThumbPosition(expanded: true, offsetY: cardView.frame.origin.y, offsetHeight: 0)
+//                home.setThumbPosition(expanded: true, offsetY: cardView.frame.origin.y, offsetHeight: 0)
             }
             else {
                 // COPY PASTED A
@@ -252,7 +252,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 cardView.center.y = view.center.y + yShift
                 cardView.transform = CGAffineTransform(scaleX: s, y: s)
                 
-                home.setThumbPosition(expanded: true, offsetY: cardView.frame.origin.y, offsetHeight: cardView.bounds.height * (1 - s) )
+//                home.setThumbPosition(expanded: true, offsetY: cardView.frame.origin.y, offsetHeight: cardView.bounds.height * (1 - s) )
                 
                 if canGoBackToParent {
                     mockCardView.frame.origin.x = 0
@@ -278,7 +278,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             cardView.center.y = view.center.y + yShift
             cardView.transform = CGAffineTransform(scaleX: s, y: s)
             
-            home.setThumbPosition(expanded: true, offsetY: cardView.frame.origin.y)
+//            home.setThumbPosition(expanded: true, offsetY: cardView.frame.origin.y)
         }
         
         if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle {
@@ -583,7 +583,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             vc.toolbarHeightConstraint.constant = max(0, Const.shared.toolbarHeight)
         }
         
-        home.setThumbPosition(expanded: true, offsetY: adjustedY)
+//        home.setThumbPositiorn(expanded: true, offsetY: adjustedY)
         
         let revealProgress = abs(adjustedY) / 200
         home.navigationController?.view.alpha = revealProgress * 0.4 // alpha is 0 ... 0.4
