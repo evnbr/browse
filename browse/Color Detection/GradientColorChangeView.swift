@@ -20,6 +20,8 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     let gradientLayer2: CAGradientLayer = CAGradientLayer()
     let gradientLayer3: CAGradientLayer = CAGradientLayer()
     
+    let duration : CFTimeInterval = 0.8
+
     var gradientHolder: UIView!
     
     var lastColor: UIColor = UIColor.clear
@@ -27,14 +29,6 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     var isLight : Bool {
         return lastColor.isLight
     }
-    
-//    override var frame : CGRect {
-//        didSet {
-//            gradientLayer.frame = self.bounds
-//            gradientLayer2.frame = self.bounds
-//            gradientLayer3.frame = self.bounds
-//        }
-//    }
     
     override func layoutSubviews() {
         super.layoutSubviews()
@@ -47,14 +41,14 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         super.init(frame: frame)
         
         gradientHolder = UIView(frame: self.bounds)
-        gradientHolder.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
+        gradientHolder.translatesAutoresizingMaskIntoConstraints = false
         addSubview(gradientHolder)
         sendSubview(toBack: gradientHolder)
         
-        gradientHolder.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        gradientHolder.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
+        gradientHolder.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
         gradientHolder.widthAnchor.constraint(equalTo: self.widthAnchor).isActive = true
         gradientHolder.heightAnchor.constraint(equalTo: self.heightAnchor).isActive = true
-        
         
         for layer in [gradientLayer, gradientLayer2, gradientLayer3] {
             layer.frame = self.bounds
@@ -72,32 +66,31 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         gradientLayer3.removeAllAnimations()
     }
     
-    func animateGradient(
-        toColor: UIColor,
-        duration: CFTimeInterval,
-        direction: GradientColorChangeDirection )
-        -> Bool {
+    func getGradientLayer() -> CAGradientLayer? {
+        if gradientLayer.superlayer == nil {
+            return gradientLayer
+        }
+        else if gradientLayer2.superlayer == nil  {
+            return gradientLayer2
+        }
+        else if gradientLayer3.superlayer == nil  {
+            return gradientLayer3
+        }
+        else {
+            return nil
+        }
+    }
+    
+    func animateGradient(toColor: UIColor, direction: GradientColorChangeDirection ) -> Bool {
         
         guard !toColor.isEqual(lastColor) else {
             return false
         }
         
-        var gLayer : CAGradientLayer
-        if gradientLayer.superlayer == nil {
-            gLayer = gradientLayer
-        }
-        else if gradientLayer2.superlayer == nil  {
-            gLayer = gradientLayer2
-        }
-        else if gradientLayer3.superlayer == nil  {
-            gLayer = gradientLayer3
-        }
-        else {
+        guard let gLayer : CAGradientLayer = getGradientLayer() else {
             print("all grads in use")
             return false
         }
-//        let gLayer = CAGradientLayer()
-//        gLayer.frame = self.bounds
         
         CATransaction.begin()
         CATransaction.setDisableActions(true)
@@ -109,15 +102,15 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
                 toColor.cgColor,
                 toColor.withAlphaComponent(0).cgColor
             ]
-            beginLoc = [-1, 0.05]
-            endLoc = [1, 3]
+            beginLoc = [-2, 0.05]
+            endLoc = [1, 4]
         } else {
             gLayer.colors = [
                 toColor.withAlphaComponent(0).cgColor,
                 toColor.cgColor
             ]
-            beginLoc = [0.95, 2]
-            endLoc = [-2, 0]
+            beginLoc = [0.95, 3]
+            endLoc = [-3, 0]
         }
         gLayer.locations = beginLoc
         lastColor = toColor

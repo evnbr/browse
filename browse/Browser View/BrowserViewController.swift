@@ -66,20 +66,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         return toolbarHeightConstraint.constant > 0
     }
     
-    var shouldUpdateColors : Bool {
-        return (
-            isViewLoaded
-            && view.window != nil
-            && !gestureController.isInteractiveDismiss
-            && UIApplication.shared.applicationState == .active
-            && webView != nil
-            && !hideUntilNavigationDone
-            && !(webView.scrollView.contentOffset.y < 0)
-            && abs(cardView.frame.origin.y) < 1.0
-            && abs(cardView.frame.origin.x) < 1.0
-        )
-    }
-    
     var displayTitle : String {
         guard let url = webView?.url else { return "" }
         if isSearching { return url.searchQuery }
@@ -158,7 +144,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         if let newTop = newTab.topColorSample {
             statusBar.backgroundColor = newTop
             // TODO: just need to reset tint color, dont need animate gradient
-            let _ = statusBar.animateGradient(toColor: newTop, duration: 0.1, direction: .fromBottom)
+            let _ = statusBar.animateGradient(toColor: newTop, direction: .fromBottom)
         }
         else {
             statusBar.backgroundColor = .white
@@ -168,7 +154,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             cardView.backgroundColor = newBottom
             webView.backgroundColor = newBottom
             // TODO: just need to reset tint color, dont need animate gradient
-            let _ = toolbar.animateGradient(toColor: newBottom, duration: 0.1, direction: .fromTop)
+            let _ = toolbar.animateGradient(toColor: newBottom, direction: .fromTop)
         }
         else {
             toolbar.backgroundColor = .white
@@ -179,9 +165,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         webView.navigationDelegate = self
         webView.uiDelegate = self
         webView.scrollView.delegate = gestureController
-        
-        colorSampler.webView = webView
-        
+                
         cardView.addSubview(webView)
         cardView.bringSubview(toFront: keyboardBack)
         cardView.bringSubview(toFront: toolbar)
@@ -261,7 +245,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         accessoryView = setupAccessoryView()
         
-        colorSampler = ColorSampler(inViewController: self)
+        colorSampler = ColorSampler()
+        colorSampler.delegate = self
         
         gestureController = BrowserGestureController(for: self)
         
@@ -693,10 +678,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         self.toolbarBottomConstraint.constant = -keyboardHeight
 
-        keyboardBack.backgroundColor = toolbar.isLight
-            ? toolbar.lastColor.withBrightness(2.5)
-            : toolbar.lastColor.saturated()
-
         if animated {
             UIView.animate(
                 withDuration: 0.5,
@@ -1089,4 +1070,61 @@ extension UIResponder {
         currentFirstResponder = self
     }
     
+}
+
+
+extension BrowserViewController : ColorSampledWebviewDelegate {
+    var sampledWebView : WKWebView {
+        return webView
+    }
+    
+    var shouldUpdateSample : Bool {
+        return (
+            isViewLoaded
+                && view.window != nil
+                && !gestureController.isInteractiveDismiss
+                && UIApplication.shared.applicationState == .active
+                && webView != nil
+                && !hideUntilNavigationDone
+                && !(webView.scrollView.contentOffset.y < 0)
+                && abs(cardView.frame.origin.y) < 1.0
+                && abs(cardView.frame.origin.x) < 1.0
+        )
+    }
+    
+    var bottomSamplePosition : CGFloat {
+        return cardView.bounds.height - (-toolbarBottomConstraint.constant) - Const.shared.statusHeight - toolbarHeightConstraint.constant
+    }
+    
+    func topColorChange(_ newColor: UIColor) {
+        browserTab?.topColorSample = newColor // this is a hack
+        
+        if shouldUpdateSample {
+            let didChange = statusBar.animateGradient(toColor: newColor, direction: .fromBottom)
+            
+            if didChange {
+                UIView.animate(withDuration: 0.2, delay: 0.1, options: .curveEaseInOut, animations: {
+                    self.setNeedsStatusBarAppearanceUpdate()
+                })
+            }
+        }
+    }
+    
+    func bottomColorChange(_ newColor: UIColor) {
+        browserTab?.bottomColorSample = newColor
+        
+        if shouldUpdateSample {
+            cardView.backgroundColor = newColor
+            UIView.animate(withDuration: 0.2, delay: 0.1, options: .curveEaseInOut, animations: {
+                self.keyboardBack.backgroundColor = newColor //newColor.isLight ? newColor.withBrightness(2.5) : newColor.saturated()
+            })
+            let _ = toolbar.animateGradient(toColor: newColor, direction: .fromTop)
+        }
+
+    }
+    
+    func cancelColorChange() {
+        statusBar.cancelColorChange()
+        toolbar.cancelColorChange()
+    }
 }

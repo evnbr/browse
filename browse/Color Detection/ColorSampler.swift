@@ -9,79 +9,29 @@
 import Foundation
 import WebKit
 
-extension ClosedRange {
-    func clamp(_ value : Bound) -> Bound {
-        return self.lowerBound > value ? self.lowerBound
-            : self.upperBound < value ? self.upperBound
-            : value
-    }
-    
-}
-
-enum ColorTransitionStyle {
-    case fade
-    case translate
-}
-
-let DURATION = 0.9
 let MIN_TIME_BETWEEN_UPDATES = 0.15
 
-
-protocol ColorSamplerDelegate {
+protocol ColorSampledWebviewDelegate {
+    var sampledWebView : WKWebView { get }
     
+    var shouldUpdateSample : Bool { get }
+    var bottomSamplePosition : CGFloat { get }
+    
+    func topColorChange(_ newColor : UIColor)
+    func bottomColorChange(_ newColor : UIColor)
+    func cancelColorChange()
 }
 
-class ColorSampler : NSObject, UIGestureRecognizerDelegate {
-        
+class ColorSampler : NSObject {
+    
+    var delegate : ColorSampledWebviewDelegate!
+
     private var colorUpdateTimer : Timer?
-
-    var webView: WKWebView!
     
-    private var isTopAnimating : Bool = false
-    private var isBottomAnimating : Bool = false
-    private var isPanning : Bool = false
-    private var wasScrollingDown : Bool = true
-    
-    private var isBottomTransitionInteractive = false
-    private var isTopTransitionInteractive = false
-
-    private var context: CGContext!
-    private var pixel: [CUnsignedChar]
-    
-    public var top: UIColor = UIColor.clear
-    public var bottom: UIColor = UIColor.clear
-    
-    public var previousTop: UIColor = UIColor.clear
-    public var previousBottom: UIColor = UIColor.clear
-    
-    public var topDelta: Float = 0.0
-    public var bottomDelta: Float = 0.0
+    var top: UIColor = UIColor.clear
+    var bottom: UIColor = UIColor.clear
     
     var lastSampledColorsTime : CFTimeInterval = 0.0
-    var lastTopTransitionTime : CFTimeInterval = 0.0
-    var lastBottomTransitionTime : CFTimeInterval = 0.0
-        
-    private var wvc : BrowserViewController!
-    
-    init(inViewController vc : BrowserViewController) {
-        
-        wvc = vc
-        
-        pixel = [0, 0, 0, 0]
-        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
-        
-        context = CGContext(
-            data: &pixel,
-            width: 1,
-            height: 1,
-            bitsPerComponent: 8,
-            bytesPerRow: 4,
-            space: CGColorSpaceCreateDeviceRGB(),
-            bitmapInfo: bitmapInfo.rawValue
-        )
-        
-        super.init()
-    }
     
     func startUpdates() {
         if colorUpdateTimer == nil {
@@ -100,39 +50,34 @@ class ColorSampler : NSObject, UIGestureRecognizerDelegate {
     func stopUpdates() {
         colorUpdateTimer?.invalidate()
         colorUpdateTimer = nil
-        wvc.statusBar.cancelColorChange()
-        wvc.toolbar.cancelColorChange()
+        delegate.cancelColorChange()
     }
     
     @objc func updateColors() {
         
-        guard wvc.shouldUpdateColors else { return }
+        guard delegate.shouldUpdateSample else { return }
         
         let now = CACurrentMediaTime()
         guard ( now - lastSampledColorsTime > MIN_TIME_BETWEEN_UPDATES )  else { return }
         lastSampledColorsTime = now
         
         let sampleH : CGFloat = 5
-        let sampleW : CGFloat = webView.bounds.width
+        let sampleW : CGFloat = delegate.sampledWebView.bounds.width
+        
         let bottomConfig = WKSnapshotConfiguration()
         bottomConfig.rect = CGRect(
             x: 0,
-            y: wvc.cardView.bounds.height - (-wvc.toolbarBottomConstraint.constant) - Const.shared.statusHeight - wvc.toolbarHeightConstraint.constant - sampleH,
+            y: delegate.bottomSamplePosition - sampleH,
             width: sampleW,
             height: sampleH
         )
-        webView.takeSnapshot(with: bottomConfig) { image, error in
+        delegate.sampledWebView.takeSnapshot(with: bottomConfig) { image, error in
             image?.getColors(scaleDownSize: bottomConfig.rect.size) { colors in
-                self.previousBottom = self.bottom
                 self.bottom = colors.background
-                self.wvc.browserTab?.bottomColorSample = self.bottom // this is a hack
-
-                if self.wvc.shouldUpdateColors {
-                    self.wvc.cardView.backgroundColor = self.bottom // this is a hack
-                    let _ = self.wvc.toolbar.animateGradient(toColor: self.bottom, duration: DURATION, direction: .fromTop)
-                }
+                self.delegate.bottomColorChange(self.bottom)
             }
         }
+        
         let topConfig = WKSnapshotConfiguration()
         topConfig.rect = CGRect(
             x: 0,
@@ -140,37 +85,11 @@ class ColorSampler : NSObject, UIGestureRecognizerDelegate {
             width: sampleW,
             height: sampleH
         )
-        webView.takeSnapshot(with: topConfig) { image, error in
+        delegate.sampledWebView.takeSnapshot(with: topConfig) { image, error in
             image?.getColors(scaleDownSize: topConfig.rect.size) { colors in
-                self.previousTop = self.top
                 self.top = colors.background
-                self.wvc.browserTab?.topColorSample = self.top // this is a hack
-
-                if self.wvc.shouldUpdateColors {
-                    let didChange = self.wvc.statusBar.animateGradient(toColor: self.top, duration: DURATION, direction: .fromBottom)
-                    
-                    if didChange {
-                        UIView.animate(withDuration: 0.2, delay: 0.1, options: .curveEaseInOut, animations: {
-                            self.wvc.setNeedsStatusBarAppearanceUpdate()
-                        })
-                    }
-                }
+                self.delegate.topColorChange(self.top)
             }
-        }
-    }
-    
-    func updateTopColor() {
-        self.wvc.browserTab?.topColorSample = self.top // this is a hack
-        animateTopToEndState(.fade)
-    }
-    
-    func animateTopToEndState(_ style : ColorTransitionStyle) {
-        let didChange = self.wvc.statusBar.animateGradient(toColor: self.top, duration: 1.0, direction: .fromBottom)
-        
-        if didChange {
-            UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
-                self.wvc.setNeedsStatusBarAppearanceUpdate()
-            })
         }
     }
     
