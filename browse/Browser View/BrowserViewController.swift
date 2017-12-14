@@ -29,6 +29,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     var statusBar: ColorStatusBarView!
     var toolbar: ProgressToolbar!
+    var toolbarHiddenPlaceholder = UIView()
     var accessoryView: GradientColorChangeView!
     
     var errorView: UIView!
@@ -232,6 +233,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         toolbar = setUpToolbar()
         
+        toolbarHiddenPlaceholder.translatesAutoresizingMaskIntoConstraints = false
+        toolbarHiddenPlaceholder.backgroundColor = .clear
+        let tap = UITapGestureRecognizer(target: self, action: #selector(self.tapToolbarPlaceholder))
+        toolbarHiddenPlaceholder.addGestureRecognizer(tap)
         
         roundedClipView.addSubview(toolbarHiddenPlaceholder)
 
@@ -243,6 +248,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         toolbarBottomConstraint = toolbar.bottomAnchor.constraint(equalTo: cardView.bottomAnchor)
         toolbarBottomConstraint.isActive = true
         
+        toolbarHiddenPlaceholder.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
+        toolbarHiddenPlaceholder.widthAnchor.constraint(equalTo: cardView.widthAnchor).isActive = true
+        toolbarHiddenPlaceholder.bottomAnchor.constraint(equalTo: cardView.bottomAnchor).isActive = true
+        toolbarHiddenPlaceholder.heightAnchor.constraint(equalToConstant: Const.shared.toolbarHeight).isActive = true
+
+
         keyboardBack.translatesAutoresizingMaskIntoConstraints = false
         keyboardBack.backgroundColor = .cyan
         roundedClipView.addSubview(keyboardBack)
@@ -344,18 +355,22 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             delay: 0,
             options: .curveEaseInOut,
             animations: {
-                self.view.layoutIfNeeded()
                 self.webView.scrollView.contentInset.bottom = -Const.shared.toolbarHeight
                 self.webView.scrollView.scrollIndicatorInsets.bottom = -Const.shared.toolbarHeight
 
                 self.locationBar.alpha = 0
                 self.backButton.alpha = 0
                 self.tabButton.alpha = 0
+                
+                self.view.layoutIfNeeded()
             }, completion: { _ in
 //                self.webView.scrollView.contentInset.bottom = 0
 //                self.heightConstraint.constant = -Const.shared.statusHeight
             }
         )
+    }
+    @objc func tapToolbarPlaceholder() {
+        self.showToolbar()
     }
     func showToolbar(animated : Bool = true) {
         guard !isDisplayingSearch else { return }
@@ -367,13 +382,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             delay: 0,
             options: [.curveEaseInOut, .allowAnimatedContent],
             animations: {
-                self.view.layoutIfNeeded()
                 self.webView.scrollView.contentInset.bottom = 0
                 self.webView.scrollView.scrollIndicatorInsets.bottom = 0
 
                 self.locationBar.alpha = 1
                 self.backButton.alpha = 1
                 self.tabButton.alpha = 1
+                
+                self.view.layoutIfNeeded()
             }, completion: { _ in
 //                self.webView.scrollView.contentInset.bottom = 0
 //                self.heightConstraint.constant = -Const.shared.statusHeight - Const.shared.toolbarHeight
