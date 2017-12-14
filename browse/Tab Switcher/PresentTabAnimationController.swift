@@ -154,7 +154,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             browserVC.isExpandedSnapshotMode = self.isExpanding
             browserVC.updateSnapshotPosition(fromBottom: clipSnapFromBottom)
 
-            browserVC.cardView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
+            browserVC.roundedClipView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
 
             homeNav.view.alpha = self.isExpanding ? END_ALPHA : 1.0
             

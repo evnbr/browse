@@ -33,6 +33,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     var errorView: UIView!
     var cardView: UIView!
+    var roundedClipView: UIView!
 
     let keyboardBack = UIView()
     
@@ -132,7 +133,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         browserTab = newTab
         webView = newTab.webView
         
-        if snap != nil && snap.isDescendant(of: cardView) {
+        if snap != nil && snap.isDescendant(of: roundedClipView) {
             snap?.removeFromSuperview()
         }
         snap = nil
@@ -151,14 +152,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
         if let newBottom = newTab.bottomColorSample {
             toolbar.backgroundColor = newBottom
-            cardView.backgroundColor = newBottom
+            roundedClipView.backgroundColor = newBottom
             webView.backgroundColor = newBottom
             // TODO: just need to reset tint color, dont need animate gradient
             let _ = toolbar.animateGradient(toColor: newBottom, direction: .fromTop)
         }
         else {
             toolbar.backgroundColor = .white
-            cardView.backgroundColor = .white
+            roundedClipView.backgroundColor = .white
             webView.backgroundColor = .white
         }
         
@@ -166,10 +167,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         webView.uiDelegate = self
         webView.scrollView.delegate = gestureController
                 
-        cardView.addSubview(webView)
-        cardView.bringSubview(toFront: keyboardBack)
-        cardView.bringSubview(toFront: toolbar)
-        cardView.bringSubview(toFront: statusBar)
+        roundedClipView.addSubview(webView)
+        roundedClipView.bringSubview(toFront: keyboardBack)
+        roundedClipView.bringSubview(toFront: toolbarHiddenPlaceholder)
+        roundedClipView.bringSubview(toFront: toolbar)
+        roundedClipView.bringSubview(toFront: statusBar)
         
         topConstraint = webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: Const.shared.statusHeight)
         topConstraint.isActive = true
@@ -212,21 +214,30 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         cardView = UIView(frame: cardViewDefaultFrame)
         cardView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        cardView.layer.cornerRadius = Const.shared.cardRadius
-        cardView.layer.masksToBounds = true
+        cardView.layer.shadowRadius = 24
+        cardView.layer.shadowOpacity = 0.16
+
+        roundedClipView = UIView(frame: cardViewDefaultFrame)
+        roundedClipView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        roundedClipView.layer.cornerRadius = Const.shared.cardRadius
+        roundedClipView.layer.masksToBounds = true
+        
+        view.addSubview(cardView)
+        cardView.addSubview(roundedClipView)
         
         statusBar = ColorStatusBarView()
-        cardView.addSubview(statusBar)
+        roundedClipView.addSubview(statusBar)
         
         searchView = SearchView(for: self)
         
         toolbar = setUpToolbar()
         
-        view.addSubview(cardView)
         
-        cardView.addSubview(toolbar)
-        cardView.bringSubview(toFront: toolbar)
-        
+        roundedClipView.addSubview(toolbarHiddenPlaceholder)
+
+        roundedClipView.addSubview(toolbar)
+        roundedClipView.bringSubview(toFront: toolbar)
+
         toolbar.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
         toolbar.widthAnchor.constraint(equalTo: cardView.widthAnchor).isActive = true
         toolbarBottomConstraint = toolbar.bottomAnchor.constraint(equalTo: cardView.bottomAnchor)
@@ -234,7 +245,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         keyboardBack.translatesAutoresizingMaskIntoConstraints = false
         keyboardBack.backgroundColor = .cyan
-        cardView.addSubview(keyboardBack)
+        roundedClipView.addSubview(keyboardBack)
         keyboardBack.centerXAnchor.constraint(equalTo: toolbar.centerXAnchor).isActive = true
         keyboardBack.widthAnchor.constraint(equalTo: toolbar.widthAnchor).isActive = true
         keyboardBack.bottomAnchor.constraint(equalTo: cardView.bottomAnchor).isActive = true
@@ -327,7 +338,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         guard !isDisplayingSearch else { return }
         
         self.toolbarHeightConstraint.constant = 0
-
+        
         UIView.animate(
             withDuration: 0.2,
             delay: 0,
@@ -490,9 +501,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     func updateSnapshotPosition(fromBottom: Bool = false) {
         guard snap != nil else { return }
-        if snap.superview !== cardView {
-            cardView.addSubview(snap)
-            cardView.bringSubview(toFront: statusBar)
+        if snap.superview !== roundedClipView {
+            roundedClipView.addSubview(snap)
+            roundedClipView.bringSubview(toFront: statusBar)
         }
         
         let aspect = snap.bounds.height / snap.bounds.width
@@ -1114,7 +1125,7 @@ extension BrowserViewController : ColorSampledWebviewDelegate {
         browserTab?.bottomColorSample = newColor
         
         if shouldUpdateSample {
-            cardView.backgroundColor = newColor
+            roundedClipView.backgroundColor = newColor
             UIView.animate(withDuration: 0.2, delay: 0.1, options: .curveEaseInOut, animations: {
                 self.keyboardBack.backgroundColor = newColor //newColor.isLight ? newColor.withBrightness(2.5) : newColor.saturated()
             })

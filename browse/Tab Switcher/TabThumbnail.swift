@@ -98,6 +98,8 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         contentView.layer.cornerRadius = Const.shared.thumbRadius
         contentView.clipsToBounds = true
 
+        layer.shadowRadius = 24
+        layer.shadowOpacity = 0.16
         
         label = UILabel(frame: CGRect(
             x: 24,
