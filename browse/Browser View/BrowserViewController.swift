@@ -541,14 +541,16 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     func updateSnapshot() {
         snap?.removeFromSuperview()
-        webView.scrollView.showsVerticalScrollIndicator = false
-        snap = webView.snapshotView(afterScreenUpdates: true)!
-        snap.autoresizingMask = [.flexibleRightMargin, .flexibleBottomMargin]
-        webView.scrollView.showsVerticalScrollIndicator = true
+//        webView.scrollView.showsVerticalScrollIndicator = false
+//        snap = UIView(frame: webView.bounds)
+//        snap = webView.snapshotView(afterScreenUpdates: true)!
+//        snap.autoresizingMask = [.flexibleRightMargin, .flexibleBottomMargin]
+//        webView.scrollView.showsVerticalScrollIndicator = true
         
         // Image snapshot
         webView.takeSnapshot(with: nil, completionHandler: { (image, error) in
             if let img : UIImage = image {
+                self.snap = UIImageView(image: img)
                 self.browserTab?.history.current?.snapshot = img
             }
         })
