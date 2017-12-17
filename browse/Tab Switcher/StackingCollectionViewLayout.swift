@@ -55,6 +55,15 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
                 let s = 1 - pctOver * 0.05
                 attributes.transform = CGAffineTransform(scaleX: s, y: s)
             }
+//
+//            if distFromTop < 600 {
+//                let pctToTop = clip(max(0, abs(distFromTop)) / 400)
+//                print(pctToTop)
+//
+//                let s = 0.9 + pctToTop * 0.1
+//                attributes.transform = CGAffineTransform(scaleX: s, y: s)
+//            }
+
 
             attributes.frame = intendedFrame
             attributes.zIndex = i * 20

@@ -20,7 +20,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     let gradientLayer2: CAGradientLayer = CAGradientLayer()
     let gradientLayer3: CAGradientLayer = CAGradientLayer()
     
-    let duration : CFTimeInterval = 0.8
+    let duration : CFTimeInterval = 0.6
 
     var gradientHolder: UIView!
     
@@ -102,15 +102,19 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
                 toColor.cgColor,
                 toColor.withAlphaComponent(0).cgColor
             ]
-            beginLoc = [-2, 0.05]
-            endLoc = [1, 4]
+            beginLoc = [-1, 0.05]
+            endLoc = [1, 3]
+//            beginLoc = [0, 0.05]
+//            endLoc = [1, 1.05]
         } else {
             gLayer.colors = [
                 toColor.withAlphaComponent(0).cgColor,
                 toColor.cgColor
             ]
-            beginLoc = [0.95, 3]
-            endLoc = [-3, 0]
+            beginLoc = [0.95, 2]
+            endLoc = [-2, 0]
+//            beginLoc = [0.95, 1]
+//            endLoc = [-0.05, 0]
         }
         gLayer.locations = beginLoc
         lastColor = toColor

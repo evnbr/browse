@@ -20,6 +20,14 @@ class BrowserTab: NSObject {
     
     var history : HistorTree = HistorTree()
     
+    static var baseConfiguration: WKWebViewConfiguration = {
+        let configuration = WKWebViewConfiguration()
+        configuration.processPool = WKProcessPool()
+        configuration.allowsInlineMediaPlayback = true
+        configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
+        return configuration
+    }()
+    
     override init() {
         super.init()
         webView = loadWebView(withConfig: nil)
@@ -62,8 +70,7 @@ class BrowserTab: NSObject {
     }
     
     func loadWebView(withConfig config : WKWebViewConfiguration?) -> WKWebView {
-        let config = config ?? WKWebViewConfiguration()
-        config.allowsInlineMediaPlayback = true
+        let config = config ?? BrowserTab.baseConfiguration
         
         let rect = CGRect(
             origin: CGPoint(x: 0, y: Const.shared.statusHeight),
@@ -86,6 +93,8 @@ class BrowserTab: NSObject {
         
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.scrollView.clipsToBounds = false
+        
+        webView.allowsLinkPreview = false
         
         return webView
     }

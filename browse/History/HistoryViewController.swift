@@ -55,14 +55,21 @@ class HistoryViewController: UICollectionViewController {
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of items
-        return 0
+        return BOOKMARKS_GLOBAL.count
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath)
     
         // Configure the cell
-    
+        for v in cell.contentView.subviews {
+            v.removeFromSuperview()
+        }
+        let label = UILabel(frame: cell.bounds)
+        label.textColor = .white
+        label.text = BOOKMARKS_GLOBAL[indexPath.item]
+        cell.contentView.addSubview(label)
+        
         return cell
     }
 

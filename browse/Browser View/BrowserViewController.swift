@@ -17,7 +17,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var snap: UIView!
     var browserTab: BrowserTab?
     
-    var heightConstraint : NSLayoutConstraint!
     var topConstraint : NSLayoutConstraint!
     var accessoryHeightConstraint : NSLayoutConstraint!
     var toolbarHeightConstraint : NSLayoutConstraint!
@@ -124,20 +123,27 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         if newTab === browserTab { return }
         
         let oldWebView = webView
+        
         oldWebView?.removeFromSuperview()
+        
         oldWebView?.uiDelegate = nil
         oldWebView?.navigationDelegate = nil
+        oldWebView?.scrollView.delegate = nil
+
         oldWebView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress))
         oldWebView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.title))
         oldWebView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.url))
-
+        oldWebView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.canGoBack))
+        oldWebView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.canGoForward))
+        
         browserTab = newTab
         webView = newTab.webView
         
         if snap != nil && snap.isDescendant(of: roundedClipView) {
-            snap?.removeFromSuperview()
+            snap.removeFromSuperview()
         }
         snap = nil
+        
         if let img = newTab.history.current?.snapshot {
             snap = UIImageView(image: img)
             updateSnapshotPosition()
@@ -179,9 +185,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         webView.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
         webView.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
+        webView.heightAnchor.constraint(equalTo: view.heightAnchor, constant: (-Const.shared.statusHeight - Const.shared.toolbarHeight)).isActive = true
         
-        heightConstraint = webView.heightAnchor.constraint(equalTo: view.heightAnchor, constant: (-Const.shared.statusHeight - Const.shared.toolbarHeight))
-        heightConstraint.isActive = true
         
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.title), options: .new, context: nil)
@@ -586,13 +591,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     override func viewWillLayoutSubviews() {
         // because it keeps getting deactivated every time
         // the view is removed from the hierarchy
-        heightConstraint.isActive = true
-        toolbarBottomConstraint.isActive = true
+//        heightConstraint.isActive = true
+//        toolbarBottomConstraint.isActive = true
     }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         
+        print("BrowserVC received memory warning")
         // Dispose of any resources that can be recreated.
     }
     

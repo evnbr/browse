@@ -62,13 +62,13 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         navigationController?.navigationBar.barStyle = .black
         
         toolbar = ColorToolbarView(frame: CGRect(
-            x: 0,
-            y: view.frame.height - Const.shared.toolbarHeight,
-            width: view.frame.width,
-            height: Const.shared.toolbarHeight
+            x: view.frame.width - 60,
+            y: Const.shared.statusHeight, //view.frame.height - Const.shared.toolbarHeight,
+            width: 60,
+            height: 60
         ))
         toolbar.backgroundColor = .black
-        toolbar.autoresizingMask = [ .flexibleTopMargin, .flexibleWidth ]
+        toolbar.autoresizingMask = [ .flexibleBottomMargin, .flexibleLeftMargin ]
         toolbar.layer.zPosition = 100
         
         let addButton = ToolbarTextButton(
@@ -86,6 +86,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         clearButton.size = .small
         
         toolbar.items = [addButton]
+//        toolbar.isHidden = true
         view.addSubview(toolbar)
         
         collectionView?.contentInset = UIEdgeInsets(
@@ -270,7 +271,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                     let ip = cv.indexPath(for: cell)!
                     cell.center = cv.layoutAttributesForItem(at: ip)!.center
 //                    cell.center.y += shiftUp + offsetY
-                    cell.center.y = Const.shared.statusHeight + collectionView!.contentOffset.y + cell.bounds.height / 2
+                    cell.center.y = min(cell.center.y, Const.shared.statusHeight + collectionView!.contentOffset.y + cell.bounds.height / 2)
                     cell.isHidden = false
                 }
                 for cell in visibleCellsBelow {
@@ -311,6 +312,8 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         present(browserVC, animated: animated, completion: {
             self.thumb(forTab: tab)?.unSelect(animated: false)
+            self.thumb(forTab: tab)?.setTab(tab)
+
             if let c = completion { c() }
         })
     }

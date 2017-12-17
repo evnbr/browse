@@ -160,11 +160,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             scrollView.contentInset.bottom = inset
             scrollView.scrollIndicatorInsets.bottom = inset
 
-            let alpha = pct * 4 - 3
+            let alpha = pct * 3 - 2
             vc.locationBar.alpha = alpha
             vc.backButton.alpha = alpha
             vc.tabButton.alpha = alpha
-
             
 //            }
 //            else {
@@ -201,7 +200,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
         let adjustedX = gesturePos.x
         
-        let yGestureInfluence = gesturePos.y * 0.7
+        let yGestureInfluence = gesturePos.y // * 0.7
         cardView.center.x = view.center.x + adjustedX
 
 
@@ -210,13 +209,22 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 
                 let verticalProgress = clip(yGestureInfluence / 200)
                 
-                cardView.center.x = view.center.x + blend(from: adjustedX, to: elasticLimit(adjustedX), by: verticalProgress)
-                
                 let s = 1 - verticalProgress * 0.4
                 cardView.transform = CGAffineTransform(scaleX: s, y: s)
 
+                let scaleFromLeftShift = (1 - s) * cardView.bounds.width / 2
+                
+                cardView.center.x = view.center.x
+                    + blend(from: adjustedX,
+                            to: adjustedX, //elasticLimit(adjustedX),
+                            by: verticalProgress)
+                    - scaleFromLeftShift
+                
                 if yGestureInfluence < dismissPointY {
-                    let mockX = cardView.center.x - mockCardView.bounds.width - mockCardViewSpacer;
+                    let mockX = cardView.center.x
+                        - mockCardView.bounds.width / 2
+                        - (s * cardView.bounds.width / 2)
+                        - mockCardViewSpacer;
                     if mockCardView.frame.origin.x + mockCardView.frame.width < 0 {
                         UIView.animate(withDuration: 0.2, animations: {
                             self.mockCardView.center.x = mockX
@@ -232,12 +240,13 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                     let constrained = dismissPointY * 0.3
                     UIView.animate(withDuration: 0.2, animations: {
                         self.mockCardView.center.x = self.view.center.x - self.mockCardView.bounds.width - self.mockCardViewSpacer
+//                        self.mockCardView.center = self.cardView.center
                     })
                     cardView.center.y = self.view.center.y + constrained + (yGestureInfluence - dismissPointY)
                 }
                 
                 let vProgress = abs(cardView.frame.origin.y / 200)
-                home.navigationController?.view.alpha = vProgress * 0.7 // alpha is 0 ... 0.4
+                home.navigationController?.view.alpha = min(0.4, vProgress * 0.5) // alpha is 0 ... 0.4
 //                home.setThumbPosition(expanded: true, offsetY: cardView.frame.origin.y, offsetHeight: 0)
             }
             else {
