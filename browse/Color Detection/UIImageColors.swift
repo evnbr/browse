@@ -126,8 +126,10 @@ extension UIImage {
         DispatchQueue.global().async {
             let result = self.getColors(scaleDownSize: scaleDownSize)
             
-            DispatchQueue.main.async {
-                completionHandler(result)
+            if let colors : UIImageColors = result {
+                DispatchQueue.main.async {
+                    completionHandler(colors)
+                }
             }
         }
     }
@@ -140,7 +142,7 @@ extension UIImage {
      
      - returns: `UIImageColors` for this image.
      */
-    public func getColors(scaleDownSize: CGSize = CGSize.zero) -> UIImageColors {
+    public func getColors(scaleDownSize: CGSize = CGSize.zero) -> UIImageColors? {
         
         // TODO: Scale down is not encessary but without it
         // the image gets released(?) and accessing the bytes will fail
@@ -180,23 +182,30 @@ extension UIImage {
         // Filter out and collect pixels from image
         let imageColors = NSCountedSet(capacity: width * height)
         
+//        print("w: \(width) h: \(height)")
+
         for x in 0..<width {
             for y in 0..<height {
+
                 if x < 8 || x > width - 8 {
                     // Only count pixels within N of sides
                     let pixel: Int = ((width * y) + x) * 4
-                    let color = UIColor(
-                        red: CGFloat(data[pixel + 2]) / 255,
-                        green: CGFloat(data[pixel + 1]) / 255,
-                        blue: CGFloat(data[pixel]) / 255,
-                        alpha: 1.0
-                    )
-                    imageColors.add(color)
-                    if x < 5 || x > width - 5 {
-                        // boost very edges
+                    
+                    if 127 <= data[pixel+3] { // alpha over 0.5
+
+                        let color = UIColor(
+                            red: CGFloat(data[pixel + 2]) / 255,
+                            green: CGFloat(data[pixel + 1]) / 255,
+                            blue: CGFloat(data[pixel]) / 255,
+                            alpha: 1.0
+                        )
                         imageColors.add(color)
-                        imageColors.add(color)
-                        imageColors.add(color)
+                        if x < 5 || x > width - 5 {
+                            // boost very edges
+                            imageColors.add(color)
+                            imageColors.add(color)
+                            imageColors.add(color)
+                        }
                     }
                 }
             }
@@ -214,10 +223,31 @@ extension UIImage {
         sortedColors.sort(comparator: sortedColorComparator)
         
         var proposedEdgeColor: PCCountedColor
-        if 0 < sortedColors.count {
-            proposedEdgeColor = sortedColors.object(at: 0) as! PCCountedColor
+        if sortedColors.count > 0 {
+            let firstColor = sortedColors.object(at: 0) as! PCCountedColor
+            
+            if sortedColors.count == 1 {
+                proposedEdgeColor = firstColor
+//                print("one choice")
+            }
+            else {
+                let secondColor = sortedColors.object(at: 1) as! PCCountedColor
+//                print("1: \(firstColor.count) 2: \(secondColor.count)")
+                if firstColor.count - secondColor.count < 60 {
+//                    proposedEdgeColor = PCCountedColor(color: fallbackColor, count: 1)
+                    proposedEdgeColor = PCCountedColor(
+                        color: UIColor.average([firstColor.color, secondColor.color]),
+                        count: 1)
+//                    print("colors are close")
+                }
+                else {
+                    proposedEdgeColor = firstColor
+//                    print("clear winner")
+                }
+            }
         } else {
             proposedEdgeColor = PCCountedColor(color: fallbackColor, count: 1)
+            return nil
         }
         
 //        if proposedEdgeColor.color.isBlackOrWhite && 0 < sortedColors.count {

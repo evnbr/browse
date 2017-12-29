@@ -9,7 +9,7 @@
 import Foundation
 import WebKit
 
-let MIN_TIME_BETWEEN_UPDATES = 0.1
+let MIN_TIME_BETWEEN_UPDATES = 0.25
 
 protocol ColorSampledWebviewDelegate {
     var sampledWebView : WKWebView { get }
@@ -61,7 +61,7 @@ class ColorSampler : NSObject {
         guard ( now - lastSampledColorsTime > MIN_TIME_BETWEEN_UPDATES )  else { return }
         lastSampledColorsTime = now
         
-        let sampleH : CGFloat = 5
+        let sampleH : CGFloat = 12
         let sampleW : CGFloat = delegate.sampledWebView.bounds.width
         
         let bottomConfig = WKSnapshotConfiguration()
@@ -72,7 +72,8 @@ class ColorSampler : NSObject {
             height: sampleH
         )
         delegate.sampledWebView.takeSnapshot(with: bottomConfig) { image, error in
-            image?.getColors(scaleDownSize: bottomConfig.rect.size) { colors in
+//            image?.getColors(scaleDownSize: bottomConfig.rect.size) { colors in
+            image?.getColors() { colors in
                 self.bottom = colors.background
                 self.delegate.bottomColorChange(self.bottom)
             }
@@ -86,7 +87,8 @@ class ColorSampler : NSObject {
             height: sampleH
         )
         delegate.sampledWebView.takeSnapshot(with: topConfig) { image, error in
-            image?.getColors(scaleDownSize: topConfig.rect.size) { colors in
+//            image?.getColors(scaleDownSize: topConfig.rect.size) { colors in
+            image?.getColors() { colors in
                 self.top = colors.background
                 self.delegate.topColorChange(self.top)
             }

@@ -68,14 +68,16 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         homeNav.view.transform = .identity // HACK reset to identity so we can get frame
         
         var thumbCenter : CGPoint
+        var thumbOverlayAlpha : CGFloat = 0
         
         if thumb != nil {
             // must be after toVC is added
             let cv = homeVC.collectionView!
             let selIndexPath = cv.indexPath(for: thumb!)!
-            let selectedThumbCenter = cv.layoutAttributesForItem(at: selIndexPath)!.center
+            let attr = cv.layoutAttributesForItem(at: selIndexPath)!
+            let selectedThumbCenter = attr.center
+            thumbOverlayAlpha = 1 - attr.alpha
             thumbCenter = containerView.convert(selectedThumbCenter, from: thumb?.superview)
-
         }
         else {
             // animate from bottom
@@ -85,7 +87,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         let expandedCenter = browserVC.cardView.center
         let expandedBounds = browserVC.cardView.bounds
-        let thumbBounds = CGRect(origin: .zero, size: homeVC.thumbSize)
+        let thumbBounds = homeVC.boundsForThumb(forTab: browserVC.browserTab) ?? CGRect(origin: .zero, size: homeVC.thumbSize)
 
         homeNav.view.transform = self.isExpanding ? .identity : prevTransform
         
@@ -106,18 +108,21 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             browserVC.cardView.center = self.isExpanding ? expandedCenter : thumbCenter
             browserVC.cardView.bounds = self.isExpanding ? expandedBounds : thumbBounds
             browserVC.cardView.transform = .identity
+                
+            browserVC.overlay.alpha = self.isExpanding ? 0 : thumbOverlayAlpha
+                
+                
             browserVC.isExpandedSnapshotMode = self.isExpanding
             browserVC.updateSnapshotPosition()
 
             browserVC.roundedClipView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
 
-            homeNav.view.alpha = self.isExpanding ? 0 : 1
+            homeNav.view.alpha = self.isExpanding ? 0.4 : 1
             
             homeVC.setThumbPosition(expanded: self.isExpanding)
             homeVC.visibleCellsBelow.forEach { $0.center.y += -homeVC.collectionView!.contentOffset.y }
 
             homeVC.setNeedsStatusBarAppearanceUpdate()
-                
                 
         }, completion: { finished in
             browserVC.isSnapshotMode = false

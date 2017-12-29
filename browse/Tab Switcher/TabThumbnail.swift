@@ -25,15 +25,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
     var unTransformedFrame : CGRect!
     
-    var darkness : CGFloat {
-        get {
-            return overlay.alpha
-        }
-        set {
-            overlay.alpha = newValue
-        }
-    }
-    
     override var frame : CGRect {
         didSet {
             if !isDismissing {
@@ -90,8 +81,8 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         snapAspectConstraint.isActive = true
 
         overlay = UIView(frame: bounds)
-        overlay.translatesAutoresizingMaskIntoConstraints = false
-        overlay.backgroundColor = UIColor.gray.withAlphaComponent(0.3)
+        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        overlay.backgroundColor = UIColor.black
         overlay.alpha = 0
         contentView.addSubview(overlay)
 
@@ -123,11 +114,15 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         
         if let img : UIImage = browserTab.history.current?.snapshot {
             setSnapshot(img)
+            label.isHidden = true
+        }
+        else {
+            label.isHidden = false
         }
         
         if let color : UIColor = browserTab.topColorSample {
             contentView.backgroundColor = color
-            overlay.backgroundColor = color.isLight ? .lightTouch : .darkTouch
+//            overlay.backgroundColor = color.isLight ? .lightTouch : .darkTouch
             label.textColor = color.isLight ? .white : .darkText
         }
         
@@ -154,7 +149,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         unTransformedFrame = frame
         
         if touches.first != nil {
-            self.overlay.alpha = 0.7
+//            self.overlay.alpha = 0.3
             UIView.animate(withDuration: 0.15, delay: 0.0, animations: {
                 self.transform = CGAffineTransform(scaleX: 0.98, y: 0.98)
             })
@@ -162,7 +157,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     }
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesEnded(touches, with: event)
-        unSelect()
+//        unSelect()
     }
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesCancelled(touches, with: event)
@@ -173,7 +168,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         if animated {
             UIView.animate(withDuration: 0.2, delay: 0.0, animations: {
                 self.transform = .identity
-                self.overlay.alpha = 0
+//                self.overlay.alpha = 0
             })
         }
         else {            
@@ -193,23 +188,24 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     }
     
     var isDismissing = false
-    var startFrame : CGRect = .zero
+    var startCenter : CGPoint = .zero
     
     @objc func panGestureChange(gesture: UIPanGestureRecognizer) {
         let gesturePos = gesture.translation(in: self)
 
         if gesture.state == .began {
             isDismissing = true
-            startFrame = unTransformedFrame
+            startCenter = center
         }
         else if gesture.state == .changed {
             if isDismissing {
-                let pct = abs(gesturePos.x) / startFrame.width
+                let pct = abs(gesturePos.x) / bounds.width
                 if pct > 0.7 {
                     alpha = 1 - (pct - 0.7) * 2
                 }
                 
-                frame.origin.x = startFrame.origin.x + gesturePos.x
+                center.x = startCenter.x + gesturePos.x
+                center.y = startCenter.y + elasticLimit(gesturePos.y) * 0.4
             }
         }
         else if gesture.state == .ended {
@@ -219,22 +215,22 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
                 
                 let vel = gesture.velocity(in: superview)
                 
-                var endFrame : CGRect = startFrame
+                var endCenter : CGPoint = startCenter
                 var endAlpha : CGFloat = 1
                 
-                if ( vel.x > 800 || gesturePos.x > frame.width * 0.5 ) {
-                    endFrame.origin.x = startFrame.origin.x + startFrame.width
+                if ( vel.x > 1200 || gesturePos.x > bounds.width * 0.7 ) {
+                    endCenter.x = startCenter.x + bounds.width
                     endAlpha = 0
                     closeTabCallback(self)
                 }
-                else if ( vel.x < -800 || gesturePos.x < -frame.width * 0.5 ) {
-                    endFrame.origin.x = startFrame.origin.x - frame.width
+                else if ( vel.x < -1200 || gesturePos.x < -bounds.width * 0.7 ) {
+                    endCenter.x = startCenter.x - bounds.width
                     endAlpha = 0
                     closeTabCallback(self)
                 }
                 
                 UIView.animate(withDuration: 0.6, delay: 0.0, usingSpringWithDamping: 0.65, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
-                    self.frame = endFrame
+                    self.center = endCenter
                     self.alpha = endAlpha
                 }, completion: nil)
             }
@@ -245,12 +241,14 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     override func prepareForReuse() {
         super.prepareForReuse()
         snapView.image = nil
-        contentView.backgroundColor = .darkGray
+        contentView.backgroundColor = .white
         label.text = "Blank"
     }
     
     override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
         super.apply(layoutAttributes)
+        alpha = 1
+        overlay.alpha = 1 - layoutAttributes.alpha 
         layer.zPosition = CGFloat(layoutAttributes.zIndex)
     }
     

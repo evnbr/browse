@@ -62,21 +62,19 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         navigationController?.navigationBar.barStyle = .black
         
         toolbar = ColorToolbarView(frame: CGRect(
-            x: view.frame.width - 60,
+            x: view.frame.width - 80,
             y: Const.shared.statusHeight, //view.frame.height - Const.shared.toolbarHeight,
-            width: 60,
-            height: 60
+            width: 80,
+            height: 48
         ))
         toolbar.backgroundColor = .black
         toolbar.autoresizingMask = [ .flexibleBottomMargin, .flexibleLeftMargin ]
         toolbar.layer.zPosition = 100
         
-        let addButton = ToolbarTextButton(
-            title: "New",
-            withIcon: UIImage(named: "add"),
+        let addButton = ToolbarIconButton(
+            icon: UIImage(named: "add"),
             onTap: self.addTab
         )
-        addButton.size = .small
         
         let clearButton = ToolbarTextButton(
             title: "Clear",
@@ -106,8 +104,14 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         Blocker.shared.onRulesReady({
             print("rules ready")
-            self.restoreTabs()
+            if let ruleList = Blocker.shared.ruleList {
+                for tab in self.tabs {
+                    tab.webView.configuration.userContentController.add(ruleList)
+                }
+            }
         })
+        
+        self.restoreTabs()
     }
     
     func restoreTabs() {
@@ -255,17 +259,26 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         }
     }
     
+    func boundsForThumb(forTab maybeTab: BrowserTab? ) -> CGRect? {
+        guard let tab : BrowserTab = maybeTab else { return nil }
+        guard let cv = collectionView else { return nil }
+        guard let thumb = thumb(forTab: tab) else { return nil }
+        guard let ip = cv.indexPath(for: thumb) else { return nil }
+        return cv.layoutAttributesForItem(at: ip)!.bounds
+    }
+    
     func setThumbPosition(expanded: Bool, offsetY: CGFloat = 0, offsetHeight: CGFloat = 0) {
         guard let cv = collectionView else { return }
         
         if (expanded) {
             if let ip = currentIndexPath {
-                let selectedThumbFrame = cv.layoutAttributesForItem(at: ip)!.frame
-                let convertedFrame = view.convert(selectedThumbFrame, from: cv)
-                let shiftUp = -convertedFrame.origin.y
-                let shiftDown = view.frame.height - convertedFrame.origin.y - convertedFrame.height
+//                let selectedThumbFrame = cv.layoutAttributesForItem(at: ip)!.frame
+//                let convertedFrame = view.convert(selectedThumbFrame, from: cv)
+//                let shiftUp = -convertedFrame.origin.y
+//                let shiftDown = view.frame.height - convertedFrame.origin.y - convertedFrame.height
                 
                 currentThumb?.isHidden = true
+                currentThumb?.apply(cv.layoutAttributesForItem(at: ip)!)
                 
                 for cell in visibleCellsAbove {
                     let ip = cv.indexPath(for: cell)!

@@ -57,8 +57,7 @@ class ColorStatusBarView : GradientColorChangeView {
         label.alpha = 0
         label.font = Const.shared.thumbTitle
         label.textColor = .darkText
-        self.addSubview(label)
-
+//        self.addSubview(label)
     }
     
     convenience init(color: UIColor) {

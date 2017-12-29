@@ -29,7 +29,6 @@ let BOOKMARKS_GLOBAL : [ String ] = [
     "instagram.com",
     "facebook.com",
     "twitter.com",
-    "medium.com",
     "amazon.com",
     "fonts.google.com",
     "flights.google.com",
@@ -38,7 +37,9 @@ let BOOKMARKS_GLOBAL : [ String ] = [
     "wikipedia.org",
     "tachyons.io",
     "postlight.com",
-    "playlab.org"
+    "playlab.org",
+    "onym.co",
+    "work.co",
 ]
 
 class BookmarksViewController : UIViewController, UITableViewDelegate, UITableViewDataSource {

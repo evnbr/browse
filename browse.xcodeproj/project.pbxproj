@@ -39,6 +39,7 @@
 		A97CB0771EC53DCD005DDBD1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A97CB0761EC53DCD005DDBD1 /* Assets.xcassets */; };
 		A97CB0851EC53DCD005DDBD1 /* browseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97CB0841EC53DCD005DDBD1 /* browseTests.swift */; };
 		A97CB0901EC53DCD005DDBD1 /* browseUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97CB08F1EC53DCD005DDBD1 /* browseUITests.swift */; };
+		A98466731FF0F9170009FC12 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98466721FF0F9170009FC12 /* Utils.swift */; };
 		A98483281EEFCFE200E821AE /* ColorToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98483271EEFCFE200E821AE /* ColorToolbarView.swift */; };
 		A99328471F098E270045EBAA /* ToolbarTextButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99328461F098E270045EBAA /* ToolbarTextButton.swift */; };
 		A9B3176A1ED134CD00C71EBE /* SearchTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B317691ED134CD00C71EBE /* SearchTextView.swift */; };
@@ -117,6 +118,7 @@
 		A97CB08B1EC53DCD005DDBD1 /* browseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = browseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A97CB08F1EC53DCD005DDBD1 /* browseUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = browseUITests.swift; sourceTree = "<group>"; };
 		A97CB0911EC53DCD005DDBD1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A98466721FF0F9170009FC12 /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Utils.swift; path = browse/Utils.swift; sourceTree = SOURCE_ROOT; };
 		A98483271EEFCFE200E821AE /* ColorToolbarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorToolbarView.swift; sourceTree = "<group>"; };
 		A99328461F098E270045EBAA /* ToolbarTextButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToolbarTextButton.swift; sourceTree = "<group>"; };
 		A9B317691ED134CD00C71EBE /* SearchTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchTextView.swift; sourceTree = "<group>"; };
@@ -303,6 +305,7 @@
 			children = (
 				A97CB06F1EC53DCD005DDBD1 /* AppDelegate.swift */,
 				A969D4A41F1321EC008A7BC6 /* Constants.swift */,
+				A98466721FF0F9170009FC12 /* Utils.swift */,
 				A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */,
 				A90F51241F71785E00221815 /* Tab Switcher */,
 				A90F51271F7178D700221815 /* WebView */,
@@ -656,6 +659,7 @@
 				A92095971EE3E2AF009497A2 /* ToolbarIconButton.swift in Sources */,
 				A97CB0721EC53DCD005DDBD1 /* BrowserViewController.swift in Sources */,
 				A908F04C1ECD03B800A74241 /* ColorStatusBarView.swift in Sources */,
+				A98466731FF0F9170009FC12 /* Utils.swift in Sources */,
 				A97CB0701EC53DCD005DDBD1 /* AppDelegate.swift in Sources */,
 				A97BF8311EF3B5B900B9ECB4 /* BrowserViewController+WKUIDelegate.swift in Sources */,
 				A969D4A51F1321EC008A7BC6 /* Constants.swift in Sources */,

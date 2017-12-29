@@ -47,6 +47,17 @@ class BrowserTab: NSObject {
         webView = loadWebView(withConfig: nil)
     }
     
+    func updateSnapshot(completionHandler: @escaping (UIImage?, Error?) -> Void) {
+        // Image snapshot
+        webView.takeSnapshot(with: nil) { (image, error) in
+            if let img : UIImage = image {
+                self.history.current?.snapshot = img
+            }
+            completionHandler(image, error)
+        }
+    }
+
+    
     var restorableTitle : String? {
         if webView?.url == nil { return restoredTitle }
         return webView?.url?.displayHost ?? restoredTitle
@@ -79,12 +90,7 @@ class BrowserTab: NSObject {
                 height: UIScreen.main.bounds.size.height - Const.shared.toolbarHeight - Const.shared.statusHeight
             )
         )
-        
-        let userContentController = config.userContentController
-        if let ruleList = Blocker.shared.ruleList {
-            userContentController.add(ruleList)
-        }
-        
+                
         let webView = WKWebView(frame: rect, configuration: config)
         
         webView.translatesAutoresizingMaskIntoConstraints = false

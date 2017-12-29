@@ -50,7 +50,7 @@ class SearchView: UIView, UITextViewDelegate {
         textView.font = UIFont(descriptor: .preferredFontDescriptor(withTextStyle: .body), size: 17)
         textView.text = ""
         
-        backgroundColor =  .clear
+        backgroundColor = .clear
         tintColor = .white
         
         textView.delegate = self
@@ -238,7 +238,6 @@ class SearchView: UIView, UITextViewDelegate {
         textView.backgroundColor = tintColor.isLight ? UIColor.black.withAlphaComponent(0.1) : UIColor.white.withAlphaComponent(0.3)
         textView.placeholderColor = tintColor.isLight ? UIColor.black.withAlphaComponent(0.4) : UIColor.white.withAlphaComponent(0.4)
         textView.keyboardAppearance = tintColor.isLight ? .light : .dark
-
     }
     
     
