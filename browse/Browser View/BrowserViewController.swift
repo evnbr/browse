@@ -273,14 +273,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 
         keyboardBack.translatesAutoresizingMaskIntoConstraints = false
         keyboardBack.backgroundColor = .cyan
-        roundedClipView.addSubview(keyboardBack)
-        keyboardBack.centerXAnchor.constraint(equalTo: toolbar.centerXAnchor).isActive = true
-        keyboardBack.widthAnchor.constraint(equalTo: toolbar.widthAnchor).isActive = true
-        keyboardBack.bottomAnchor.constraint(equalTo: cardView.bottomAnchor).isActive = true
-        keyboardBack.topAnchor.constraint(equalTo: toolbar.bottomAnchor).isActive = true
-
-//        view.addSubview(toolbar)
-//        view.sendSubview(toBack: toolbar)
+//        roundedClipView.addSubview(keyboardBack)
+//        keyboardBack.centerXAnchor.constraint(equalTo: toolbar.centerXAnchor).isActive = true
+//        keyboardBack.widthAnchor.constraint(equalTo: toolbar.widthAnchor).isActive = true
+//        keyboardBack.bottomAnchor.constraint(equalTo: cardView.bottomAnchor).isActive = true
+//        keyboardBack.topAnchor.constraint(equalTo: toolbar.bottomAnchor).isActive = true
         
         accessoryView = setupAccessoryView()
         
@@ -1168,9 +1165,9 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
         browserTab?.bottomColorSample = newColor
         
         if shouldUpdateSample {
-            UIView.animate(withDuration: 0.2, delay: 0.1, options: .curveEaseInOut, animations: {
-                self.keyboardBack.backgroundColor = newColor //newColor.isLight ? newColor.withBrightness(2.5) : newColor.saturated()
-            })
+//            UIView.animate(withDuration: 0.2, delay: 0.1, options: .curveEaseInOut, animations: {
+//                self.keyboardBack.backgroundColor = newColor //newColor.isLight ? newColor.withBrightness(2.5) : newColor.saturated()
+//            })
             let _ = toolbar.animateGradient(toColor: newColor, direction: .fromTop)
         }
 
