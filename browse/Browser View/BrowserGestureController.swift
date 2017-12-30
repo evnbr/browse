@@ -56,6 +56,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     let backPointX : CGFloat = 120
     let dismissPointY : CGFloat = 120
 
+    var feedbackGenerator : UISelectionFeedbackGenerator? = nil
+    
     var canGoBackToParent : Bool {
         return !vc.webView.canGoBack && vc.browserTab?.parentTab != nil
     }
@@ -162,6 +164,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     
     let vProgressScaleMultiplier : CGFloat = 0.2
     let cantGoBackScaleMultiplier : CGFloat = 0.3
+    
+    var wouldCommitPrevious = false
 
     func horizontalChange(_ gesture: UIScreenEdgePanGestureRecognizer) {
         guard isInteractiveDismiss && (direction == .left || direction == .right) else { return }
@@ -177,6 +181,13 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
 
         let adjustedX = gesturePos.x
+        
+        let wouldCommit = abs(adjustedX) > dismissPointX
+        if wouldCommit != wouldCommitPrevious {
+            feedbackGenerator?.selectionChanged()
+            feedbackGenerator?.prepare()
+            wouldCommitPrevious = wouldCommit
+        }
         
         cardView.center.x = view.center.x + adjustedX
         
@@ -262,6 +273,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     
     func horizontalEnd(_ gesture: UIScreenEdgePanGestureRecognizer) {
         endGesture()
+        feedbackGenerator = nil
 
         let gesturePos = gesture.translation(in: view)
         let vel = gesture.velocity(in: view)
@@ -298,6 +310,9 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             direction = .left
             startGesture()
             vc.showToolbar()
+            
+            feedbackGenerator = UISelectionFeedbackGenerator()
+            feedbackGenerator?.prepare()
             
             if vc.webView.canGoBack {
                 view.addSubview(mockCardView)
