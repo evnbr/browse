@@ -88,10 +88,16 @@ class LocationBar: ToolbarTouchView {
         
         label.text = "Where to?"
         label.font = UIFont.systemFont(ofSize: 15.0)
+//        label.font = UIFont.systemFont(ofSize: 15.0, weight: .medium)
+        label.adjustsFontSizeToFitWidth = true
         label.setContentHuggingPriority(UILayoutPriority(rawValue: 0), for: .horizontal)
 //        label.sizeToFit()
         
-        
+        //        let blur = UIVisualEffectView(frame: self.frame, isTransparent: true)
+        //        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        //        addSubview(blur)
+        //        sendSubview(toBack: blur)
+
         // https://stackoverflow.com/questions/30728062/add-views-in-uistackview-programmatically
         let stackView   = UIStackView()
         stackView.axis  = .horizontal

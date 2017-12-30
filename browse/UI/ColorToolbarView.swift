@@ -30,10 +30,10 @@ class ColorToolbarView: GradientColorChangeView {
         
         addSubview(stackView)
         
-        let toolbarInset : CGFloat = 4.0
+        let toolbarInset : CGFloat = 8.0
 //        let roomForIndicator : CGFloat = Const.shared.toolbarHeight - Const.shared.buttonHeight
         stackView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
-        stackView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        stackView.topAnchor.constraint(equalTo: self.topAnchor, constant: 8.0).isActive = true
 //        stackView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -roomForIndicator).isActive = true
         stackView.leftAnchor.constraint(equalTo: self.leftAnchor, constant: toolbarInset).isActive = true
         stackView.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -toolbarInset).isActive = true

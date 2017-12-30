@@ -34,7 +34,7 @@ class Const: NSObject {
     override init() {
         let topInset = UIApplication.shared.keyWindow?.safeAreaInsets.top
         let isX = topInset != nil && topInset! > CGFloat(0.0)
-        toolbarHeight = isX ? 72 : 40
+        toolbarHeight = isX ? 80 : 40
         statusHeight = isX ? 44 : 22
         thumbRadius = isX ? 32 : 16
         cardRadius = isX ? 38 : 4

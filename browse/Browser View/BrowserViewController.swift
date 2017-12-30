@@ -158,14 +158,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             statusBarFront.backgroundColor = .white
         }
         if let newBottom = newTab.bottomColorSample {
-            toolbar.backgroundColor = newBottom
+//            toolbar.backgroundColor = newBottom
             roundedClipView.backgroundColor = newBottom
             webView.backgroundColor = newBottom
             // TODO: just need to reset tint color, dont need animate gradient
             let _ = toolbar.animateGradient(toColor: newBottom, direction: .fromTop)
         }
         else {
-            toolbar.backgroundColor = .white
+//            toolbar.backgroundColor = .white
             roundedClipView.backgroundColor = .white
             webView.backgroundColor = .white
         }
