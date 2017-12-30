@@ -17,7 +17,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     var toolbar : ColorToolbarView!
     
     let reuseIdentifier = "TabCell"
-    let sectionInsets = UIEdgeInsets(top: 8.0, left: THUMB_INSET, bottom: 8.0, right: THUMB_INSET)
+    let sectionInsets = UIEdgeInsets(top: 120.0, left: THUMB_INSET, bottom: 8.0, right: THUMB_INSET)
     let itemsPerRow : CGFloat = 2
     
     let thumbAnimationController = PresentTabAnimationController()
