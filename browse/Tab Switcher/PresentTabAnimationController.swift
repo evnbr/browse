@@ -101,47 +101,71 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         
         
-        if let anim = POPSpringAnimation(propertyNamed: kPOPViewCenter) {
-            anim.toValue = isExpanding ? expandedCenter : thumbCenter
-            if isDismissing {
-                if let vel = browserVC.gestureController.dismissVelocity { anim.velocity = vel }
-                anim.dynamicsMass = 1.5
-                anim.dynamicsFriction = 40
-            }
-            anim.completionBlock = { (anim, done) in
+//        if let anim = POPSpringAnimation(propertyNamed: kPOPViewCenter) {
+//            anim.toValue = isExpanding ? expandedCenter : thumbCenter
+//            if isDismissing {
+//                if let vel = browserVC.gestureController.dismissVelocity { anim.velocity = vel }
+//            }
+//            anim.dynamicsMass = 1.3
+//            anim.dynamicsFriction = 35
+//            anim.completionBlock = { (anim, done) in
+//                browserVC.isSnapshotMode = false
+//                browserVC.webView.scrollView.isScrollEnabled = true
+//                thumb?.setTab(browserVC.browserTab!)
+//
+//                if self.isDismissing {
+//                    homeVC.visibleCells.forEach { $0.isHidden = false }
+//                    browserVC.view.removeFromSuperview()
+//                }
+//                homeVC.visibleCellsBelow.forEach { homeVC.collectionView?.addSubview($0) }
+//
+//                if self.isDismissing {
+//                    homeVC.setThumbPosition(expanded: false)
+//                    homeVC.setNeedsStatusBarAppearanceUpdate()
+//                }
+//                transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
+//            }
+//            browserVC.cardView.pop_add(anim, forKey: "presentCenter")
+//        }
+        
+        browserVC.cardView.springCenter(
+            to: isExpanding ? expandedCenter : thumbCenter,
+            at: browserVC.gestureController.dismissVelocity ?? .zero,
+            options: POPtions(mass: 1.3, friction: 35, tension: nil),
+            completion: { (_, _) in
                 browserVC.isSnapshotMode = false
                 browserVC.webView.scrollView.isScrollEnabled = true
                 thumb?.setTab(browserVC.browserTab!)
-
+                
                 if self.isDismissing {
                     homeVC.visibleCells.forEach { $0.isHidden = false }
                     browserVC.view.removeFromSuperview()
                 }
+                homeVC.visibleCellsBelow.forEach { homeVC.collectionView?.addSubview($0) }
+                
+                if self.isDismissing {
+                    homeVC.setThumbPosition(expanded: false)
+                    homeVC.setNeedsStatusBarAppearanceUpdate()
+                }
                 transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
-
-            }
-            browserVC.cardView.pop_add(anim, forKey: "presentCenter")
-        }
+        })
+        browserVC.cardView.springScale(to: 1)
 
         
         UIView.animate(
-            withDuration: 0.8,
+            withDuration: 0.6,
             delay: 0.0,
-            usingSpringWithDamping: 0.85,
+            usingSpringWithDamping: 0.9,
             initialSpringVelocity: 0.0,
             options: .allowUserInteraction,
             animations: {
                 
 //            browserVC.cardView.center = self.isExpanding ? expandedCenter : thumbCenter
             browserVC.cardView.bounds = self.isExpanding ? expandedBounds : thumbBounds
-            browserVC.cardView.transform = .identity
-                
+//            browserVC.cardView.transform = .identity
             browserVC.overlay.alpha = self.isExpanding ? 0 : thumbOverlayAlpha
-                
-                
             browserVC.isExpandedSnapshotMode = self.isExpanding
             browserVC.updateSnapshotPosition()
-
             browserVC.roundedClipView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
 
             homeNav.view.alpha = self.isExpanding ? 0.4 : 1
@@ -152,12 +176,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             homeVC.setNeedsStatusBarAppearanceUpdate()
                 
         }, completion: { finished in
-            homeVC.visibleCellsBelow.forEach { homeVC.collectionView?.addSubview($0) }
-            
-            if self.isDismissing {
-                homeVC.setThumbPosition(expanded: false)
-                homeVC.setNeedsStatusBarAppearanceUpdate()
-            }
             
         })
     }

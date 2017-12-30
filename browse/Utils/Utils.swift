@@ -40,6 +40,10 @@ extension CGFloat {
         return amt / total;
     }
     
+    func blend(from: CGFloat, to: CGFloat) -> CGFloat {
+        return from + (to - from) * self;
+    }
+    
     func reverse() -> CGFloat {
         return 1 - self
     }
