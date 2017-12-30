@@ -898,27 +898,27 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         })
         ac.addAction(pasteAction)
 
-        pasteAction.isEnabled = false
+//        pasteAction.isEnabled = false
         // Avoid blocking UI if pasting from another device
-        DispatchQueue.global(qos: .userInitiated).async {
-            if (UIPasteboard.general.hasStrings) {
-                if let str = UIPasteboard.general.string {
-                    var pasted = str
-                    if pasted.count > 32 {
-                        pasted = "\(pasted[...pasted.index(pasted.startIndex, offsetBy: 32)])..."
-                    }
-                    DispatchQueue.main.async {
-                        if self.isProbablyURL(pasted) {
-                            pasteAction.setValue("Go to \"\(pasted)\"", forKey: "title")
-                        }
-                        else {
-                            pasteAction.setValue("Search \"\(pasted)\"", forKey: "title")
-                        }
-                        pasteAction.isEnabled = true
-                    }
-                }
-            }
-        }
+//        DispatchQueue.global(qos: .userInitiated).async {
+//            if (UIPasteboard.general.hasStrings) {
+//                if let str = UIPasteboard.general.string {
+//                    var pasted = str
+//                    if pasted.count > 32 {
+//                        pasted = "\(pasted[...pasted.index(pasted.startIndex, offsetBy: 32)])..."
+//                    }
+//                    DispatchQueue.main.async {
+//                        if self.isProbablyURL(pasted) {
+//                            pasteAction.setValue("Go to \"\(pasted)\"", forKey: "title")
+//                        }
+//                        else {
+//                            pasteAction.setValue("Search \"\(pasted)\"", forKey: "title")
+//                        }
+//                        pasteAction.isEnabled = true
+//                    }
+//                }
+//            }
+//        }
         
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         
