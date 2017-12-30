@@ -99,6 +99,7 @@ class BrowserTab: NSObject {
         
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.scrollView.clipsToBounds = false
+//        webView.scrollView.layer.masksToBounds = false
         
         webView.allowsLinkPreview = false
         

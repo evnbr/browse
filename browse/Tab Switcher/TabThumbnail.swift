@@ -81,7 +81,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         overlay.backgroundColor = UIColor.black
         overlay.alpha = 0
-        contentView.addSubview(overlay)
 
         contentView.layer.cornerRadius = Const.shared.thumbRadius
         contentView.clipsToBounds = true
@@ -98,7 +97,9 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         label.text = "Blank"
         label.font = Const.shared.thumbTitle
         label.textColor = .darkText
+        
         contentView.addSubview(label)
+        contentView.addSubview(overlay)
         contentView.backgroundColor = .white
     }
         

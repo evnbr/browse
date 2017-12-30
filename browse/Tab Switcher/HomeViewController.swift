@@ -284,7 +284,10 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                     let ip = cv.indexPath(for: cell)!
                     cell.center = cv.layoutAttributesForItem(at: ip)!.center
 //                    cell.center.y += shiftUp + offsetY
-                    cell.center.y = min(cell.center.y, Const.shared.statusHeight + collectionView!.contentOffset.y + cell.bounds.height / 2)
+//                    cell.center.y = min(cell.center.y, Const.shared.statusHeight + collectionView!.contentOffset.y + cell.bounds.height / 2)
+                    
+                    // same as below
+//                    cell.center.y = Const.shared.statusHeight + collectionView!.contentOffset.y + view.bounds.height + cell.bounds.height / 2
                     cell.isHidden = false
                 }
                 for cell in visibleCellsBelow {
