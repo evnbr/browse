@@ -9,6 +9,7 @@
 import UIKit
 import WebKit
 import OnePasswordExtension
+import pop
 
 class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIActivityItemSource {
     
@@ -352,7 +353,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             delay: 0,
             options: .curveEaseInOut,
             animations: {
-                self.webView.scrollView.contentInset.bottom = -Const.shared.toolbarHeight
+//                self.webView.scrollView.contentInset.bottom = -Const.shared.toolbarHeight
                 self.webView.scrollView.scrollIndicatorInsets.bottom = -Const.shared.toolbarHeight
 
                 self.locationBar.alpha = 0
@@ -365,6 +366,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 //                self.heightConstraint.constant = -Const.shared.statusHeight
             }
         )
+        
+        if let anim = POPSpringAnimation(propertyNamed: kPOPScrollViewContentInset) {
+            var insets = webView.scrollView.contentInset
+            insets.bottom = -Const.shared.toolbarHeight
+            anim.toValue = insets
+            webView.scrollView.pop_add(anim, forKey: "hideToolbar")
+        }
     }
     @objc func tapToolbarPlaceholder() {
         self.showToolbar()
@@ -379,7 +387,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             delay: 0,
             options: [.curveEaseInOut, .allowAnimatedContent],
             animations: {
-                self.webView.scrollView.contentInset.bottom = 0
                 self.webView.scrollView.scrollIndicatorInsets.bottom = 0
 
                 self.locationBar.alpha = 1
@@ -392,6 +399,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 //                self.heightConstraint.constant = -Const.shared.statusHeight - Const.shared.toolbarHeight
             }
         )
+        
+        if let anim = POPSpringAnimation(propertyNamed: kPOPScrollViewContentInset) {
+            var insets = webView.scrollView.contentInset
+            insets.bottom = 0
+            anim.toValue = insets
+            webView.scrollView.pop_add(anim, forKey: "showToolbar")
+        }
     }
 
     func setUpToolbar() -> ProgressToolbar {
@@ -528,6 +542,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     func updateStatusbar() {
         statusBarFront.frame.size.height = isExpandedSnapshotMode ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED
+        statusBarBack.frame.size.height = isExpandedSnapshotMode ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED
     }
     
     
@@ -797,7 +812,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             if let isFixed : Bool = result as? Bool {
                 let newAlpha : CGFloat = isFixed ? 1 : 0
                 if self.statusBarFront.alpha != newAlpha {
-                    UIView.animate(withDuration: 0.25, animations: {
+                    UIView.animate(withDuration: 0.15, animations: {
                         self.statusBarFront.alpha = newAlpha
                     })
                 }
@@ -1169,6 +1184,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
 //                self.keyboardBack.backgroundColor = newColor //newColor.isLight ? newColor.withBrightness(2.5) : newColor.saturated()
 //            })
             let _ = toolbar.animateGradient(toColor: newColor, direction: .fromTop)
+            
         }
 
     }
