@@ -20,7 +20,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     let gradientLayer2: CAGradientLayer = CAGradientLayer()
     let gradientLayer3: CAGradientLayer = CAGradientLayer()
     
-    let duration : CFTimeInterval = 0.4
+    let duration : CFTimeInterval = 0.8
 
     var gradientHolder: UIView!
     
@@ -131,7 +131,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         
         
         CATransaction.setCompletionBlock({
-            self.backgroundColor = toColor
+            self.gradientHolder.backgroundColor = toColor
             gLayer.removeAnimation(forKey: "gradientChange")
             gLayer.removeFromSuperlayer()
         })
@@ -140,7 +140,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
 
         CATransaction.commit()
         
-        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
+        UIView.animate(withDuration: 0.6, delay: 0, options: .curveEaseInOut, animations: {
 //            self.backgroundColor = toColor
             self.tintColor = toColor.isLight ? .white : .darkText
         }, completion: nil)
