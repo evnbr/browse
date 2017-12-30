@@ -1,5 +1,5 @@
 //
-//  ColorSampler.swift
+//  WebviewColorSampler
 //  browse
 //
 //  Created by Evan Brooks on 5/14/17.
@@ -9,9 +9,9 @@
 import Foundation
 import WebKit
 
-let MIN_TIME_BETWEEN_UPDATES = 0.25
+let MIN_TIME_BETWEEN_UPDATES = 0.15
 
-protocol ColorSampledWebviewDelegate {
+protocol WebviewColorSamplerDelegate {
     var sampledWebView : WKWebView { get }
     
     var shouldUpdateSample : Bool { get }
@@ -22,9 +22,9 @@ protocol ColorSampledWebviewDelegate {
     func cancelColorChange()
 }
 
-class ColorSampler : NSObject {
+class WebviewColorSampler : NSObject {
     
-    var delegate : ColorSampledWebviewDelegate!
+    var delegate : WebviewColorSamplerDelegate!
 
     private var colorUpdateTimer : Timer?
     

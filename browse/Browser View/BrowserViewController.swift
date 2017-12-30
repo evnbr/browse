@@ -24,7 +24,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 
     var isDisplayingSearch : Bool = false
     var searchView: SearchView!
-    var colorSampler: ColorSampler!
+    var colorSampler: WebviewColorSampler!
     
     var statusBarBack: ColorStatusBarView!
     var statusBarFront: ColorStatusBarView!
@@ -284,7 +284,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         accessoryView = setupAccessoryView()
         
-        colorSampler = ColorSampler()
+        colorSampler = WebviewColorSampler()
         colorSampler.delegate = self
         
         gestureController = BrowserGestureController(for: self)
@@ -800,7 +800,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             if let isFixed : Bool = result as? Bool {
                 let newAlpha : CGFloat = isFixed ? 1 : 0
                 if self.statusBarFront.alpha != newAlpha {
-                    UIView.animate(withDuration: 0.3, animations: {
+                    UIView.animate(withDuration: 0.25, animations: {
                         self.statusBarFront.alpha = newAlpha
                     })
                 }
@@ -1115,7 +1115,7 @@ extension UIResponder {
 }
 
 
-extension BrowserViewController : ColorSampledWebviewDelegate {
+extension BrowserViewController : WebviewColorSamplerDelegate {
     var sampledWebView : WKWebView {
         return webView
     }
@@ -1149,9 +1149,11 @@ extension BrowserViewController : ColorSampledWebviewDelegate {
             var didChange : Bool
             if statusBarFront.alpha > 0 {
                 didChange = statusBarFront.animateGradient(toColor: newColor, direction: .fromBottom)
+                statusBarBack.backgroundColor = newColor
             }
             else {
                 didChange = statusBarBack.animateGradient(toColor: newColor, direction: .fromBottom)
+                statusBarFront.backgroundColor = newColor
             }
 
             if didChange {
