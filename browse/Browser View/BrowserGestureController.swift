@@ -46,7 +46,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     var direction : GestureNavigationDirection!
     var dismissVelocity : CGPoint?
 
-    var mockCardView: UIView!
+    var mockCardView: PlaceholderView!
     let mockCardViewSpacer : CGFloat = 8
     
     var isInteractiveDismiss : Bool = false
@@ -70,13 +70,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         cardView = vc.cardView
         toolbar = vc.toolbar
         
-        mockCardView = UIView(frame: cardView.bounds)
-        mockCardView.layer.cornerRadius = Const.shared.cardRadius
-        mockCardView.backgroundColor = .white
-        mockCardView.clipsToBounds = false
-        mockCardView.layer.shadowRadius = 24
-        mockCardView.layer.shadowOpacity = 0.16
-
+        mockCardView = PlaceholderView(frame: cardView.bounds)
         
         let dismissPanner = UIPanGestureRecognizer()
         dismissPanner.delegate = self

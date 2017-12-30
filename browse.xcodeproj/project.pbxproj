@@ -42,6 +42,7 @@
 		A98466731FF0F9170009FC12 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98466721FF0F9170009FC12 /* Utils.swift */; };
 		A98483281EEFCFE200E821AE /* ColorToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98483271EEFCFE200E821AE /* ColorToolbarView.swift */; };
 		A99328471F098E270045EBAA /* ToolbarTextButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99328461F098E270045EBAA /* ToolbarTextButton.swift */; };
+		A9AA4A581FF72471001AB639 /* PlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9AA4A571FF72471001AB639 /* PlaceholderView.swift */; };
 		A9B3176A1ED134CD00C71EBE /* SearchTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B317691ED134CD00C71EBE /* SearchTextView.swift */; };
 		A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */; };
 		A9D4B8C11F72F6D6006F0F18 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */; };
@@ -121,6 +122,7 @@
 		A98466721FF0F9170009FC12 /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Utils.swift; path = browse/Utils.swift; sourceTree = SOURCE_ROOT; };
 		A98483271EEFCFE200E821AE /* ColorToolbarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorToolbarView.swift; sourceTree = "<group>"; };
 		A99328461F098E270045EBAA /* ToolbarTextButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToolbarTextButton.swift; sourceTree = "<group>"; };
+		A9AA4A571FF72471001AB639 /* PlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderView.swift; sourceTree = "<group>"; };
 		A9B317691ED134CD00C71EBE /* SearchTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchTextView.swift; sourceTree = "<group>"; };
 		A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientColorChangeView.swift; sourceTree = "<group>"; };
 		A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
@@ -220,6 +222,7 @@
 			children = (
 				A97CB0711EC53DCD005DDBD1 /* BrowserViewController.swift */,
 				A92C9C3A1EF8B5E600D8AAA3 /* BrowserGestureController.swift */,
+				A9AA4A571FF72471001AB639 /* PlaceholderView.swift */,
 				A92C9C381EF5D66B00D8AAA3 /* BrowserViewController+WKNavigationDelegate.swift */,
 				A97BF8301EF3B5B900B9ECB4 /* BrowserViewController+WKUIDelegate.swift */,
 				A90892091ED547C500A5E9BA /* LocationBar.swift */,
@@ -675,6 +678,7 @@
 				A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */,
 				A92095881ED9E3C0009497A2 /* SettingsTableViewCell.swift in Sources */,
 				A920958F1EDF4AB8009497A2 /* PresentTabAnimationController.swift in Sources */,
+				A9AA4A581FF72471001AB639 /* PlaceholderView.swift in Sources */,
 				A908920A1ED547C500A5E9BA /* LocationBar.swift in Sources */,
 				A920958A1EDA6526009497A2 /* Settings.swift in Sources */,
 				A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */,
