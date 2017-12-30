@@ -27,3 +27,27 @@ func elasticLimit(_ val : CGFloat, constant: CGFloat = 150) -> CGFloat {
     return val * resist
 }
 
+
+extension CGFloat {
+    
+    func clip() -> CGFloat {
+        return Swift.max(0, Swift.min(1, self))
+    }
+    
+    func progress(from: CGFloat, to: CGFloat) -> CGFloat {
+        let total = from - to
+        let amt = from - self
+        return amt / total;
+    }
+    
+    func reverse() -> CGFloat {
+        return 1 - self
+    }
+}
+
+
+extension CGAffineTransform {
+    init(scale s: CGFloat) {
+        self.init(scaleX: s, y: s)
+    }
+}

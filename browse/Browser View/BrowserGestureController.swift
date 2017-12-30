@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import WebKit
+import pop
 
 enum GestureNavigationDirection {
     case top
@@ -44,8 +44,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     var cardView : UIView!
     
     var direction : GestureNavigationDirection!
-    var velocity : CGFloat = 0
-    
+    var dismissVelocity : CGPoint?
+
     var mockCardView: UIView!
     let mockCardViewSpacer : CGFloat = 8
     
@@ -188,17 +188,17 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let yGestureInfluence = gesturePos.y // * 0.7
         cardView.center.x = view.center.x + adjustedX
 
-        let verticalProgress = clip(gesturePos.y  / 200)
-        let stackupProgress = 1 - clip((gesturePos.y - 100) / 200)
+        let verticalProgress = gesturePos.y.progress(from: 0, to: 200).clip()
+        let stackupProgress = gesturePos.y.progress(from: 100, to: 300).clip().reverse()
         
         if direction == .left {
             if vc.webView.canGoBack {
                 
                 
-                let s = 1 - verticalProgress * vProgressScaleMultiplier
-                cardView.transform = CGAffineTransform(scaleX: s, y: s)
+                let s = (verticalProgress * vProgressScaleMultiplier).reverse()
+                cardView.transform = CGAffineTransform(scale: s)
                 mockCardView.transform = cardView.transform
-
+                
                 let scaleFromLeftShift = (1 - s) * cardView.bounds.width / 2
                 
                 cardView.center.x = view.center.x
@@ -223,7 +223,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 let yShift = hProgress * yHint + yGestureInfluence
                 cardView.center.x = view.center.x + elasticLimit(elasticLimit(adjustedX))
                 cardView.center.y = view.center.y + yShift
-                cardView.transform = CGAffineTransform(scaleX: s, y: s)
+                cardView.transform = CGAffineTransform(scale: s)
 
                 
             }
@@ -232,7 +232,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         && vc.webView.canGoForward {
             
             let s = 1 - verticalProgress * vProgressScaleMultiplier
-            cardView.transform = CGAffineTransform(scaleX: s, y: s)
+            cardView.transform = CGAffineTransform(scale: s)
             mockCardView.transform = cardView.transform
             
             let scaleFromRightShift = (1 - s) * cardView.bounds.width / 2
@@ -258,7 +258,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             let yShift = hProgress * yHint + yGestureInfluence
             cardView.center.x = view.center.x + elasticLimit(elasticLimit(adjustedX))
             cardView.center.y = view.center.y + yShift
-            cardView.transform = CGAffineTransform(scaleX: s, y: s)
+            cardView.transform = CGAffineTransform(scale: s)
             
 //            home.setThumbPosition(expanded: true, offsetY: cardView.frame.origin.y)
         }
@@ -274,17 +274,18 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         endGesture()
 
         let gesturePos = gesture.translation(in: view)
+        let vel = gesture.velocity(in: view)
         
         if (direction == .left || direction == .right)
         && cardView.center.y > view.center.y + dismissPointY {
-            commitDismiss()
+            commitDismiss(velocity: vel)
         }
         else if gesturePos.x > backPointX {
             if vc.webView.canGoBack {
                 if mockCardView.frame.origin.x + mockCardView.frame.width > backPointX {
-                    commit(action: .back)
+                    commit(action: .back, velocity: vel)
                 }
-                else { commitDismiss() }
+                else { commitDismiss(velocity: vel) }
             }
 //            else if canGoBackToParent {
 //                if cardView.center.y > view.center.y + dismissPointY {
@@ -292,14 +293,16 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 //                }
 //                else { commitDismiss() }
 //            }
-            else { commitDismiss() }
+            else { commitDismiss(velocity: vel) }
         }
         else if gesturePos.x < -backPointX {
-            if vc.webView.canGoForward { commit(action: .forward) }
-            else { commitDismiss() }
+            if vc.webView.canGoForward {
+                commit(action: .forward, velocity: vel)
+            }
+            else { commitDismiss(velocity: vel) }
         }
         else {
-            reset()
+            reset(velocity: vel)
         }
     }
     
@@ -411,9 +414,14 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         isInteractiveDismiss = false
     }
     
-    func commitDismiss() {
+    func commitDismiss(velocity vel: CGPoint) {
+        
+        dismissVelocity = vel
         self.mockCardView.removeFromSuperview()
-        vc.dismiss(animated: true, completion: nil)
+        
+        vc.dismiss(animated: true) {
+            self.dismissVelocity = nil
+        }
     }
     
     func swapTo(childTab: BrowserTab) {
@@ -441,7 +449,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         )
     }
     
-    func commit(action: GestureNavigationAction) {
+    func commit(action: GestureNavigationAction, velocity: CGPoint? = nil) {
         let mockContent = cardView.snapshotView(afterScreenUpdates: false)
         if mockContent != nil {
             mockCardView.addSubview(mockContent!)
@@ -483,6 +491,41 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         mockCardView.transform = cardView.transform
         cardView.transform = .identity
 
+        
+        // Move card back to center
+        if let anim = POPSpringAnimation(propertyNamed: kPOPViewCenter) {
+            anim.toValue = self.view.center
+            anim.velocity = velocity
+            anim.completionBlock = { (anim, done) in
+                self.vc.resetSizes()
+                self.vc.view.bringSubview(toFront: self.cardView)
+                
+                UIView.animate(withDuration: 0.2, animations: {
+                    self.home.setNeedsStatusBarAppearanceUpdate()
+                })
+            }
+            cardView.pop_add(anim, forKey: "commitAnim")
+        }
+        
+        // Move placeholder away
+        if let anim = POPSpringAnimation(propertyNamed: kPOPViewCenter ) {
+            var newCenter = self.view.center
+            if action == .back {
+                newCenter.x += mockCardView.bounds.width + mockCardViewSpacer
+            } else if action == .forward {
+                newCenter.x -= mockCardView.bounds.width + mockCardViewSpacer
+            }
+            anim.toValue = newCenter
+            anim.velocity = velocity
+            anim.completionBlock = { (anim, done) in
+                mockContent?.removeFromSuperview()
+                self.mockCardView.subviews.forEach { $0.removeFromSuperview() }
+                self.mockCardView.removeFromSuperview()
+            }
+            mockCardView.pop_add(anim, forKey: "commitAnim")
+        }
+
+        
         UIView.animate(
             withDuration: 0.6,
             delay: 0.0,
@@ -493,18 +536,18 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             if action == .toParent {
                 self.cardView.alpha = 1
                 self.cardView.bounds.size = self.vc.cardViewDefaultFrame.size
-                self.cardView.center = self.vc.view.center
+//                self.cardView.center = self.vc.view.center
                 
                 self.mockCardView.center.x = self.vc.view.center.x
                 self.mockCardView.center.y = self.vc.view.center.y + self.cardView.bounds.height
             }
             else if action == .back {
-                self.cardView.center = self.view.center
-                self.mockCardView.center.x = self.view.center.x + self.mockCardView.bounds.width + self.mockCardViewSpacer
+//                self.cardView.center = self.view.center
+//                self.mockCardView.center.x = self.view.center.x + self.mockCardView.bounds.width + self.mockCardViewSpacer
             }
             else if action == .forward {
-                self.cardView.center = self.view.center
-                self.mockCardView.center.x = self.view.center.x - self.mockCardView.bounds.width - self.mockCardViewSpacer
+//                self.cardView.center = self.view.center
+//                self.mockCardView.center.x = self.view.center.x - self.mockCardView.bounds.width - self.mockCardViewSpacer
             }
             self.cardView.layer.cornerRadius = Const.shared.cardRadius
             self.cardView.transform = .identity
@@ -514,20 +557,33 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
         }, completion: { completed in
             
-            self.vc.resetSizes()
-            self.vc.view.bringSubview(toFront: self.cardView)
-            
-            mockContent?.removeFromSuperview()
-            self.mockCardView.subviews.forEach { $0.removeFromSuperview() }
-            self.mockCardView.removeFromSuperview()
-
-            UIView.animate(withDuration: 0.2, animations: {
-                self.home.setNeedsStatusBarAppearanceUpdate()
-            })
         })
     }
 
-    func reset(atVelocity vel : CGFloat = 0.0) {
+    func reset(velocity: CGPoint) {
+        vc.webView.scrollView.cancelScroll()
+
+        // Move card back to center
+        if let anim = POPSpringAnimation(propertyNamed: kPOPViewCenter) {
+            anim.toValue = self.view.center
+            anim.velocity = velocity
+            anim.completionBlock = { (anim, done) in
+//                self.vc.resetSizes()
+                
+                UIView.animate(withDuration: 0.2, animations: {
+                    self.home.setNeedsStatusBarAppearanceUpdate()
+                })
+            }
+            cardView.pop_add(anim, forKey: "resetCenter")
+        }
+        
+        // Scale card back to normal
+        if let anim = POPSpringAnimation(propertyNamed: kPOPViewScaleXY) {
+            anim.toValue = CGPoint(x: 1, y: 1)
+//            anim.velocity = velocity
+            cardView.pop_add(anim, forKey: "resetScale")
+        }
+
         UIView.animate(
             withDuration: 0.6,
             delay: 0.0,
@@ -535,9 +591,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             initialSpringVelocity: 0.0,
             options: .allowUserInteraction,
             animations: {
-                self.vc.resetSizes()
-                self.vc.setNeedsStatusBarAppearanceUpdate()
-                
+                // TODO: mock card away to left or right
                 self.mockCardView.center = self.cardView.center
                 self.mockCardView.transform = self.cardView.transform
 
@@ -601,19 +655,16 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 endGesture()
                 
                 let gesturePos = gesture.translation(in: view)
-                let adjustedY : CGFloat = gesturePos.y - startPoint.y
+                var vel = gesture.velocity(in: vc.view)
+                vel.x = 0
 
-                let vel = gesture.velocity(in: vc.view)
-                
+                let adjustedY : CGFloat = gesturePos.y - startPoint.y
                 
                 if (direction == .top && (vel.y > 600 || adjustedY > dismissPointY)) {
-                    commitDismiss()
-                }
-                else if (direction == .bottom && (vel.y < -600 || adjustedY < -dismissPointY)) {
-                    commitDismiss()
+                    commitDismiss(velocity: vel)
                 }
                 else {
-                    reset(atVelocity: vel.y)
+                    reset(velocity: vel)
                 }
             }
         }

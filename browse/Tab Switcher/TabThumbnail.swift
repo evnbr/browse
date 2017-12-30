@@ -23,14 +23,11 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
     var snapView : UIImageView!
     
-    var unTransformedFrame : CGRect!
-    
     override var frame : CGRect {
         didSet {
             if !isDismissing {
 //                snap?.frame = frameForSnap(snap)
                 overlay?.frame = bounds
-                unTransformedFrame = frame
             }
         }
     }
@@ -146,7 +143,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
-        unTransformedFrame = frame
         
         if touches.first != nil {
 //            self.overlay.alpha = 0.3
@@ -189,23 +185,28 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
     var isDismissing = false
     var startCenter : CGPoint = .zero
+    var startAlpha : CGFloat = 0
     
     @objc func panGestureChange(gesture: UIPanGestureRecognizer) {
-        let gesturePos = gesture.translation(in: self)
+        let gesturePos = gesture.translation(in: self.superview)
 
         if gesture.state == .began {
             isDismissing = true
             startCenter = center
+            startAlpha = overlay.alpha
+            overlay.backgroundColor = .red
         }
         else if gesture.state == .changed {
             if isDismissing {
                 let pct = abs(gesturePos.x) / bounds.width
-                if pct > 0.7 {
-                    alpha = 1 - (pct - 0.7) * 2
+                if pct > 0.4 {
+                    overlay.alpha = (pct - 0.4) * 2
                 }
                 
-                center.x = startCenter.x + gesturePos.x
-                center.y = startCenter.y + elasticLimit(gesturePos.y) * 0.4
+                let s = 1 - pct * 0.5
+                transform = CGAffineTransform(scaleX: s, y: s)
+                center.x = startCenter.x + elasticLimit(gesturePos.x)
+                center.y = startCenter.y + blend(from: elasticLimit(gesturePos.y), to: gesturePos.y, by: pct * 0.5) * 0.6 - ((1 - s) * bounds.height * 0.3)
             }
         }
         else if gesture.state == .ended {
@@ -216,22 +217,29 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
                 let vel = gesture.velocity(in: superview)
                 
                 var endCenter : CGPoint = startCenter
-                var endAlpha : CGFloat = 1
+                var endAlpha : CGFloat = startAlpha
+                var endTransform : CGAffineTransform = .identity
                 
                 if ( vel.x > 1200 || gesturePos.x > bounds.width * 0.7 ) {
                     endCenter.x = startCenter.x + bounds.width
-                    endAlpha = 0
+//                    endCenter.y = startCenter.y + bounds.height
+                    endAlpha = 1
+                    endTransform = CGAffineTransform(scaleX: 0.1, y: 0.1)
                     closeTabCallback(self)
                 }
                 else if ( vel.x < -1200 || gesturePos.x < -bounds.width * 0.7 ) {
                     endCenter.x = startCenter.x - bounds.width
-                    endAlpha = 0
+//                    endCenter.y = startCenter.y + bounds.height
+                    endAlpha = 1
+                    endTransform = CGAffineTransform(scaleX: 0.1, y: 0.1)
                     closeTabCallback(self)
                 }
                 
                 UIView.animate(withDuration: 0.6, delay: 0.0, usingSpringWithDamping: 0.65, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
                     self.center = endCenter
-                    self.alpha = endAlpha
+                    self.overlay.alpha = endAlpha
+                    self.transform = endTransform
+                    self.overlay.backgroundColor = .black
                 }, completion: nil)
             }
             
