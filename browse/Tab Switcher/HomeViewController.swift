@@ -180,6 +180,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
             
         }
     }
+    
     func clearTabs() {
         collectionView?.performBatchUpdates({
             for tab in self.tabs {
@@ -260,10 +261,12 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     }
     
     func boundsForThumb(forTab maybeTab: BrowserTab? ) -> CGRect? {
-        guard let tab : BrowserTab = maybeTab else { return nil }
-        guard let cv = collectionView else { return nil }
-        guard let thumb = thumb(forTab: tab) else { return nil }
+        guard let tab : BrowserTab = maybeTab,
+            let cv = collectionView,
+            let thumb = thumb(forTab: tab)
+        else { return nil }
         guard let ip = cv.indexPath(for: thumb) else { return nil }
+        
         return cv.layoutAttributesForItem(at: ip)!.bounds
     }
     

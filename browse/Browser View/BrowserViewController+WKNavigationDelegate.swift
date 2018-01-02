@@ -14,11 +14,11 @@ extension BrowserViewController: WKNavigationDelegate {
         errorView?.removeFromSuperview()
         
         loadingDidChange()
-        print(webView.backForwardList.forwardList.map { $0.url } )
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         loadingDidChange()
+        
     }
     
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
