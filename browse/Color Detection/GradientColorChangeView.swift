@@ -20,7 +20,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     let gradientLayer2: CAGradientLayer = CAGradientLayer()
     let gradientLayer3: CAGradientLayer = CAGradientLayer()
     
-    let duration : CFTimeInterval = 0.8
+    let duration : CFTimeInterval = 1.2
 
     var gradientHolder: UIView!
     
@@ -32,15 +32,15 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        gradientLayer.frame = self.bounds
-        gradientLayer2.frame = self.bounds
-        gradientLayer3.frame = self.bounds
+        gradientLayer.frame = bounds
+        gradientLayer2.frame = bounds
+        gradientLayer3.frame = bounds
     }
     
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        gradientHolder = UIView(frame: self.bounds)
+        gradientHolder = UIView(frame: bounds)
         gradientHolder.translatesAutoresizingMaskIntoConstraints = false
         addSubview(gradientHolder)
         sendSubview(toBack: gradientHolder)
@@ -51,7 +51,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         gradientHolder.heightAnchor.constraint(equalTo: self.heightAnchor).isActive = true
         
         for layer in [gradientLayer, gradientLayer2, gradientLayer3] {
-            layer.frame = self.bounds
+            layer.frame = bounds
             layer.colors = [UIColor.clear.cgColor, UIColor.clear.cgColor]
         }
     }
@@ -77,7 +77,9 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
             return gradientLayer3
         }
         else {
-            return nil
+            let newLayer = CAGradientLayer()
+            newLayer.frame = bounds
+            return newLayer
         }
     }
     
