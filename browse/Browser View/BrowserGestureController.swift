@@ -149,12 +149,18 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
     }
     
+    var dragStartScroll : CGFloat = 0
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        dragStartScroll = scrollView.contentOffset.y
+    }
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         guard !scrollView.isOverScrolledTop else { return }
         guard !scrollView.isOverScrolledBottom else { return }
 
-        if vc.toolbar.bounds.height < (Const.shared.toolbarHeight / 2) {
+        let dragAmount = scrollView.contentOffset.y - dragStartScroll
+        
+        if dragAmount > 0 {//vc.toolbar.bounds.height < (Const.shared.toolbarHeight / 2) {
             vc.hideToolbar()
         }
         else {
@@ -227,7 +233,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 let hProgress = abs(gesturePos.x) / view.bounds.width
                 let s = 1 - hProgress * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
                 let yHint : CGFloat = 20
-                let yShift = hProgress * yHint + yGestureInfluence
+//                let yShift = hProgress * yHint + yGestureInfluence
                 cardView.center.x = view.center.x + elasticLimit(elasticLimit(adjustedX))
 //                cardView.center.y = view.center.y + yShift
                 cardView.transform = CGAffineTransform(scale: s)
@@ -304,6 +310,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
     }
     
+    
     @objc func leftEdgePan(gesture:UIScreenEdgePanGestureRecognizer) {
 
         if gesture.state == .began {
@@ -319,14 +326,19 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 view.bringSubview(toFront: cardView)
                 mockCardView.transform = .identity
                 mockCardView.center = vc.view.center
+                
+                if let backItem = vc.webView.backForwardList.backItem,
+                    let historyItem = vc.browserTab?.historyItemMap[backItem] {
+                    mockCardView.setHistoryItem(historyItem)
+                }
+                
+
             }
             
             if !vc.webView.canGoBack {
                 if let parent = vc.browserTab?.parentTab {
                     if let img = parent.history.current?.snapshot {
-                        let snap = UIImageView(image: img)
-                        snap.sizeToFit()
-                        mockCardView.addSubview(snap)
+                        mockCardView.imageView.image = img
                     }
                 }
             }
@@ -351,6 +363,11 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 view.bringSubview(toFront: cardView)
                 mockCardView.transform = .identity
                 mockCardView.center = vc.view.center
+                
+                if let fwdItem = vc.webView.backForwardList.forwardItem,
+                    let historyItem = vc.browserTab?.historyItemMap[fwdItem] {
+                    mockCardView.setHistoryItem(historyItem)
+                }
             }
         }
         else if gesture.state == .changed {
@@ -409,6 +426,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         if vc.isDisplayingSearch {
             vc.hideSearch()
         }
+        
+        vc.browserTab?.updateSnapshot()
     }
     
     
@@ -419,7 +438,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     func commitDismiss(velocity vel: CGPoint) {
         
         dismissVelocity = vel
-        self.mockCardView.removeFromSuperview()
+        mockCardView.removeFromSuperview()
+        mockCardView.imageView.image = nil
         
         vc.dismiss(animated: true) {
             self.dismissVelocity = nil
@@ -452,23 +472,21 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     }
     
     func commit(action: GestureNavigationAction, velocity: CGPoint = .zero) {
-        let mockContent = cardView.snapshotView(afterScreenUpdates: false)
-        if mockContent != nil {
-            mockCardView.addSubview(mockContent!)
-        }
-        vc.roundedClipView.backgroundColor = .white
-        vc.toolbar.backgroundColor = .white
-        vc.statusBarFront.backgroundColor = .white
         
+        let mockContent = cardView.snapshotView(afterScreenUpdates: false)
+        mockCardView.addSubview(mockContent!)
+        vc.snap.image = mockCardView.imageView.image
+
+        vc.statusBarFront.gradientHolder.backgroundColor = mockCardView.statusView.backgroundColor
+        vc.toolbar.gradientHolder.backgroundColor = mockCardView.toolbarView.backgroundColor
+
         if action == .back {
             vc.webView.goBack()
             vc.hideUntilNavigationDone = true
-            view.bringSubview(toFront: mockCardView)
         }
         else if action == .forward {
             vc.webView.goForward()
             vc.hideUntilNavigationDone = true
-            view.bringSubview(toFront: cardView)
         }
         else if action == .toParent {
             if let parent = self.vc.browserTab?.parentTab {
@@ -511,6 +529,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         mockCardView.springCenter(to: mockCenter, at: velocity) {_,_ in
             mockContent?.removeFromSuperview()
             self.mockCardView.removeFromSuperview()
+            self.mockCardView.imageView.image = nil
         }
         
         

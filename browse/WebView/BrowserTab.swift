@@ -16,9 +16,11 @@ class BrowserTab: NSObject {
     
     var restoredLocation : String?
     var restoredTitle : String?
-    var restoredColor : UIColor?
-    
-    var history : HistorTree = HistorTree()
+    var restoredTopColor : UIColor?
+    var restoredBottomColor : UIColor?
+
+    var history : HistoryTree = HistoryTree()
+    var historyItemMap : [ WKBackForwardListItem : HistoryItem ] = [:]
     
     static var baseConfiguration: WKWebViewConfiguration = {
         let configuration = WKWebViewConfiguration()
@@ -40,23 +42,12 @@ class BrowserTab: NSObject {
     
     init(restoreInfo : TabInfo) {
         super.init()
-        topColorSample = restoreInfo.topColor
-        bottomColorSample = restoreInfo.bottomColor
+        restoredTopColor = restoreInfo.topColor
+        restoredBottomColor = restoreInfo.bottomColor
         restoredTitle = restoreInfo.title
         restoredLocation = restoreInfo.urlString
         webView = loadWebView(withConfig: nil)
     }
-    
-    func updateSnapshot(completionHandler: @escaping (UIImage?, Error?) -> Void) {
-        // Image snapshot
-        webView.takeSnapshot(with: nil) { (image, error) in
-            if let img : UIImage = image {
-                self.history.current?.snapshot = img
-            }
-            completionHandler(image, error)
-        }
-    }
-
     
     var restorableTitle : String? {
         if webView?.url == nil { return restoredTitle }
@@ -65,18 +56,13 @@ class BrowserTab: NSObject {
     var restorableURL : String? {
         return webView?.url?.absoluteString ?? restoredLocation
     }
-    var color : UIColor {
-        return bottomColorSample ?? restoredColor ?? .white
-    }
-    var topColorSample : UIColor?
-    var bottomColorSample : UIColor?
     
     var restorableInfo : TabInfo {
         return TabInfo(
             title: restorableTitle ?? "",
             urlString: restorableURL ?? "",
-            topColor: bottomColorSample ?? .white,
-            bottomColor: bottomColorSample ?? .white
+            topColor: history.current?.topColor ?? .white,
+            bottomColor: history.current?.bottomColor ?? .white
         )
     }
     
@@ -95,7 +81,7 @@ class BrowserTab: NSObject {
         
         webView.translatesAutoresizingMaskIntoConstraints = false
         webView.scrollView.contentInset = .zero
-        webView.backgroundColor = bottomColorSample
+        webView.backgroundColor = restoredBottomColor
         
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.scrollView.clipsToBounds = false
@@ -106,4 +92,51 @@ class BrowserTab: NSObject {
         return webView
     }
     
+    func updateSnapshot(completionHandler: @escaping (UIImage) -> Void = { _ in }) {
+        // Image snapshot
+        webView.takeSnapshot(with: nil) { (image, error) in
+            if let img : UIImage = image {
+                self.history.current?.snapshot = img
+                completionHandler(img)
+            }
+        }
+    }
+    
+    func updateHistory() {
+        guard let currentItem = webView.backForwardList.currentItem else { return }
+        var historyItem = historyItemMap[currentItem]
+        if historyItem == nil {
+            // Create entry to mirror backForwardList
+            historyItem = HistoryItem(parent: nil, from: currentItem)
+            historyItemMap[currentItem] = historyItem
+        }
+        history.current = historyItem
+    }
+    
 }
+
+
+extension WKWebView {
+    func evaluateFixedNav(_ completionHandler: @escaping (Bool) -> Void) {
+        evaluateJavaScript(checkFixedTopScript) { (result, error) in
+            if let isFixed : Bool = result as? Bool {
+                completionHandler(isFixed)
+            }
+        }
+    }
+}
+
+fileprivate let checkFixedTopScript = """
+    (function() {
+        const isFixed = (elm) => {
+            let el = elm;
+            while (typeof el === 'object' && el.nodeName.toLowerCase() !== 'body') {
+                const pos = window.getComputedStyle(el).getPropertyValue('position').toLowerCase()
+                if (pos === 'fixed' || pos === 'sticky' || pos === '-webkit-sticky') return true;
+                el = el.parentElement;
+            }
+            return false;
+        };
+        return isFixed(document.elementFromPoint(1,1));
+    })();
+"""

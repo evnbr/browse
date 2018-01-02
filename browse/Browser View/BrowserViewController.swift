@@ -29,6 +29,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     var statusBarBack: ColorStatusBarView!
     var statusBarFront: ColorStatusBarView!
+    var statusBarShadow: UIView!
+    
     var toolbar: ProgressToolbar!
     var toolbarHiddenPlaceholder = UIView()
     var accessoryView: GradientColorChangeView!
@@ -59,7 +61,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         if gestureController.isInteractiveDismiss && (cardView.frame.origin.y > 10) {
             return .lightContent
         }
-        return (browserTab?.topColorSample?.isLight ?? true) ? .lightContent : .default
+        return (browserTab?.history.current?.topColor?.isLight ?? true) ? .lightContent : .default
     }
     
     override var prefersStatusBarHidden: Bool {
@@ -106,10 +108,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     var hideUntilNavigationDone : Bool {
         get {
-            return webView.alpha < 1
+            return isSnapshotMode
         }
         set {
-            webView.alpha = newValue ? 0 : 1
+//            webView.alpha = newValue ? 0 : 1
+            isSnapshotMode = newValue
         }
     }
     
@@ -150,7 +153,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             snap.image = nil
         }
         
-        if let newTop = newTab.topColorSample {
+        if let newTop = newTab.history.current?.topColor {
             statusBarFront.backgroundColor = newTop
             // TODO: just need to reset tint color, dont need animate gradient
             let _ = statusBarFront.animateGradient(toColor: newTop, direction: .fromBottom)
@@ -158,7 +161,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         else {
             statusBarFront.backgroundColor = .white
         }
-        if let newBottom = newTab.bottomColorSample {
+        if let newBottom = newTab.history.current?.bottomColor {
 //            toolbar.backgroundColor = newBottom
             roundedClipView.backgroundColor = newBottom
             webView.backgroundColor = newBottom
@@ -176,13 +179,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         webView.scrollView.delegate = gestureController
                 
         roundedClipView.addSubview(webView)
-        roundedClipView.bringSubview(toFront: keyboardBack)
-        roundedClipView.bringSubview(toFront: toolbarHiddenPlaceholder)
-        roundedClipView.bringSubview(toFront: toolbar)
-        roundedClipView.bringSubview(toFront: statusBarFront)
-        roundedClipView.bringSubview(toFront: snap)
-        roundedClipView.bringSubview(toFront: overlay)
-
+        roundedClipView.insertSubview(webView, aboveSubview: statusBarBack)
+        
         topConstraint = webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: Const.shared.statusHeight)
         topConstraint.isActive = true
         
@@ -196,7 +194,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.url), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.canGoBack), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.canGoForward), options: .new, context: nil)
-
+        
         webView.addInputAccessory(toolbar: accessoryView)
         
         loadingDidChange()
@@ -242,9 +240,19 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         statusBarFront = ColorStatusBarView()
         statusBarBack = ColorStatusBarView()
+        
+        
+//        statusBarShadow = UIView(frame: CGRect(x: 20, y: 12, width: 54, height: 24))
+//        statusBarShadow = PlainBlurView(frame:  CGRect(x: 20, y: 12, width: 54, height: 24))
+//        statusBarShadow.autoresizingMask = [.flexibleRightMargin, .flexibleBottomMargin]
+//        statusBarShadow.clipsToBounds = true
+//        statusBarShadow.layer.cornerRadius = 12
+
+//        roundedClipView.addSubview(statusBarShadow)
         roundedClipView.addSubview(statusBarFront)
         roundedClipView.addSubview(statusBarBack)
         roundedClipView.sendSubview(toBack: statusBarBack)
+        
 
         searchView = SearchView(for: self)
         
@@ -367,12 +375,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             }
         )
         
-        if let anim = POPSpringAnimation(propertyNamed: kPOPScrollViewContentInset) {
-            var insets = webView.scrollView.contentInset
-            insets.bottom = -Const.shared.toolbarHeight
-            anim.toValue = insets
-            webView.scrollView.pop_add(anim, forKey: "hideToolbar")
-        }
+        webView.scrollView.springBottomInset(to: -Const.shared.toolbarHeight)
+
     }
     @objc func tapToolbarPlaceholder() {
         self.showToolbar()
@@ -467,7 +471,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         acc.tintColor = UIColor.darkText
         acc.backgroundColor = UIColor(r: 0.83, g: 0.84, b: 0.85).withAlphaComponent(0.95)
 //        acc.backgroundColor = UIColor.white.withAlphaComponent(0.9)
-        let blur = UIVisualEffectView(frame: acc.frame, isTransparent: true)
+        let blur = PlainBlurView(frame: acc.frame)
         blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         acc.addSubview(blur)
         
@@ -511,7 +515,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var isExpandedSnapshotMode : Bool = false
     var isSnapshotMode : Bool {
         get {
-            return snap.isHidden
+            return !snap.isHidden
         }
         set {
             if newValue {
@@ -548,11 +552,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     func updateSnapshot() {        
         // Image snapshot
-        webView.takeSnapshot(with: nil, completionHandler: { (image, error) in
-            if let img : UIImage = image {
-                self.snap.image = img
-                self.browserTab?.history.current?.snapshot = img
-            }
+        self.browserTab?.updateSnapshot(completionHandler: { img in
+            self.snap.image = img
         })
     }
     
@@ -791,35 +792,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             self.toolbar.layoutIfNeeded()
         }
     }
-    
-    let checkFixedScript = """
-        (function() {
-            const isFixed = (elm) => {
-                let el = elm;
-                while (typeof el === 'object' && el.nodeName.toLowerCase() !== 'body') {
-                    const pos = window.getComputedStyle(el).getPropertyValue('position').toLowerCase()
-                    if (pos === 'fixed' || pos === 'sticky' || pos === '-webkit-sticky') return true;
-                    el = el.parentElement;
-                }
-                return false;
-            };
-            return isFixed(document.elementFromPoint(1,1));
-        })();
-    """
-
-    func checkFixed() {
-        webView.evaluateJavaScript(checkFixedScript) { (result, error) in
-            if let isFixed : Bool = result as? Bool {
-                let newAlpha : CGFloat = isFixed ? 1 : 0
-                if self.statusBarFront.alpha != newAlpha {
-                    UIView.animate(withDuration: 0.15, animations: {
-                        self.statusBarFront.alpha = newAlpha
-                    })
-                }
-            }
-        }
-    }
-    
     
     // MARK: - Share ActivityViewController and 1Password
     
@@ -1090,16 +1062,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = webView.isLoading
         
-        if hideUntilNavigationDone && webView.estimatedProgress == 1 {
-            UIView.animate(withDuration: 0.2, delay: 0.2, animations: {
+        if hideUntilNavigationDone && webView.estimatedProgress > 0.9 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 self.hideUntilNavigationDone = false
-            }, completion: nil)
+            }
         }
         
-        if browserTab?.history.current == nil
-            && webView.backForwardList.currentItem != nil {
-            browserTab?.history.current = HistoryItem(parent: nil, from: webView.backForwardList.currentItem!)
-        }
+        browserTab?.updateHistory()
     }
         
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
@@ -1152,14 +1121,22 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     }
     
     func topColorChange(_ newColor: UIColor) {
-        browserTab?.topColorSample = newColor // this is a hack
+        browserTab?.history.current?.topColor = newColor // this is a hack
+        
+//        webView.evaluateFixedNav() { (isFixed) in
+//            let newAlpha : CGFloat = isFixed ? 1 : 0
+//            if self.statusBarFront.alpha != newAlpha {
+//                UIView.animate(withDuration: 0.15, animations: {
+//                    self.statusBarFront.alpha = newAlpha
+//                })
+//            }
+//        }
         
         if shouldUpdateSample {
-            checkFixed()
             webView.scrollView.backgroundColor = newColor
             
             var didChange : Bool
-            if statusBarFront.alpha > 0 {
+            if true && statusBarFront.alpha > 0 {
                 didChange = statusBarFront.animateGradient(toColor: newColor, direction: .fromBottom)
                 statusBarBack.backgroundColor = newColor
             }
@@ -1169,7 +1146,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
             }
 
             if didChange {
-                UIView.animate(withDuration: 0.6, delay: 0.1, options: .curveEaseInOut, animations: {
+                UIView.animate(withDuration: 0.6, delay: 0, options: .curveEaseInOut, animations: {
                     self.setNeedsStatusBarAppearanceUpdate()
                 })
             }
@@ -1177,7 +1154,9 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     }
     
     func bottomColorChange(_ newColor: UIColor) {
-        browserTab?.bottomColorSample = newColor
+        browserTab?.history.current?.bottomColor = newColor
+        
+        toolbar.gradientHolder.alpha = webView.scrollView.isScrollable ? 0.8 : 1
         
         if shouldUpdateSample {
 //            UIView.animate(withDuration: 0.2, delay: 0.1, options: .curveEaseInOut, animations: {

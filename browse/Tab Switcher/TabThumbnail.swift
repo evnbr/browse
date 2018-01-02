@@ -118,9 +118,8 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
             label.isHidden = false
         }
         
-        if let color : UIColor = browserTab.topColorSample {
+        if let color : UIColor = browserTab.history.current?.topColor {
             contentView.backgroundColor = color
-//            overlay.backgroundColor = color.isLight ? .lightTouch : .darkTouch
             label.textColor = color.isLight ? .white : .darkText
         }
         

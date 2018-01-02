@@ -9,7 +9,7 @@
 import UIKit
 import WebKit
 
-class HistorTree: NSObject {
+class HistoryTree: NSObject {
     var root: HistoryItem?
     var current: HistoryItem?
 }
@@ -25,7 +25,9 @@ class HistoryItem: NSObject {
     let url: URL
     
     var snapshot: UIImage?
-    
+    var topColor: UIColor?
+    var bottomColor: UIColor?
+
     init(parent: HistoryItem?, url: URL) {
         self.parent = parent
         self.url = url
