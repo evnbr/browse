@@ -47,12 +47,11 @@ class ProgressToolbar: ColorToolbarView {
         addSubview(progressView)
         sendSubview(toBack: progressView)
         
-        let blur = UIVisualEffectView(frame: bounds, isTransparent: true)
+        let blur = PlainBlurView(frame: bounds)
         blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(blur)
         sendSubview(toBack: blur)
         
-        gradientHolder.alpha = 0.8
     }
         
     override func tintColorDidChange() {
