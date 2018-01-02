@@ -404,12 +404,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             }
         )
         
-        if let anim = POPSpringAnimation(propertyNamed: kPOPScrollViewContentInset) {
-            var insets = webView.scrollView.contentInset
-            insets.bottom = 0
-            anim.toValue = insets
-            webView.scrollView.pop_add(anim, forKey: "showToolbar")
-        }
+        webView.scrollView.springBottomInset(to: 0)
     }
 
     func setUpToolbar() -> ProgressToolbar {

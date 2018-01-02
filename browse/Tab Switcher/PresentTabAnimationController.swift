@@ -99,57 +99,26 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         homeVC.visibleCellsBelow.forEach { containerView.addSubview($0) }
 
         
+        let newCenter = isExpanding ? expandedCenter : thumbCenter
+        let velocity = browserVC.gestureController.dismissVelocity ?? .zero
         
-        
-//        if let anim = POPSpringAnimation(propertyNamed: kPOPViewCenter) {
-//            anim.toValue = isExpanding ? expandedCenter : thumbCenter
-//            if isDismissing {
-//                if let vel = browserVC.gestureController.dismissVelocity { anim.velocity = vel }
-//            }
-//            anim.dynamicsMass = 1.3
-//            anim.dynamicsFriction = 35
-//            anim.completionBlock = { (anim, done) in
-//                browserVC.isSnapshotMode = false
-//                browserVC.webView.scrollView.isScrollEnabled = true
-//                thumb?.setTab(browserVC.browserTab!)
-//
-//                if self.isDismissing {
-//                    homeVC.visibleCells.forEach { $0.isHidden = false }
-//                    browserVC.view.removeFromSuperview()
-//                }
-//                homeVC.visibleCellsBelow.forEach { homeVC.collectionView?.addSubview($0) }
-//
-//                if self.isDismissing {
-//                    homeVC.setThumbPosition(expanded: false)
-//                    homeVC.setNeedsStatusBarAppearanceUpdate()
-//                }
-//                transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
-//            }
-//            browserVC.cardView.pop_add(anim, forKey: "presentCenter")
-//        }
-        
-        browserVC.cardView.springCenter(
-            to: isExpanding ? expandedCenter : thumbCenter,
-            at: browserVC.gestureController.dismissVelocity ?? .zero,
-            options: POPtions(mass: 1.3, friction: 35, tension: nil),
-            completion: { (_, _) in
-                browserVC.isSnapshotMode = false
-                browserVC.webView.scrollView.isScrollEnabled = true
-                thumb?.setTab(browserVC.browserTab!)
-                
-                if self.isDismissing {
-                    homeVC.visibleCells.forEach { $0.isHidden = false }
-                    browserVC.view.removeFromSuperview()
-                }
-                homeVC.visibleCellsBelow.forEach { homeVC.collectionView?.addSubview($0) }
-                
-                if self.isDismissing {
-                    homeVC.setThumbPosition(expanded: false)
-                    homeVC.setNeedsStatusBarAppearanceUpdate()
-                }
-                transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
-        })
         browserVC.cardView.springScale(to: 1)
+        browserVC.cardView.springCenter(to: newCenter, at: velocity, with: POPtions(mass: 1.3, friction: 35), then: { (_, _) in
+            
+            browserVC.isSnapshotMode = false
+            browserVC.webView.scrollView.isScrollEnabled = true
+            thumb?.setTab(browserVC.browserTab!)
+            
+            homeVC.visibleCellsBelow.forEach { homeVC.collectionView?.addSubview($0) }
+            
+            if self.isDismissing {
+                homeVC.visibleCells.forEach { $0.isHidden = false }
+                browserVC.view.removeFromSuperview()
+                homeVC.setThumbPosition(expanded: false)
+                homeVC.setNeedsStatusBarAppearanceUpdate()
+            }
+            transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
+        })
 
         
         UIView.animate(
