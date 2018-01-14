@@ -27,7 +27,7 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
     override func prepare() {
         super.prepare()
         
-        let topScrollPos = Const.shared.statusHeight + 12 //60
+        let topScrollPos = Const.statusHeight + 12 //60
         let scrollPos = collectionView!.contentOffset.y
         
         let count = collectionView!.numberOfItems(inSection: 0)

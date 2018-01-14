@@ -9,7 +9,7 @@
 import Foundation
 import WebKit
 
-let MIN_TIME_BETWEEN_UPDATES = 0.15
+let MIN_TIME_BETWEEN_UPDATES = 0.2 //0.15
 
 protocol WebviewColorSamplerDelegate {
     var sampledWebView : WKWebView { get }

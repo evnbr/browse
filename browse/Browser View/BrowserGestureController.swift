@@ -33,6 +33,17 @@ extension UIScrollView {
     }
 }
 
+extension UIView {
+    var radius : CGFloat {
+        set {
+            layer.cornerRadius = newValue
+        }
+        get {
+            return layer.cornerRadius
+        }
+    }
+}
+
 class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScrollViewDelegate {
     
     var vc : BrowserViewController!
@@ -132,12 +143,12 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         && !scrollView.isOverScrolledBottom
         && !vc.webView.isLoading {
             let newH = vc.toolbar.bounds.height - scrollDelta
-            let toolbarH = max(0, min(Const.shared.toolbarHeight, newH))
-            let pct = toolbarH / Const.shared.toolbarHeight
+            let toolbarH = max(0, min(Const.toolbarHeight, newH))
+            let pct = toolbarH / Const.toolbarHeight
             
             vc.toolbarHeightConstraint.constant = toolbarH
             
-            let inset = -Const.shared.toolbarHeight + toolbarH
+            let inset = -Const.toolbarHeight + toolbarH
             scrollView.contentInset.bottom = inset
             scrollView.scrollIndicatorInsets.bottom = inset
 
@@ -160,10 +171,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
         let dragAmount = scrollView.contentOffset.y - dragStartScroll
         
-        if dragAmount > 0 {//vc.toolbar.bounds.height < (Const.shared.toolbarHeight / 2) {
+        if dragAmount > 1 {//vc.toolbar.bounds.height < (Const.shared.toolbarHeight / 2) {
             vc.hideToolbar()
         }
-        else {
+        else if dragAmount < -1 {
             vc.showToolbar()
         }
     }
@@ -182,8 +193,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         let rad = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
         if (Const.shared.cardRadius < Const.shared.thumbRadius) {
-            cardView.layer.cornerRadius = rad
-            mockCardView.layer.cornerRadius = rad
+            cardView.radius = rad
+            mockCardView.radius = rad
         }
 
         let adjustedX = gesturePos.x
@@ -207,7 +218,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
 
         let verticalProgress = gesturePos.y.progress(from: 0, to: 200).clip()
-        let stackupProgress = gesturePos.y.progress(from: 60, to: 300).clip().reverse()
+        let stackupProgress = gesturePos.y.progress(from: 80, to: 200).clip().reverse()
         
         if direction == .left {
             if vc.webView.canGoBack {
@@ -215,7 +226,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 
                 let s = (verticalProgress * vProgressScaleMultiplier).reverse()
                 cardView.transform = CGAffineTransform(scale: s)
-                mockCardView.transform = cardView.transform
+//                mockCardView.transform = cardView.transform
                 
                 let scaleFromLeftShift = (1 - s) * cardView.bounds.width / 2
                 
@@ -223,18 +234,20 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                     + verticalProgress.blend(from: adjustedX, to: elasticLimit(adjustedX))
                     - scaleFromLeftShift
                 
-                mockCardView.center = self.cardView.center
-                mockCardView.center.x = self.cardView.center.x - ( self.cardView.bounds.width * s + mockCardViewSpacer ) * stackupProgress
-                mockCardView.overlay.alpha = stackupProgress.reverse() / 2 - 0.2
+                mockCardView.center = view.center //self.cardView.center
+                mockCardView.center.x = blend(
+                    from: cardView.center.x - view.bounds.width / 2 - cardView.bounds.width * s / 2 - mockCardViewSpacer,
+                    to: view.center.x - view.bounds.width,
+                    by: stackupProgress.reverse()
+                )
+                mockCardView.overlay.alpha = revealProgress.reverse() //stackupProgress.reverse() / 2 - 0.2
             }
             else {
                 // COPY PASTED A
 
                 let hProgress = abs(gesturePos.x) / view.bounds.width
                 let s = 1 - hProgress * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
-                let yHint : CGFloat = 20
-//                let yShift = hProgress * yHint + yGestureInfluence
-                cardView.center.x = view.center.x + elasticLimit(elasticLimit(adjustedX))
+                cardView.center.x = view.center.x + elasticLimit(adjustedX, constant: 100)
 //                cardView.center.y = view.center.y + yShift
                 cardView.transform = CGAffineTransform(scale: s)
             }
@@ -244,7 +257,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             
             let s = 1 - verticalProgress * vProgressScaleMultiplier
             cardView.transform = CGAffineTransform(scale: s)
-            mockCardView.transform = cardView.transform
+//            mockCardView.transform = cardView.transform
             
             let scaleFromRightShift = (1 - s) * cardView.bounds.width / 2
             
@@ -252,8 +265,12 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 + verticalProgress.blend(from: adjustedX, to: elasticLimit(adjustedX))
                 + scaleFromRightShift
             
-            mockCardView.center = self.cardView.center
-            mockCardView.center.x = self.cardView.center.x + ( self.cardView.bounds.width * s + mockCardViewSpacer ) * stackupProgress
+            mockCardView.center = view.center //self.cardView.center
+            mockCardView.center.x = blend(
+                from: cardView.center.x + view.bounds.width / 2 + cardView.bounds.width * s / 2 + mockCardViewSpacer,
+                to: view.center.x + view.bounds.width,
+                by: stackupProgress.reverse()
+            )
             mockCardView.overlay.alpha = stackupProgress.reverse() / 2 - 0.2
         }
         else {
@@ -328,8 +345,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 mockCardView.center = vc.view.center
                 
                 if let backItem = vc.webView.backForwardList.backItem,
-                    let historyItem = vc.browserTab?.historyItemMap[backItem] {
-                    mockCardView.setHistoryItem(historyItem)
+                    let page = vc.browserTab?.historyPageMap[backItem] {
+                    mockCardView.setPage(page)
                 }
                 
 
@@ -365,8 +382,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 mockCardView.center = vc.view.center
                 
                 if let fwdItem = vc.webView.backForwardList.forwardItem,
-                    let historyItem = vc.browserTab?.historyItemMap[fwdItem] {
-                    mockCardView.setHistoryItem(historyItem)
+                    let page = vc.browserTab?.historyPageMap[fwdItem] {
+                    mockCardView.setPage(page)
                 }
             }
         }
@@ -450,7 +467,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let parentMock = cardView.snapshotView(afterScreenUpdates: false)!
         parentMock.contentMode = .top
         parentMock.clipsToBounds = true
-        parentMock.layer.cornerRadius = Const.shared.cardRadius
+        parentMock.radius = Const.shared.cardRadius
         
         vc.view.insertSubview(parentMock, belowSubview: cardView)
         vc.setTab(childTab)
@@ -464,7 +481,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             options: .allowUserInteraction,
             animations: {
                 self.cardView.center = self.view.center
-                parentMock.center.y += Const.shared.statusHeight
+                parentMock.center.y += Const.statusHeight
             }, completion: { done in
                 parentMock.removeFromSuperview()
             }
@@ -522,7 +539,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         var mockCenter = self.view.center
         let mockShift = mockCardView.bounds.width + mockCardViewSpacer
-        
         if action == .back { mockCenter.x += mockShift }
         else if action == .forward { mockCenter.x -= mockShift }
 
@@ -552,10 +568,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             }
             else if action == .forward {
             }
-            self.cardView.layer.cornerRadius = Const.shared.cardRadius
+            self.cardView.radius = Const.shared.cardRadius
             self.cardView.transform = .identity
 
-            self.mockCardView.layer.cornerRadius = Const.shared.cardRadius
+            self.mockCardView.radius = Const.shared.cardRadius
             self.mockCardView.transform = .identity
 
         }, completion: { completed in
@@ -572,27 +588,18 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 self.home.setNeedsStatusBarAppearanceUpdate()
             })
         }
-        
         cardView.springScale(to: 1)
 
+        var mockCenter = self.view.center
+        let mockShift = mockCardView.bounds.width + mockCardViewSpacer
+        if mockCardView.center.x > view.center.x { mockCenter.x += mockShift }
+        else { mockCenter.x -= mockShift }
         
-        UIView.animate(
-            withDuration: 0.6,
-            delay: 0.0,
-            usingSpringWithDamping: 0.85,
-            initialSpringVelocity: 0.0,
-            options: .allowUserInteraction,
-            animations: {
-                // TODO: mock card away to left or right
-                self.mockCardView.center = self.cardView.center
-                self.mockCardView.transform = self.cardView.transform
-
-                self.cardView.layer.cornerRadius = Const.shared.cardRadius
-                self.mockCardView.layer.cornerRadius = Const.shared.cardRadius
-            }, completion: { _ in
-                self.mockCardView.removeFromSuperview()
-            }
-        )
+        mockCardView.springCenter(to: mockCenter, at: velocity) {_,_ in
+            self.mockCardView.removeFromSuperview()
+            self.mockCardView.imageView.image = nil
+        }
+        mockCardView.springScale(to: 1)
     }
         
     func verticalChange(gesture: UIPanGestureRecognizer) {
@@ -607,9 +614,13 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
         
         cardView.center.y = view.center.y + adjustedY
+        cardView.center.x = view.center.x + 0.1 * gesturePos.x
+
+        let s = (adjustedY.progress(from: 0, to: 600).clip() * vProgressScaleMultiplier).reverse()
+        cardView.transform = CGAffineTransform(scale: s)
         
         if adjustedY > 0 {
-            vc.toolbarHeightConstraint.constant = max(0, Const.shared.toolbarHeight)
+            vc.toolbarHeightConstraint.constant = max(0, Const.toolbarHeight)
         }
         
 //        home.setThumbPositiorn(expanded: true, offsetY: adjustedY)
@@ -617,7 +628,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let revealProgress = abs(adjustedY) / 200
         
         if (Const.shared.cardRadius < Const.shared.thumbRadius) {
-            cardView.layer.cornerRadius = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
+            cardView.radius = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
         }
         
         

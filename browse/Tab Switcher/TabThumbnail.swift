@@ -55,7 +55,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        layer.cornerRadius = Const.shared.thumbRadius 
+        radius = Const.shared.thumbRadius 
         backgroundColor = .clear
         
 //        layer.anchorPoint.y = 0
@@ -203,10 +203,10 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
                     overlay.alpha = (pct - 0.4) * 2
                 }
                 
-                let s = 1 - pct * 0.5
-                transform = CGAffineTransform(scaleX: s, y: s)
+//                let s = 1 - pct * 0.5
+//                transform = CGAffineTransform(scaleX: s, y: s)
                 center.x = startCenter.x + elasticLimit(gesturePos.x)
-                center.y = startCenter.y + blend(from: elasticLimit(gesturePos.y), to: gesturePos.y, by: pct * 0.5) * 0.6 - ((1 - s) * bounds.height * 0.3)
+//                center.y = startCenter.y + blend(from: elasticLimit(gesturePos.y), to: gesturePos.y, by: pct * 0.5) * 0.6 - ((1 - s) * bounds.height * 0.3)
             }
         }
         else if gesture.state == .ended {
@@ -220,18 +220,18 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
                 var endAlpha : CGFloat = startAlpha
                 var endTransform : CGAffineTransform = .identity
                 
-                if ( vel.x > 1200 || gesturePos.x > bounds.width * 0.7 ) {
+                if ( vel.x > 600 || gesturePos.x > bounds.width * 0.7 ) {
                     endCenter.x = startCenter.x + bounds.width
 //                    endCenter.y = startCenter.y + bounds.height
                     endAlpha = 1
-                    endTransform = CGAffineTransform(scaleX: 0.1, y: 0.1)
+//                    endTransform = CGAffineTransform(scaleX: 0.1, y: 0.1)
                     closeTabCallback(self)
                 }
-                else if ( vel.x < -1200 || gesturePos.x < -bounds.width * 0.7 ) {
+                else if ( vel.x < -600 || gesturePos.x < -bounds.width * 0.7 ) {
                     endCenter.x = startCenter.x - bounds.width
 //                    endCenter.y = startCenter.y + bounds.height
                     endAlpha = 1
-                    endTransform = CGAffineTransform(scaleX: 0.1, y: 0.1)
+//                    endTransform = CGAffineTransform(scaleX: 0.1, y: 0.1)
                     closeTabCallback(self)
                 }
                 

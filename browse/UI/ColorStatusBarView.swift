@@ -33,18 +33,18 @@ class ColorStatusBarView : GradientColorChangeView {
     init() {
         let rect = CGRect(
             origin: CGPoint(x: 0, y: 0),
-            size:CGSize(width: UIScreen.main.bounds.size.width, height: Const.shared.statusHeight)
+            size:CGSize(width: UIScreen.main.bounds.size.width, height: Const.statusHeight)
         )
 
         super.init(frame: rect)
         
-        self.autoresizingMask = [.flexibleWidth]
+        self.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
         
-//        let blur = UIVisualEffectView(frame: self.frame, isTransparent: true)
+//        let blur = PlainBlurView(frame: bounds)
 //        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 //        addSubview(blur)
 //        sendSubview(toBack: blur)
-        
+
 //        label = UILabel(frame: CGRect(
 //            x: 24 ,
 //            y: 12,

@@ -102,11 +102,15 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         let newCenter = isExpanding ? expandedCenter : thumbCenter
         let velocity = browserVC.gestureController.dismissVelocity ?? .zero
         
-        browserVC.cardView.springScale(to: 1)
-        browserVC.cardView.springCenter(to: newCenter, at: velocity, with: POPtions(mass: 1.3, friction: 35), then: { (_, _) in
-            
-            browserVC.isSnapshotMode = false
-            browserVC.webView.scrollView.isScrollEnabled = true
+        
+        var popAnimFinished = false
+        var viewAnimFinished = false
+        
+        func finishTransition() {
+            if self.isExpanding {
+                browserVC.isSnapshotMode = false
+                browserVC.webView.scrollView.isScrollEnabled = true
+            }
             thumb?.setTab(browserVC.browserTab!)
             
             homeVC.visibleCellsBelow.forEach { homeVC.collectionView?.addSubview($0) }
@@ -115,11 +119,24 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
                 homeVC.visibleCells.forEach { $0.isHidden = false }
                 browserVC.view.removeFromSuperview()
                 homeVC.setThumbPosition(expanded: false)
-                homeVC.setNeedsStatusBarAppearanceUpdate()
             }
+            
+            homeVC.setNeedsStatusBarAppearanceUpdate()
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
+        }
+        func maybeFinish() {
+            if viewAnimFinished && popAnimFinished { finishTransition() }
+        }
+        
+        
+        browserVC.cardView.springScale(to: 1)
+        browserVC.cardView.springBounds(to: self.isExpanding ? expandedBounds : thumbBounds)
+        browserVC.cardView.springCenter(to: newCenter, at: velocity, with: POPtions(mass: 1.3, friction: 35), then: { (_, _) in
+            popAnimFinished = true
+            maybeFinish()
         })
 
+        browserVC.statusBarFront.frame.size.height = !isExpanding ? Const.statusHeight : THUMB_OFFSET_COLLAPSED
         
         UIView.animate(
             withDuration: 0.6,
@@ -129,13 +146,12 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             options: .allowUserInteraction,
             animations: {
                 
-//            browserVC.cardView.center = self.isExpanding ? expandedCenter : thumbCenter
-            browserVC.cardView.bounds = self.isExpanding ? expandedBounds : thumbBounds
-//            browserVC.cardView.transform = .identity
             browserVC.overlay.alpha = self.isExpanding ? 0 : thumbOverlayAlpha
             browserVC.isExpandedSnapshotMode = self.isExpanding
             browserVC.updateSnapshotPosition()
             browserVC.roundedClipView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
+
+            browserVC.statusBarFront.frame.size.height = self.isExpanding ? Const.statusHeight : THUMB_OFFSET_COLLAPSED
 
             homeNav.view.alpha = self.isExpanding ? 0.4 : 1
             
@@ -145,7 +161,9 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             homeVC.setNeedsStatusBarAppearanceUpdate()
                 
         }, completion: { finished in
-            
+            viewAnimFinished = true
+            maybeFinish()
         })
     }
+    
 }

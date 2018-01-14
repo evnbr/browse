@@ -41,14 +41,15 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         super.init(frame: frame)
         
         gradientHolder = UIView(frame: bounds)
-        gradientHolder.translatesAutoresizingMaskIntoConstraints = false
+//        gradientHolder.translatesAutoresizingMaskIntoConstraints = false
         addSubview(gradientHolder)
         sendSubview(toBack: gradientHolder)
         
-        gradientHolder.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
-        gradientHolder.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
-        gradientHolder.widthAnchor.constraint(equalTo: self.widthAnchor).isActive = true
-        gradientHolder.heightAnchor.constraint(equalTo: self.heightAnchor).isActive = true
+//        gradientHolder.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
+//        gradientHolder.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
+//        gradientHolder.widthAnchor.constraint(equalTo: self.widthAnchor).isActive = true
+//        gradientHolder.heightAnchor.constraint(equalTo: self.heightAnchor).isActive = true
+        gradientHolder.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         
         for layer in [gradientLayer, gradientLayer2, gradientLayer3] {
             layer.frame = bounds
@@ -84,10 +85,19 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     }
     
     func animateGradient(toColor: UIColor, direction: GradientColorChangeDirection ) -> Bool {
+        if toColor.isEqual(lastColor) { return false }
+
+        UIView.animate(withDuration: 0.5, delay: 0, options: [.beginFromCurrentState], animations: {
+            self.gradientHolder.backgroundColor = toColor
+            self.tintColor = toColor.isLight ? .white : .darkText
+        })
         
-        guard !toColor.isEqual(lastColor) else {
-            return false
-        }
+        return true
+    }
+
+    
+    func animateGradientOld(toColor: UIColor, direction: GradientColorChangeDirection ) -> Bool {
+        if toColor.isEqual(lastColor) { return false }
         
         guard let gLayer : CAGradientLayer = getGradientLayer() else {
             print("all grads in use")

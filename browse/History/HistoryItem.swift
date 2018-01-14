@@ -1,5 +1,5 @@
 //
-//  HistoryItem.swift
+//  HistoryPage.swift
 //  browse
 //
 //  Created by Evan Brooks on 10/13/17.
@@ -10,15 +10,15 @@ import UIKit
 import WebKit
 
 class HistoryTree: NSObject {
-    var root: HistoryItem?
-    var current: HistoryItem?
+    var root: HistoryPage?
+    var current: HistoryPage?
 }
 
-class HistoryItem: NSObject {
+class HistoryPage: NSObject {
     var browserTab: BrowserTab?
     
-    let parent: HistoryItem?
-    var children: [ HistoryItem ] = []
+    let parent: HistoryPage?
+    var children: [ HistoryPage ] = []
     
     var mirroredListItem: WKBackForwardListItem?
     var title: String?
@@ -28,14 +28,14 @@ class HistoryItem: NSObject {
     var topColor: UIColor?
     var bottomColor: UIColor?
 
-    init(parent: HistoryItem?, url: URL) {
+    init(parent: HistoryPage?, url: URL) {
         self.parent = parent
         self.url = url
         
         super.init()
     }
     
-    init(parent: HistoryItem?, from item: WKBackForwardListItem) {
+    init(parent: HistoryPage?, from item: WKBackForwardListItem) {
         self.parent = parent
         self.url = item.url
         

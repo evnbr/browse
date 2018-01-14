@@ -37,20 +37,20 @@ class ProgressToolbar: ColorToolbarView {
         super.init(frame: frame)
         
         progressView.frame = CGRect(
-            origin: CGPoint(x: 0, y: Const.shared.toolbarHeight - 2),
+            origin: CGPoint(x: 0, y: Const.toolbarHeight - 2),
             size:CGSize(width: UIScreen.main.bounds.size.width, height:4)
         )
         progressView.trackTintColor = UIColor.white.withAlphaComponent(0)
-        progressView.progressTintColor = UIColor.white.withAlphaComponent(0.25)
+        progressView.progressTintColor = UIColor.darkText
         progressView.autoresizingMask = [.flexibleTopMargin, .flexibleWidth]
 //        progressView.transform = progressView.transform.scaledBy(x: 1, y: 22)
         addSubview(progressView)
         sendSubview(toBack: progressView)
         
-        let blur = PlainBlurView(frame: bounds)
-        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        addSubview(blur)
-        sendSubview(toBack: blur)
+//        let blur = PlainBlurView(frame: bounds)
+//        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+//        addSubview(blur)
+//        sendSubview(toBack: blur)
         
     }
         

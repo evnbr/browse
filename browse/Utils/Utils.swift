@@ -23,7 +23,7 @@ func progress(value: CGFloat, from: CGFloat, to: CGFloat) -> CGFloat {
 }
 
 func elasticLimit(_ val : CGFloat, constant: CGFloat = 150) -> CGFloat {
-    let resist = 1 - log10(1 + abs(val) / 150) // 1 ... 0.5
+    let resist = 1 - log10(1 + abs(val) / constant) // 1 ... 0.5
     return val * resist
 }
 

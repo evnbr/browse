@@ -20,13 +20,17 @@ class BrowserTab: NSObject {
     var restoredBottomColor : UIColor?
 
     var history : HistoryTree = HistoryTree()
-    var historyItemMap : [ WKBackForwardListItem : HistoryItem ] = [:]
+    var historyPageMap : [ WKBackForwardListItem : HistoryPage ] = [:]
     
     static var baseConfiguration: WKWebViewConfiguration = {
         let configuration = WKWebViewConfiguration()
         configuration.processPool = WKProcessPool()
         configuration.allowsInlineMediaPlayback = true
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
+        
+        configuration.userContentController.addUserScript(
+            WKUserScript(source: checkFixedFunc, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+        )
         return configuration
     }()
     
@@ -70,10 +74,10 @@ class BrowserTab: NSObject {
         let config = config ?? BrowserTab.baseConfiguration
         
         let rect = CGRect(
-            origin: CGPoint(x: 0, y: Const.shared.statusHeight),
+            origin: CGPoint(x: 0, y: Const.statusHeight),
             size:CGSize(
                 width: UIScreen.main.bounds.size.width,
-                height: UIScreen.main.bounds.size.height - Const.shared.toolbarHeight - Const.shared.statusHeight
+                height: UIScreen.main.bounds.size.height - Const.toolbarHeight - Const.statusHeight
             )
         )
                 
@@ -104,13 +108,13 @@ class BrowserTab: NSObject {
     
     func updateHistory() {
         guard let currentItem = webView.backForwardList.currentItem else { return }
-        var historyItem = historyItemMap[currentItem]
-        if historyItem == nil {
+        var currentPage = historyPageMap[currentItem]
+        if currentPage == nil {
             // Create entry to mirror backForwardList
-            historyItem = HistoryItem(parent: nil, from: currentItem)
-            historyItemMap[currentItem] = historyItem
+            currentPage = HistoryPage(parent: nil, from: currentItem)
+            historyPageMap[currentItem] = currentPage
         }
-        history.current = historyItem
+        history.current = currentPage
     }
     
 }
@@ -118,7 +122,7 @@ class BrowserTab: NSObject {
 
 extension WKWebView {
     func evaluateFixedNav(_ completionHandler: @escaping (Bool) -> Void) {
-        evaluateJavaScript(checkFixedTopScript) { (result, error) in
+        evaluateJavaScript("window.\(checkFixedFuncName)()") { (result, error) in
             if let isFixed : Bool = result as? Bool {
                 completionHandler(isFixed)
             }
@@ -126,7 +130,8 @@ extension WKWebView {
     }
 }
 
-fileprivate let checkFixedTopScript = """
+fileprivate let checkFixedFuncName = "__BROWSE_HAS_FIXED_NAV__"
+fileprivate let checkFixedFunc = """
     (function() {
         const isFixed = (elm) => {
             let el = elm;
@@ -137,6 +142,6 @@ fileprivate let checkFixedTopScript = """
             }
             return false;
         };
-        return isFixed(document.elementFromPoint(1,1));
+        window.\(checkFixedFuncName) = () => isFixed(document.elementFromPoint(1,1));
     })();
 """

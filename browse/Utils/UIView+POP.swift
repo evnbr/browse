@@ -24,6 +24,8 @@ struct POPtions {
 let kSpringCenter = "springCenter"
 let kSpringCenterX = "springCenterX"
 let kSpringScale = "springScale"
+let kSpringBounds = "springBounds"
+let kSpringContentOffset = "springContentOffset"
 
 extension UIView {
     func springCenter(
@@ -48,6 +50,28 @@ extension UIView {
         }
     }
     
+    func springBounds(
+        to newBounds: CGRect,
+        at velocity: CGRect = .zero,
+        with options: POPtions? = nil,
+        then completion: @escaping (POPAnimation?, Bool) -> Void = {_,_ in } ) {
+        
+        if let anim = self.pop_animation(forKey: kSpringBounds) as? POPSpringAnimation {
+            anim.toValue = newBounds
+        }
+        else if let anim = POPSpringAnimation(propertyNamed: kPOPViewBounds) {
+            anim.toValue = newBounds
+            anim.velocity = velocity
+            
+            if let m = options?.mass { anim.dynamicsMass = m }
+            if let f = options?.friction { anim.dynamicsFriction = f }
+            if let t = options?.tension { anim.dynamicsTension = t }
+            
+            anim.completionBlock = completion
+            self.pop_add(anim, forKey: kSpringBounds)
+        }
+    }
+
     func springScale(
         to newScale: CGFloat,
         at velocity: CGPoint = .zero,
@@ -70,14 +94,30 @@ extension UIView {
 extension UIScrollView {
     func springBottomInset(
         to newBottomInset: CGFloat) {
-    
+        
         if let anim = POPSpringAnimation(propertyNamed: kPOPScrollViewContentInset ) {
             var insets = self.contentInset
             insets.bottom = newBottomInset
             anim.toValue = insets
             self.pop_add(anim, forKey: "springBottomInset")
         }
-
     }
+    func springContentOffset(
+        to newOffset: CGPoint) {
+        
+        if let anim = POPSpringAnimation(propertyNamed: kPOPScrollViewContentOffset ) {
+            anim.toValue = newOffset
+            self.pop_add(anim, forKey: kSpringContentOffset)
+        }
+    }
+}
 
+extension NSLayoutConstraint {
+    func springConstant(to newConstant: CGFloat) {
+        if let anim = POPSpringAnimation(propertyNamed: kPOPLayoutConstraintConstant ) {
+            anim.toValue = newConstant
+            anim.clampMode = POPAnimationClampFlags.end.rawValue
+            self.pop_add(anim, forKey: "springConstant")
+        }
+    }
 }

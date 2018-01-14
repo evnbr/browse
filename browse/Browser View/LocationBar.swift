@@ -87,7 +87,7 @@ class LocationBar: ToolbarTouchView {
         magnify = UIImageView(image: magnifyImage)
         
         label.text = "Where to?"
-        label.font = UIFont.systemFont(ofSize: 15.0)
+        label.font = UIFont.systemFont(ofSize: 16.0)
 //        label.font = UIFont.systemFont(ofSize: 15.0, weight: .medium)
         label.adjustsFontSizeToFitWidth = true
         label.setContentHuggingPriority(UILayoutPriority(rawValue: 0), for: .horizontal)

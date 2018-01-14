@@ -37,7 +37,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.view.isHidden = true
+//        self.view.isHidden = true
         
         browserVC = BrowserViewController(home: self)
         
@@ -45,16 +45,14 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         collectionView?.delaysContentTouches = false
         
         collectionView?.alwaysBounceVertical = true
-        collectionView?.scrollIndicatorInsets.bottom = Const.shared.toolbarHeight
-        collectionView?.scrollIndicatorInsets.top = Const.shared.statusHeight
+        collectionView?.scrollIndicatorInsets.bottom = Const.toolbarHeight
+        collectionView?.scrollIndicatorInsets.top = Const.statusHeight
         collectionView?.indicatorStyle = .white
         
         collectionView?.register(TabThumbnail.self, forCellWithReuseIdentifier: reuseIdentifier)
         
         title = ""
         view.backgroundColor = .black
-        view.layer.cornerRadius = CORNER_RADIUS
-        view.layer.masksToBounds = true
         
         collectionView?.backgroundColor = .black
         
@@ -63,7 +61,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         toolbar = ColorToolbarView(frame: CGRect(
             x: view.frame.width - 80,
-            y: Const.shared.statusHeight, //view.frame.height - Const.shared.toolbarHeight,
+            y: Const.statusHeight, //view.frame.height - Const.shared.toolbarHeight,
             width: 80,
             height: 48
         ))
@@ -88,9 +86,9 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         view.addSubview(toolbar)
         
         collectionView?.contentInset = UIEdgeInsets(
-            top: Const.shared.statusHeight,
+            top: Const.statusHeight,
             left: 0,
-            bottom: Const.shared.toolbarHeight,
+            bottom: Const.toolbarHeight,
             right: 0
         )
         
@@ -161,13 +159,13 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         let newTab = BrowserTab()
         self.showTab(newTab)
         
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
-            self.tabs.append(newTab)
-            self.collectionView?.insertItems(at: [ IndexPath(item: self.tabs.index(of: newTab)!, section: 0) ])
-            self.collectionViewLayout.invalidateLayout() // todo: shouldn't the layout just know?
-            let thumb = self.thumb(forTab: newTab)
-            thumb?.isHidden = true
-        }
+//        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+//            self.tabs.append(newTab)
+//            self.collectionView?.insertItems(at: [ IndexPath(item: self.tabs.index(of: newTab)!, section: 0) ])
+//            self.collectionViewLayout.invalidateLayout() // todo: shouldn't the layout just know?
+//            let thumb = self.thumb(forTab: newTab)
+//            thumb?.isHidden = true
+//        }
         
     }
     
@@ -211,13 +209,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         return newTab.webView
     }
     
-    
-    func showRenameThis(_ tab: BrowserTab) {
-        showTab(tab)
-    }
-    
     func thumb(forTab tab: BrowserTab) -> TabThumbnail! {
-        //return collectionView?.visibleCells.first as! TabThumbnail!
         return collectionView?.visibleCells.first(where: { (cell) -> Bool in
             let thumb = cell as! TabThumbnail
             return thumb.browserTab == tab
@@ -290,14 +282,14 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
 //                    cell.center.y = min(cell.center.y, Const.shared.statusHeight + collectionView!.contentOffset.y + cell.bounds.height / 2)
                     
                     // same as below
-//                    cell.center.y = Const.shared.statusHeight + collectionView!.contentOffset.y + view.bounds.height + cell.bounds.height / 2
+                    cell.center.y = Const.statusHeight + collectionView!.contentOffset.y + view.bounds.height + cell.bounds.height / 2
                     cell.isHidden = false
                 }
                 for cell in visibleCellsBelow {
                     let ip = cv.indexPath(for: cell)!
                     cell.center = cv.layoutAttributesForItem(at: ip)!.center
 //                    cell.center.y += shiftDown + offsetY - offsetHeight
-                    cell.center.y = Const.shared.statusHeight + collectionView!.contentOffset.y + view.bounds.height + cell.bounds.height / 2
+                    cell.center.y = Const.statusHeight + collectionView!.contentOffset.y + view.bounds.height + cell.bounds.height / 2
                     cell.isHidden = false
                 }
             }
@@ -325,14 +317,36 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     }
     
     func showTab(_ tab: BrowserTab, animated: Bool = true, completion: (() -> Void)? = nil) {
-        browserVC.setTab(tab)
         browserVC.modalPresentationStyle = .custom
         browserVC.transitioningDelegate = self
+        
+        // TODO: settab is too expensive, noticable delay. only
+        // need to set screenshot, not rearrange webview
+        self.browserVC.setTab(tab)
         
         present(browserVC, animated: animated, completion: {
             self.thumb(forTab: tab)?.unSelect(animated: false)
             self.thumb(forTab: tab)?.setTab(tab)
 
+            if let cv = self.collectionView {
+                // Move this item to end of tabs array
+                if let index = self.tabs.index(of: tab) {
+                    self.tabs.remove(at: index)
+                }
+                self.tabs.append(tab)
+                cv.reloadData()
+
+                // Scroll to end
+                cv.contentOffset.y = cv.contentSize.height - cv.bounds.size.height * 1.35
+                
+                //
+                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+                    self.setThumbPosition(expanded: true)
+                }
+                
+            }
+            
+            
             if let c = completion { c() }
         })
     }
@@ -399,7 +413,7 @@ extension HomeViewController {
     
     var thumbSize : CGSize {
         if view.frame.width > 400 {
-            let ratio = view.frame.width / (view.frame.height - Const.shared.toolbarHeight - Const.shared.statusHeight )
+            let ratio = view.frame.width / (view.frame.height - Const.toolbarHeight - Const.statusHeight )
             let w = view.frame.width / 2 - 16
             return CGSize(width: w, height: w / ratio )
         }
@@ -435,12 +449,12 @@ extension HomeViewController : UICollectionViewDelegateFlowLayout {
         return 8
     }
 //
-////    override func collectionView(_ collectionView: UICollectionView,
-////                                 moveItemAt source: IndexPath,
-////                                 to destination: IndexPath) {
-////        let item = tabs.remove(at: source.item)
-////        tabs.insert(item, at: destination.item)
-////    }
+//    override func collectionView(_ collectionView: UICollectionView,
+//                                 moveItemAt source: IndexPath,
+//                                 to destination: IndexPath) {
+//        let item = tabs.remove(at: source.item)
+//        tabs.insert(item, at: destination.item)
+//    }
 //
 }
 

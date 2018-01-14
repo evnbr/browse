@@ -40,11 +40,11 @@ class PlaceholderView: UIView {
         contentView.layer.cornerRadius = Const.shared.cardRadius
         addSubview(contentView)
         
-        statusView = UIView(frame: CGRect(x: 0, y: 0, width: bounds.width, height: Const.shared.statusHeight))
+        statusView = UIView(frame: CGRect(x: 0, y: 0, width: bounds.width, height: Const.statusHeight))
         statusView.backgroundColor = .red
         contentView.addSubview(statusView)
         
-        toolbarView = UIView(frame: CGRect(x: 0, y: bounds.height - Const.shared.toolbarHeight, width: bounds.width, height: Const.shared.toolbarHeight))
+        toolbarView = UIView(frame: CGRect(x: 0, y: bounds.height - Const.toolbarHeight, width: bounds.width, height: Const.toolbarHeight))
         toolbarView.backgroundColor = .red
         toolbarView.autoresizingMask = [.flexibleWidth, .flexibleTopMargin]
         contentView.addSubview(toolbarView)
@@ -55,8 +55,8 @@ class PlaceholderView: UIView {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(imageView)
         
-        imageView.topAnchor.constraint(equalTo: topAnchor, constant: Const.shared.statusHeight).isActive = true
-        imageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -Const.shared.toolbarHeight).isActive = true
+        imageView.topAnchor.constraint(equalTo: topAnchor, constant: Const.statusHeight).isActive = true
+        imageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -Const.toolbarHeight).isActive = true
         imageView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
 
         overlay = UIView(frame: bounds)
@@ -67,12 +67,11 @@ class PlaceholderView: UIView {
         contentView.addSubview(overlay)
     }
     
-    func setHistoryItem(_ item: HistoryItem) {
-        imageView.image = item.snapshot
-        statusView.backgroundColor = item.topColor
-        toolbarView.backgroundColor = item.bottomColor
+    func setPage(_ page: HistoryPage) {
+        imageView.image = page.snapshot
+        statusView.backgroundColor = page.topColor
+        toolbarView.backgroundColor = page.bottomColor
     }
-
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
