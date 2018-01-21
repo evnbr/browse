@@ -22,14 +22,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var accessoryHeightConstraint : NSLayoutConstraint!
     var toolbarHeightConstraint : NSLayoutConstraint!
     var toolbarBottomConstraint : NSLayoutConstraint!
+    var aspectConstraint : NSLayoutConstraint!
+    var statusHeightConstraint : NSLayoutConstraint!
+
 
     var isDisplayingSearch : Bool = false
     var searchView: SearchView!
     var colorSampler: WebviewColorSampler!
     
-    var statusBarBack: ColorStatusBarView!
     var statusBarFront: ColorStatusBarView!
-    var statusBarShadow: UIView!
     
     var toolbar: ProgressToolbar!
     var toolbarHiddenPlaceholder = UIView()
@@ -37,8 +38,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     var errorView: UIView!
     var cardView: UIView!
-    var roundedClipView: UIView!
+    var contentView: UIView!
     var overlay: UIView!
+    var gradientOverlay: GradientView!
 
     let keyboardBack = UIView()
     
@@ -61,7 +63,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         if gestureController.isInteractiveDismiss && (cardView.frame.origin.y > 10) {
             return .lightContent
         }
-        return (browserTab?.history.current?.topColor?.isLight ?? true) ? .lightContent : .default
+        return (statusBarFront.gradientHolder.backgroundColor?.isLight ?? true) ? .lightContent : .default
     }
     
     override var prefersStatusBarHidden: Bool {
@@ -147,7 +149,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         if let img = newTab.history.current?.snapshot {
             snap.image = img
-            updateSnapshotPosition()
+//            updateSnapshotPosition()
         }
         else {
             snap.image = nil
@@ -163,14 +165,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
         if let newBottom = newTab.history.current?.bottomColor {
             toolbar.gradientHolder.backgroundColor = newBottom
-            roundedClipView.backgroundColor = newBottom
+            contentView.backgroundColor = newBottom
             webView.scrollView.backgroundColor = newBottom
             // TODO: just need to reset tint color, dont need animate gradient
             let _ = toolbar.animateGradient(toColor: newBottom, direction: .fromTop)
         }
         else {
+            toolbar.tintColor = .darkText
             toolbar.gradientHolder.backgroundColor = .white
-            roundedClipView.backgroundColor = .white
+            contentView.backgroundColor = .white
             webView.backgroundColor = .white
         }
         
@@ -178,7 +181,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         webView.uiDelegate = self
         webView.scrollView.delegate = gestureController
                 
-        roundedClipView.insertSubview(webView, belowSubview: snap)
+        contentView.insertSubview(webView, belowSubview: snap)
         topConstraint = webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: Const.statusHeight)
         topConstraint.isActive = true
         
@@ -219,36 +222,25 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         cardView = UIView(frame: cardViewDefaultFrame)
         cardView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        cardView.layer.shadowRadius = 24
-        cardView.layer.shadowOpacity = 0.16
+//        cardView.layer.shadowRadius = 24
+//        cardView.layer.shadowOpacity = 0.16
 
-        roundedClipView = UIView(frame: cardViewDefaultFrame)
-        roundedClipView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        roundedClipView.radius = Const.shared.cardRadius
-        roundedClipView.layer.masksToBounds = true
+        contentView = UIView(frame: cardViewDefaultFrame)
+        contentView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        contentView.radius = Const.shared.cardRadius
+        contentView.layer.masksToBounds = true
         
         overlay = UIView(frame: view.bounds)
-        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         overlay.backgroundColor = UIColor.black
         overlay.alpha = 0
         
+        gradientOverlay = GradientView(frame: view.bounds)
+        gradientOverlay.alpha = 0
+        
         view.addSubview(cardView)
-        cardView.addSubview(roundedClipView)
+        cardView.addSubview(contentView)
         
         statusBarFront = ColorStatusBarView()
-        statusBarBack = ColorStatusBarView()
-        
-        
-//        statusBarShadow = UIView(frame: CGRect(x: 20, y: 12, width: 54, height: 24))
-//        statusBarShadow = PlainBlurView(frame:  CGRect(x: 20, y: 12, width: 54, height: 24))
-//        statusBarShadow.autoresizingMask = [.flexibleRightMargin, .flexibleBottomMargin]
-//        statusBarShadow.clipsToBounds = true
-//        statusBarShadow.layer.cornerRadius = 12
-
-//        roundedClipView.addSubview(statusBarShadow)
-//        roundedClipView.addSubview(statusBarBack)
-//        roundedClipView.sendSubview(toBack: statusBarBack)
-        
 
         searchView = SearchView(for: self)
         
@@ -259,7 +251,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         let tap = UITapGestureRecognizer(target: self, action: #selector(self.tapToolbarPlaceholder))
         toolbarHiddenPlaceholder.addGestureRecognizer(tap)
         
-        roundedClipView.addSubview(toolbarHiddenPlaceholder)
+        contentView.addSubview(toolbarHiddenPlaceholder)
         
         
         snap.contentMode = .scaleAspectFill
@@ -269,23 +261,34 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             height: cardView.bounds.height - Const.statusHeight - Const.toolbarHeight
         )
         
-        roundedClipView.addSubview(snap)
-        roundedClipView.addSubview(toolbar)
-        roundedClipView.addSubview(statusBarFront)
+        contentView.addSubview(snap)
+        contentView.addSubview(toolbar)
+        contentView.addSubview(statusBarFront)
         
-        roundedClipView.bringSubview(toFront: statusBarFront)
-        roundedClipView.bringSubview(toFront: toolbar)
+        contentView.bringSubview(toFront: statusBarFront)
+        contentView.bringSubview(toFront: toolbar)
         
-        roundedClipView.addSubview(overlay)
+        contentView.addSubview(overlay)
+        contentView.addSubview(gradientOverlay)
+        
+        constrain4(contentView, overlay)
+        constrainTop3(contentView, gradientOverlay)
+        gradientOverlay.heightAnchor.constraint(equalToConstant: THUMB_H)
 
+        
+        statusBarFront.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
+        statusBarFront.widthAnchor.constraint(equalTo: contentView.widthAnchor).isActive = true
+        statusBarFront.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
+        statusHeightConstraint = statusBarFront.heightAnchor.constraint(equalToConstant: Const.statusHeight)
+        statusHeightConstraint.isActive = true
+        
         snap.topAnchor.constraint(equalTo: statusBarFront.bottomAnchor).isActive = true
-        snap.centerXAnchor.constraint(equalTo: roundedClipView.centerXAnchor).isActive = true
-        snap.widthAnchor.constraint(equalTo: roundedClipView.widthAnchor).isActive = true
+        snap.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
+        snap.widthAnchor.constraint(equalTo: contentView.widthAnchor).isActive = true
         
-        let aspect = snap.bounds.height / snap.bounds.width
-        let snapAspectConstraint = snap.heightAnchor.constraint(equalTo: roundedClipView.widthAnchor, multiplier: aspect, constant: 0)
-        snapAspectConstraint.isActive = true
-
+        aspectConstraint = snap.heightAnchor.constraint(equalTo: snap.widthAnchor, multiplier: 1)
+        aspectConstraint.isActive = true
+        
         
         toolbar.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
         toolbar.widthAnchor.constraint(equalTo: cardView.widthAnchor).isActive = true
@@ -300,7 +303,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 
         keyboardBack.translatesAutoresizingMaskIntoConstraints = false
         keyboardBack.backgroundColor = .cyan
-//        roundedClipView.addSubview(keyboardBack)
+//        contentView.addSubview(keyboardBack)
 //        keyboardBack.centerXAnchor.constraint(equalTo: toolbar.centerXAnchor).isActive = true
 //        keyboardBack.widthAnchor.constraint(equalTo: toolbar.widthAnchor).isActive = true
 //        keyboardBack.bottomAnchor.constraint(equalTo: cardView.bottomAnchor).isActive = true
@@ -326,6 +329,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardDidChangeFrame, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+        
+        contentView.backgroundColor = .red
     }
     
     @objc func showHistory(_ : Any?) {
@@ -380,7 +385,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             delay: 0,
             options: .curveEaseInOut,
             animations: {
-//                self.webView.scrollView.contentInset.bottom = -Const.shared.toolbarHeight
                 self.webView.scrollView.scrollIndicatorInsets.bottom = -Const.toolbarHeight
 
                 self.locationBar.alpha = 0
@@ -518,19 +522,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         return acc
     }
     
-//    var hasStatusbarOffset : Bool {
-//        get {
-//            return snap.frame.origin.y == Const.shared.statusHeight
-//        }
-//        set {
-//            statusBar.label.text = webView.url?.displayHost
-//            statusBar.label.alpha = newValue ? 0 : 1
-//
-//            statusBar.frame.size.height = newValue ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED
-//            snap?.frame.origin.y = newValue ? Const.shared.statusHeight : THUMB_OFFSET_COLLAPSED
-//        }
-//    }
-    var isExpandedSnapshotMode : Bool = false
     var isSnapshotMode : Bool {
         get {
             return !snap.isHidden
@@ -538,7 +529,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         set {
             if newValue {
                 snap.isHidden = false
-                updateSnapshotPosition()
                 webView.isHidden = true
             } else {
                 webView.isHidden = false
@@ -547,31 +537,28 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
     }
     
-    func updateSnapshotPosition() {
-        guard let img : UIImage = snap.image else { return }
-        
-        let aspect = img.size.height / img.size.width
-
-//        snap.frame.size = CGSize(
-//            width: cardView.bounds.width,
-//            height: cardView.bounds.width * aspect
-//        )
-        snap.frame.origin.y = isExpandedSnapshotMode ? Const.statusHeight : THUMB_OFFSET_COLLAPSED
-    }
-    
     func updateSnapshot() {        
         // Image snapshot
-        self.browserTab?.updateSnapshot(completionHandler: { img in
+        browserTab?.updateSnapshot(completionHandler: { img in
             self.snap.image = img
+            
+            let newAspect = img.size.height / img.size.width
+            if newAspect != self.aspectConstraint.multiplier {
+                self.snap.removeConstraint(self.aspectConstraint)
+                self.aspectConstraint = self.snap.heightAnchor.constraint(equalTo: self.snap.widthAnchor, multiplier: newAspect, constant: 0)
+                self.aspectConstraint.isActive = true
+            }
         })
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        if isBlank {
-            displaySearch()
-        }
         showToolbar()
         statusBarFront.gradientHolder.alpha = 1
+        
+        if isBlank {
+            displaySearch(animated: true)
+        }
+
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -582,7 +569,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 //        webView.scrollView.contentInset = .zero
         self.setNeedsStatusBarAppearanceUpdate()
 
-        
         self.colorSampler.startUpdates()
         
 //         disable mysterious delays
@@ -1117,14 +1103,13 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
                 && webView != nil
                 && !hideUntilNavigationDone
                 && !(webView.scrollView.contentOffset.y < 0)
-                && abs(cardView.frame.origin.y) < 1.0
-                && abs(cardView.frame.origin.x) < 1.0
+//                && abs(cardView.frame.origin.y) < 1.0
+//                && abs(cardView.frame.origin.x) < 1.0
         )
     }
     
     var bottomSamplePosition : CGFloat {
-        return cardView.bounds.height - Const.statusHeight - toolbarHeightConstraint.constant
-//        return cardView.bounds.height - (-toolbarBottomConstraint.constant) - Const.shared.statusHeight - toolbarHeightConstraint.constant
+        return cardView.bounds.height - (-toolbarBottomConstraint.constant) - Const.statusHeight - toolbarHeightConstraint.constant
     }
     
     func topColorChange(_ newColor: UIColor) {
@@ -1137,7 +1122,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
                 sv.isScrollable
                 && sv.contentOffset.y > Const.statusHeight
                 && !isFixed
-            ) ? 0.9 : 1
+            ) ? 0.8 : 1
                 
             if newAlpha != self.statusBarFront.gradientHolder.alpha {
                 UIView.animate(withDuration: 0.2, delay: 0, options: [.beginFromCurrentState], animations: {
@@ -1145,13 +1130,6 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
                 })
             }
         }
-//            let newAlpha : CGFloat = isFixed ? 1 : 0
-//            if self.statusBarFront.alpha != newAlpha {
-//                UIView.animate(withDuration: 0.15, animations: {
-//                    self.statusBarFront.alpha = newAlpha
-//                })
-//            }
-//        }
         
         if shouldUpdateSample {
             
@@ -1168,7 +1146,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     func bottomColorChange(_ newColor: UIColor) {
         browserTab?.history.current?.bottomColor = newColor
         
-        toolbar.gradientHolder.alpha = webView.scrollView.isScrollable ? 0.9 : 1
+        toolbar.gradientHolder.alpha = webView.scrollView.isScrollable ? 0.8 : 1
         
         if shouldUpdateSample {
 //            UIView.animate(withDuration: 0.2, delay: 0.1, options: .curveEaseInOut, animations: {

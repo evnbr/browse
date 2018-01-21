@@ -45,12 +45,12 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         addSubview(gradientHolder)
         sendSubview(toBack: gradientHolder)
         
-//        gradientHolder.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
-//        gradientHolder.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
-//        gradientHolder.widthAnchor.constraint(equalTo: self.widthAnchor).isActive = true
-//        gradientHolder.heightAnchor.constraint(equalTo: self.heightAnchor).isActive = true
-        gradientHolder.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        
+        gradientHolder.translatesAutoresizingMaskIntoConstraints = false
+        gradientHolder.topAnchor.constraint(equalTo: topAnchor).isActive = true
+        gradientHolder.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
+        gradientHolder.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
+        gradientHolder.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
+
         for layer in [gradientLayer, gradientLayer2, gradientLayer3] {
             layer.frame = bounds
             layer.colors = [UIColor.clear.cgColor, UIColor.clear.cgColor]
@@ -87,7 +87,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     func animateGradient(toColor: UIColor, direction: GradientColorChangeDirection ) -> Bool {
         if toColor.isEqual(lastColor) { return false }
 
-        UIView.animate(withDuration: 0.5, delay: 0, options: [.beginFromCurrentState], animations: {
+        UIView.animate(withDuration: 1.5, delay: 0, options: .beginFromCurrentState, animations: {
             self.gradientHolder.backgroundColor = toColor
             self.tintColor = toColor.isLight ? .white : .darkText
         })

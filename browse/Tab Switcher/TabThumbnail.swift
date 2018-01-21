@@ -10,6 +10,50 @@ import UIKit
 
 typealias CloseTabCallback = (UICollectionViewCell) -> Void
 
+
+class GradientView : UIView {
+    
+    private let gradientLayer = CAGradientLayer()
+    
+    override var frame: CGRect {
+        didSet {
+            gradientLayer.frame = bounds
+            gradientLayer.frame.size.height = THUMB_H
+        }
+    }
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        gradientLayer.colors = [ UIColor.black.withAlphaComponent(0).cgColor, UIColor.black.cgColor ]
+        gradientLayer.locations = [ 0.0, 1.0 ]
+        gradientLayer.frame = bounds
+        gradientLayer.frame.size.height = THUMB_H * 1.5
+        layer.addSublayer(gradientLayer)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+
+func constrain4(_ A: UIView, _ B: UIView) {
+    A.topAnchor.constraint(equalTo: B.topAnchor).isActive = true
+    A.bottomAnchor.constraint(equalTo: B.bottomAnchor).isActive = true
+    A.leftAnchor.constraint(equalTo: B.leftAnchor).isActive = true
+    A.rightAnchor.constraint(equalTo: B.rightAnchor).isActive = true
+}
+func constrainTop3(_ A: UIView, _ B: UIView) {
+    A.topAnchor.constraint(equalTo: B.topAnchor).isActive = true
+    A.leftAnchor.constraint(equalTo: B.leftAnchor).isActive = true
+    A.rightAnchor.constraint(equalTo: B.rightAnchor).isActive = true
+}
+func constrainBottom3(_ A: UIView, _ B: UIView) {
+    A.bottomAnchor.constraint(equalTo: B.bottomAnchor).isActive = true
+    A.leftAnchor.constraint(equalTo: B.leftAnchor).isActive = true
+    A.rightAnchor.constraint(equalTo: B.rightAnchor).isActive = true
+}
+
+
 class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
     var label : UILabel!
@@ -67,7 +111,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         addGestureRecognizer(dismissPanner)
         
         snapView = UIImageView(frame: bounds)
-        snapView.contentMode = .scaleAspectFit
+        snapView.contentMode = .scaleAspectFill
         snapView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(snapView)
         snapTopOffsetConstraint = snapView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: THUMB_OFFSET_COLLAPSED)
@@ -78,15 +122,20 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         snapAspectConstraint.isActive = true
 
         overlay = UIView(frame: bounds)
-        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        overlay.translatesAutoresizingMaskIntoConstraints = false
         overlay.backgroundColor = UIColor.black
         overlay.alpha = 0
+        contentView.addSubview(overlay)
+        constrain4(overlay, contentView)
 
-        contentView.layer.cornerRadius = Const.shared.thumbRadius
-        contentView.clipsToBounds = true
+        let gradientOverlay = GradientView(frame: bounds)
+        contentView.addSubview(gradientOverlay)
 
-        layer.shadowRadius = 24
-        layer.shadowOpacity = 0.16
+        constrainTop3(contentView, gradientOverlay)
+        gradientOverlay.heightAnchor.constraint(equalToConstant: THUMB_H)
+
+//        layer.shadowRadius = 24
+//        layer.shadowOpacity = 0.16
         
         label = UILabel(frame: CGRect(
             x: 24,
@@ -97,10 +146,11 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         label.text = "Blank"
         label.font = Const.shared.thumbTitle
         label.textColor = .darkText
-        
         contentView.addSubview(label)
-        contentView.addSubview(overlay)
+        
         contentView.backgroundColor = .white
+        contentView.layer.cornerRadius = Const.shared.thumbRadius
+        contentView.clipsToBounds = true
     }
         
     required init?(coder aDecoder: NSCoder) {
@@ -194,7 +244,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
             isDismissing = true
             startCenter = center
             startAlpha = overlay.alpha
-            overlay.backgroundColor = .red
         }
         else if gesture.state == .changed {
             if isDismissing {
@@ -202,11 +251,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
                 if pct > 0.4 {
                     overlay.alpha = (pct - 0.4) * 2
                 }
-                
-//                let s = 1 - pct * 0.5
-//                transform = CGAffineTransform(scaleX: s, y: s)
                 center.x = startCenter.x + elasticLimit(gesturePos.x)
-//                center.y = startCenter.y + blend(from: elasticLimit(gesturePos.y), to: gesturePos.y, by: pct * 0.5) * 0.6 - ((1 - s) * bounds.height * 0.3)
             }
         }
         else if gesture.state == .ended {
@@ -218,27 +263,21 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
                 
                 var endCenter : CGPoint = startCenter
                 var endAlpha : CGFloat = startAlpha
-                var endTransform : CGAffineTransform = .identity
                 
-                if ( vel.x > 600 || gesturePos.x > bounds.width * 0.7 ) {
+                if ( vel.x > 400 || gesturePos.x > bounds.width * 0.5 ) {
                     endCenter.x = startCenter.x + bounds.width
-//                    endCenter.y = startCenter.y + bounds.height
                     endAlpha = 1
-//                    endTransform = CGAffineTransform(scaleX: 0.1, y: 0.1)
                     closeTabCallback(self)
                 }
-                else if ( vel.x < -600 || gesturePos.x < -bounds.width * 0.7 ) {
+                else if ( vel.x < -400 || gesturePos.x < -bounds.width * 0.5 ) {
                     endCenter.x = startCenter.x - bounds.width
-//                    endCenter.y = startCenter.y + bounds.height
                     endAlpha = 1
-//                    endTransform = CGAffineTransform(scaleX: 0.1, y: 0.1)
                     closeTabCallback(self)
                 }
                 
                 UIView.animate(withDuration: 0.6, delay: 0.0, usingSpringWithDamping: 0.65, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
                     self.center = endCenter
                     self.overlay.alpha = endAlpha
-                    self.transform = endTransform
                     self.overlay.backgroundColor = .black
                 }, completion: nil)
             }

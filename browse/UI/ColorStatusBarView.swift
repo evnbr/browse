@@ -38,12 +38,13 @@ class ColorStatusBarView : GradientColorChangeView {
 
         super.init(frame: rect)
         
-        self.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
+//        self.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
+        self.translatesAutoresizingMaskIntoConstraints = false
         
-//        let blur = PlainBlurView(frame: bounds)
-//        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-//        addSubview(blur)
-//        sendSubview(toBack: blur)
+        let blur = PlainBlurView(frame: bounds)
+        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        addSubview(blur)
+        sendSubview(toBack: blur)
 
 //        label = UILabel(frame: CGRect(
 //            x: 24 ,

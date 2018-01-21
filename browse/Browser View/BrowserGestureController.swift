@@ -240,7 +240,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                     to: view.center.x - view.bounds.width,
                     by: stackupProgress.reverse()
                 )
-                mockCardView.overlay.alpha = revealProgress.reverse() //stackupProgress.reverse() / 2 - 0.2
+//                mockCardView.overlay.alpha = revealProgress.reverse() //stackupProgress.reverse() / 2 - 0.2
             }
             else {
                 // COPY PASTED A
@@ -271,7 +271,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 to: view.center.x + view.bounds.width,
                 by: stackupProgress.reverse()
             )
-            mockCardView.overlay.alpha = stackupProgress.reverse() / 2 - 0.2
+//            mockCardView.overlay.alpha = stackupProgress.reverse() / 2 - 0.2
         }
         else {
             // COPY PASTED A
@@ -334,9 +334,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             direction = .left
             startGesture()
             vc.showToolbar()
-            
-            feedbackGenerator = UISelectionFeedbackGenerator()
-            feedbackGenerator?.prepare()
             
             if vc.webView.canGoBack {
                 view.addSubview(mockCardView)
@@ -418,38 +415,30 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 startGesture()
             }
         }
-//        if canGoBackToParent {
-//            view.addSubview(mockCardView)
-//            view.bringSubview(toFront: cardView)
-//            mockCardView.transform = CGAffineTransform.init(scaleX: 0.9, y: 0.9)
-//            mockCardView.center = vc.view.center
-//            mockCardView.center.y += Const.shared.statusHeight
-//        }
         
     }
     
     
     var shouldRestoreKeyboard : Bool = false
     
-    var tabSwitcherStartScroll : CGFloat = 0
-
     func startGesture() {
         isInteractiveDismiss = true
         wouldCommitPrevious = false
         startScroll = vc.webView.scrollView.contentOffset
         
-        tabSwitcherStartScroll = home.collectionView?.contentOffset.y ?? 0
+        if vc.isDisplayingSearch { vc.hideSearch() }
         
-        if vc.isDisplayingSearch {
-            vc.hideSearch()
-        }
-        
+        vc.webView.scrollView.showsVerticalScrollIndicator = false
         vc.browserTab?.updateSnapshot()
+        
+        feedbackGenerator = UISelectionFeedbackGenerator()
+        feedbackGenerator?.prepare()
     }
     
     
     func endGesture() {
         isInteractiveDismiss = false
+        vc.webView.scrollView.showsVerticalScrollIndicator = true
     }
     
     func commitDismiss(velocity vel: CGPoint) {
@@ -600,6 +589,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             self.mockCardView.imageView.image = nil
         }
         mockCardView.springScale(to: 1)
+        
+        UIView.animate(withDuration: 0.2) {
+            self.vc.gradientOverlay.alpha = 0
+        }
     }
         
     func verticalChange(gesture: UIPanGestureRecognizer) {
@@ -613,17 +606,25 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             return
         }
         
+        let wouldCommit = abs(adjustedY) > dismissPointY
+        if wouldCommit != wouldCommitPrevious {
+            feedbackGenerator?.selectionChanged()
+            feedbackGenerator?.prepare()
+            wouldCommitPrevious = wouldCommit
+        }
+        
         cardView.center.y = view.center.y + adjustedY
-        cardView.center.x = view.center.x + 0.1 * gesturePos.x
+//        cardView.center.x = view.center.x + 0.1 * gesturePos.x
 
-        let s = (adjustedY.progress(from: 0, to: 600).clip() * vProgressScaleMultiplier).reverse()
-        cardView.transform = CGAffineTransform(scale: s)
+//        let s = (adjustedY.progress(from: 0, to: 600).clip() * vProgressScaleMultiplier).reverse()
+//        cardView.transform = CGAffineTransform(scale: s)
+        
+        self.vc.gradientOverlay.alpha = adjustedY.progress(from: 0, to: 400)
+
         
         if adjustedY > 0 {
             vc.toolbarHeightConstraint.constant = max(0, Const.toolbarHeight)
         }
-        
-//        home.setThumbPositiorn(expanded: true, offsetY: adjustedY)
         
         let revealProgress = abs(adjustedY) / 200
         
@@ -656,6 +657,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         else if gesture.state == .ended {
             if isInteractiveDismiss && !(direction == .left || direction == .right) {
                 endGesture()
+                
+                feedbackGenerator = nil
                 
                 let gesturePos = gesture.translation(in: view)
                 var vel = gesture.velocity(in: vc.view)

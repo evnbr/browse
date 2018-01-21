@@ -17,7 +17,7 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
     
     override var collectionViewContentSize: CGSize {
         return CGSize(width: collectionView!.bounds.width,
-                      height: CGFloat(collectionView!.numberOfItems(inSection: 0)) * itemSpacing + (itemHeight - itemSpacing) + 240)
+                      height: CGFloat(collectionView!.numberOfItems(inSection: 0)) * itemSpacing + (itemHeight - itemSpacing) + 0) // 240)
     }
 
     override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
@@ -38,7 +38,7 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
             
             var newCenter = CGPoint(
                 x: collectionView!.center.x,
-                y: 120.0 + collectionView!.center.y + CGFloat(i) * itemSpacing
+                y: 240.0 + collectionView!.center.y + CGFloat(i) * itemSpacing
             )
             
             attributes.bounds.size = CGSize(
@@ -49,17 +49,13 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
 
             let distFromTop = newCenter.y - (attributes.bounds.height / 2) - scrollPos - topScrollPos
 
-//            if distFromTop < 0 {
-//                intendedFrame.origin.y = intendedFrame.origin.y - distFromTop * 0.9
-////                let s = 1 - pctOver * 0.05
-////                attributes.transform = CGAffineTransform(scaleX: s, y: s)
-//            }
             
-            let pct = distFromTop.progress(from: -400, to: 600).clip().reverse()
-            let s = (pct * pct * 0.15).reverse()
+            let pct = distFromTop.progress(from: -400, to: 700).clip().reverse()
+            let s = (pct * pct * 0.2).reverse()
 //            attributes.transform = CGAffineTransform(scaleX: s, y: s)
             attributes.bounds.size.width *= s
-            
+            attributes.bounds.size.height *= s
+
             newCenter.y -= distFromTop * 0.85 * pct
 
             if i < count - 1 {

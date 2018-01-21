@@ -47,10 +47,10 @@ class ProgressToolbar: ColorToolbarView {
         addSubview(progressView)
         sendSubview(toBack: progressView)
         
-//        let blur = PlainBlurView(frame: bounds)
-//        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-//        addSubview(blur)
-//        sendSubview(toBack: blur)
+        let blur = PlainBlurView(frame: bounds)
+        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        addSubview(blur)
+        sendSubview(toBack: blur)
         
     }
         

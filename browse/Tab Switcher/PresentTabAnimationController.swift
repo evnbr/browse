@@ -62,7 +62,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         let scrollView = browserVC.webView.scrollView
         scrollView.isScrollEnabled = false
         scrollView.cancelScroll()
-        browserVC.isExpandedSnapshotMode = !self.isExpanding
         browserVC.isSnapshotMode = true
         
         let prevTransform = homeNav.view.transform
@@ -82,21 +81,26 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         }
         else {
             // animate from bottom
-            let y = (homeVC.navigationController?.view.frame.height)!
-            thumbCenter = CGPoint(x: homeVC.view.center.x, y: y / 2)
+            thumbCenter = CGPoint(x: homeVC.view.center.x, y: homeVC.view.center.y + (homeVC.view.bounds.height))
         }
         
         let expandedCenter = browserVC.cardView.center
         let expandedBounds = browserVC.cardView.bounds
-        let thumbBounds = homeVC.boundsForThumb(forTab: browserVC.browserTab) ?? CGRect(origin: .zero, size: homeVC.thumbSize)
-
-        homeNav.view.transform = self.isExpanding ? .identity : prevTransform
+        let thumbBounds = homeVC.boundsForThumb(forTab: browserVC.browserTab) ?? CGRect(origin: .zero, size: expandedBounds.size)
         
         browserVC.cardView.center = isExpanding ? thumbCenter : expandedCenter
         browserVC.cardView.bounds = isExpanding ? thumbBounds : expandedBounds
-        browserVC.updateSnapshotPosition()
 
         homeVC.visibleCellsBelow.forEach { containerView.addSubview($0) }
+
+        let snapFab = homeVC.toolbar.snapshotView(afterScreenUpdates: false)
+        if let fab = snapFab {
+            containerView.addSubview(fab)
+            fab.center = homeVC.toolbar.center
+        }
+        else {
+            print("couldnt make snap")
+        }
 
         
         let newCenter = isExpanding ? expandedCenter : thumbCenter
@@ -120,6 +124,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
                 browserVC.view.removeFromSuperview()
                 homeVC.setThumbPosition(expanded: false)
             }
+            snapFab?.removeFromSuperview()
             
             homeVC.setNeedsStatusBarAppearanceUpdate()
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
@@ -128,13 +133,18 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             if viewAnimFinished && popAnimFinished { finishTransition() }
         }
         
-        
+        browserVC.statusHeightConstraint.springConstant(to: self.isExpanding ? Const.statusHeight : THUMB_OFFSET_COLLAPSED )
         browserVC.cardView.springScale(to: 1)
         browserVC.cardView.springBounds(to: self.isExpanding ? expandedBounds : thumbBounds)
         browserVC.cardView.springCenter(to: newCenter, at: velocity, with: POPtions(mass: 1.3, friction: 35), then: { (_, _) in
             popAnimFinished = true
             maybeFinish()
         })
+        
+        snapFab?.alpha = self.isExpanding ? 1 : 0
+        snapFab?.transform = CGAffineTransform(scale: self.isExpanding ? 1 : 0.2)
+        snapFab?.springScale(to: self.isExpanding ? 0.2 : 1)
+
 
         browserVC.statusBarFront.frame.size.height = !isExpanding ? Const.statusHeight : THUMB_OFFSET_COLLAPSED
         
@@ -145,19 +155,17 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             initialSpringVelocity: 0.0,
             options: .allowUserInteraction,
             animations: {
-                
+            
+            browserVC.gradientOverlay.alpha = self.isExpanding ? 0 : 1
             browserVC.overlay.alpha = self.isExpanding ? 0 : thumbOverlayAlpha
-            browserVC.isExpandedSnapshotMode = self.isExpanding
-            browserVC.updateSnapshotPosition()
-            browserVC.roundedClipView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
-
-            browserVC.statusBarFront.frame.size.height = self.isExpanding ? Const.statusHeight : THUMB_OFFSET_COLLAPSED
-
+            browserVC.contentView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
             homeNav.view.alpha = self.isExpanding ? 0.4 : 1
+                
+            snapFab?.alpha = self.isExpanding ? 0 : 1
             
             homeVC.setThumbPosition(expanded: self.isExpanding)
             homeVC.visibleCellsBelow.forEach { $0.center.y += -homeVC.collectionView!.contentOffset.y }
-
+                
             homeVC.setNeedsStatusBarAppearanceUpdate()
                 
         }, completion: { finished in

@@ -14,6 +14,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     var tabs : [BrowserTab] = []
     var browserVC : BrowserViewController!
     
+    var fabConstraint : NSLayoutConstraint!
     var toolbar : ColorToolbarView!
     
     let reuseIdentifier = "TabCell"
@@ -45,9 +46,10 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         collectionView?.delaysContentTouches = false
         
         collectionView?.alwaysBounceVertical = true
-        collectionView?.scrollIndicatorInsets.bottom = Const.toolbarHeight
+//        collectionView?.scrollIndicatorInsets.bottom = Const.toolbarHeight
         collectionView?.scrollIndicatorInsets.top = Const.statusHeight
         collectionView?.indicatorStyle = .white
+        collectionView?.showsVerticalScrollIndicator = false
         
         collectionView?.register(TabThumbnail.self, forCellWithReuseIdentifier: reuseIdentifier)
         
@@ -60,14 +62,16 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         navigationController?.navigationBar.barStyle = .black
         
         toolbar = ColorToolbarView(frame: CGRect(
-            x: view.frame.width - 80,
-            y: Const.statusHeight, //view.frame.height - Const.shared.toolbarHeight,
-            width: 80,
-            height: 48
+            x: view.bounds.width - 80,
+            y: view.bounds.height - Const.toolbarHeight,
+            width: 64,
+            height: 64
         ))
+//        toolbar.center.x = view.center.x
         toolbar.backgroundColor = .black
-        toolbar.autoresizingMask = [ .flexibleBottomMargin, .flexibleLeftMargin ]
+//        toolbar.translatesAutoresizingMaskIntoConstraints = false
         toolbar.layer.zPosition = 100
+        toolbar.layer.cornerRadius = 32
         
         let addButton = ToolbarIconButton(
             icon: UIImage(named: "add"),
@@ -84,7 +88,18 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         toolbar.items = [addButton]
 //        toolbar.isHidden = true
         view.addSubview(toolbar)
+//        addButton.bounds = CGRect(x: 0, y: 0, width: 60, height: 60)
+//        view.addSubview(addButton)
+//        addButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -48).isActive = true
+//        addButton.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        toolbar.translatesAutoresizingMaskIntoConstraints = false
         
+        fabConstraint = view.bottomAnchor.constraint(equalTo: toolbar.bottomAnchor, constant: 32.0)
+        fabConstraint.isActive = true
+        toolbar.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        toolbar.widthAnchor.constraint(equalToConstant: 64).isActive = true
+        toolbar.heightAnchor.constraint(equalToConstant: 64).isActive = true
+
         collectionView?.contentInset = UIEdgeInsets(
             top: Const.statusHeight,
             left: 0,
@@ -100,11 +115,11 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         NotificationCenter.default.addObserver(self, selector: #selector(applicationWillResignActive(notification:)), name: NSNotification.Name.UIApplicationWillResignActive, object: UIApplication.shared)
         
-        Blocker.shared.onRulesReady({
-            print("rules ready")
-            if let ruleList = Blocker.shared.ruleList {
+        Blocker.shared.getList({ ruleList in
+            if let list = ruleList {
+                print("rules ready")
                 for tab in self.tabs {
-                    tab.webView.configuration.userContentController.add(ruleList)
+                    tab.webView.configuration.userContentController.add(list)
                 }
             }
         })
@@ -157,7 +172,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
 
     func addTab() {
         let newTab = BrowserTab()
-        self.showTab(newTab)
+        showTab(newTab)
         
 //        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
 //            self.tabs.append(newTab)
@@ -198,12 +213,24 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         newTab.parentTab = prevTab
 
         self.collectionView?.performBatchUpdates({
-            self.tabs.insert(newTab, at: self.tabs.index(of: prevTab)! + 1)
-            let ip = IndexPath(item: self.tabs.index(of: newTab)!, section: 0)
-            self.collectionView?.insertItems(at: [ ip ])
-            self.collectionViewLayout.invalidateLayout() // todo: shouldn't the layout just know?
+//            self.tabs.insert(newTab, at: self.tabs.index(of: prevTab)! + 1)
+//            let ip = IndexPath(item: self.tabs.index(of: newTab)!, section: 0)
+//            self.collectionView?.insertItems(at: [ ip ])
+//            self.collectionViewLayout.invalidateLayout()
+
         }, completion: { _ in
             self.browserVC.gestureController.swapTo(childTab: newTab)
+            
+            // TODO: Copy pasted with showtab
+            self.tabs.append(newTab)
+            
+            if let cv = self.collectionView {
+                self.collectionView?.reloadData()
+                // Scroll to end
+                if cv.isScrollable {
+                    cv.contentOffset.y = cv.contentSize.height - cv.bounds.size.height
+                }
+            }
         })
         
         return newTab.webView
@@ -267,44 +294,28 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         if (expanded) {
             if let ip = currentIndexPath {
-//                let selectedThumbFrame = cv.layoutAttributesForItem(at: ip)!.frame
-//                let convertedFrame = view.convert(selectedThumbFrame, from: cv)
-//                let shiftUp = -convertedFrame.origin.y
-//                let shiftDown = view.frame.height - convertedFrame.origin.y - convertedFrame.height
-                
                 currentThumb?.isHidden = true
                 currentThumb?.apply(cv.layoutAttributesForItem(at: ip)!)
                 
                 for cell in visibleCellsAbove {
                     let ip = cv.indexPath(for: cell)!
                     cell.center = cv.layoutAttributesForItem(at: ip)!.center
-//                    cell.center.y += shiftUp + offsetY
-//                    cell.center.y = min(cell.center.y, Const.shared.statusHeight + collectionView!.contentOffset.y + cell.bounds.height / 2)
-                    
-                    // same as below
                     cell.center.y = Const.statusHeight + collectionView!.contentOffset.y + view.bounds.height + cell.bounds.height / 2
                     cell.isHidden = false
                 }
                 for cell in visibleCellsBelow {
                     let ip = cv.indexPath(for: cell)!
                     cell.center = cv.layoutAttributesForItem(at: ip)!.center
-//                    cell.center.y += shiftDown + offsetY - offsetHeight
-                    cell.center.y = Const.statusHeight + collectionView!.contentOffset.y + view.bounds.height + cell.bounds.height / 2
+                    cell.center.y = Const.statusHeight + cv.contentOffset.y + view.bounds.height + cell.bounds.height / 2
                     cell.isHidden = false
                 }
             }
             else {
-                if let lastIndexPath = cv.indexPathsForVisibleItems.sorted(by: { $0.row < $1.row }).last {
-                    let selectedThumbFrame = cv.layoutAttributesForItem(at: lastIndexPath)!.frame
-                    let convertedFrame = view.convert(selectedThumbFrame, from: cv)
-                    let shiftUp = -convertedFrame.origin.y - convertedFrame.height
-                    
-                    for cell in visibleCells {
-                        let ip = cv.indexPath(for: cell)!
-                        cell.center = cv.layoutAttributesForItem(at: ip)!.center
-                        cell.center.y += shiftUp
-                        cell.isHidden = false
-                    }
+                for cell in visibleCells {
+                    let ip = cv.indexPath(for: cell)!
+                    cell.center = cv.layoutAttributesForItem(at: ip)!.center
+                    cell.center.y = Const.statusHeight + cv.contentOffset.y + view.bounds.height + cell.bounds.height / 2
+                    cell.isHidden = false
                 }
             }
         }
@@ -316,7 +327,11 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         }
     }
     
-    func showTab(_ tab: BrowserTab, animated: Bool = true, completion: (() -> Void)? = nil) {
+    func showTab(
+        _ tab: BrowserTab,
+        animated: Bool = true,
+        completion: (() -> Void)? = nil
+    ) {
         browserVC.modalPresentationStyle = .custom
         browserVC.transitioningDelegate = self
         
@@ -337,7 +352,9 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                 cv.reloadData()
 
                 // Scroll to end
-                cv.contentOffset.y = cv.contentSize.height - cv.bounds.size.height * 1.35
+                if cv.isScrollable {
+                    cv.contentOffset.y = cv.contentSize.height - cv.bounds.size.height
+                }
                 
                 //
                 DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
@@ -346,23 +363,17 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                 
             }
             
-            
             if let c = completion { c() }
         })
     }
     
     
-    override func viewWillAppear(_ animated: Bool) {
-    }
-    
     override func viewDidAppear(_ animated: Bool) {
         navigationController?.isNavigationBarHidden = true
 
-        
         if isFirstLoad {
             isFirstLoad = false
         }
-        
     }
         
     override func didReceiveMemoryWarning() {

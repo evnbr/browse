@@ -25,16 +25,16 @@ class Blocker: NSObject {
         super.init()
     }
     
-    func onRulesReady(_ callback: @escaping () -> ()) {
+    func getList(_ callback: @escaping (WKContentRuleList?) -> ()) {
         if (ruleList != nil) {
-            callback()
+            callback(ruleList)
         }
         else {
-            getList(callback)
+            buildList(callback)
         }
     }
     
-    func getList(_ done: @escaping () -> ()) {
+    func buildList(_ done: @escaping (WKContentRuleList?) -> ()) {
         WKContentRuleListStore.default().getAvailableContentRuleListIdentifiers { (identifiers) in
             if identifiers != nil && identifiers!.contains(blockerListId) {
                 print("existing rules found")
@@ -42,11 +42,11 @@ class Blocker: NSObject {
                     if let list : WKContentRuleList = list {
                         print("existing rules fetched")
                         self.ruleList = list
-                        done()
+                        done(list)
                     } else {
                         print("existing rules failed to be fetched")
                         if (error != nil) { print(error as Any) }
-                        done()
+                        done(nil)
                     }
                 })
             } else {
@@ -58,20 +58,20 @@ class Blocker: NSObject {
                             if let list : WKContentRuleList = list {
                                 print("rules compiled!")
                                 self.ruleList = list
-                                done()
+                                done(list)
                             } else {
                                 print("rules failed to be compiled")
                                 if (error != nil) { print(error as Any) }
-                                done()
+                                done(nil)
                             }
                         }
                     } else {
                         print("rules file not found")
-                        done()
+                        done(nil)
                     }
                 } catch let error as NSError {
                     print("rules not compiled: ", error)
-                    done()
+                    done(nil)
                 }
             }
         }
