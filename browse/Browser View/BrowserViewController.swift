@@ -1056,7 +1056,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = webView.isLoading
         
-        if hideUntilNavigationDone && webView.estimatedProgress > 0.9 {
+        if hideUntilNavigationDone && webView.estimatedProgress > 0.9 && cardView.frame.origin.y < 1 {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 self.hideUntilNavigationDone = false
             }
