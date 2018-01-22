@@ -18,7 +18,7 @@ class GradientView : UIView {
     override var frame: CGRect {
         didSet { resizeGradient() }
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
         resizeGradient()
@@ -41,25 +41,6 @@ class GradientView : UIView {
         fatalError("init(coder:) has not been implemented")
     }
 }
-
-
-func constrain4(_ A: UIView, _ B: UIView) {
-    A.topAnchor.constraint(equalTo: B.topAnchor).isActive = true
-    A.bottomAnchor.constraint(equalTo: B.bottomAnchor).isActive = true
-    A.leftAnchor.constraint(equalTo: B.leftAnchor).isActive = true
-    A.rightAnchor.constraint(equalTo: B.rightAnchor).isActive = true
-}
-func constrainTop3(_ A: UIView, _ B: UIView) {
-    A.topAnchor.constraint(equalTo: B.topAnchor).isActive = true
-    A.leftAnchor.constraint(equalTo: B.leftAnchor).isActive = true
-    A.rightAnchor.constraint(equalTo: B.rightAnchor).isActive = true
-}
-func constrainBottom3(_ A: UIView, _ B: UIView) {
-    A.bottomAnchor.constraint(equalTo: B.bottomAnchor).isActive = true
-    A.leftAnchor.constraint(equalTo: B.leftAnchor).isActive = true
-    A.rightAnchor.constraint(equalTo: B.rightAnchor).isActive = true
-}
-
 
 class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     

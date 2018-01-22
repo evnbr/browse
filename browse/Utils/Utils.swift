@@ -8,6 +8,8 @@
 
 import Foundation
 
+// MARK: - Origami Patches
+
 func clip(_ val: CGFloat) -> CGFloat {
     return max(0, min(1, val))
 }
@@ -27,6 +29,7 @@ func elasticLimit(_ val : CGFloat, constant: CGFloat = 150) -> CGFloat {
     return val * resist
 }
 
+// MARK: - Origami Patch Extensions
 
 extension CGFloat {
     
@@ -49,9 +52,30 @@ extension CGFloat {
     }
 }
 
-
+// MARK: - Transform
 extension CGAffineTransform {
     init(scale s: CGFloat) {
         self.init(scaleX: s, y: s)
     }
 }
+
+// MARK: - Constraints
+func constrain4(_ A: UIView, _ B: UIView) {
+    A.topAnchor.constraint(equalTo: B.topAnchor).isActive = true
+    A.bottomAnchor.constraint(equalTo: B.bottomAnchor).isActive = true
+    A.leftAnchor.constraint(equalTo: B.leftAnchor).isActive = true
+    A.rightAnchor.constraint(equalTo: B.rightAnchor).isActive = true
+}
+
+func constrainTop3(_ A: UIView, _ B: UIView) {
+    A.topAnchor.constraint(equalTo: B.topAnchor).isActive = true
+    A.leftAnchor.constraint(equalTo: B.leftAnchor).isActive = true
+    A.rightAnchor.constraint(equalTo: B.rightAnchor).isActive = true
+}
+
+func constrainBottom3(_ A: UIView, _ B: UIView) {
+    A.bottomAnchor.constraint(equalTo: B.bottomAnchor).isActive = true
+    A.leftAnchor.constraint(equalTo: B.leftAnchor).isActive = true
+    A.rightAnchor.constraint(equalTo: B.rightAnchor).isActive = true
+}
+
