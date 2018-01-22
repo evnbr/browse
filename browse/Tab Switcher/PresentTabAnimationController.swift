@@ -92,7 +92,10 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         browserVC.cardView.center = isExpanding ? thumbCenter : expandedCenter
         browserVC.cardView.bounds = isExpanding ? thumbBounds : expandedBounds
 
-        homeVC.visibleCellsBelow.forEach { containerView.addSubview($0) }
+        homeVC.visibleCellsBelow.forEach {
+            containerView.addSubview($0)
+            $0.center.y -= homeVC.collectionView!.contentOffset.y
+        }
 
         
         let newCenter = isExpanding ? expandedCenter : thumbCenter
