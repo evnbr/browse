@@ -16,17 +16,24 @@ class GradientView : UIView {
     private let gradientLayer = CAGradientLayer()
     
     override var frame: CGRect {
-        didSet {
-            gradientLayer.frame = bounds
-            gradientLayer.frame.size.height = THUMB_H
-        }
+        didSet { resizeGradient() }
     }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        resizeGradient()
+    }
+    
+    func resizeGradient() {
+        gradientLayer.frame = bounds
+        gradientLayer.frame.size.height = THUMB_H * 1.5
+    }
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         gradientLayer.colors = [ UIColor.black.withAlphaComponent(0).cgColor, UIColor.black.cgColor ]
         gradientLayer.locations = [ 0.0, 1.0 ]
-        gradientLayer.frame = bounds
-        gradientLayer.frame.size.height = THUMB_H * 1.5
+        resizeGradient()
         layer.addSublayer(gradientLayer)
     }
     
