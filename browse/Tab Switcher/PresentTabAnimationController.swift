@@ -93,22 +93,15 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
 
         homeVC.visibleCellsBelow.forEach { containerView.addSubview($0) }
 
-        let snapFab = homeVC.toolbar.snapshotView(afterScreenUpdates: false)
-        if let fab = snapFab {
-            containerView.addSubview(fab)
-            fab.center = homeVC.toolbar.center
-        }
-        else {
-            print("couldnt make snap")
-        }
-
         
         let newCenter = isExpanding ? expandedCenter : thumbCenter
         let velocity = browserVC.gestureController.dismissVelocity ?? .zero
         
+        let snapFab = homeVC.toolbar.snapshotView(afterScreenUpdates: false)
         
-        var popAnimFinished = false
+        var popCenterDone = false
         var viewAnimFinished = false
+        var popBoundsDone = false
         
         func finishTransition() {
             if self.isExpanding {
@@ -130,21 +123,36 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
         }
         func maybeFinish() {
-            if viewAnimFinished && popAnimFinished { finishTransition() }
+            if viewAnimFinished
+            && popCenterDone
+            && popBoundsDone {
+                finishTransition()
+            }
         }
         
         browserVC.statusHeightConstraint.springConstant(to: self.isExpanding ? Const.statusHeight : THUMB_OFFSET_COLLAPSED )
         browserVC.cardView.springScale(to: 1)
-        browserVC.cardView.springBounds(to: self.isExpanding ? expandedBounds : thumbBounds)
+        browserVC.cardView.springBounds(to: self.isExpanding ? expandedBounds : thumbBounds, then: {  (_, _) in
+            popBoundsDone = true
+            maybeFinish()
+        })
         browserVC.cardView.springCenter(to: newCenter, at: velocity, with: POPtions(mass: 1.3, friction: 35), then: { (_, _) in
-            popAnimFinished = true
+            popCenterDone = true
             maybeFinish()
         })
         
-        snapFab?.alpha = self.isExpanding ? 1 : 0
-        snapFab?.transform = CGAffineTransform(scale: self.isExpanding ? 1 : 0.2)
-        snapFab?.springScale(to: self.isExpanding ? 0.2 : 1)
+//        snapFab?.alpha = self.isExpanding ? 1 : 0
+//        snapFab?.transform = CGAffineTransform(scale: self.isExpanding ? 1 : 0.2)
+//        snapFab?.springScale(to: self.isExpanding ? 0.2 : 1)
 
+        if let fab = snapFab {
+            containerView.addSubview(fab)
+            let currFabCenter = homeVC.toolbar.center
+            var endFabCenter = currFabCenter
+            endFabCenter.y += 120
+            fab.center = isExpanding ? currFabCenter : endFabCenter
+            fab.springCenter(to: isExpanding ? endFabCenter : currFabCenter)
+        }
 
         browserVC.statusBarFront.frame.size.height = !isExpanding ? Const.statusHeight : THUMB_OFFSET_COLLAPSED
         
@@ -161,8 +169,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             browserVC.contentView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
             homeNav.view.alpha = self.isExpanding ? 0.4 : 1
                 
-            snapFab?.alpha = self.isExpanding ? 0 : 1
-            
             homeVC.setThumbPosition(expanded: self.isExpanding)
             homeVC.visibleCellsBelow.forEach { $0.center.y += -homeVC.collectionView!.contentOffset.y }
                 

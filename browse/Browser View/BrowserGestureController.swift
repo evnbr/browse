@@ -662,14 +662,19 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 
                 let gesturePos = gesture.translation(in: view)
                 var vel = gesture.velocity(in: vc.view)
-                vel.x = 0
 
                 let adjustedY : CGFloat = gesturePos.y - startPoint.y
                 
-                if (direction == .top && (vel.y > 600 || adjustedY > dismissPointY)) {
+                let velIsVertical = abs(vel.y) > abs(vel.x)
+                let distIsVertical = abs(gesturePos.y) > abs(gesturePos.x)
+                
+                if direction == .top && velIsVertical && distIsVertical
+                && (vel.y > 600 || adjustedY > dismissPointY) {
+                    vel.x = 0
                     commitDismiss(velocity: vel)
                 }
                 else {
+                    vel.x = 0
                     reset(velocity: vel)
                 }
             }
