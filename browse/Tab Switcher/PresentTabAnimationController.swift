@@ -55,6 +55,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             containerView.addSubview(browserVC.view)
         }
         else {
+            homeVC.scrollToBottom()
             homeVC.setThumbPosition(expanded: true)
             browserVC.updateSnapshot()
         }

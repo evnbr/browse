@@ -351,20 +351,23 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                 self.tabs.append(tab)
                 cv.reloadData()
 
-                // Scroll to end
-                if cv.isScrollable {
-                    cv.contentOffset.y = cv.contentSize.height - cv.bounds.size.height
-                }
+                self.scrollToBottom()
                 
-                //
                 DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
                     self.setThumbPosition(expanded: true)
                 }
-                
             }
-            
             if let c = completion { c() }
         })
+    }
+    
+    func scrollToBottom() {
+        if let cv = self.collectionView {
+            if cv.isScrollable {
+                cv.contentOffset.y = cv.contentSize.height - cv.bounds.size.height
+            }
+        }
+
     }
     
     
