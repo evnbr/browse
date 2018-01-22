@@ -554,6 +554,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     override func viewWillAppear(_ animated: Bool) {
         showToolbar()
         statusBarFront.gradientHolder.alpha = 1
+        toolbar.gradientHolder.alpha = 1
         
         if isBlank {
             displaySearch(animated: true)
@@ -1123,9 +1124,8 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
                 && sv.contentOffset.y > Const.statusHeight
                 && !isFixed
             ) ? 0.8 : 1
-                
             if newAlpha != self.statusBarFront.gradientHolder.alpha {
-                UIView.animate(withDuration: 0.2, delay: 0, options: [.beginFromCurrentState], animations: {
+                UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
                     self.statusBarFront.gradientHolder.alpha = newAlpha
                 })
             }
@@ -1146,12 +1146,15 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     func bottomColorChange(_ newColor: UIColor) {
         browserTab?.history.current?.bottomColor = newColor
         
-        toolbar.gradientHolder.alpha = webView.scrollView.isScrollable ? 0.8 : 1
         
+        let newAlpha : CGFloat = webView.scrollView.isScrollable ? 0.8 : 1
+        if newAlpha != self.toolbar.gradientHolder.alpha {
+            UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
+                self.toolbar.gradientHolder.alpha = newAlpha
+            })
+        }
+
         if shouldUpdateSample {
-//            UIView.animate(withDuration: 0.2, delay: 0.1, options: .curveEaseInOut, animations: {
-//                self.keyboardBack.backgroundColor = newColor //newColor.isLight ? newColor.withBrightness(2.5) : newColor.saturated()
-//            })
             let _ = toolbar.animateGradient(toColor: newColor, direction: .fromTop)
             
         }
