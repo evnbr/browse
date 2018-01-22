@@ -8,7 +8,7 @@
 
 import UIKit
 
-let itemSpacing : CGFloat = 200
+let itemSpacing : CGFloat = 160
 let itemHeight : CGFloat = THUMB_H
 
 class StackingCollectionViewLayout: UICollectionViewFlowLayout {
@@ -50,8 +50,8 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
             let distFromTop = newCenter.y - (attributes.bounds.height / 2) - scrollPos - topScrollPos
 
             
-            let pct = distFromTop.progress(from: -400, to: 700).clip().reverse()
-            let s = (pct * pct * 0.2).reverse()
+            let pct = distFromTop.progress(from: -400, to: 600).reverse()
+            let s = (pct * pct * 0.3).reverse()
 //            attributes.transform = CGAffineTransform(scaleX: s, y: s)
             attributes.bounds.size.width *= s
             attributes.bounds.size.height *= s
