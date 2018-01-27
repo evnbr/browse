@@ -108,14 +108,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
     }
     
-    var hideUntilNavigationDone : Bool {
-        get {
-            return isSnapshotMode
-        }
-        set {
-//            webView.alpha = newValue ? 0 : 1
-            isSnapshotMode = newValue
-        }
+    var hiddenUntilNavigationDone = false
+    
+    func hideUntilNavigationDone() {
+        isSnapshotMode = true
+        hiddenUntilNavigationDone = true
     }
     
     
@@ -1056,9 +1053,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = webView.isLoading
         
-        if hideUntilNavigationDone && webView.estimatedProgress > 0.9 && cardView.frame.origin.y < 1 {
+        if hiddenUntilNavigationDone && webView.estimatedProgress > 0.9 {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                self.hideUntilNavigationDone = false
+                self.hiddenUntilNavigationDone = false
+                self.isSnapshotMode = false
             }
         }
         
@@ -1102,7 +1100,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
                 && !gestureController.isInteractiveDismiss
                 && UIApplication.shared.applicationState == .active
                 && webView != nil
-                && !hideUntilNavigationDone
+                && !hiddenUntilNavigationDone
                 && !(webView.scrollView.contentOffset.y < 0)
 //                && abs(cardView.frame.origin.y) < 1.0
 //                && abs(cardView.frame.origin.x) < 1.0

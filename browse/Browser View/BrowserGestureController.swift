@@ -287,6 +287,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             if vc.webView.canGoBack
             && mockCardView.frame.origin.x + mockCardView.frame.width > backPointX {
                 commit(action: .back, velocity: vel)
+                vc.hideUntilNavigationDone()
             }
             else {
                 commitDismiss(velocity: vel)
@@ -295,6 +296,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         else if gesturePos.x < -backPointX {
             if vc.webView.canGoForward {
                 commit(action: .forward, velocity: vel)
+                vc.hideUntilNavigationDone()
             }
             else {
                 commitDismiss(velocity: vel)
@@ -466,11 +468,9 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
         if action == .back {
             vc.webView.goBack()
-            vc.hideUntilNavigationDone = true
         }
         else if action == .forward {
             vc.webView.goForward()
-            vc.hideUntilNavigationDone = true
         }
         else if action == .toParent {
             if let parent = self.vc.browserTab?.parentTab {
