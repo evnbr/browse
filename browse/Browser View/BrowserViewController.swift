@@ -534,7 +534,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
     }
     
-    func updateSnapshot() {        
+    func updateSnapshot(then done: @escaping () -> Void = { }) {
         // Image snapshot
         browserTab?.updateSnapshot(completionHandler: { img in
             self.snap.image = img
@@ -545,6 +545,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 self.aspectConstraint = self.snap.heightAnchor.constraint(equalTo: self.snap.widthAnchor, multiplier: newAspect, constant: 0)
                 self.aspectConstraint.isActive = true
             }
+            done()
         })
     }
     
@@ -934,32 +935,32 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     func navigateToText(_ text: String) {
         
         errorView?.removeFromSuperview()
-
+        var url : URL
+        
         if isProbablyURL(text) {
             if (text.hasPrefix("http://") || text.hasPrefix("https://")) {
-                let url = URL(string: text)!
+                url = URL(string: text)!
                 if let btn = locationBar { btn.text = url.displayHost }
-                self.webView.load(URLRequest(url: url))
             }
             else {
-                let url = URL(string: "http://" + text)!
+                url = URL(string: "http://" + text)!
                 if let btn = locationBar { btn.text = url.displayHost }
-                self.webView.load(URLRequest(url: url))
             }
         }
         else {
             let query = text.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
-//            let searchURL = "https://duckduckgo.com/?q="
             let searchURL = "https://www.google.com/search?q="
-            let url = URL(string: searchURL + query)!
+            url = URL(string: searchURL + query)!
             
             if let btn = locationBar {
                 btn.text = text
             }
-            
-            self.webView.load(URLRequest(url: url))
         }
         
+        updateSnapshot() {
+            self.webView.load(URLRequest(url: url))
+            self.gestureController.animateNewPage()
+        }
     }
     
     @objc func hideError() {
@@ -1008,14 +1009,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         webView.frame.origin.y = Const.statusHeight
         cardView.transform = .identity
         cardView.bounds.size = cardViewDefaultFrame.size
-        cardView.center = view.center
-        
-        if isBlank && withKeyboard {
-            // hack for better transition with keyboard
-//            cardView.frame.size.height = cardViewDefaultFrame.height - keyboardHeight
-        }
-        
-//        toolbar.alpha = 1
+        cardView.center = view.center        
     }
     
     func loadingDidChange() {
