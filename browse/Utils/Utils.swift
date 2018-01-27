@@ -79,3 +79,24 @@ func constrainBottom3(_ A: UIView, _ B: UIView) {
     A.rightAnchor.constraint(equalTo: B.rightAnchor).isActive = true
 }
 
+// MARK: - UIScrollView
+extension UIScrollView {
+    var isScrollable : Bool {
+        return contentSize.height > bounds.height
+    }
+    var isOverScrolledTop : Bool {
+        return contentOffset.y < 0
+    }
+    var isOverScrolledBottom : Bool {
+        return contentOffset.y > (contentSize.height - bounds.height)
+    }
+}
+
+// MARK: - UIView
+extension UIView {
+    var radius : CGFloat {
+        set { layer.cornerRadius = newValue }
+        get { return layer.cornerRadius }
+    }
+}
+
