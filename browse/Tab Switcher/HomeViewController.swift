@@ -213,16 +213,12 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         newTab.parentTab = prevTab
 
         self.collectionView?.performBatchUpdates({
-//            self.tabs.insert(newTab, at: self.tabs.index(of: prevTab)! + 1)
-//            let ip = IndexPath(item: self.tabs.index(of: newTab)!, section: 0)
-//            self.collectionView?.insertItems(at: [ ip ])
-//            self.collectionViewLayout.invalidateLayout()
-
+            self.tabs.append(newTab)
+            let ip = IndexPath(item: self.tabs.count - 1, section: 0)
+            self.collectionView?.insertItems(at: [ ip ])
+            self.collectionViewLayout.invalidateLayout()
         }, completion: { _ in
             self.browserVC.gestureController.swapTo(childTab: newTab)
-            
-            // TODO: Copy pasted with showtab
-            self.tabs.append(newTab)
             
             if let cv = self.collectionView {
                 self.collectionView?.reloadData()
