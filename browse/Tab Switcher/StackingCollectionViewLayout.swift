@@ -53,13 +53,13 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
             let pct = distFromTop.progress(from: -400, to: 600).reverse()
             let s = (pct * pct * 0.3).reverse()
 //            attributes.transform = CGAffineTransform(scaleX: s, y: s)
-            attributes.bounds.size.width *= s
-            attributes.bounds.size.height *= s
 
             newCenter.y -= distFromTop * 0.85 * pct
 
             if i < count - 1 {
                 attributes.alpha = 1 - ( pct * pct * pct )
+                attributes.bounds.size.width *= s
+                attributes.bounds.size.height *= s
             }
             attributes.center = newCenter
             attributes.zIndex = i * 20
