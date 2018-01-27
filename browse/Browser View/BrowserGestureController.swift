@@ -293,7 +293,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         else if gesturePos.x > backPointX {
             if vc.webView.canGoBack
             && mockCardView.frame.origin.x + mockCardView.frame.width > backPointX {
-                commit(action: .back, velocity: vel)
+                vc.webView.goBack()
+                animateCommit(action: .back, velocity: vel)
                 vc.hideUntilNavigationDone()
             }
             else {
@@ -302,7 +303,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
         else if gesturePos.x < -backPointX {
             if vc.webView.canGoForward {
-                commit(action: .forward, velocity: vel)
+                vc.webView.goForward()
+                animateCommit(action: .forward, velocity: vel)
                 vc.hideUntilNavigationDone()
             }
             else {
@@ -464,38 +466,30 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         )
     }
     
-    func commit(action: GestureNavigationAction, velocity: CGPoint = .zero) {
+    func animateNewPage() {
+        mockCardView.bounds = cardView.bounds
+        mockCardView.center.x = cardView.bounds.width + mockCardViewSpacer
+        
+        mockCardView.statusView.backgroundColor = .white
+        mockCardView.toolbarView.backgroundColor = .white
+        
+        view.addSubview(mockCardView)
+        animateCommit(action: .forward)
+        vc.hideUntilNavigationDone()
+    }
+    
+    func animateCommit(action: GestureNavigationAction, velocity: CGPoint = .zero) {
         
         let mockContent = cardView.snapshotView(afterScreenUpdates: false)
-        mockCardView.addSubview(mockContent!)
+        if let m = mockContent { mockCardView.addSubview(m) }
         vc.snap.image = mockCardView.imageView.image
 
         vc.statusBarFront.gradientHolder.backgroundColor = mockCardView.statusView.backgroundColor
         vc.toolbar.gradientHolder.backgroundColor = mockCardView.toolbarView.backgroundColor
-
-        if action == .back {
-            vc.webView.goBack()
-        }
-        else if action == .forward {
-            vc.webView.goForward()
-        }
-        else if action == .toParent {
-            if let parent = self.vc.browserTab?.parentTab {
-                vc.setTab(parent)
-            }
-            view.bringSubview(toFront: mockCardView)
-        }
         
         // Swap pos
 
         let cardOrigin = cardView.center
-        if (action == .toParent) {
-            cardView.bounds.size = mockCardView.bounds.size
-            cardView.alpha = mockCardView.alpha
-            mockCardView.bounds.size = vc.cardViewDefaultFrame.size
-            mockCardView.alpha = 1
-            mockCardView.center = view.center
-        }
         cardView.center = mockCardView.center
         mockCardView.center = cardOrigin
         
@@ -521,36 +515,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             self.mockCardView.removeFromSuperview()
             self.mockCardView.imageView.image = nil
         }
-        
-        
-        UIView.animate(
-            withDuration: 0.6,
-            delay: 0.0,
-            usingSpringWithDamping: 0.85,
-            initialSpringVelocity: 0.0,
-            options: .allowUserInteraction,
-            animations: {
-            if action == .toParent {
-                self.cardView.alpha = 1
-                self.cardView.bounds.size = self.vc.cardViewDefaultFrame.size
-//                self.cardView.center = self.vc.view.center
-                
-                self.mockCardView.center.x = self.vc.view.center.x
-                self.mockCardView.center.y = self.vc.view.center.y + self.cardView.bounds.height
-            }
-            else if action == .back {
-            }
-            else if action == .forward {
-            }
-            self.cardView.radius = Const.shared.cardRadius
-            self.cardView.transform = .identity
-
-            self.mockCardView.radius = Const.shared.cardRadius
-            self.mockCardView.transform = .identity
-
-        }, completion: { completed in
-            
-        })
+        mockCardView.springScale(to: 1)
+        cardView.springScale(to: 1)
     }
 
     func reset(velocity: CGPoint) {
