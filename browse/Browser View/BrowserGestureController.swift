@@ -91,6 +91,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     }
     
     var prevScrollY : CGFloat = 0
+    var scrollDelta : CGFloat = 0
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
         // If navigated to page that is not scrollable
@@ -109,7 +110,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             scrollView.contentOffset.y = max(startScroll.y, 0)
         }
         
-        let scrollDelta = scrollView.contentOffset.y - prevScrollY
+        scrollDelta = scrollView.contentOffset.y - prevScrollY
         prevScrollY = scrollView.contentOffset.y
         
         if scrollView.isDragging
@@ -149,7 +150,13 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
         let dragAmount = scrollView.contentOffset.y - dragStartScroll
         
-        if dragAmount > 1 {//vc.toolbar.bounds.height < (Const.shared.toolbarHeight / 2) {
+        if scrollDelta > 1 {
+            vc.hideToolbar()
+        }
+        else if scrollDelta < -1 {
+            vc.showToolbar()
+        }
+        else if dragAmount > 1 {
             vc.hideToolbar()
         }
         else if dragAmount < -1 {
