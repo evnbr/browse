@@ -20,7 +20,7 @@ class ProgressToolbar: ColorToolbarView {
             progressView.alpha = 1.0
             let isIncreasing = progressView.progress < newValue
             
-            progressView.setProgress(Float(newValue), animated: isIncreasing)
+            progressView.setProgress(0.1 + newValue * 0.8, animated: isIncreasing)
             if (newValue >= 1.0) {
                 UIView.animate(withDuration: 0.3, delay: 0.3, options: .curveEaseOut, animations: {
                     self.progressView.progress = 1.0
@@ -45,7 +45,7 @@ class ProgressToolbar: ColorToolbarView {
         progressView.autoresizingMask = [.flexibleTopMargin, .flexibleWidth]
 //        progressView.transform = progressView.transform.scaledBy(x: 1, y: 22)
         addSubview(progressView)
-        sendSubview(toBack: progressView)
+//        sendSubview(toBack: progressView)
         
         let blur = PlainBlurView(frame: bounds)
         blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -59,7 +59,6 @@ class ProgressToolbar: ColorToolbarView {
         subviews.forEach { (v) in
             v.tintColor = tintColor
         }
-//        progressView.progressTintColor = tintColor.isLight ? UIColor.black.withAlphaComponent(0.5) : UIColor.white
         progressView.progressTintColor = tintColor
     }
     

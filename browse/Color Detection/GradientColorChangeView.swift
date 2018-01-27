@@ -87,7 +87,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     func animateGradient(toColor: UIColor, direction: GradientColorChangeDirection ) -> Bool {
         if toColor.isEqual(lastColor) { return false }
 
-        UIView.animate(withDuration: 1.5, delay: 0, options: .beginFromCurrentState, animations: {
+        UIView.animate(withDuration: 0.5, delay: 0, options: .beginFromCurrentState, animations: {
             self.gradientHolder.backgroundColor = toColor
             self.tintColor = toColor.isLight ? .white : .darkText
         })
