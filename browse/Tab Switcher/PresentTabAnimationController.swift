@@ -56,7 +56,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         }
         else {
             homeVC.scrollToBottom()
-            homeVC.setThumbPosition(expanded: true)
             browserVC.updateSnapshot()
         }
         
@@ -92,10 +91,9 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         browserVC.cardView.center = isExpanding ? thumbCenter : expandedCenter
         browserVC.cardView.bounds = isExpanding ? thumbBounds : expandedBounds
 
-        homeVC.visibleCellsBelow.forEach {
-            containerView.addSubview($0)
-            $0.center.y -= homeVC.collectionView!.contentOffset.y
-        }
+        homeVC.visibleCellsBelow.forEach { containerView.addSubview($0) }
+        homeVC.setThumbPosition(expanded: !isExpanding, offsetForContainer: true)
+
 
         
         let newCenter = isExpanding ? expandedCenter : thumbCenter
@@ -173,8 +171,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             browserVC.contentView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
             homeNav.view.alpha = self.isExpanding ? 0.4 : 1
                 
-            homeVC.setThumbPosition(expanded: self.isExpanding)
-            homeVC.visibleCellsBelow.forEach { $0.center.y += -homeVC.collectionView!.contentOffset.y }
+            homeVC.setThumbPosition(expanded: self.isExpanding, offsetForContainer: true)
                 
             homeVC.setNeedsStatusBarAppearanceUpdate()
                 

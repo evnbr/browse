@@ -285,7 +285,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         return cv.layoutAttributesForItem(at: ip)!.bounds
     }
     
-    func setThumbPosition(expanded: Bool, offsetY: CGFloat = 0, offsetHeight: CGFloat = 0) {
+    func setThumbPosition(expanded: Bool, offsetForContainer: Bool = false) {
         guard let cv = collectionView else { return }
         
         if (expanded) {
@@ -304,6 +304,8 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                     cell.center = cv.layoutAttributesForItem(at: ip)!.center
                     cell.center.y = Const.statusHeight + cv.contentOffset.y + view.bounds.height + cell.bounds.height / 2
                     cell.isHidden = false
+                    
+                    if offsetForContainer { cell.center.y -= cv.contentOffset.y }
                 }
             }
             else {
@@ -312,6 +314,8 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                     cell.center = cv.layoutAttributesForItem(at: ip)!.center
                     cell.center.y = Const.statusHeight + cv.contentOffset.y + view.bounds.height + cell.bounds.height / 2
                     cell.isHidden = false
+                    
+                    if offsetForContainer { cell.center.y -= cv.contentOffset.y }
                 }
             }
         }
@@ -319,6 +323,11 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
             for cell in visibleCells {
                 let ip = cv.indexPath(for: cell)!
                 cell.center = cv.layoutAttributesForItem(at: ip)!.center
+            }
+            if offsetForContainer {
+                for cell in visibleCellsBelow {
+                    cell.center.y -= cv.contentOffset.y
+                }
             }
         }
     }
