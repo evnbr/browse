@@ -21,7 +21,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var topConstraint : NSLayoutConstraint!
     var accessoryHeightConstraint : NSLayoutConstraint!
     var toolbarHeightConstraint : NSLayoutConstraint!
-    var toolbarBottomConstraint : NSLayoutConstraint!
+    var kbHeightConstraint : NSLayoutConstraint!
     var aspectConstraint : NSLayoutConstraint!
     var statusHeightConstraint : NSLayoutConstraint!
 
@@ -33,7 +33,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var statusBarFront: ColorStatusBarView!
     
     var toolbar: ProgressToolbar!
-    var toolbarHiddenPlaceholder = UIView()
+    var toolbarPlaceholder = UIView()
     var accessoryView: GradientColorChangeView!
     
     var errorView: UIView!
@@ -179,13 +179,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         webView.scrollView.delegate = gestureController
                 
         contentView.insertSubview(webView, belowSubview: snap)
-        topConstraint = webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: Const.statusHeight)
+        //        topConstraint = webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: Const.statusHeight)
+        topConstraint = webView.topAnchor.constraint(equalTo: statusBar.bottomAnchor)
         topConstraint.isActive = true
         
-        webView.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
-        webView.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
+        webView.leftAnchor.constraint(equalTo: cardView.leftAnchor).isActive = true
+        webView.rightAnchor.constraint(equalTo: cardView.rightAnchor).isActive = true
         webView.heightAnchor.constraint(equalTo: view.heightAnchor, constant: (-Const.statusHeight - Const.toolbarHeight)).isActive = true
-        
+        toolbarPlaceholder.topAnchor.constraint(equalTo: webView.bottomAnchor).isActive = true
         
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.title), options: .new, context: nil)
@@ -237,18 +238,18 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         view.addSubview(cardView)
         cardView.addSubview(contentView)
         
-        statusBarFront = ColorStatusBarView()
+        statusBar = ColorStatusBarView()
 
         searchView = SearchView(for: self)
         
         toolbar = setUpToolbar()
         
-        toolbarHiddenPlaceholder.translatesAutoresizingMaskIntoConstraints = false
-        toolbarHiddenPlaceholder.backgroundColor = .clear
+        toolbarPlaceholder.translatesAutoresizingMaskIntoConstraints = false
+        toolbarPlaceholder.backgroundColor = .clear
         let tap = UITapGestureRecognizer(target: self, action: #selector(self.tapToolbarPlaceholder))
-        toolbarHiddenPlaceholder.addGestureRecognizer(tap)
+        toolbarPlaceholder.addGestureRecognizer(tap)
         
-        contentView.addSubview(toolbarHiddenPlaceholder)
+        contentView.addSubview(toolbarPlaceholder)
         
         
         snap.contentMode = .scaleAspectFill
@@ -277,6 +278,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         statusBarFront.widthAnchor.constraint(equalTo: contentView.widthAnchor).isActive = true
         statusBarFront.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
         statusHeightConstraint = statusBarFront.heightAnchor.constraint(equalToConstant: Const.statusHeight)
+        keyboardBack.translatesAutoresizingMaskIntoConstraints = false
+        keyboardBack.backgroundColor = .clear
+        contentView.addSubview(keyboardBack)
         statusHeightConstraint.isActive = true
         
         snap.topAnchor.constraint(equalTo: statusBarFront.bottomAnchor).isActive = true
@@ -286,25 +290,21 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         aspectConstraint = snap.heightAnchor.constraint(equalTo: snap.widthAnchor, multiplier: 1)
         aspectConstraint.isActive = true
         
-        
         toolbar.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
         toolbar.widthAnchor.constraint(equalTo: cardView.widthAnchor).isActive = true
-        toolbarBottomConstraint = toolbar.bottomAnchor.constraint(equalTo: cardView.bottomAnchor)
-        toolbarBottomConstraint.isActive = true
+        toolbar.bottomAnchor.constraint(equalTo: keyboardBack.topAnchor).isActive = true
         
-        toolbarHiddenPlaceholder.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
-        toolbarHiddenPlaceholder.widthAnchor.constraint(equalTo: cardView.widthAnchor).isActive = true
-        toolbarHiddenPlaceholder.bottomAnchor.constraint(equalTo: cardView.bottomAnchor).isActive = true
-        toolbarHiddenPlaceholder.heightAnchor.constraint(equalToConstant: Const.toolbarHeight).isActive = true
+        toolbarPlaceholder.leftAnchor.constraint(equalTo: cardView.leftAnchor).isActive = true
+        toolbarPlaceholder.rightAnchor.constraint(equalTo: cardView.rightAnchor).isActive = true
+        toolbarPlaceholder.heightAnchor.constraint(equalToConstant: Const.toolbarHeight).isActive = true
 
 
-        keyboardBack.translatesAutoresizingMaskIntoConstraints = false
-        keyboardBack.backgroundColor = .cyan
-//        contentView.addSubview(keyboardBack)
-//        keyboardBack.centerXAnchor.constraint(equalTo: toolbar.centerXAnchor).isActive = true
-//        keyboardBack.widthAnchor.constraint(equalTo: toolbar.widthAnchor).isActive = true
-//        keyboardBack.bottomAnchor.constraint(equalTo: cardView.bottomAnchor).isActive = true
-//        keyboardBack.topAnchor.constraint(equalTo: toolbar.bottomAnchor).isActive = true
+        keyboardBack.leftAnchor.constraint(equalTo: toolbar.leftAnchor).isActive = true
+        keyboardBack.rightAnchor.constraint(equalTo: toolbar.rightAnchor).isActive = true
+        keyboardBack.bottomAnchor.constraint(equalTo: toolbarPlaceholder.bottomAnchor).isActive = true
+        keyboardBack.topAnchor.constraint(equalTo: toolbar.bottomAnchor).isActive = true
+        kbHeightConstraint = keyboardBack.heightAnchor.constraint(equalToConstant: 0)
+        kbHeightConstraint.isActive = true
         
         accessoryView = setupAccessoryView()
         
@@ -349,12 +349,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
         // Hack to prevent accessory of showing up at bottom
 //        accessoryView.isHidden = keyboardHeight < 50
-        accessoryHeightConstraint.constant = keyboardHeight < 50 ? 0 : 48
+        accessoryHeightConstraint?.constant = keyboardHeight < 50 ? 0 : 48
     }
     
     @objc func keyboardWillHide(notification: NSNotification) {
         // Hack to prevent accessory of showing up at bottom
-        accessoryHeightConstraint.constant = 0
+        accessoryHeightConstraint?.constant = 0
     }
     
     var topWindow : UIWindow!
@@ -696,7 +696,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         self.toolbar.progressView.isHidden = true
         
-        self.toolbarBottomConstraint.constant = -keyboardHeight
+        self.kbHeightConstraint.constant = keyboardHeight
 
         if animated {
             UIView.animate(
@@ -710,7 +710,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 self.toolbarHeightConstraint.constant = self.searchView.bounds.height
                     
                 self.locationBar.alpha = 0
-                self.toolbar.layoutIfNeeded()
+                self.view.layoutIfNeeded()
                     
                 self.backButton.isHidden = true
                 self.forwardButton.isHidden = true
@@ -724,7 +724,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 
             self.toolbarHeightConstraint.constant = self.searchView.frame.height
             self.locationBar.alpha = 0
-            self.toolbar.layoutIfNeeded()
+            self.view.layoutIfNeeded()
             
             
             self.backButton.isHidden = true
@@ -747,7 +747,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         toolbar.progressView.isHidden = false
         locationBar.backgroundColor = locationBar.tapColor
 
-        self.toolbarBottomConstraint.constant = 0
+        self.kbHeightConstraint.constant = 0
         
         UIView.animate(
             withDuration: 0.55,
@@ -757,15 +757,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             options: [.curveLinear, .allowUserInteraction],
             animations: {
             
-//                self.cardView.bounds.size = self.cardViewDefaultFrame.size
-//                self.cardView.center = self.view.center
-//                self.cardView.layer.cornerRadius = Const.shared.cardRadius
-
                 self.toolbarHeightConstraint.constant = Const.toolbarHeight
                 self.locationBar.alpha = 1
                 self.locationBar.backgroundColor = .clear
             
-                self.toolbar.layoutIfNeeded()
+                self.view.layoutIfNeeded()
                 
                 self.backButton.isHidden = false
                 self.forwardButton.isHidden = false
@@ -777,9 +773,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     func searchSizeDidChange() {
         if searchView != nil && isDisplayingSearch {
-//            let cardH = cardViewDefaultFrame.height - keyboardHeight
-//            self.cardView?.frame.size.height = cardH
-            self.toolbarBottomConstraint.constant = -keyboardHeight
+            self.kbHeightConstraint.constant = keyboardHeight
             self.toolbarHeightConstraint.constant = self.searchView.frame.height
             self.toolbar.layoutIfNeeded()
         }
@@ -1102,7 +1096,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     }
     
     var bottomSamplePosition : CGFloat {
-        return cardView.bounds.height - (-toolbarBottomConstraint.constant) - Const.statusHeight - toolbarHeightConstraint.constant
+        return cardView.bounds.height - (kbHeightConstraint.constant) - Const.statusHeight - toolbarHeightConstraint.constant
     }
     
     func topColorChange(_ newColor: UIColor) {
