@@ -200,12 +200,11 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         }, completion: { _ in
             self.browserVC.gestureController.swapTo(childTab: newTab)
             
-            if let cv = self.collectionView {
-                self.collectionView?.reloadData()
-                // Scroll to end
-                if cv.isScrollable {
-                    cv.contentOffset.y = cv.contentSize.height - cv.bounds.size.height
-                }
+            self.collectionView?.reloadData()
+            // Scroll to end
+            self.scrollToBottom()
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+                self.setThumbPosition(expanded: true)
             }
         })
         
@@ -325,8 +324,10 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         self.browserVC.setTab(tab)
         
         present(browserVC, animated: animated, completion: {
-            self.thumb(forTab: tab)?.unSelect(animated: false)
-            self.thumb(forTab: tab)?.setTab(tab)
+            if let thumb = self.thumb(forTab: tab) {
+                thumb.unSelect(animated: false)
+                thumb.setTab(tab)
+            }
 
             if let cv = self.collectionView {
                 // Move this item to end of tabs array
@@ -359,9 +360,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     override func viewDidAppear(_ animated: Bool) {
         navigationController?.isNavigationBarHidden = true
 
-        if isFirstLoad {
-            isFirstLoad = false
-        }
+        isFirstLoad = false
     }
         
     override func didReceiveMemoryWarning() {
