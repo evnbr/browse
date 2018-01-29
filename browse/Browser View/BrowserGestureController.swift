@@ -484,8 +484,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         if let m = mockContent { mockCardView.addSubview(m) }
         vc.snap.image = mockCardView.imageView.image
 
-        vc.statusBarFront.gradientHolder.backgroundColor = mockCardView.statusView.backgroundColor
-        vc.toolbar.gradientHolder.backgroundColor = mockCardView.toolbarView.backgroundColor
+        vc.statusBar.update(toColor: mockCardView.statusView.backgroundColor!)
+        vc.toolbar.update(toColor: mockCardView.toolbarView.backgroundColor!)
+        vc.statusBar.backgroundView.alpha = 1
+        vc.toolbar.backgroundView.alpha = 1
         
         // Swap pos
 

@@ -30,7 +30,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var searchView: SearchView!
     var colorSampler: WebviewColorSampler!
     
-    var statusBarFront: ColorStatusBarView!
+    var statusBar: ColorStatusBarView!
     
     var toolbar: ProgressToolbar!
     var toolbarPlaceholder = UIView()
@@ -63,7 +63,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         if gestureController.isInteractiveDismiss && (cardView.frame.origin.y > 10) {
             return .lightContent
         }
-        return (statusBarFront.gradientHolder.backgroundColor?.isLight ?? true) ? .lightContent : .default
+        return statusBar.lastColor.isLight ? .lightContent : .default
     }
     
     override var prefersStatusBarHidden: Bool {
@@ -153,25 +153,16 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
         
         if let newTop = newTab.history.current?.topColor {
-            statusBarFront.gradientHolder.backgroundColor = newTop
-            // TODO: just need to reset tint color, dont need animate gradient
-            let _ = statusBarFront.animateGradient(toColor: newTop, direction: .fromBottom)
+            statusBar.update(toColor: newTop)
         }
         else {
-            statusBarFront.gradientHolder.backgroundColor = .white
+            statusBar.update(toColor: .white)
         }
         if let newBottom = newTab.history.current?.bottomColor {
-            toolbar.gradientHolder.backgroundColor = newBottom
-            contentView.backgroundColor = newBottom
-            webView.scrollView.backgroundColor = newBottom
-            // TODO: just need to reset tint color, dont need animate gradient
-            let _ = toolbar.animateGradient(toColor: newBottom, direction: .fromTop)
+            toolbar.update(toColor: newBottom)
         }
         else {
-            toolbar.tintColor = .darkText
-            toolbar.gradientHolder.backgroundColor = .white
-            contentView.backgroundColor = .white
-            webView.backgroundColor = .white
+            toolbar.update(toColor: .white)
         }
         
         webView.navigationDelegate = self
@@ -227,7 +218,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         contentView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         contentView.radius = Const.shared.cardRadius
         contentView.layer.masksToBounds = true
-        
+        contentView.backgroundColor = .white
+
         overlay = UIView(frame: view.bounds)
         overlay.backgroundColor = UIColor.black
         overlay.alpha = 0
@@ -261,9 +253,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         contentView.addSubview(snap)
         contentView.addSubview(toolbar)
-        contentView.addSubview(statusBarFront)
+        contentView.addSubview(statusBar)
         
-        contentView.bringSubview(toFront: statusBarFront)
+        contentView.bringSubview(toFront: statusBar)
         contentView.bringSubview(toFront: toolbar)
         
         contentView.addSubview(overlay)
@@ -273,17 +265,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         constrainTop3(contentView, gradientOverlay)
         gradientOverlay.heightAnchor.constraint(equalToConstant: THUMB_H)
 
-        
-        statusBarFront.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
-        statusBarFront.widthAnchor.constraint(equalTo: contentView.widthAnchor).isActive = true
-        statusBarFront.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
-        statusHeightConstraint = statusBarFront.heightAnchor.constraint(equalToConstant: Const.statusHeight)
         keyboardBack.translatesAutoresizingMaskIntoConstraints = false
         keyboardBack.backgroundColor = .clear
         contentView.addSubview(keyboardBack)
+
+        constrainTop3(statusBar, contentView)
+        statusHeightConstraint = statusBar.heightAnchor.constraint(equalToConstant: Const.statusHeight)
         statusHeightConstraint.isActive = true
         
-        snap.topAnchor.constraint(equalTo: statusBarFront.bottomAnchor).isActive = true
+        snap.topAnchor.constraint(equalTo: statusBar.bottomAnchor).isActive = true
         snap.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
         snap.widthAnchor.constraint(equalTo: contentView.widthAnchor).isActive = true
         
@@ -326,8 +316,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardDidChangeFrame, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
-        
-        contentView.backgroundColor = .red
     }
     
     @objc func showHistory(_ : Any?) {
@@ -356,6 +344,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         // Hack to prevent accessory of showing up at bottom
         accessoryHeightConstraint?.constant = 0
     }
+    
+//    var accessoryHeightConstraint : NSLayoutConstraint? {
+//        print(accessoryView.constraints.first)
+//        return accessoryView.constraints.first
+//    }
+
     
     var topWindow : UIWindow!
     var topLabel : UILabel!
@@ -551,8 +545,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     override func viewWillAppear(_ animated: Bool) {
         showToolbar()
-        statusBarFront.gradientHolder.alpha = 1
-        toolbar.gradientHolder.alpha = 1
+        statusBar.backgroundView.alpha = 1
+        toolbar.backgroundView.alpha = 1
         
         if isBlank {
             displaySearch(animated: true)
@@ -870,28 +864,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             self.pasteURLAndGo()
         })
         ac.addAction(pasteAction)
-
-//        pasteAction.isEnabled = false
-        // Avoid blocking UI if pasting from another device
-//        DispatchQueue.global(qos: .userInitiated).async {
-//            if (UIPasteboard.general.hasStrings) {
-//                if let str = UIPasteboard.general.string {
-//                    var pasted = str
-//                    if pasted.count > 32 {
-//                        pasted = "\(pasted[...pasted.index(pasted.startIndex, offsetBy: 32)])..."
-//                    }
-//                    DispatchQueue.main.async {
-//                        if self.isProbablyURL(pasted) {
-//                            pasteAction.setValue("Go to \"\(pasted)\"", forKey: "title")
-//                        }
-//                        else {
-//                            pasteAction.setValue("Search \"\(pasted)\"", forKey: "title")
-//                        }
-//                        pasteAction.isEnabled = true
-//                    }
-//                }
-//            }
-//        }
         
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         
@@ -951,9 +923,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             }
         }
         
-        updateSnapshot() {
-            self.webView.load(URLRequest(url: url))
-            self.gestureController.animateNewPage()
+        if isBlank {
+            webView.load(URLRequest(url: url))
+        }
+        else {
+            updateSnapshot() {
+                self.webView.load(URLRequest(url: url))
+                self.gestureController.animateNewPage()
+            }
         }
     }
     
@@ -1110,16 +1087,16 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
                 && sv.contentOffset.y > Const.statusHeight
                 && !isFixed
             ) ? 0.8 : 1
-            if newAlpha != self.statusBarFront.gradientHolder.alpha {
+            if newAlpha != self.statusBar.backgroundView.alpha {
                 UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
-                    self.statusBarFront.gradientHolder.alpha = newAlpha
+                    self.statusBar.backgroundView.alpha = newAlpha
                 })
             }
         }
         
         if shouldUpdateSample {
             
-            let didChange = statusBarFront.animateGradient(toColor: newColor, direction: .fromBottom)
+            let didChange = statusBar.animateGradient(toColor: newColor, direction: .fromBottom)
 
             if didChange {
                 UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
@@ -1134,9 +1111,9 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
         
         
         let newAlpha : CGFloat = webView.scrollView.isScrollable ? 0.8 : 1
-        if newAlpha != self.toolbar.gradientHolder.alpha {
+        if newAlpha != self.toolbar.backgroundView.alpha {
             UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
-                self.toolbar.gradientHolder.alpha = newAlpha
+                self.toolbar.backgroundView.alpha = newAlpha
             })
         }
 
@@ -1148,7 +1125,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     }
     
     func cancelColorChange() {
-        statusBarFront.cancelColorChange()
+        statusBar.cancelColorChange()
         toolbar.cancelColorChange()
     }
 }

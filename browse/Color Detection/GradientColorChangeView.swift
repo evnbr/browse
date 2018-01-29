@@ -20,9 +20,9 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     let gradientLayer2: CAGradientLayer = CAGradientLayer()
     let gradientLayer3: CAGradientLayer = CAGradientLayer()
     
-    let duration : CFTimeInterval = 1.2
+    let duration : CFTimeInterval = 0.5
 
-    var gradientHolder: UIView!
+    var backgroundView: UIView!
     
     var lastColor: UIColor = UIColor.clear
     
@@ -30,26 +30,33 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         return lastColor.isLight
     }
     
+    var initialHeight = Const.toolbarHeight
+    
     override func layoutSubviews() {
         super.layoutSubviews()
-        gradientLayer.frame = bounds
-        gradientLayer2.frame = bounds
-        gradientLayer3.frame = bounds
+        
+        var newFrame = bounds
+        newFrame.size.height = initialHeight
+
+        gradientLayer.frame = newFrame
+        gradientLayer2.frame = newFrame
+        gradientLayer3.frame = newFrame
     }
     
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        gradientHolder = UIView(frame: bounds)
-//        gradientHolder.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(gradientHolder)
-        sendSubview(toBack: gradientHolder)
+        backgroundView = UIView(frame: bounds)
+        backgroundView.clipsToBounds = true
+//        backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(backgroundView)
+        sendSubview(toBack: backgroundView)
         
-        gradientHolder.translatesAutoresizingMaskIntoConstraints = false
-        gradientHolder.topAnchor.constraint(equalTo: topAnchor).isActive = true
-        gradientHolder.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
-        gradientHolder.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
-        gradientHolder.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
+        backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        backgroundView.topAnchor.constraint(equalTo: topAnchor).isActive = true
+        backgroundView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
+        backgroundView.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
+        backgroundView.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
 
         for layer in [gradientLayer, gradientLayer2, gradientLayer3] {
             layer.frame = bounds
@@ -80,23 +87,29 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         else {
             let newLayer = CAGradientLayer()
             newLayer.frame = bounds
+            newLayer.frame.size.height = initialHeight
             return newLayer
         }
     }
     
-    func animateGradient(toColor: UIColor, direction: GradientColorChangeDirection ) -> Bool {
+    func animateGradientNew(toColor: UIColor, direction: GradientColorChangeDirection ) -> Bool {
         if toColor.isEqual(lastColor) { return false }
 
         UIView.animate(withDuration: 0.5, delay: 0, options: .beginFromCurrentState, animations: {
-            self.gradientHolder.backgroundColor = toColor
+            self.backgroundView.backgroundColor = toColor
             self.tintColor = toColor.isLight ? .white : .darkText
         })
-        
+        lastColor = toColor
         return true
     }
-
     
-    func animateGradientOld(toColor: UIColor, direction: GradientColorChangeDirection ) -> Bool {
+    func update(toColor: UIColor) {
+        self.backgroundView.backgroundColor = toColor
+        self.tintColor = toColor.isLight ? .white : .darkText
+        lastColor = toColor
+    }
+    
+    func animateGradient(toColor: UIColor, direction: GradientColorChangeDirection ) -> Bool {
         if toColor.isEqual(lastColor) { return false }
         
         guard let gLayer : CAGradientLayer = getGradientLayer() else {
@@ -143,12 +156,12 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         
         
         CATransaction.setCompletionBlock({
-            self.gradientHolder.backgroundColor = toColor
+            self.backgroundView.backgroundColor = toColor
             gLayer.removeAnimation(forKey: "gradientChange")
             gLayer.removeFromSuperlayer()
         })
         gLayer.add(colorChangeAnimation, forKey: "gradientChange")
-        gradientHolder.layer.addSublayer(gLayer)
+        backgroundView.layer.addSublayer(gLayer)
 
         CATransaction.commit()
         

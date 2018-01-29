@@ -156,7 +156,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             fab.springCenter(to: isExpanding ? endFabCenter : currFabCenter)
         }
 
-        browserVC.statusBarFront.frame.size.height = !isExpanding ? Const.statusHeight : THUMB_OFFSET_COLLAPSED
+        browserVC.statusBar.frame.size.height = !isExpanding ? Const.statusHeight : THUMB_OFFSET_COLLAPSED
         
         UIView.animate(
             withDuration: 0.6,

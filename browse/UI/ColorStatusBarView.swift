@@ -37,7 +37,7 @@ class ColorStatusBarView : GradientColorChangeView {
         )
 
         super.init(frame: rect)
-        
+        initialHeight = Const.statusHeight
 //        self.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
         self.translatesAutoresizingMaskIntoConstraints = false
         
