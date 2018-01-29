@@ -15,7 +15,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
     var browserVC : BrowserViewController!
     
     var fabConstraint : NSLayoutConstraint!
-    var toolbar : ColorToolbarView!
+    var fab : FloatButton!
     
     let reuseIdentifier = "TabCell"
     let sectionInsets = UIEdgeInsets(top: 120.0, left: THUMB_INSET, bottom: 8.0, right: THUMB_INSET)
@@ -61,44 +61,24 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         navigationController?.navigationBar.tintColor = .white
         navigationController?.navigationBar.barStyle = .black
         
-        toolbar = ColorToolbarView(frame: CGRect(
-            x: view.bounds.width - 80,
-            y: view.bounds.height - Const.toolbarHeight,
-            width: 64,
-            height: 64
-        ))
-//        toolbar.center.x = view.center.x
-        toolbar.backgroundColor = .black
-//        toolbar.translatesAutoresizingMaskIntoConstraints = false
-        toolbar.layer.zPosition = 100
-        toolbar.layer.cornerRadius = 32
         
-        let addButton = ToolbarIconButton(
+        
+        fab = FloatButton(
+            frame: CGRect(
+                x: view.bounds.width - 80,
+                y: view.bounds.height - Const.toolbarHeight,
+                width: 64,
+                height: 64),
             icon: UIImage(named: "add"),
             onTap: self.addTab
         )
+        view.addSubview(fab)
         
-        let clearButton = ToolbarTextButton(
-            title: "Clear",
-            withIcon: nil, //UIImage(named: "add"),
-            onTap: self.clearTabs
-        )
-        clearButton.size = .small
-        
-        toolbar.items = [addButton]
-//        toolbar.isHidden = true
-        view.addSubview(toolbar)
-//        addButton.bounds = CGRect(x: 0, y: 0, width: 60, height: 60)
-//        view.addSubview(addButton)
-//        addButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -48).isActive = true
-//        addButton.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        toolbar.translatesAutoresizingMaskIntoConstraints = false
-        
-        fabConstraint = view.bottomAnchor.constraint(equalTo: toolbar.bottomAnchor, constant: 32.0)
+        fabConstraint = view.bottomAnchor.constraint(equalTo: fab.bottomAnchor, constant: 32.0)
         fabConstraint.isActive = true
-        toolbar.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        toolbar.widthAnchor.constraint(equalToConstant: 64).isActive = true
-        toolbar.heightAnchor.constraint(equalToConstant: 64).isActive = true
+        fab.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        fab.widthAnchor.constraint(equalToConstant: 64).isActive = true
+        fab.heightAnchor.constraint(equalToConstant: 64).isActive = true
 
         collectionView?.contentInset = UIEdgeInsets(
             top: Const.statusHeight,

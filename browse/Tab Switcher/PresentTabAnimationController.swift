@@ -99,7 +99,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         let newCenter = isExpanding ? expandedCenter : thumbCenter
         let velocity = browserVC.gestureController.dismissVelocity ?? .zero
         
-        let snapFab = homeVC.toolbar.snapshotView(afterScreenUpdates: false)
+        let snapFab = homeVC.fab.snapshotView(afterScreenUpdates: false)
         
         var popCenterDone = false
         var viewAnimFinished = false
@@ -149,7 +149,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
 
         if let fab = snapFab {
             containerView.addSubview(fab)
-            let currFabCenter = homeVC.toolbar.center
+            let currFabCenter = homeVC.fab.center
             var endFabCenter = currFabCenter
             endFabCenter.y += 120
             fab.center = isExpanding ? currFabCenter : endFabCenter

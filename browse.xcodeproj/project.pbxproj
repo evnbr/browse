@@ -11,6 +11,7 @@
 		A908920A1ED547C500A5E9BA /* LocationBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90892091ED547C500A5E9BA /* LocationBar.swift */; };
 		A908F04C1ECD03B800A74241 /* ColorStatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */; };
 		A908F04E1ECD60CD00A74241 /* BookmarksViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */; };
+		A90ED966201EDB26003F4831 /* FloatButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90ED965201EDB26003F4831 /* FloatButton.swift */; };
 		A90F51211F70C6CB00221815 /* UIImageColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90F51201F70C6CB00221815 /* UIImageColors.swift */; };
 		A91372071F777511002C160B /* ultimateAdblockList.json in Resources */ = {isa = PBXBuildFile; fileRef = A91372061F777511002C160B /* ultimateAdblockList.json */; };
 		A92095841ED90E7B009497A2 /* Blocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095831ED90E7B009497A2 /* Blocker.swift */; };
@@ -86,6 +87,7 @@
 		A90892091ED547C500A5E9BA /* LocationBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationBar.swift; sourceTree = "<group>"; };
 		A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorStatusBarView.swift; sourceTree = "<group>"; };
 		A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarksViewController.swift; sourceTree = "<group>"; };
+		A90ED965201EDB26003F4831 /* FloatButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatButton.swift; sourceTree = "<group>"; };
 		A90F51201F70C6CB00221815 /* UIImageColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageColors.swift; sourceTree = "<group>"; };
 		A91372061F777511002C160B /* ultimateAdblockList.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ultimateAdblockList.json; sourceTree = "<group>"; };
 		A92095831ED90E7B009497A2 /* Blocker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Blocker.swift; sourceTree = "<group>"; };
@@ -252,6 +254,7 @@
 				A9DEAE3C1F16C15700CF66BA /* ProgressToolbar.swift */,
 				A98483271EEFCFE200E821AE /* ColorToolbarView.swift */,
 				A92095941EE3E0DA009497A2 /* ToolbarTouchView.swift */,
+				A90ED965201EDB26003F4831 /* FloatButton.swift */,
 				A99328461F098E270045EBAA /* ToolbarTextButton.swift */,
 				A92095961EE3E2AF009497A2 /* ToolbarIconButton.swift */,
 			);
@@ -697,6 +700,7 @@
 				A9AA4A5A1FF76CDA001AB639 /* UIView+POP.swift in Sources */,
 				A908920A1ED547C500A5E9BA /* LocationBar.swift in Sources */,
 				A920958A1EDA6526009497A2 /* Settings.swift in Sources */,
+				A90ED966201EDB26003F4831 /* FloatButton.swift in Sources */,
 				A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */,
 				A92095861ED9E242009497A2 /* SettingsViewController.swift in Sources */,
 				A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */,
