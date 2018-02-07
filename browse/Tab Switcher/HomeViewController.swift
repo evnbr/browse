@@ -346,13 +346,22 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
 
     }
     
+    func updateThumbs() {
+        for tab in tabs {
+            if let thumb = thumb(forTab: tab), let image = tab.history.current?.snapshot {
+                thumb.setSnapshot(image)
+            }
+        }
+    }
+    
     
     override func viewDidAppear(_ animated: Bool) {
         navigationController?.isNavigationBarHidden = true
-
+        
         isFirstLoad = false
     }
-        
+    
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.

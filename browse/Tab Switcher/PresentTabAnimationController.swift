@@ -123,6 +123,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             
             homeVC.setNeedsStatusBarAppearanceUpdate()
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
+            homeVC.updateThumbs()
         }
         func maybeFinish() {
             if viewAnimFinished
