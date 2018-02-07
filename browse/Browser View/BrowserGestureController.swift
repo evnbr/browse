@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import pop
 
 enum GestureNavigationDirection {
     case top
@@ -117,7 +118,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         && scrollView.isTracking
         && scrollView.isScrollable
         && !vc.isDisplayingSearch
-//        && !scrollView.isDecelerating
         && !scrollView.isOverScrolledTop
         && !scrollView.isOverScrolledBottom
         && !vc.webView.isLoading {
@@ -135,7 +135,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             vc.locationBar.alpha = alpha
             vc.backButton.alpha = alpha
             vc.tabButton.alpha = alpha
-            
         }
     }
     
@@ -167,7 +166,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     let vProgressScaleMultiplier : CGFloat = 0.2
     let cantGoBackScaleMultiplier : CGFloat = 0.3
     
-    var wouldCommitPrevious = false
+    var wouldCommitPreviousX = false
+    var wouldCommitPreviousY = false
 
     func horizontalChange(_ gesture: UIScreenEdgePanGestureRecognizer) {
         guard isInteractiveDismiss && (direction == .left || direction == .right) else { return }
@@ -184,12 +184,21 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
         let adjustedX = gesturePos.x
         
-        let wouldCommit = abs(adjustedX) > dismissPointX
-        if wouldCommit != wouldCommitPrevious {
+        let wouldCommitX = abs(adjustedX) > dismissPointX
+        if wouldCommitX != wouldCommitPreviousX {
             feedbackGenerator?.selectionChanged()
             feedbackGenerator?.prepare()
-            wouldCommitPrevious = wouldCommit
+            wouldCommitPreviousX = wouldCommitX
         }
+        let wouldCommitY = abs(gesturePos.y) > dismissPointY
+        let wouldCommitYChanged = (wouldCommitY != wouldCommitPreviousY)
+        if wouldCommitY != wouldCommitPreviousY {
+//            feedbackGenerator?.selectionChanged()
+//            feedbackGenerator?.prepare()
+//            home.springCards(expanded: !wouldCommitY)
+            wouldCommitPreviousY = wouldCommitY
+        }
+
         
         cardView.center.x = view.center.x + adjustedX
         
@@ -201,6 +210,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             cardView.center.y = view.center.y //+ 0.1 * yGestureInfluence
         }
 
+        self.vc.gradientOverlay.alpha = gesturePos.y.progress(from: 0, to: 400)
 
         let verticalProgress = gesturePos.y.progress(from: 0, to: 200).clip()
         let stackupProgress = gesturePos.y.progress(from: 80, to: 200).clip().reverse()
@@ -211,7 +221,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 
                 let s = (verticalProgress * vProgressScaleMultiplier).reverse()
                 cardView.transform = CGAffineTransform(scale: s)
-//                mockCardView.transform = cardView.transform
                 
                 let scaleFromLeftShift = (1 - s) * cardView.bounds.width / 2
                 
@@ -219,13 +228,13 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                     + verticalProgress.blend(from: adjustedX, to: elasticLimit(adjustedX))
                     - scaleFromLeftShift
                 
-                mockCardView.center = view.center //self.cardView.center
-                mockCardView.center.x = blend(
-                    from: cardView.center.x - view.bounds.width / 2 - cardView.bounds.width * s / 2 - mockCardViewSpacer,
-                    to: view.center.x - view.bounds.width,
-                    by: stackupProgress.reverse()
+                mockTrackingCenter = CGPoint(
+                    x: cardView.center.x - view.bounds.width / 2 - cardView.bounds.width * s / 2 - mockCardViewSpacer,
+                    y: view.center.y
                 )
-//                mockCardView.overlay.alpha = revealProgress.reverse() //stackupProgress.reverse() / 2 - 0.2
+                mockHiddenCenter = CGPoint(x: view.center.x - view.bounds.width, y: view.center.y)
+                mockCardView.center = mockCardViewCenter
+                springBackForwardMode(gesturePos.y < dismissPointY)
             }
             else {
                 // COPY PASTED A
@@ -233,7 +242,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 let hProgress = abs(gesturePos.x) / view.bounds.width
                 let s = 1 - hProgress * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
                 cardView.center.x = view.center.x + elasticLimit(adjustedX, constant: 100)
-//                cardView.center.y = view.center.y + yShift
                 cardView.transform = CGAffineTransform(scale: s)
             }
         }
@@ -242,7 +250,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             
             let s = 1 - verticalProgress * vProgressScaleMultiplier
             cardView.transform = CGAffineTransform(scale: s)
-//            mockCardView.transform = cardView.transform
             
             let scaleFromRightShift = (1 - s) * cardView.bounds.width / 2
             
@@ -256,20 +263,14 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 to: view.center.x + view.bounds.width,
                 by: stackupProgress.reverse()
             )
-//            mockCardView.overlay.alpha = stackupProgress.reverse() / 2 - 0.2
         }
         else {
             // COPY PASTED A
             
             let hProgress = abs(gesturePos.x) / view.bounds.width
             let s = 1 - hProgress * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
-            let yHint : CGFloat = 20
-            let yShift = hProgress * yHint + yGestureInfluence
             cardView.center.x = view.center.x + elasticLimit(elasticLimit(adjustedX))
-//            cardView.center.y = view.center.y + yShift
             cardView.transform = CGAffineTransform(scale: s)
-            
-//            home.setThumbPosition(expanded: true, offsetY: cardView.frame.origin.y)
         }
         
         if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle {
@@ -412,12 +413,12 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     
     func startGesture() {
         isInteractiveDismiss = true
-        wouldCommitPrevious = false
+        wouldCommitPreviousX = false
+        wouldCommitPreviousY = false
         startScroll = vc.webView.scrollView.contentOffset
         
         if vc.isDisplayingSearch { vc.hideSearch() }
         
-        vc.webView.scrollView.showsVerticalScrollIndicator = false
         vc.browserTab?.updateSnapshot()
         
         feedbackGenerator = UISelectionFeedbackGenerator()
@@ -427,7 +428,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     
     func endGesture() {
         isInteractiveDismiss = false
-        vc.webView.scrollView.showsVerticalScrollIndicator = true
     }
     
     func commitDismiss(velocity vel: CGPoint) {
@@ -459,7 +459,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             options: .allowUserInteraction,
             animations: {
                 self.cardView.center = self.view.center
-                parentMock.center.y += Const.statusHeight
+                parentMock.center.y += 240
             }, completion: { done in
                 parentMock.removeFromSuperview()
             }
@@ -468,7 +468,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     
     func animateNewPage() {
         mockCardView.bounds = cardView.bounds
-        mockCardView.center.x = cardView.bounds.width + mockCardViewSpacer
+        mockCardView.center.x = view.center.x + cardView.bounds.width + mockCardViewSpacer
         
         mockCardView.statusView.backgroundColor = .white
         mockCardView.toolbarView.backgroundColor = .white
@@ -477,15 +477,26 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         animateCommit(action: .forward)
         vc.hideUntilNavigationDone()
     }
-    
+    func animateCancelNewPage() {
+        mockCardView.bounds = cardView.bounds
+        mockCardView.center.x = view.center.x - cardView.bounds.width - mockCardViewSpacer
+        
+        mockCardView.statusView.backgroundColor = vc.browserTab?.history.current?.topColor
+        mockCardView.toolbarView.backgroundColor = vc.browserTab?.history.current?.bottomColor
+        
+        view.addSubview(mockCardView)
+        animateCommit(action: .back)
+        vc.isSnapshotMode = false
+    }
+
     func animateCommit(action: GestureNavigationAction, velocity: CGPoint = .zero) {
         
         let mockContent = cardView.snapshotView(afterScreenUpdates: false)
         if let m = mockContent { mockCardView.addSubview(m) }
         vc.snap.image = mockCardView.imageView.image
 
-        vc.statusBar.update(toColor: mockCardView.statusView.backgroundColor!)
-        vc.toolbar.update(toColor: mockCardView.toolbarView.backgroundColor!)
+        vc.statusBar.update(toColor: mockCardView.statusView.backgroundColor ?? .white)
+        vc.toolbar.update(toColor: mockCardView.toolbarView.backgroundColor ?? .white)
         vc.statusBar.backgroundView.alpha = 1
         vc.toolbar.backgroundView.alpha = 1
         
@@ -542,6 +553,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             self.mockCardView.imageView.image = nil
         }
         mockCardView.springScale(to: 1)
+//        vc.statusHeightConstraint.springConstant(to: Const.statusHeight)
         
         UIView.animate(withDuration: 0.2) {
             self.vc.gradientOverlay.alpha = 0
@@ -559,18 +571,14 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             return
         }
         
-        let wouldCommit = abs(adjustedY) > dismissPointY
-        if wouldCommit != wouldCommitPrevious {
+        let wouldCommitY = abs(adjustedY) > dismissPointY
+        if wouldCommitY != wouldCommitPreviousY {
             feedbackGenerator?.selectionChanged()
             feedbackGenerator?.prepare()
-            wouldCommitPrevious = wouldCommit
+            wouldCommitPreviousY = wouldCommitY
         }
         
         cardView.center.y = view.center.y + adjustedY
-//        cardView.center.x = view.center.x + 0.1 * gesturePos.x
-
-//        let s = (adjustedY.progress(from: 0, to: 600).clip() * vProgressScaleMultiplier).reverse()
-//        cardView.transform = CGAffineTransform(scale: s)
         
         self.vc.gradientOverlay.alpha = adjustedY.progress(from: 0, to: 400)
 
@@ -632,6 +640,50 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 }
             }
         }
+    }
+    
+    var kIsBackForwardAnimation = "kIsBackForwardAnimation"
+    var kIsBackForwardProgress = "kIsBackForwardProgress"
+    var isBackForwardProgress : CGFloat = 1
+    var mockHiddenCenter : CGPoint = .zero
+    var mockTrackingCenter : CGPoint = .zero
+    
+    var mockCardViewCenter : CGPoint {
+        return CGPoint(
+            x: isBackForwardProgress.blend(from: mockHiddenCenter.x, to: mockTrackingCenter.x),
+            y: isBackForwardProgress.blend(from: mockHiddenCenter.y, to: mockTrackingCenter.y)
+        )
+    }
+    
+    var isBackForwardAnimator: POPAnimatableProperty? {
+        return POPAnimatableProperty.property(withName: "kIsBackForwardProgress", initializer: { prop in
+            guard let prop = prop else { return }
+            prop.readBlock = { obj, values in
+                guard let values = values else { return }
+                values[0] = self.isBackForwardProgress
+            }
+            prop.writeBlock = { obj, values in
+                guard let values = values else { return }
+                self.isBackForwardProgress = values[0]
+                self.mockCardView.center = self.mockCardViewCenter
+            }
+            prop.threshold = 0.01
+        }) as? POPAnimatableProperty
+    }
+    
+    @discardableResult
+    func springBackForwardMode(_ isBackForward : Bool) -> POPSpringAnimation? {
+        if let anim = self.pop_animation(forKey: kIsBackForwardAnimation) as? POPSpringAnimation {
+            anim.toValue = isBackForward ? 1 : 0
+            return anim
+        }
+        else if let anim = POPSpringAnimation(propertyNamed: kIsBackForwardProgress) {
+            anim.toValue = isBackForward ? 1 : 0
+            anim.property = isBackForwardAnimator
+            self.pop_add(anim, forKey: kIsBackForwardAnimation)
+            return anim
+        }
+        return nil
     }
     
     
