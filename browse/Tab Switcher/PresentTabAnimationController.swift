@@ -134,10 +134,10 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         browserVC.statusHeightConstraint.springConstant(to: self.isExpanding ? Const.statusHeight : THUMB_OFFSET_COLLAPSED )
         browserVC.cardView.springScale(to: 1)
-        browserVC.cardView.springBounds(to: self.isExpanding ? expandedBounds : thumbBounds) {  (_, _) in
+        browserVC.cardView.springBounds(to: self.isExpanding ? expandedBounds : thumbBounds, then: {  (_, _) in
             popBoundsDone = true
             maybeFinish()
-        }
+        })
         let centerAnim = browserVC.cardView.springCenter(to: newCenter, at: velocity) { (_, _) in
             popCenterDone = true
             maybeFinish()
@@ -170,7 +170,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             browserVC.gradientOverlay.alpha = self.isExpanding ? 0 : 1
             browserVC.overlay.alpha = self.isExpanding ? 0 : thumbOverlayAlpha
             browserVC.contentView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
-//            homeNav.view.alpha = self.isExpanding ? 0.4 : 1
+            homeNav.view.alpha = self.isExpanding ? 0.2 : 1
                 
             homeVC.setNeedsStatusBarAppearanceUpdate()
                 

@@ -11,6 +11,7 @@ import UIKit
 
 let SEARCHVIEW_MAX_H : CGFloat = 160.0
 
+
 class SearchView: UIView, UITextViewDelegate {
     
     var browserViewController : BrowserViewController!
@@ -71,7 +72,10 @@ class SearchView: UIView, UITextViewDelegate {
         textView.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(textView)
         
-        cancel = ToolbarTextButton(title: "Cancel", withIcon: nil, onTap: self.browserViewController.hideSearch)
+        cancel = ToolbarTextButton(title: "Cancel", withIcon: nil, onTap: {
+            self.browserViewController.hideSearch(animated: false)
+            self.browserViewController.gestureController.animateCancelNewPage()
+        })
         cancel.size = .medium
         cancel.sizeToFit()
         
@@ -100,12 +104,6 @@ class SearchView: UIView, UITextViewDelegate {
         suggestionView.alpha = 0
         suggestionView.frame.origin = CGPoint(x: 8, y: 4)
         addSubview(suggestionView)
-//        suggestionView.translatesAutoresizingMaskIntoConstraints = false
-//        suggestionView.topAnchor.constraint(equalTo: self.topAnchor, constant: 8).isActive = true
-//        suggestionView.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 8).isActive = true
-        
-//        self.heightAnchor.constraint(equalTo: textView.heightAnchor, constant: 20).isActive = true
-//        self.heightAnchor.constraint(lessThanOrEqualToConstant: SEARCHVIEW_MAX_H).isActive = true
         
         
         // TODO this doesn't seem to work
@@ -115,7 +113,6 @@ class SearchView: UIView, UITextViewDelegate {
     func updateSize() {
         let fixedWidth = textView.frame.size.width
 
-//        textView.textContainerInset = UIEdgeInsetsMake(13, 14, 13, leftMargin)
         textView.textContainerInset = UIEdgeInsetsMake(9, 12, 9, 12)
         
         let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
@@ -227,7 +224,7 @@ class SearchView: UIView, UITextViewDelegate {
     }
     
     func prepareToShow() {
-        textView.text = browserViewController.editableLocation
+        textView.text = ""//browserViewController.editableLocation
         updateSuggestion()
         updateSize()
     }

@@ -48,7 +48,6 @@ extension UIView {
     func springBounds(
         to newBounds: CGRect,
         at velocity: CGRect = .zero,
-        with options: POPtions? = nil,
         then completion: @escaping (POPAnimation?, Bool) -> Void = {_,_ in } ) {
         
         if let anim = self.pop_animation(forKey: kSpringBounds) as? POPSpringAnimation {
@@ -57,10 +56,6 @@ extension UIView {
         else if let anim = POPSpringAnimation(propertyNamed: kPOPViewBounds) {
             anim.toValue = newBounds
             anim.velocity = velocity
-            
-            if let m = options?.mass { anim.dynamicsMass = m }
-            if let f = options?.friction { anim.dynamicsFriction = f }
-            if let t = options?.tension { anim.dynamicsTension = t }
             
             anim.completionBlock = completion
             self.pop_add(anim, forKey: kSpringBounds)
