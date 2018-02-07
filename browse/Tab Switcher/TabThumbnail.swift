@@ -58,6 +58,8 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         radius = Const.shared.thumbRadius 
         backgroundColor = .clear
         
+//        contentView.translatesAutoresizingMaskIntoConstraints = false
+        
 //        layer.anchorPoint.y = 0
         
         let dismissPanner = UIPanGestureRecognizer()
@@ -72,8 +74,8 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         contentView.addSubview(snapView)
         snapTopOffsetConstraint = snapView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: THUMB_OFFSET_COLLAPSED)
         snapTopOffsetConstraint.isActive = true
-        snapView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
-        snapView.widthAnchor.constraint(equalTo: contentView.widthAnchor).isActive = true
+        snapView.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
+        snapView.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
         snapAspectConstraint = snapView.heightAnchor.constraint(equalTo: snapView.widthAnchor, multiplier: 1, constant: 0)
         snapAspectConstraint.isActive = true
 
@@ -231,11 +233,11 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
                     closeTabCallback(self)
                 }
                 
-                UIView.animate(withDuration: 0.6, delay: 0.0, usingSpringWithDamping: 0.65, initialSpringVelocity: 0.0, options: .curveLinear, animations: {
-                    self.center = endCenter
+                springCenter(to: endCenter, at: vel)
+                UIView.animate(withDuration: 0.4) {
                     self.overlay.alpha = endAlpha
                     self.overlay.backgroundColor = .black
-                }, completion: nil)
+                }
             }
             
         }
