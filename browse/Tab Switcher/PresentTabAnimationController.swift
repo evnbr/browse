@@ -134,18 +134,19 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         browserVC.statusHeightConstraint.springConstant(to: self.isExpanding ? Const.statusHeight : THUMB_OFFSET_COLLAPSED )
         browserVC.cardView.springScale(to: 1)
-        browserVC.cardView.springBounds(to: self.isExpanding ? expandedBounds : thumbBounds, then: {  (_, _) in
+        browserVC.cardView.springBounds(to: self.isExpanding ? expandedBounds : thumbBounds) {  (_, _) in
             popBoundsDone = true
             maybeFinish()
-        })
-        browserVC.cardView.springCenter(to: newCenter, at: velocity, with: POPtions(mass: 1.3, friction: 35), then: { (_, _) in
+        }
+        let centerAnim = browserVC.cardView.springCenter(to: newCenter, at: velocity) { (_, _) in
             popCenterDone = true
             maybeFinish()
-        })
+        }
+        centerAnim?.dynamicsMass = 1.3
+        centerAnim?.dynamicsFriction = 35
+        homeVC.springCards(expanded: isExpanding)
         
-//        snapFab?.alpha = self.isExpanding ? 1 : 0
-//        snapFab?.transform = CGAffineTransform(scale: self.isExpanding ? 1 : 0.2)
-//        snapFab?.springScale(to: self.isExpanding ? 0.2 : 1)
+        
 
         if let fab = snapFab {
             containerView.addSubview(fab)
@@ -169,9 +170,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             browserVC.gradientOverlay.alpha = self.isExpanding ? 0 : 1
             browserVC.overlay.alpha = self.isExpanding ? 0 : thumbOverlayAlpha
             browserVC.contentView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
-            homeNav.view.alpha = self.isExpanding ? 0.4 : 1
-                
-            homeVC.setThumbPosition(expanded: self.isExpanding, offsetForContainer: true)
+//            homeNav.view.alpha = self.isExpanding ? 0.4 : 1
                 
             homeVC.setNeedsStatusBarAppearanceUpdate()
                 

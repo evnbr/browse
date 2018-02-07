@@ -9,18 +9,6 @@
 import Foundation
 import pop
 
-
-struct POPtions {
-    var mass, friction, tension: CGFloat?
-    
-    init(mass: CGFloat? = nil, friction: CGFloat? = nil, tension: CGFloat? = nil) {
-        self.mass = mass
-        self.friction = friction
-        self.tension = tension
-    }
-}
-
-
 let kSpringCenter = "springCenter"
 let kSpringCenterX = "springCenterX"
 let kSpringScale = "springScale"
@@ -28,26 +16,33 @@ let kSpringBounds = "springBounds"
 let kSpringContentOffset = "springContentOffset"
 
 extension UIView {
+    
+    var isPopAnimating : Bool {
+        let anims = self.pop_animationKeys()
+        return anims != nil && anims!.count > 0
+    }
+    
+    @discardableResult
     func springCenter(
         to newCenter: CGPoint,
         at velocity: CGPoint = .zero,
-        with options: POPtions? = nil,
-        then completion: @escaping (POPAnimation?, Bool) -> Void = {_,_ in } ) {
+        delay: CFTimeInterval = 0,
+        then completion: @escaping (POPAnimation?, Bool) -> Void = {_,_ in } ) -> POPSpringAnimation? {
         
         if let anim = self.pop_animation(forKey: kSpringCenter) as? POPSpringAnimation {
             anim.toValue = newCenter
+            return anim
         }
         else if let anim = POPSpringAnimation(propertyNamed: kPOPViewCenter) {
             anim.toValue = newCenter
             anim.velocity = velocity
-            
-            if let m = options?.mass { anim.dynamicsMass = m }
-            if let f = options?.friction { anim.dynamicsFriction = f }
-            if let t = options?.tension { anim.dynamicsTension = t }
+            anim.beginTime = CACurrentMediaTime() + delay
             
             anim.completionBlock = completion
             self.pop_add(anim, forKey: kSpringCenter)
+            return anim
         }
+        return nil
     }
     
     func springBounds(
