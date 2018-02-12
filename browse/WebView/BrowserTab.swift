@@ -85,7 +85,7 @@ class BrowserTab: NSObject {
         
         webView.translatesAutoresizingMaskIntoConstraints = false
         webView.scrollView.contentInset = .zero
-        webView.backgroundColor = restoredBottomColor
+//        webView.backgroundColor = restoredBottomColor
         
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.scrollView.clipsToBounds = false
@@ -98,7 +98,9 @@ class BrowserTab: NSObject {
     
     func updateSnapshot(completionHandler: @escaping (UIImage) -> Void = { _ in }) {
         // Image snapshot
+        webView.scrollView.showsVerticalScrollIndicator = false
         webView.takeSnapshot(with: nil) { (image, error) in
+            self.webView.scrollView.showsVerticalScrollIndicator = true
             if let img : UIImage = image {
                 self.history.current?.snapshot = img
                 completionHandler(img)

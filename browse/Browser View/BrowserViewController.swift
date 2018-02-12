@@ -276,6 +276,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         snap.topAnchor.constraint(equalTo: statusBar.bottomAnchor).isActive = true
         snap.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
         snap.widthAnchor.constraint(equalTo: contentView.widthAnchor).isActive = true
+        snap.backgroundColor = .cyan
+        snap.isHidden = true
         
         aspectConstraint = snap.heightAnchor.constraint(equalTo: snap.widthAnchor, multiplier: 1)
         aspectConstraint.isActive = true
@@ -529,6 +531,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     func updateSnapshot(then done: @escaping () -> Void = { }) {
+        guard !webView.isHidden else {
+            done()
+            return
+        }
         // Image snapshot
         browserTab?.updateSnapshot(completionHandler: { img in
             self.setSnapshot(img)
@@ -537,7 +543,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     func setSnapshot(_ image : UIImage?) {
-        guard let image = image else { return }
+        guard let image = image else {
+            return
+        }
         snap.image = image
         
         let newAspect = image.size.height / image.size.width

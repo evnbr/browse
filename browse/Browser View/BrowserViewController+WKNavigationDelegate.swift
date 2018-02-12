@@ -57,7 +57,9 @@ extension BrowserViewController: WKNavigationDelegate {
 //                }
             }
             if url.scheme == "http" || url.scheme == "https" || url.scheme == "about" || url.scheme == "data" {
-                decisionHandler(.allow)
+                self.updateSnapshot {
+                    decisionHandler(.allow)
+                }
                 return
             }
 //            if url.scheme == "tel" || url.scheme == "mailto" {

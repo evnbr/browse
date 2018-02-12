@@ -161,6 +161,11 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
     }
     
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        // TODO: Investigate whether this is too expensive, haven't seen problems yet
+        vc.updateSnapshot()
+    }
+    
     let vProgressScaleMultiplier : CGFloat = 0.2
     let cantGoBackScaleMultiplier : CGFloat = 0.3
     
@@ -506,10 +511,9 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
 //        let mockContent = cardView.snapshotView(afterScreenUpdates: false)
 //        if let m = mockContent { mockCardView.addSubview(m) }
-        let newPageImage = mockCardView.imageView.image
+        vc.setSnapshot(mockCardView.imageView.image)
         mockCardView.imageView.image = vc.browserTab?.history.current?.snapshot
-        vc.setSnapshot(newPageImage)
-
+        
         vc.statusBar.update(toColor: mockCardView.statusView.backgroundColor ?? .white)
         vc.toolbar.update(toColor: mockCardView.toolbarView.backgroundColor ?? .white)
         vc.statusBar.backgroundView.alpha = 1
