@@ -204,7 +204,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
             // Scroll to end
             self.scrollToBottom()
             DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
-                self.setThumbPosition(expanded: true)
+                self.setThumbPosition(switcherProgress: 0)
             }
         })
         
@@ -264,7 +264,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         return cv.layoutAttributesForItem(at: ip)!.bounds
     }
     
-    func adjustedCenterFor(_ thumb: TabThumbnail, isCollapsed: Bool, isOutOfScrollView: Bool = false) -> CGPoint {
+    func adjustedCenterFor(_ thumb: TabThumbnail, cardOffset: CGPoint = .zero, switcherProgress: CGFloat, offsetByScroll: Bool = false) -> CGPoint {
         let cv = collectionView!
         
         let ip = cv.indexPath(for: thumb)!
@@ -274,34 +274,46 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         
         if ip.item == currentIndex { return center }
         
-        if !isCollapsed {
-            center.y = Const.statusHeight + cv.contentOffset.y + view.bounds.height + attrs.bounds.height / 2
+        let switchingY = center.y
+        var collapsedY = center.y
+        
+        collapsedY = Const.statusHeight + cv.contentOffset.y + attrs.bounds.height / 2
+        if ip.item > currentIndex {
+            collapsedY += view.bounds.height
+            if offsetByScroll {
+                collapsedY -= cv.contentOffset.y
+            }
         }
-
-        if ip.item > currentIndex && isOutOfScrollView {
-            center.y -= cv.contentOffset.y
+        else {
+            collapsedY -= cardOffset.y + 200 * switcherProgress
         }
+        
+        center.y = switcherProgress.clip().blend(from: collapsedY, to: switchingY)
+        center.x = center.x - cardOffset.x
         
         return center
     }
     
-    func setThumbPosition(expanded: Bool, offsetForContainer: Bool = false) {
-        if (expanded) {
-            currentThumb?.isHidden = true
-        }
+    func setThumbPosition(switcherProgress: CGFloat, cardOffset: CGPoint = .zero, scale: CGFloat = 1, offsetForContainer: Bool = false) {
+        if switcherProgress < 1 { currentThumb?.isHidden = true }
         for cell in visibleCells {
-            cell.center = adjustedCenterFor(cell, isCollapsed: !expanded, isOutOfScrollView: offsetForContainer)
+            cell.center = adjustedCenterFor(cell, cardOffset: cardOffset, switcherProgress: switcherProgress, offsetByScroll: offsetForContainer)
+            cell.transform = .init(scale: scale)
         }
+        navigationController?.view.alpha = switcherProgress
     }
     
     func springCards(expanded: Bool) {
         for cell in visibleCells {
-            let ip = collectionView!.indexPath(for: cell)!
-            let delay = expanded ? 0 : Double(tabs.count - ip.item) * 0.02
-            let center = adjustedCenterFor(cell, isCollapsed: !expanded)
+//            let ip = collectionView!.indexPath(for: cell)!
+            let delay : CFTimeInterval = 0 //expanded ? 0 : Double(tabs.count - ip.item) * 0.02
+            let center = adjustedCenterFor(cell, switcherProgress: expanded ? 0 : 1)
+            
             let anim = cell.springCenter(to: center, delay: delay)
             anim?.springSpeed = 5
             anim?.springBounciness = 2
+            
+            cell.springScale(to: 1)
         }
     }
     
@@ -330,7 +342,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                 self.scrollToBottom()
                 
                 DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
-                    self.setThumbPosition(expanded: true)
+                    self.setThumbPosition(switcherProgress: 0)
                 }
             }
             if let c = completion { c() }

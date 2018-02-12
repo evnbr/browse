@@ -92,8 +92,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         browserVC.cardView.bounds = isExpanding ? thumbBounds : expandedBounds
 
         homeVC.visibleCellsBelow.forEach { containerView.addSubview($0) }
-        homeVC.setThumbPosition(expanded: !isExpanding, offsetForContainer: true)
-
+//        homeVC.setThumbPosition(switcherProgress: isExpanding ? 1 : 0, offsetForContainer: true)
 
         
         let newCenter = isExpanding ? expandedCenter : thumbCenter
@@ -117,7 +116,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             if self.isDismissing {
                 homeVC.visibleCells.forEach { $0.isHidden = false }
                 browserVC.view.removeFromSuperview()
-                homeVC.setThumbPosition(expanded: false)
+                homeVC.setThumbPosition(switcherProgress: 1)
             }
             snapFab?.removeFromSuperview()
             
@@ -171,8 +170,8 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             browserVC.gradientOverlay.alpha = self.isExpanding ? 0 : 1
             browserVC.overlay.alpha = self.isExpanding ? 0 : thumbOverlayAlpha
             browserVC.contentView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
-            homeNav.view.alpha = self.isExpanding ? 0.2 : 1
-                
+            homeNav.view.alpha = self.isExpanding ? 0.7 : 1
+            
             homeVC.setNeedsStatusBarAppearanceUpdate()
                 
         }, completion: { finished in

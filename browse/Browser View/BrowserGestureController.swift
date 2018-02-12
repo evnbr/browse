@@ -26,8 +26,7 @@ enum GestureNavigationAction {
 class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScrollViewDelegate {
     
     var vc : BrowserViewController!
-    var home : HomeViewController!
-    
+
     var view : UIView!
     var toolbar : UIView!
     var cardView : UIView!
@@ -57,7 +56,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         self.vc = vc
         view = vc.view
-        home = vc.home
         cardView = vc.cardView
         toolbar = vc.toolbar
         
@@ -213,12 +211,13 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         self.vc.gradientOverlay.alpha = gesturePos.y.progress(from: 0, to: 400)
 
         let verticalProgress = gesturePos.y.progress(from: 0, to: 200).clip()
+        var s : CGFloat = 1
         
         if direction == .left {
             if vc.webView.canGoBack {
                 
                 
-                let s = (verticalProgress * vProgressScaleMultiplier).reverse()
+                s = (verticalProgress * vProgressScaleMultiplier).reverse()
                 cardView.transform = CGAffineTransform(scale: s)
                 
                 let scaleFromLeftShift = (1 - s) * cardView.bounds.width / 2
@@ -239,7 +238,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 // COPY PASTED A
 
                 let hProgress = abs(gesturePos.x) / view.bounds.width
-                let s = 1 - hProgress * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
+                s = 1 - hProgress * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
                 cardView.center.x = view.center.x + elasticLimit(adjustedX, constant: 100)
                 cardView.transform = CGAffineTransform(scale: s)
             }
@@ -247,7 +246,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         else if direction == .right
         && vc.webView.canGoForward {
             
-            let s = 1 - verticalProgress * vProgressScaleMultiplier
+            s = 1 - verticalProgress * vProgressScaleMultiplier
             cardView.transform = CGAffineTransform(scale: s)
             
             let scaleFromRightShift = (1 - s) * cardView.bounds.width / 2
@@ -269,10 +268,20 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             // COPY PASTED A
             
             let hProgress = abs(gesturePos.x) / view.bounds.width
-            let s = 1 - hProgress * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
+            s = 1 - hProgress * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
             cardView.center.x = view.center.x + elasticLimit(elasticLimit(adjustedX))
             cardView.transform = CGAffineTransform(scale: s)
         }
+        
+        
+        vc.home.setThumbPosition(
+            switcherProgress: gesturePos.y.progress(from: 0, to: 800),
+            cardOffset: CGPoint(
+                x: view.center.x - cardView.center.x,
+                y: view.center.y - cardView.center.y
+            ),
+            scale: s
+        )
         
         if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle {
             UIView.animate(withDuration: 0.2, animations: {
@@ -336,8 +345,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                     let page = vc.browserTab?.historyPageMap[backItem] {
                     mockCardView.setPage(page)
                 }
-                
-
             }
             
             if !vc.webView.canGoBack {
@@ -423,7 +430,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         vc.browserTab?.updateSnapshot()
         
-        feedbackGenerator = UISelectionFeedbackGenerator()
+//        feedbackGenerator = UISelectionFeedbackGenerator()
         feedbackGenerator?.prepare()
     }
     
@@ -509,7 +516,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         vc.toolbar.backgroundView.alpha = 1
         
         // Swap pos
-        print("swap")
         self.pop_removeAllAnimations()
         let cardCenter = cardView.center
         cardView.center = mockCardView.center
@@ -523,7 +529,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             self.vc.view.bringSubview(toFront: self.cardView)
             
             UIView.animate(withDuration: 0.2, animations: {
-                self.home.setNeedsStatusBarAppearanceUpdate()
+                self.vc.home.setNeedsStatusBarAppearanceUpdate()
             })
         }
         
@@ -546,7 +552,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         // Move card back to center
         cardView.springCenter(to: view.center, at: velocity) {_,_ in
             UIView.animate(withDuration: 0.2, animations: {
-                self.home.setNeedsStatusBarAppearanceUpdate()
+                self.vc.home.setNeedsStatusBarAppearanceUpdate()
             })
         }
         cardView.springScale(to: 1)
@@ -596,6 +602,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
         
         let revealProgress = abs(adjustedY) / 200
+        
+        vc.home.setThumbPosition(switcherProgress: adjustedY.progress(from: 0, to: 800))
         
         if (Const.shared.cardRadius < Const.shared.thumbRadius) {
             cardView.radius = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
@@ -672,7 +680,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             }
             prop.writeBlock = { obj, values in
                 guard let values = values else { return }
-                print("writeblock")
                 self.isBackForwardProgress = values[0]
                 self.mockCardView.center = self.mockCardViewCenter
             }
