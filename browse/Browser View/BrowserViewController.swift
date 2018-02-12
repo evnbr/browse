@@ -531,16 +531,21 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     func updateSnapshot(then done: @escaping () -> Void = { }) {
         // Image snapshot
         browserTab?.updateSnapshot(completionHandler: { img in
-            self.snap.image = img
-            
-            let newAspect = img.size.height / img.size.width
-            if newAspect != self.aspectConstraint.multiplier {
-                self.snap.removeConstraint(self.aspectConstraint)
-                self.aspectConstraint = self.snap.heightAnchor.constraint(equalTo: self.snap.widthAnchor, multiplier: newAspect, constant: 0)
-                self.aspectConstraint.isActive = true
-            }
+            self.setSnapshot(img)
             done()
         })
+    }
+    
+    func setSnapshot(_ image : UIImage?) {
+        guard let image = image else { return }
+        snap.image = image
+        
+        let newAspect = image.size.height / image.size.width
+        if newAspect != self.aspectConstraint.multiplier {
+            self.snap.removeConstraint(self.aspectConstraint)
+            self.aspectConstraint = self.snap.heightAnchor.constraint(equalTo: self.snap.widthAnchor, multiplier: newAspect, constant: 0)
+            self.aspectConstraint.isActive = true
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {

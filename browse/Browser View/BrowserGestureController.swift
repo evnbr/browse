@@ -213,7 +213,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         self.vc.gradientOverlay.alpha = gesturePos.y.progress(from: 0, to: 400)
 
         let verticalProgress = gesturePos.y.progress(from: 0, to: 200).clip()
-        let stackupProgress = gesturePos.y.progress(from: 80, to: 200).clip().reverse()
         
         if direction == .left {
             if vc.webView.canGoBack {
@@ -257,12 +256,14 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 + verticalProgress.blend(from: adjustedX, to: elasticLimit(adjustedX))
                 + scaleFromRightShift
             
-            mockCardView.center = view.center //self.cardView.center
-            mockCardView.center.x = blend(
-                from: cardView.center.x + view.bounds.width / 2 + cardView.bounds.width * s / 2 + mockCardViewSpacer,
-                to: view.center.x + view.bounds.width,
-                by: stackupProgress.reverse()
+            mockTrackingCenter = CGPoint(
+                x: cardView.center.x + view.bounds.width / 2 + cardView.bounds.width * s / 2 + mockCardViewSpacer,
+                y: view.center.y
             )
+            mockHiddenCenter = CGPoint(x: view.center.x + view.bounds.width, y: view.center.y)
+            mockCardView.center = mockCardViewCenter
+            springBackForwardMode(gesturePos.y < dismissPointY)
+
         }
         else {
             // COPY PASTED A
@@ -415,6 +416,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         isInteractiveDismiss = true
         wouldCommitPreviousX = false
         wouldCommitPreviousY = false
+        isBackForwardProgress = 1
         startScroll = vc.webView.scrollView.contentOffset
         
         if vc.isDisplayingSearch { vc.hideSearch() }
@@ -448,22 +450,26 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         parentMock.radius = Const.shared.cardRadius
         
         vc.view.insertSubview(parentMock, belowSubview: cardView)
-        vc.setTab(childTab)
-        cardView.center.y = view.center.y + cardView.bounds.height
         
-        UIView.animate(
-            withDuration: 0.6,
-            delay: 0.0,
-            usingSpringWithDamping: 0.85,
-            initialSpringVelocity: 0.0,
-            options: .allowUserInteraction,
-            animations: {
-                self.cardView.center = self.view.center
-                parentMock.center.y += 240
+        vc.updateSnapshot {
+            let vc = self.vc!
+            vc.setTab(childTab)
+            vc.cardView.center.y = vc.view.center.y + vc.cardView.bounds.height
+            
+            UIView.animate(
+                withDuration: 0.6,
+                delay: 0.0,
+                usingSpringWithDamping: 0.85,
+                initialSpringVelocity: 0.0,
+                options: .allowUserInteraction,
+                animations: {
+                    vc.cardView.center = vc.view.center
+                    parentMock.center.y += 240
             }, completion: { done in
                 parentMock.removeFromSuperview()
-            }
-        )
+            })
+        }
+        
     }
     
     func animateNewPage() {
@@ -491,9 +497,11 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
     func animateCommit(action: GestureNavigationAction, velocity: CGPoint = .zero) {
         
-        let mockContent = cardView.snapshotView(afterScreenUpdates: false)
-        if let m = mockContent { mockCardView.addSubview(m) }
-        vc.snap.image = mockCardView.imageView.image
+//        let mockContent = cardView.snapshotView(afterScreenUpdates: false)
+//        if let m = mockContent { mockCardView.addSubview(m) }
+        let newPageImage = mockCardView.imageView.image
+        mockCardView.imageView.image = vc.browserTab?.history.current?.snapshot
+        vc.setSnapshot(newPageImage)
 
         vc.statusBar.update(toColor: mockCardView.statusView.backgroundColor ?? .white)
         vc.toolbar.update(toColor: mockCardView.toolbarView.backgroundColor ?? .white)
@@ -501,10 +509,11 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         vc.toolbar.backgroundView.alpha = 1
         
         // Swap pos
-
-        let cardOrigin = cardView.center
+        print("swap")
+        self.pop_removeAllAnimations()
+        let cardCenter = cardView.center
         cardView.center = mockCardView.center
-        mockCardView.center = cardOrigin
+        mockCardView.center = cardCenter
         
         mockCardView.transform = cardView.transform
         cardView.transform = .identity
@@ -518,13 +527,12 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             })
         }
         
-        var mockCenter = self.view.center
+        mockTrackingCenter = self.view.center
         let mockShift = mockCardView.bounds.width + mockCardViewSpacer
-        if action == .back { mockCenter.x += mockShift }
-        else if action == .forward { mockCenter.x -= mockShift }
-
-        mockCardView.springCenter(to: mockCenter, at: velocity) {_,_ in
-            mockContent?.removeFromSuperview()
+        if action == .back { mockTrackingCenter.x += mockShift }
+        else if action == .forward { mockTrackingCenter.x -= mockShift }
+        
+        mockCardView.springCenter(to: mockTrackingCenter, at: velocity) {_,_ in
             self.mockCardView.removeFromSuperview()
             self.mockCardView.imageView.image = nil
         }
@@ -664,6 +672,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             }
             prop.writeBlock = { obj, values in
                 guard let values = values else { return }
+                print("writeblock")
                 self.isBackForwardProgress = values[0]
                 self.mockCardView.center = self.mockCardViewCenter
             }
@@ -673,13 +682,18 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     
     @discardableResult
     func springBackForwardMode(_ isBackForward : Bool) -> POPSpringAnimation? {
+        let newVal : CGFloat = isBackForward ? 1 : 0
+        guard newVal != isBackForwardProgress else { return nil }
+        
         if let anim = self.pop_animation(forKey: kIsBackForwardAnimation) as? POPSpringAnimation {
-            anim.toValue = isBackForward ? 1 : 0
+            anim.toValue = newVal
             return anim
         }
         else if let anim = POPSpringAnimation(propertyNamed: kIsBackForwardProgress) {
-            anim.toValue = isBackForward ? 1 : 0
+            anim.toValue = newVal
             anim.property = isBackForwardAnimator
+            anim.springBounciness = 3
+            anim.springSpeed = 10
             self.pop_add(anim, forKey: kIsBackForwardAnimation)
             return anim
         }
