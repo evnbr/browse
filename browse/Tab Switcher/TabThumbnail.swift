@@ -232,15 +232,18 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
                 if ( vel.x > 400 || gesturePos.x > bounds.width * 0.5 ) {
                     endCenter.x = startCenter.x + bounds.width
                     endAlpha = 1
-                    closeTabCallback(self)
                 }
                 else if ( vel.x < -400 || gesturePos.x < -bounds.width * 0.5 ) {
                     endCenter.x = startCenter.x - bounds.width
                     endAlpha = 1
-                    closeTabCallback(self)
                 }
                 
-                springCenter(to: endCenter, at: vel)
+                springCenter(to: endCenter, at: vel) { _ , _ in
+                    if endAlpha == 1 {
+                        self.isHidden = true
+                        self.closeTabCallback(self)
+                    }
+                }
                 UIView.animate(withDuration: 0.4) {
                     self.overlay.alpha = endAlpha
                     self.overlay.backgroundColor = .black

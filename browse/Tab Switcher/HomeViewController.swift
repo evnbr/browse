@@ -281,7 +281,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         }
         else {
             collapsedY -= cardOffset.y // track card
-            collapsedY += cardOffset.y * switcherProgress * (distFromFront * 0.2) // spread
+            collapsedY += cardOffset.y * switcherProgress * (distFromFront * 0.4) // spread
             collapsedY += switcherProgress * 12 * distFromFront * distFromFront // spread less farther back
         }
         

@@ -63,7 +63,6 @@ class PlaceholderView: UIView {
         overlay.backgroundColor = .black
         overlay.alpha = 0
         overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        overlay.layer.cornerRadius = Const.shared.cardRadius
         contentView.addSubview(overlay)
     }
     

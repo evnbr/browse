@@ -168,6 +168,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         webView.navigationDelegate = self
         webView.uiDelegate = self
         webView.scrollView.delegate = gestureController
+        webView.scrollView.isScrollEnabled = true
                 
         contentView.insertSubview(webView, belowSubview: snap)
         //        topConstraint = webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: Const.statusHeight)
@@ -1135,11 +1136,9 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
             
             let didChange = statusBar.animateGradient(toColor: newColor, direction: .fromBottom)
 
-            if didChange {
-                UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
-                    self.setNeedsStatusBarAppearanceUpdate()
-                })
-            }
+            UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
+                self.setNeedsStatusBarAppearanceUpdate()
+            })
         }
     }
     

@@ -219,7 +219,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         var s : CGFloat = 1
         
         if direction == .left {
-            if vc.webView.canGoBack {
+            if vc.webView.canGoBack || vc.browserTab!.canGoBackToParent {
                 s = (verticalProgress * vProgressScaleMultiplier).reverse()
                 cardView.transform = CGAffineTransform(scale: s)
                 
@@ -229,12 +229,27 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                     + verticalProgress.blend(from: adjustedX, to: elasticLimit(adjustedX))
                     - scaleFromLeftShift
                 
-                mockTrackingCenter = CGPoint(
-                    x: cardView.center.x - view.bounds.width / 2 - cardView.bounds.width * s / 2 - mockCardViewSpacer,
-                    y: view.center.y
-                )
-                mockHiddenCenter = CGPoint(x: view.center.x - view.bounds.width, y: view.center.y)
+                let isToParent = !vc.webView.canGoBack
+                let offsetY = view.center.y - cardView.center.y
+                mockTrackingCenter = !isToParent
+                    ? CGPoint(
+                        x: cardView.center.x - view.bounds.width / 2 - cardView.bounds.width * s / 2 - mockCardViewSpacer,
+                        y: view.center.y)
+                    : CGPoint(
+                        x: view.center.x,
+                        y: view.center.y - offsetY * 0.5)
+                    
+                mockHiddenCenter = !isToParent
+                    ? CGPoint(x: view.center.x - view.bounds.width, y: view.center.y)
+                    : cardView.center
                 mockCardView.center = mockCardViewCenter
+                
+                if isToParent {
+                    let parentPct = adjustedX.progress(from: 0, to: 800)
+                    mockCardView.overlay.alpha = parentPct.reverse()
+                    mockCardView.transform = CGAffineTransform(scale: 1 - parentPct.reverse() * 0.05)
+                }
+                    
                 springBackForwardMode(gesturePos.y < dismissPointY)
             }
             else {
@@ -312,8 +327,14 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             }
             else if vc.browserTab!.canGoBackToParent
             && gesturePos.x > backPointX{
-                if let parent = vc.browserTab?.parentTab {
-                    swapTo(parentTab: parent)
+                if let parentTab = vc.browserTab?.parentTab {
+                    vc.updateSnapshot {
+                        let vc = self.vc!
+                        self.mockCardView.imageView.image = vc.browserTab!.history.current?.snapshot
+                        vc.setTab(parentTab)
+                        self.animateCommit(action: .toParent)
+                        vc.home.moveTabToEnd(parentTab)
+                    }
                 }
             }
             else {
@@ -354,11 +375,11 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                     mockCardView.setPage(page)
                 }
             }
-            
-            if !vc.webView.canGoBack {
+            else {
                 if let parent = vc.browserTab?.parentTab {
-                    if let img = parent.history.current?.snapshot {
-                        mockCardView.imageView.image = img
+                    if let parentPage = parent.history.current {
+                        view.insertSubview(mockCardView, belowSubview: cardView)
+                        mockCardView.setPage(parentPage)
                     }
                 }
             }
@@ -469,8 +490,9 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         vc.updateSnapshot {
             let vc = self.vc!
             vc.setTab(childTab)
-            vc.cardView.center.y = vc.view.center.y + vc.cardView.bounds.height
-            
+//            vc.cardView.center.y = vc.view.center.y + vc.cardView.bounds.height
+            vc.cardView.center.x = vc.view.center.x + vc.cardView.bounds.width
+
             UIView.animate(
                 withDuration: 0.6,
                 delay: 0.0,
@@ -514,7 +536,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                     vc.overlay.alpha = 0
                     vc.cardView.center = vc.view.center
                     vc.cardView.transform = .identity
-                    childMock.center.y += vc.cardView.bounds.height
+//                    childMock.center.y += vc.cardView.bounds.height
+                    childMock.center.x += vc.cardView.bounds.width
             }, completion: { done in
                 childMock.removeFromSuperview()
                 vc.isSnapshotMode = false // WHy?
@@ -546,27 +569,46 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         animateCommit(action: .back)
         vc.isSnapshotMode = false
     }
-
-    func animateCommit(action: GestureNavigationAction, velocity: CGPoint = .zero) {
-        
-//        let mockContent = cardView.snapshotView(afterScreenUpdates: false)
-//        if let m = mockContent { mockCardView.addSubview(m) }
+    
+    func swapCardAndPlaceholder(for action: GestureNavigationAction) {
+        // Swap image
         vc.setSnapshot(mockCardView.imageView.image)
-        mockCardView.imageView.image = vc.browserTab?.history.current?.snapshot
+        if action != .toParent {
+            mockCardView.imageView.image = vc.browserTab?.history.current?.snapshot
+        }
         
+        // Swap colors
         vc.statusBar.update(toColor: mockCardView.statusView.backgroundColor ?? .white)
         vc.toolbar.update(toColor: mockCardView.toolbarView.backgroundColor ?? .white)
         vc.statusBar.backgroundView.alpha = 1
         vc.toolbar.backgroundView.alpha = 1
         
         // Swap pos
-        self.pop_removeAllAnimations()
         let cardCenter = cardView.center
         cardView.center = mockCardView.center
         mockCardView.center = cardCenter
         
+        // Swap transform
+        let mockTransform = mockCardView.transform
         mockCardView.transform = cardView.transform
-        cardView.transform = .identity
+        cardView.transform = mockTransform
+        
+        // Swap overlay darkness
+        let mockAlpha = mockCardView.overlay.alpha
+        mockCardView.overlay.alpha = vc.overlay.alpha
+        vc.overlay.alpha = mockAlpha
+        
+        // Swap order
+        if action == .toParent {
+            view.insertSubview(mockCardView, aboveSubview: cardView)
+        }
+    }
+
+    func animateCommit(action: GestureNavigationAction, velocity: CGPoint = .zero) {
+        
+        
+        self.pop_removeAllAnimations()
+        swapCardAndPlaceholder(for: action)
 
         cardView.springCenter(to: view.center, at: velocity) {_,_ in
             self.vc.resetSizes()
@@ -575,19 +617,26 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             UIView.animate(withDuration: 0.2, animations: {
                 self.vc.home.setNeedsStatusBarAppearanceUpdate()
             })
+            if action == .toParent {
+                self.vc.isSnapshotMode = false
+            }
         }
         
         mockTrackingCenter = self.view.center
         let mockShift = mockCardView.bounds.width + mockCardViewSpacer
-        if action == .back { mockTrackingCenter.x += mockShift }
+        if action == .back || action == .toParent { mockTrackingCenter.x += mockShift }
         else if action == .forward { mockTrackingCenter.x -= mockShift }
-        
+
         mockCardView.springCenter(to: mockTrackingCenter, at: velocity) {_,_ in
             self.mockCardView.removeFromSuperview()
             self.mockCardView.imageView.image = nil
         }
         mockCardView.springScale(to: 1)
         cardView.springScale(to: 1)
+        
+        UIView.animate(withDuration: 0.3) {
+            self.vc.overlay.alpha = 0
+        }
     }
 
     func reset(velocity: CGPoint) {
