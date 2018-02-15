@@ -26,7 +26,7 @@ extension UIView {
     func springCenter(
         to newCenter: CGPoint,
         at velocity: CGPoint = .zero,
-        delay: CFTimeInterval = 0,
+        after delay: CFTimeInterval = 0,
         then completion: @escaping (POPAnimation?, Bool) -> Void = {_,_ in } ) -> POPSpringAnimation? {
         
         if let anim = self.pop_animation(forKey: kSpringCenter) as? POPSpringAnimation {

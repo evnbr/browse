@@ -74,6 +74,9 @@ func constrainTop3(_ A: UIView, _ B: UIView) {
 }
 
 func constrainBottom3(_ A: UIView, _ B: UIView) {
+//    A.translatesAutoresizingMaskIntoConstraints = false
+//    B.translatesAutoresizingMaskIntoConstraints = false
+    
     A.bottomAnchor.constraint(equalTo: B.bottomAnchor).isActive = true
     A.leftAnchor.constraint(equalTo: B.leftAnchor).isActive = true
     A.rightAnchor.constraint(equalTo: B.rightAnchor).isActive = true

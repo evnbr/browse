@@ -166,7 +166,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         vc.updateSnapshot()
     }
     
-    let vProgressScaleMultiplier : CGFloat = 0.2
+    let vProgressScaleMultiplier : CGFloat = 0.0//0.2
     let cantGoBackScaleMultiplier : CGFloat = 0.3
     
     var wouldCommitPreviousX = false
@@ -210,7 +210,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             cardView.center.y = view.center.y + yGestureInfluence
         }
         else {
-            cardView.center.y = view.center.y //+ 0.1 * yGestureInfluence
+            cardView.center.y = view.center.y + elasticLimit(yGestureInfluence) * 0.2
         }
 
         self.vc.gradientOverlay.alpha = gesturePos.y.progress(from: 0, to: 400)
@@ -280,7 +280,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         
         vc.home.setThumbPosition(
-            switcherProgress: gesturePos.y.progress(from: 0, to: 800),
+            switcherProgress: gesturePos.y.progress(from: 100, to: 800),
             cardOffset: CGPoint(
                 x: view.center.x - cardView.center.x,
                 y: view.center.y - cardView.center.y
@@ -607,8 +607,14 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         let revealProgress = abs(adjustedY) / 200
         
-        vc.home.setThumbPosition(switcherProgress: adjustedY.progress(from: 0, to: 800))
-        
+        vc.home.setThumbPosition(
+            switcherProgress: adjustedY.progress(from: 100, to: 800),
+            cardOffset: CGPoint(
+                x: view.center.x - cardView.center.x,
+                y: view.center.y - cardView.center.y
+            )
+        )
+
         if (Const.shared.cardRadius < Const.shared.thumbRadius) {
             cardView.radius = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
         }

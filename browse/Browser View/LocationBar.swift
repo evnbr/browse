@@ -33,13 +33,13 @@ class LocationBar: ToolbarTouchView {
         set {
             if newValue == "" {
                 label.text = "Where to?"
-                label.alpha = 0.6
-                magnify.alpha = 0.6
+//                label.alpha = 0.6
+//                magnify.alpha = 0.6
             }
             else {
                 label.text = newValue
-                label.alpha = 1
-                magnify.alpha = 1
+//                label.alpha = 1
+//                magnify.alpha = 1
             }
             label.sizeToFit()
         }
@@ -138,6 +138,15 @@ class LocationBar: ToolbarTouchView {
                 leftConstraint.isActive = true
             }
             
+        }
+    }
+    
+    var progress : CGFloat {
+        get {
+            return label.alpha
+        }
+        set {
+            label.alpha = newValue
         }
     }
     

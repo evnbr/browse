@@ -15,6 +15,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     var label : UILabel!
 //    var snap : UIView!
     var overlay : UIView!
+    var gradientOverlay : GradientView!
     var browserTab : BrowserTab!
     var closeTabCallback : CloseTabCallback!
     
@@ -23,12 +24,19 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
     var snapView : UIImageView!
     
-    override var frame : CGRect {
+//    override var frame : CGRect {
+//        didSet {
+//            if !isDismissing {
+//                overlay?.frame = bounds
+//                gradientOverlay?.frame = bounds
+//            }
+//        }
+//    }
+    
+    override var bounds: CGRect {
         didSet {
-            if !isDismissing {
-//                snap?.frame = frameForSnap(snap)
-                overlay?.frame = bounds
-            }
+            overlay?.frame = contentView.bounds
+            gradientOverlay?.frame = contentView.bounds
         }
     }
     
@@ -80,17 +88,16 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         snapAspectConstraint.isActive = true
 
         overlay = UIView(frame: bounds)
-        overlay.translatesAutoresizingMaskIntoConstraints = false
+        overlay.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
         overlay.backgroundColor = UIColor.black
         overlay.alpha = 0
         contentView.addSubview(overlay)
-        constrain4(overlay, contentView)
+//        constrain4(overlay, contentView)
 
-        let gradientOverlay = GradientView(frame: bounds)
+        gradientOverlay = GradientView(frame: bounds)
+        gradientOverlay.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
         contentView.addSubview(gradientOverlay)
-
-        constrainTop3(contentView, gradientOverlay)
-        gradientOverlay.heightAnchor.constraint(equalToConstant: THUMB_H)
+//        constrain4(gradientOverlay, contentView)
 
 //        layer.shadowRadius = 24
 //        layer.shadowOpacity = 0.16

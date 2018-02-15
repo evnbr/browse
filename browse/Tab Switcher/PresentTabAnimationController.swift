@@ -88,12 +88,16 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         let expandedBounds = browserVC.cardView.bounds
         let thumbBounds = homeVC.boundsForThumb(forTab: browserVC.browserTab) ?? CGRect(origin: .zero, size: expandedBounds.size)
         
+        browserVC.overlay.alpha = thumbOverlayAlpha
         browserVC.cardView.center = isExpanding ? thumbCenter : expandedCenter
         browserVC.cardView.bounds = isExpanding ? thumbBounds : expandedBounds
 
-        homeVC.visibleCellsBelow.forEach { containerView.addSubview($0) }
-//        homeVC.setThumbPosition(switcherProgress: isExpanding ? 1 : 0, offsetForContainer: true)
-
+        homeVC.visibleCellsBelow.forEach {
+            containerView.addSubview($0)
+            if let scroll = homeVC.collectionView?.contentOffset.y {
+                $0.center.y -= scroll
+            }
+        }
         
         let newCenter = isExpanding ? expandedCenter : thumbCenter
         let velocity = browserVC.gestureController.dismissVelocity ?? .zero
@@ -144,7 +148,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         }
         centerAnim?.dynamicsMass = 1.3
         centerAnim?.dynamicsFriction = 35
-        homeVC.springCards(expanded: isExpanding)
+        homeVC.springCards(expanded: isExpanding, at: velocity)
         
         
 

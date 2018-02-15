@@ -57,7 +57,7 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
             newCenter.y -= distFromTop * 0.85 * pct
 
             if i < count - 1 {
-                attributes.alpha = 1 - ( pct * pct * pct )
+                attributes.alpha = 1 - ( pct * pct * pct ) * 1.5
                 attributes.bounds.size.width *= s
                 attributes.bounds.size.height *= s
             }

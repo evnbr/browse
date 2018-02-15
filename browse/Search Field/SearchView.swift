@@ -73,8 +73,8 @@ class SearchView: UIView, UITextViewDelegate {
         self.addSubview(textView)
         
         cancel = ToolbarTextButton(title: "Cancel", withIcon: nil, onTap: {
-            self.browserViewController.hideSearch(animated: false)
-            self.browserViewController.gestureController.animateCancelNewPage()
+            self.browserViewController.hideSearch(animated: true)
+//            self.browserViewController.gestureController.animateCancelNewPage()
         })
         cancel.size = .medium
         cancel.sizeToFit()
@@ -194,6 +194,11 @@ class SearchView: UIView, UITextViewDelegate {
     var showSuggestion : Bool = false
     func updateSuggestion() {
         let search = textView.text.lowercased()
+        
+        Typeahead.shared.suggestions(for: search) { list in
+            
+        }
+        
         let results = BOOKMARKS_GLOBAL.filter { bookmark -> Bool in
             if search.count == 1 {
                 // if just one letter, it better be at beginning
@@ -224,7 +229,7 @@ class SearchView: UIView, UITextViewDelegate {
     }
     
     func prepareToShow() {
-        textView.text = ""//browserViewController.editableLocation
+        textView.text = browserViewController.editableLocation
         updateSuggestion()
         updateSize()
     }

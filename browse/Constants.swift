@@ -10,7 +10,7 @@ let CORNER_RADIUS : CGFloat = 8.0 //8.0
 let SEARCH_RADIUS : CGFloat = 18.0
 let THUMB_OFFSET_COLLAPSED : CGFloat = 24.0 //40.0 // 28.0
 let THUMB_TITLE : CGFloat = 12.0
-let THUMB_H : CGFloat =  560//480.0
+let THUMB_H : CGFloat =  640//480.0
 let THUMB_INSET : CGFloat = 0 // 4.0 //8.0
 let PRESENT_TAB_BACK_SCALE : CGFloat = 1//0.97
 

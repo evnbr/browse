@@ -402,26 +402,35 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 
 //        toolbarHeightConstraint.constant = Const.toolbarHeight
 
-        UIView.animate(
-            withDuration: animated ? 0.2 : 0,
-            delay: 0,
-            options: [.curveEaseInOut, .allowAnimatedContent],
-            animations: {
-                self.webView.scrollView.scrollIndicatorInsets.bottom = 0
-                self.locationBar.alpha = 1
-                self.backButton.alpha = 1
-                self.tabButton.alpha = 1
+        if (animated) {
+            UIView.animate(
+                withDuration: animated ? 0.2 : 0,
+                delay: 0,
+                options: [.curveEaseInOut, .allowAnimatedContent],
+                animations: {
+                    self.webView.scrollView.scrollIndicatorInsets.bottom = 0
+                    self.locationBar.alpha = 1
+                    self.backButton.alpha = 1
+                    self.tabButton.alpha = 1
             }
-        )
-        
-        toolbarHeightConstraint.springConstant(to: Const.toolbarHeight)
-        webView.scrollView.springBottomInset(to: 0)
-        if adjustScroll {
-            var newOffset = webView.scrollView.contentOffset
-            newOffset.y += dist
-            webView.scrollView.springContentOffset(to: newOffset)
+            )
+            
+            toolbarHeightConstraint.springConstant(to: Const.toolbarHeight)
+            webView.scrollView.springBottomInset(to: 0)
+            if adjustScroll {
+                var newOffset = webView.scrollView.contentOffset
+                newOffset.y += dist
+                webView.scrollView.springContentOffset(to: newOffset)
+            }
         }
-        
+        else {
+            toolbarHeightConstraint.constant = Const.toolbarHeight
+            webView.scrollView.contentInset.bottom = 0
+            webView.scrollView.scrollIndicatorInsets.bottom = 0
+            locationBar.alpha = 1
+            backButton.alpha = 1
+            tabButton.alpha = 1
+        }
     }
 
     func setUpToolbar() -> ProgressToolbar {
@@ -438,6 +447,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         locationBar = LocationBar(
             onTap: { self.displaySearch(animated: true) }
+//            onTap: { self.displayOverflow() }
         )
         backButton = ToolbarIconButton(
             icon: UIImage(named: "back"),
@@ -454,6 +464,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         tabButton = ToolbarIconButton(
             icon: UIImage(named: "tab"),
             onTap: dismissSelf
+//            onTap: {
+//                self.updateSnapshot() {
+//                    self.gestureController.animateNewPage()
+//                    self.displaySearch(animated: true)
+//                }
+//            }
         )
         stopButton = ToolbarIconButton(
             icon: UIImage(named: "stop"),
@@ -557,7 +573,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        showToolbar()
+        showToolbar(animated: false)
         statusBar.backgroundView.alpha = 1
         toolbar.backgroundView.alpha = 1
         
@@ -743,7 +759,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
     }
     
-    @objc func hideSearch() {
+    @objc func hideSearch(animated : Bool = true) {
         
         isDisplayingSearch = false
         
@@ -755,9 +771,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         locationBar.backgroundColor = locationBar.tapColor
 
         self.kbHeightConstraint.constant = 0
-        
+
         UIView.animate(
-            withDuration: 0.55,
+            withDuration: animated ? 0.5 : 0,
             delay: 0.0,
             usingSpringWithDamping: 0.9,
             initialSpringVelocity: 0.0,
@@ -873,10 +889,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             self.displayShareSheet()
         }))
         
-        let pasteAction = UIAlertAction(title: "Paste and go", style: .default, handler: { action in
-            self.pasteURLAndGo()
-        })
-        ac.addAction(pasteAction)
+//        let pasteAction = UIAlertAction(title: "Paste and go", style: .default, handler: { action in
+//            self.pasteURLAndGo()
+//        })
+//        ac.addAction(pasteAction)
         
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         
@@ -935,16 +951,16 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 btn.text = text
             }
         }
-        
-        if isBlank {
-            webView.load(URLRequest(url: url))
-        }
-        else {
-            updateSnapshot() {
-                self.webView.load(URLRequest(url: url))
-                self.gestureController.animateNewPage()
-            }
-        }
+        webView.load(URLRequest(url: url))
+//        if isBlank {
+//            webView.load(URLRequest(url: url))
+//        }
+//        else {
+//            updateSnapshot() {
+//                self.webView.load(URLRequest(url: url))
+//                self.gestureController.animateNewPage()
+//            }
+//        }
     }
     
     @objc func hideError() {
@@ -1044,6 +1060,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "estimatedProgress" {
             toolbar.progress = Float(webView.estimatedProgress)
+            locationBar.progress = CGFloat(webView.estimatedProgress)
         }
         loadingDidChange()
     }

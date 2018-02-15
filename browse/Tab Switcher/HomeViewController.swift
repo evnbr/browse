@@ -277,41 +277,52 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         let switchingY = center.y
         var collapsedY = center.y
         
-        collapsedY = Const.statusHeight + cv.contentOffset.y + attrs.bounds.height / 2
+        let distFromFront : CGFloat = CGFloat(tabs.count - ip.item - 1)
+        
+//        collapsedY = Const.statusHeight + cv.contentOffset.y + attrs.bounds.height / 2
+        collapsedY = cv.contentOffset.y + attrs.bounds.height / 2
         if ip.item > currentIndex {
             collapsedY += view.bounds.height
             if offsetByScroll {
-                collapsedY -= cv.contentOffset.y
+                collapsedY -= cv.contentOffset.y + Const.statusHeight
             }
         }
         else {
-            collapsedY -= cardOffset.y + 200 * switcherProgress
+            collapsedY -= cardOffset.y // track card
+            collapsedY += cardOffset.y * switcherProgress * (distFromFront * 0.2) // spread
+            collapsedY += switcherProgress * 12 * distFromFront * distFromFront // spread less farther back
         }
         
-        center.y = switcherProgress.clip().blend(from: collapsedY, to: switchingY)
-        center.x = center.x - cardOffset.x
+        
+//        center.y = switcherProgress.clip().blend(from: collapsedY, to: switchingY)
+        center.y = switcherProgress < 1 ? collapsedY : switchingY
+        center.x = center.x - cardOffset.x * (1 - distFromFront * 0.1)
         
         return center
     }
     
     func setThumbPosition(switcherProgress: CGFloat, cardOffset: CGPoint = .zero, scale: CGFloat = 1, offsetForContainer: Bool = false) {
-        if switcherProgress < 1 { currentThumb?.isHidden = true }
         for cell in visibleCells {
             cell.center = adjustedCenterFor(cell, cardOffset: cardOffset, switcherProgress: switcherProgress, offsetByScroll: offsetForContainer)
             cell.transform = .init(scale: scale)
+            cell.isHidden = false
         }
-        navigationController?.view.alpha = switcherProgress
+        navigationController?.view.alpha = switcherProgress.progress(from: 0, to: 0.7)
+        if switcherProgress < 1 { currentThumb?.isHidden = true }
     }
     
-    func springCards(expanded: Bool) {
+    func springCards(expanded: Bool, at velocity: CGPoint = .zero) {
         for cell in visibleCells {
-//            let ip = collectionView!.indexPath(for: cell)!
-            let delay : CFTimeInterval = 0 //expanded ? 0 : Double(tabs.count - ip.item) * 0.02
+            let ip = collectionView!.indexPath(for: cell)!
+            let delay : CFTimeInterval = 0//expanded ? 0 : Double(tabs.count - ip.item) * 0.02
             let center = adjustedCenterFor(cell, switcherProgress: expanded ? 0 : 1)
             
-            let anim = cell.springCenter(to: center, delay: delay)
-            anim?.springSpeed = 5
-            anim?.springBounciness = 2
+            let anim = cell.springCenter(to: center, at: velocity, after: delay)
+//            anim?.springSpeed = 5 - (expanded ? 0 : CGFloat(tabs.count - ip.item) * 0.2)
+//            anim?.springBounciness = 2
+            anim?.dynamicsMass = 1.3
+            anim?.dynamicsFriction = 35
+            anim?.dynamicsTension = 350 - 20 * CGFloat(tabs.count - ip.item)
             
             cell.springScale(to: 1)
         }

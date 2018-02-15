@@ -232,8 +232,8 @@ extension UIImage {
             }
             else {
                 let secondColor = sortedColors.object(at: 1) as! PCCountedColor
-//                print("1: \(firstColor.count) 2: \(secondColor.count)")
-                if firstColor.count - secondColor.count < 60 {
+//                print("1: \(firstColor.count) 2: \(ssecondColor.count)")
+                if firstColor.count - secondColor.count < 120 {
 //                    proposedEdgeColor = PCCountedColor(color: fallbackColor, count: 1)
                     proposedEdgeColor = PCCountedColor(
                         color: UIColor.average([firstColor.color, secondColor.color]),

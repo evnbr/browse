@@ -21,8 +21,12 @@ class GradientView: UIView {
     }
     
     func resizeGradient() {
+//        CATransaction.begin()
+//        CATransaction.disableActions()
         gradientLayer.frame = bounds
+        gradientLayer.frame.size.width *= 1.3 // TODO: Why does this not track correctly?
         gradientLayer.frame.size.height = THUMB_H * 1.5
+//        CATransaction.commit()
     }
     
     override init(frame: CGRect) {
@@ -31,7 +35,7 @@ class GradientView: UIView {
         gradientLayer.locations = [ 0.0, 1.0 ]
         resizeGradient()
         layer.addSublayer(gradientLayer)
-        translatesAutoresizingMaskIntoConstraints = false
+        translatesAutoresizingMaskIntoConstraints = true
     }
     
     required init?(coder aDecoder: NSCoder) {
