@@ -471,8 +471,16 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     func commitDismiss(velocity vel: CGPoint) {
         
         dismissVelocity = vel
-        mockCardView.removeFromSuperview()
-        mockCardView.imageView.image = nil
+        self.pop_removeAllAnimations()
+        var mockEndCenter = view.center
+        let mockShift = mockCardView.bounds.width + mockCardViewSpacer
+        if mockCardView.center.x > view.center.x { mockEndCenter.x += mockShift }
+        else { mockEndCenter.x -= mockShift }
+        mockTrackingCenter = mockEndCenter
+        mockCardView.springCenter(to: mockEndCenter) { _, _ in
+            self.mockCardView.removeFromSuperview()
+            self.mockCardView.imageView.image = nil
+        }
         
         vc.dismiss(animated: true) {
             self.dismissVelocity = nil
