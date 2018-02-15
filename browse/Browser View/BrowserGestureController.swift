@@ -220,8 +220,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         if direction == .left {
             if vc.webView.canGoBack {
-                
-                
                 s = (verticalProgress * vProgressScaleMultiplier).reverse()
                 cardView.transform = CGAffineTransform(scale: s)
                 
@@ -241,7 +239,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             }
             else {
                 // COPY PASTED A
-
                 let hProgress = abs(gesturePos.x) / view.bounds.width
                 s = 1 - hProgress * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
                 cardView.center.x = view.center.x + elasticLimit(adjustedX, constant: 100)
@@ -312,6 +309,12 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 vc.webView.goBack()
                 animateCommit(action: .back, velocity: vel)
                 vc.hideUntilNavigationDone()
+            }
+            else if vc.browserTab!.canGoBackToParent
+            && gesturePos.x > backPointX{
+                if let parent = vc.browserTab?.parentTab {
+                    swapTo(parentTab: parent)
+                }
             }
             else {
                 commitDismiss(velocity: vel)
@@ -476,13 +479,50 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 options: .allowUserInteraction,
                 animations: {
                     vc.cardView.center = vc.view.center
-                    parentMock.center.y += 240
+                    parentMock.transform = CGAffineTransform(scale: 0.95)
+                    parentMock.alpha = 0
             }, completion: { done in
                 parentMock.removeFromSuperview()
+                vc.home.moveTabToEnd(childTab)
             })
         }
-        
     }
+    
+    func swapTo(parentTab: BrowserTab) {
+        let childMock = cardView.snapshotView(afterScreenUpdates: false)!
+        childMock.contentMode = .top
+        childMock.clipsToBounds = true
+        childMock.radius = Const.shared.cardRadius
+        
+        vc.view.insertSubview(childMock, aboveSubview: cardView)
+        vc.overlay.alpha = 0.8
+        vc.cardView.transform = CGAffineTransform(scale: 0.9)
+        childMock.center = vc.cardView.center
+
+        vc.updateSnapshot {
+            let vc = self.vc!
+            vc.setTab(parentTab)
+//            vc.cardView.cesnter = vc.view.center
+            
+            UIView.animate(
+                withDuration: 0.6,
+                delay: 0.0,
+                usingSpringWithDamping: 0.85,
+                initialSpringVelocity: 0.0,
+                options: .allowUserInteraction,
+                animations: {
+                    vc.overlay.alpha = 0
+                    vc.cardView.center = vc.view.center
+                    vc.cardView.transform = .identity
+                    childMock.center.y += vc.cardView.bounds.height
+            }, completion: { done in
+                childMock.removeFromSuperview()
+                vc.isSnapshotMode = false // WHy?
+                vc.home.moveTabToEnd(parentTab)
+            })
+        }
+    }
+
     
     func animateNewPage() {
         mockCardView.bounds = cardView.bounds
@@ -608,7 +648,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let revealProgress = abs(adjustedY) / 200
         
         vc.home.setThumbPosition(
-            switcherProgress: adjustedY.progress(from: 100, to: 800),
+            switcherProgress: adjustedY.progress(from: 0, to: 600),
             cardOffset: CGPoint(
                 x: view.center.x - cardView.center.x,
                 y: view.center.y - cardView.center.y

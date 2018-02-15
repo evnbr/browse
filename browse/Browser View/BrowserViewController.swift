@@ -451,7 +451,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         )
         backButton = ToolbarIconButton(
             icon: UIImage(named: "back"),
-            onTap: { self.webView.goBack() }
+            onTap: {
+                if self.webView.canGoBack {
+                    self.webView.goBack()
+                }
+                else if let parent = self.browserTab?.parentTab {
+                    self.gestureController.swapTo(parentTab: parent)
+                }
+            }
         )
         forwardButton = ToolbarIconButton(
             icon: UIImage(named: "fwd"),
@@ -1020,7 +1027,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         let small = CGAffineTransform(scaleX: 0.6, y: 0.6)
         
         UIView.animate(withDuration: 0.25) {
-            self.backButton.isEnabled = self.webView.canGoBack
+            self.backButton.isEnabled = self.webView.canGoBack || self.browserTab!.canGoBackToParent
             
             self.forwardButton.isEnabled = self.webView.canGoForward
             self.forwardButton.tintColor = self.webView.canGoForward ? nil : .clear

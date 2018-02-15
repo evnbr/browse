@@ -34,6 +34,10 @@ class BrowserTab: NSObject {
         return configuration
     }()
     
+    var canGoBackToParent: Bool {
+        return parentTab != nil
+    }
+    
     override init() {
         super.init()
         webView = loadWebView(withConfig: nil)

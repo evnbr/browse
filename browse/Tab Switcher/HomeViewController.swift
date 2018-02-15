@@ -169,8 +169,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
             collectionView?.performBatchUpdates({
                 self.tabs.remove(at: path.row)
                 self.collectionView?.deleteItems(at: [path])
-            }, completion: nil)
-            
+            }, completion: nil)            
         }
     }
     
@@ -199,13 +198,6 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
             self.collectionViewLayout.invalidateLayout()
         }, completion: { _ in
             self.browserVC.gestureController.swapTo(childTab: newTab)
-            
-            self.collectionView?.reloadData()
-            // Scroll to end
-            self.scrollToBottom()
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
-                self.setThumbPosition(switcherProgress: 0)
-            }
         })
         
         return newTab.webView
@@ -282,9 +274,9 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
 //        collapsedY = Const.statusHeight + cv.contentOffset.y + attrs.bounds.height / 2
         collapsedY = cv.contentOffset.y + attrs.bounds.height / 2
         if ip.item > currentIndex {
-            collapsedY += view.bounds.height
+            collapsedY += view.bounds.height + Const.statusHeight
             if offsetByScroll {
-                collapsedY -= cv.contentOffset.y + Const.statusHeight
+                collapsedY -= cv.contentOffset.y
             }
         }
         else {
@@ -328,6 +320,23 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
         }
     }
     
+    func moveTabToEnd(_ tab: BrowserTab) {
+        if let cv = self.collectionView {
+            // Move this item to end of tabs array
+            if let index = self.tabs.index(of: tab) {
+                self.tabs.remove(at: index)
+            }
+            self.tabs.append(tab)
+            cv.reloadData()
+            
+            self.scrollToBottom()
+            
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+                self.setThumbPosition(switcherProgress: 0)
+            }
+        }
+    }
+    
     func showTab(_ tab: BrowserTab, animated: Bool = true, completion: (() -> Void)? = nil) {
         browserVC.modalPresentationStyle = .custom
         browserVC.transitioningDelegate = self
@@ -341,21 +350,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
                 thumb.unSelect(animated: false)
                 thumb.setTab(tab)
             }
-
-            if let cv = self.collectionView {
-                // Move this item to end of tabs array
-                if let index = self.tabs.index(of: tab) {
-                    self.tabs.remove(at: index)
-                }
-                self.tabs.append(tab)
-                cv.reloadData()
-
-                self.scrollToBottom()
-                
-                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
-                    self.setThumbPosition(switcherProgress: 0)
-                }
-            }
+            self.moveTabToEnd(tab)
             if let c = completion { c() }
         })
     }
