@@ -87,23 +87,16 @@ class LocationBar: ToolbarTouchView {
         magnify = UIImageView(image: magnifyImage)
         
         label.text = "Where to?"
-        label.font = UIFont.systemFont(ofSize: 16.0)
-//        label.font = UIFont.systemFont(ofSize: 15.0, weight: .medium)
+//        label.font = UIFont.systemFont(ofSize: 16.0)
+        label.font = Const.shared.thumbTitle
         label.adjustsFontSizeToFitWidth = true
         label.setContentHuggingPriority(UILayoutPriority(rawValue: 0), for: .horizontal)
-//        label.sizeToFit()
-        
-        //        let blur = UIVisualEffectView(frame: self.frame, isTransparent: true)
-        //        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        //        addSubview(blur)
-        //        sendSubview(toBack: blur)
 
-        // https://stackoverflow.com/questions/30728062/add-views-in-uistackview-programmatically
         let stackView   = UIStackView()
         stackView.axis  = .horizontal
         stackView.distribution  = .fill
         stackView.alignment = .center
-        stackView.spacing   = 6.0
+        stackView.spacing   = 4.0
         
         stackView.addArrangedSubview(lock)
         stackView.addArrangedSubview(magnify)
@@ -154,11 +147,15 @@ class LocationBar: ToolbarTouchView {
             return label.alpha
         }
         set {
+            let pctRange = (label.bounds.width + 32) / self.bounds.width
+            let adjustedPct = ((1 - pctRange) / 2) + newValue * pctRange
+
             UIView.animate(withDuration: 0.2) {
 //                self.layer.mask?.frame.origin.x = -200 + 200 * newValue
                 if let grad = self.layer.mask as? CAGradientLayer {
-                    let val = newValue as NSNumber
-                    let val2 = (newValue + 0.01) as NSNumber
+                    
+                    let val = adjustedPct as NSNumber
+                    let val2 = (adjustedPct + 0.01) as NSNumber
                     grad.locations = [val, val2]
                     grad.frame = self.bounds // TODO set this in a normal place
                 }
