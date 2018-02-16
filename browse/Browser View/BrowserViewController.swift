@@ -13,7 +13,7 @@ import pop
 
 class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIActivityItemSource {
     
-    var home: HomeViewController!
+    var home: TabSwitcherViewController!
     var webView: WKWebView!
     var snap: UIImageView = UIImageView()
     var browserTab: BrowserTab?
@@ -118,7 +118,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     // MARK: - Lifecycle
     
-    convenience init(home: HomeViewController) {
+    convenience init(home: TabSwitcherViewController) {
         self.init()
         self.home = home
     }

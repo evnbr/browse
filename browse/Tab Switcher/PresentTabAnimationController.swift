@@ -42,7 +42,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         let homeNav = (isExpanding ? fromVC : toVC) as! UINavigationController
         let browserVC = (isExpanding ? toVC : fromVC) as! BrowserViewController
-        let homeVC = homeNav.topViewController as! HomeViewController
+        let homeVC = homeNav.topViewController as! TabSwitcherViewController
         
         // TODO: This is not necessarily the correct thumb.
         // When swapping between tabs it gets mixed up.

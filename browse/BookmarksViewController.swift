@@ -45,7 +45,7 @@ let BOOKMARKS_GLOBAL : [ String ] = [
 class BookmarksViewController : UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     let bookmarks = BOOKMARKS_GLOBAL
-    var homeVC : HomeViewController!
+    var homeVC : TabSwitcherViewController!
     var browserVC : BrowserViewController!
     
     private var table: UITableView!

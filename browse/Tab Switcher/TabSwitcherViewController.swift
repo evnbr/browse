@@ -1,5 +1,5 @@
 //
-//  HomeViewController.swift
+//  TabSwitcherViewController.swift
 //  browse
 //
 //  Created by Evan Brooks on 6/3/17.
@@ -9,7 +9,7 @@
 import UIKit
 import WebKit
 
-class HomeViewController: UICollectionViewController, UIViewControllerTransitioningDelegate {
+class TabSwitcherViewController: UICollectionViewController, UIViewControllerTransitioningDelegate {
 
     var tabs : [BrowserTab] = []
     var browserVC : BrowserViewController!
@@ -401,7 +401,7 @@ class HomeViewController: UICollectionViewController, UIViewControllerTransition
 }
 
 // MARK: - UICollectionViewDataSource
-extension HomeViewController {
+extension TabSwitcherViewController {
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return tabs.count
@@ -438,7 +438,7 @@ extension HomeViewController {
 }
 
 // MARK: - UICollectionViewDelegateFlowLayout
-extension HomeViewController : UICollectionViewDelegateFlowLayout {
+extension TabSwitcherViewController : UICollectionViewDelegateFlowLayout {
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         
@@ -474,7 +474,7 @@ extension HomeViewController : UICollectionViewDelegateFlowLayout {
 }
 
 // MARK: - Saving and restoring state
-extension HomeViewController {
+extension TabSwitcherViewController {
     func saveOpenTabs() {
         let info = tabs.map { tab in tab.restorableInfo.nsDictionary }
         UserDefaults.standard.setValue(info, forKey: "openTabList")
