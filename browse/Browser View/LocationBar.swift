@@ -120,10 +120,18 @@ class LocationBar: ToolbarTouchView {
         
         stackView.widthAnchor.constraint(lessThanOrEqualTo: self.widthAnchor).isActive = true
         
+        let maskLayer = CAGradientLayer()
+        maskLayer.frame = frame
+        maskLayer.startPoint = CGPoint(x: 0, y: 0.5)
+        maskLayer.endPoint = CGPoint(x: 1, y: 0.5)
+        maskLayer.locations = [0, 0.01]
+        maskLayer.colors = [UIColor.blue.cgColor, UIColor.blue.withAlphaComponent(0.3).cgColor]
+        layer.mask = maskLayer
+        
+        
         isSecure = false
         isSearch = false
         isLoading = false
-        
     }
     
     func setAlignment(_ newAlignment: LocationBarAlignment) {
@@ -146,7 +154,15 @@ class LocationBar: ToolbarTouchView {
             return label.alpha
         }
         set {
-            label.alpha = newValue
+            UIView.animate(withDuration: 0.2) {
+//                self.layer.mask?.frame.origin.x = -200 + 200 * newValue
+                if let grad = self.layer.mask as? CAGradientLayer {
+                    let val = newValue as NSNumber
+                    let val2 = (newValue + 0.01) as NSNumber
+                    grad.locations = [val, val2]
+                    grad.frame = self.bounds // TODO set this in a normal place
+                }
+            }
         }
     }
     

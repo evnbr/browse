@@ -43,9 +43,7 @@ class ProgressToolbar: ColorToolbarView {
         progressView.trackTintColor = UIColor.clear
         progressView.progressTintColor = UIColor.darkText
         progressView.autoresizingMask = [.flexibleTopMargin, .flexibleWidth]
-//        progressView.transform = progressView.transform.scaledBy(x: 1, y: 22)
-        addSubview(progressView)
-//        sendSubview(toBack: progressView)
+//        addSubview(progressView)
         
         let blur = PlainBlurView(frame: bounds)
         blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
