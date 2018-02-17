@@ -104,11 +104,12 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         
         label = UILabel(frame: CGRect(
             x: 24,
-            y: 12,
-            width: frame.width - 24,
+            y: 15,
+            width: frame.width - 48,
             height: 16.0
         ))
         label.text = "Blank"
+        label.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
         label.font = Const.shared.thumbTitle
         label.textColor = .darkText
         contentView.addSubview(label)
@@ -127,10 +128,10 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         
         if let img : UIImage = browserTab.history.current?.snapshot {
             setSnapshot(img)
-            label.isHidden = true
+//            label.isHidden = true
         }
         else {
-            label.isHidden = false
+//            label.isHidden = false
         }
         
         if let color : UIColor = browserTab.history.current?.topColor {

@@ -162,6 +162,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         }
 
         browserVC.statusBar.frame.size.height = !isExpanding ? Const.statusHeight : THUMB_OFFSET_COLLAPSED
+        browserVC.statusBar.label.text = browserVC.webView.title
         
         UIView.animate(
             withDuration: 0.6,
@@ -175,6 +176,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             browserVC.overlay.alpha = self.isExpanding ? 0 : thumbOverlayAlpha
             browserVC.contentView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
             homeNav.view.alpha = self.isExpanding ? 0.7 : 1
+            browserVC.statusBar.label.alpha = self.isExpanding ? 0 : 1
             
             homeVC.setNeedsStatusBarAppearanceUpdate()
                 

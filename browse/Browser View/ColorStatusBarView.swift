@@ -46,17 +46,17 @@ class ColorStatusBarView : GradientColorChangeView {
         addSubview(blur)
         sendSubview(toBack: blur)
 
-//        label = UILabel(frame: CGRect(
-//            x: 24 ,
-//            y: 12,
-//            width: frame.width - 24,
-//            height: 16.0
-//        ))
-//        label.text = "Blank"
-//        label.alpha = 0
-//        label.font = Const.shared.thumbTitle
-//        label.textColor = .darkText
-//        self.addSubview(label)
+        label = UILabel(frame: CGRect(
+            x: 24 ,
+            y: 15,
+            width: frame.width - 48,
+            height: 16.0
+        ))
+        label.text = "Blank"
+        label.alpha = 0
+        label.font = Const.shared.thumbTitle
+        label.textColor = .darkText
+        self.addSubview(label)
     }
     
 //    convenience init(color: UIColor) {
@@ -64,10 +64,10 @@ class ColorStatusBarView : GradientColorChangeView {
 //        self.backgroundColor = color
 //    }
     
-//    override func tintColorDidChange() {
-//        super.tintColorDidChange()
-//        label.textColor = tintColor
-//    }
+    override func tintColorDidChange() {
+        super.tintColorDidChange()
+        label.textColor = tintColor
+    }
 
     
     required init?(coder aDecoder: NSCoder) {

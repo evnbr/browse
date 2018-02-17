@@ -58,8 +58,8 @@ class BrowserTab: NSObject {
     }
     
     var restorableTitle : String? {
-        if webView?.url == nil { return restoredTitle }
-        return webView?.url?.displayHost ?? restoredTitle
+        if webView?.title == nil { return restoredTitle }
+        return webView?.title ?? restoredTitle
     }
     var restorableURL : String? {
         return webView?.url?.absoluteString ?? restoredLocation

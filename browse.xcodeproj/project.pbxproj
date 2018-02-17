@@ -239,7 +239,7 @@
 				A92C9C381EF5D66B00D8AAA3 /* BrowserViewController+WKNavigationDelegate.swift */,
 				A97BF8301EF3B5B900B9ECB4 /* BrowserViewController+WKUIDelegate.swift */,
 				A90892091ED547C500A5E9BA /* LocationBar.swift */,
-				A9210D501F0148E600904A0B /* URL+DisplayHost.swift */,
+				A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */,
 			);
 			path = "Browser View";
 			sourceTree = "<group>";
@@ -249,6 +249,7 @@
 			children = (
 				A9DEAE3E1F199E3200CF66BA /* BrowserTab.swift */,
 				A9EF36D41F4A6451005112E2 /* WKWebview+Toolbar.swift */,
+				A9210D501F0148E600904A0B /* URL+DisplayHost.swift */,
 			);
 			path = WebView;
 			sourceTree = "<group>";
@@ -256,7 +257,6 @@
 		A90F51281F7178FF00221815 /* UI */ = {
 			isa = PBXGroup;
 			children = (
-				A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */,
 				A9DEAE3C1F16C15700CF66BA /* ProgressToolbar.swift */,
 				A98483271EEFCFE200E821AE /* ColorToolbarView.swift */,
 				A92095941EE3E0DA009497A2 /* ToolbarTouchView.swift */,
