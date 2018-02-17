@@ -49,6 +49,7 @@
 		A9AA4A5A1FF76CDA001AB639 /* UIView+POP.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9AA4A591FF76CDA001AB639 /* UIView+POP.swift */; };
 		A9B3176A1ED134CD00C71EBE /* SearchTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B317691ED134CD00C71EBE /* SearchTextView.swift */; };
 		A9B99797203791DB00841404 /* TypeaheadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B99796203791DB00841404 /* TypeaheadViewController.swift */; };
+		A9B9979920380C8A00841404 /* TypeaheadAnimationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B9979820380C8A00841404 /* TypeaheadAnimationController.swift */; };
 		A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */; };
 		A9D4B8C11F72F6D6006F0F18 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */; };
 		A9DEAE3D1F16C15700CF66BA /* ProgressToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DEAE3C1F16C15700CF66BA /* ProgressToolbar.swift */; };
@@ -134,6 +135,7 @@
 		A9AA4A591FF76CDA001AB639 /* UIView+POP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "UIView+POP.swift"; path = "browse/Utils/UIView+POP.swift"; sourceTree = SOURCE_ROOT; };
 		A9B317691ED134CD00C71EBE /* SearchTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchTextView.swift; sourceTree = "<group>"; };
 		A9B99796203791DB00841404 /* TypeaheadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TypeaheadViewController.swift; path = "browse/Search Field/TypeaheadViewController.swift"; sourceTree = SOURCE_ROOT; };
+		A9B9979820380C8A00841404 /* TypeaheadAnimationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TypeaheadAnimationController.swift; path = "browse/Search Field/TypeaheadAnimationController.swift"; sourceTree = SOURCE_ROOT; };
 		A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientColorChangeView.swift; sourceTree = "<group>"; };
 		A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		A9DEAE3C1F16C15700CF66BA /* ProgressToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressToolbar.swift; sourceTree = "<group>"; };
@@ -200,6 +202,7 @@
 		A90F51231F71783B00221815 /* Search Field */ = {
 			isa = PBXGroup;
 			children = (
+				A9B9979820380C8A00841404 /* TypeaheadAnimationController.swift */,
 				A9B99796203791DB00841404 /* TypeaheadViewController.swift */,
 				A96184811ECEA39200EF3A6F /* SearchView.swift */,
 				A9447A2C2027F48000654572 /* TypeaheadController.swift */,
@@ -329,9 +332,9 @@
 				A90F51271F7178D700221815 /* WebView */,
 				A96A42EF1F91637F00C0F3E2 /* History */,
 				A90F51261F7178C000221815 /* Browser View */,
+				A90F51231F71783B00221815 /* Search Field */,
 				A90F51251F71787800221815 /* Color Detection */,
 				A90F51281F7178FF00221815 /* UI */,
-				A90F51231F71783B00221815 /* Search Field */,
 				A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */,
 				A90F51291F71791D00221815 /* Ad Blocking */,
 				A920958D1EDAA714009497A2 /* Settings */,
@@ -676,6 +679,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9B9979920380C8A00841404 /* TypeaheadAnimationController.swift in Sources */,
 				A92C9C3B1EF8B5E600D8AAA3 /* BrowserGestureController.swift in Sources */,
 				A90F51211F70C6CB00221815 /* UIImageColors.swift in Sources */,
 				A9E422811F86B4FD0028B4CA /* StackingCollectionViewLayout.swift in Sources */,

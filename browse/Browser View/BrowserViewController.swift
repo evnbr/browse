@@ -25,10 +25,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var aspectConstraint : NSLayoutConstraint!
     var statusHeightConstraint : NSLayoutConstraint!
 
+    var displaySearchTransition = TypeaheadAnimationController()
 
     var isDisplayingSearch : Bool = false
     var searchView: SearchView!
     var colorSampler: WebviewColorSampler!
+    
+    lazy var searchVC = TypeaheadViewController()
+
     
     var statusBar: ColorStatusBarView!
     
@@ -447,7 +451,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         toolbarHeightConstraint.isActive = true
         
         locationBar = LocationBar(
-            onTap: { self.displaySearch(animated: true) }
+            onTap: { self.displayFullSearch(animated: true) }
 //            onTap: { self.displayOverflow() }
         )
         backButton = ToolbarIconButton(
@@ -503,6 +507,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 
         
         return toolbar
+    }
+    
+    func displayFullSearch(animated: Bool = true) {
+        searchVC.transitioningDelegate = self
+        searchVC.modalPresentationStyle = .custom
+        present(searchVC, animated: true, completion: nil)
     }
     
     func setupAccessoryView() -> GradientColorChangeView {
@@ -586,7 +596,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         toolbar.backgroundView.alpha = 1
         
         if isBlank {
-            displaySearch(animated: true)
+//            displaySearch(animated: true)
+//            displayFullSearch(animated: false)
         }
 
     }
@@ -1165,3 +1176,19 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
         toolbar.cancelColorChange()
     }
 }
+
+// MARK - Animation
+
+extension BrowserViewController : UIViewControllerTransitioningDelegate {
+    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        displaySearchTransition.direction = .present
+        return displaySearchTransition
+    }
+    
+    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        displaySearchTransition.direction = .dismiss
+        return displaySearchTransition
+    }
+}
+
+

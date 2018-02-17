@@ -242,8 +242,6 @@ class SearchView: UIView, UITextViewDelegate {
         textView.keyboardAppearance = tintColor.isLight ? .light : .dark
     }
     
-    
-    
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
         if text == "\n" {
             browserViewController.hideSearch()
