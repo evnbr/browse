@@ -102,9 +102,12 @@ class BrowserTab: NSObject {
     
     func updateSnapshot(completionHandler: @escaping (UIImage) -> Void = { _ in }) {
         // Image snapshot
+        let wasShowingIndicators = webView.scrollView.showsVerticalScrollIndicator
         webView.scrollView.showsVerticalScrollIndicator = false
         webView.takeSnapshot(with: nil) { (image, error) in
-            self.webView.scrollView.showsVerticalScrollIndicator = true
+            if wasShowingIndicators {
+                 self.webView.scrollView.showsVerticalScrollIndicator = true
+            }
             if let img : UIImage = image {
                 self.history.current?.snapshot = img
                 completionHandler(img)

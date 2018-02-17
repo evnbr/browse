@@ -1,5 +1,5 @@
 //
-//  CustomPresentAnimationController.swift
+//  PresentTabAnimationController.swift
 //  browse
 //
 //  Created by Evan Brooks on 5/31/17.
@@ -37,7 +37,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         let fromVC = transitionContext.viewController(forKey: .from)!
         let toVC = transitionContext.viewController(forKey: .to)!
-        
         let containerView = transitionContext.containerView
         
         let homeNav = (isExpanding ? fromVC : toVC) as! UINavigationController
@@ -112,6 +111,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             if self.isExpanding {
                 browserVC.isSnapshotMode = false
                 browserVC.webView.scrollView.isScrollEnabled = true
+                browserVC.webView.scrollView.showsVerticalScrollIndicator = true
             }
             thumb?.setTab(browserVC.browserTab!)
             

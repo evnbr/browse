@@ -457,7 +457,9 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         if vc.isDisplayingSearch { vc.hideSearch() }
         
+        vc.webView.scrollView.showsVerticalScrollIndicator = false
         vc.browserTab?.updateSnapshot()
+        
         
 //        feedbackGenerator = UISelectionFeedbackGenerator()
         feedbackGenerator?.prepare()
@@ -628,6 +630,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             if action == .toParent {
                 self.vc.isSnapshotMode = false
             }
+            self.vc.webView.scrollView.showsVerticalScrollIndicator = true
         }
         
         mockTrackingCenter = self.view.center
@@ -656,6 +659,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             UIView.animate(withDuration: 0.2, animations: {
                 self.vc.home.setNeedsStatusBarAppearanceUpdate()
             })
+            self.vc.webView.scrollView.showsVerticalScrollIndicator = true
         }
         cardView.springScale(to: 1)
 
