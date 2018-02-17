@@ -6,6 +6,11 @@
 //  Copyright © 2018 Evan Brooks. All rights reserved.
 //
 
+
+// TODO: look into this implementation instead
+// https://medium.com/@marcosantadev/calayer-and-auto-layout-with-swift-21b2d2b8b9d1
+
+
 import UIKit
 
 class GradientView: UIView {

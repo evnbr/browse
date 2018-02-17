@@ -644,6 +644,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         UIView.animate(withDuration: 0.3) {
             self.vc.overlay.alpha = 0
+            self.vc.gradientOverlay.alpha = 0
         }
     }
 
@@ -672,6 +673,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         UIView.animate(withDuration: 0.2) {
             self.vc.gradientOverlay.alpha = 0
+            self.vc.overlay.alpha = 0
         }
     }
         
