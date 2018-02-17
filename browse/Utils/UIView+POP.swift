@@ -14,6 +14,7 @@ let kSpringCenterX = "springCenterX"
 let kSpringScale = "springScale"
 let kSpringBounds = "springBounds"
 let kSpringContentOffset = "springContentOffset"
+let kSpringConstant = "springConstant"
 
 extension UIView {
     
@@ -103,11 +104,21 @@ extension UIScrollView {
 }
 
 extension NSLayoutConstraint {
-    func springConstant(to newConstant: CGFloat) {
+    @discardableResult
+    func springConstant(
+        to newConstant: CGFloat,
+        then completion: @escaping (POPAnimation?, Bool) -> Void = {_,_ in } ) -> POPSpringAnimation? {
+        if let anim = self.pop_animation(forKey: kSpringConstant) as? POPSpringAnimation {
+            anim.toValue = newConstant
+            return anim
+        }
         if let anim = POPSpringAnimation(propertyNamed: kPOPLayoutConstraintConstant ) {
             anim.toValue = newConstant
-            anim.clampMode = POPAnimationClampFlags.end.rawValue
-            self.pop_add(anim, forKey: "springConstant")
+//            anim.clampMode = POPAnimationClampFlags.end.rawValue
+            anim.completionBlock = completion
+            self.pop_add(anim, forKey: kSpringConstant)
+            return anim
         }
+        return nil
     }
 }

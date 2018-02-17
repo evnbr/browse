@@ -33,6 +33,7 @@ class LocationBar: ToolbarTouchView {
         set {
             if newValue == "" {
                 label.text = "Where to?"
+                progress = 0
 //                label.alpha = 0.6
 //                magnify.alpha = 0.6
             }
