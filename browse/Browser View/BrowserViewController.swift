@@ -281,7 +281,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         snap.topAnchor.constraint(equalTo: statusBar.bottomAnchor).isActive = true
         snap.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
         snap.widthAnchor.constraint(equalTo: contentView.widthAnchor).isActive = true
-        snap.backgroundColor = .cyan
         snap.isHidden = true
         
         aspectConstraint = snap.heightAnchor.constraint(equalTo: snap.widthAnchor, multiplier: 1)
@@ -512,6 +511,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     func displayFullSearch(animated: Bool = true) {
         searchVC.transitioningDelegate = self
         searchVC.modalPresentationStyle = .custom
+        searchVC.setBackground(toolbar.lastColor)
         present(searchVC, animated: true, completion: nil)
     }
     

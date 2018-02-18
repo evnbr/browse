@@ -183,6 +183,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             options: .allowUserInteraction,
             animations: {
             
+            browserVC.statusBar.backgroundView.alpha = 1
             browserVC.gradientOverlay.alpha = self.isExpanding ? 0 : 1
             browserVC.overlay.alpha = self.isExpanding ? 0 : thumbOverlayAlpha
             browserVC.contentView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius

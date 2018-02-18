@@ -16,9 +16,10 @@ class TypeaheadViewController: UIViewController {
     var cancel   : ToolbarTextButton!
 
     var kbHeightConstraint : NSLayoutConstraint!
-    var fullWidthConstraint : NSLayoutConstraint!
-    var roomForCancelConstraint : NSLayoutConstraint!
-
+    var suggestHeightConstraint : NSLayoutConstraint!
+    var suggestionHeight : CGFloat = 160
+    var keyboardHeight : CGFloat = 250
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -34,7 +35,7 @@ class TypeaheadViewController: UIViewController {
         view.addSubview(scrim)
         
         contentView = UIView(frame: view.bounds)
-        contentView.layer.cornerRadius = 12
+        contentView.layer.cornerRadius = 24
         contentView.backgroundColor = .white
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.tintColor = .darkText
@@ -42,9 +43,7 @@ class TypeaheadViewController: UIViewController {
         
         contentView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
         contentView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
-        contentView.heightAnchor.constraint(equalToConstant: 200).isActive = true
-        kbHeightConstraint = contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        kbHeightConstraint.isActive = true
+        contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
 
         textView = SearchTextView()
         textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 48)
@@ -75,27 +74,33 @@ class TypeaheadViewController: UIViewController {
         cancel.sizeToFit()
         cancel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(cancel)
-        cancel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16).isActive = true
+        
+        cancel.bottomAnchor.constraint(equalTo: textView.bottomAnchor).isActive = true
         cancel.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -8).isActive = true
         cancel.widthAnchor.constraint(equalToConstant: cancel.bounds.width).isActive = true
         cancel.heightAnchor.constraint(equalToConstant: cancel.bounds.height).isActive = true
 
-        textView.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 16).isActive = true
-        textView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16).isActive = true
+        textView.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 12).isActive = true
+        textView.widthAnchor.constraint(equalTo: contentView.widthAnchor, constant: -cancel.frame.width - 16).isActive = true
         
-        fullWidthConstraint = textView.widthAnchor.constraint(equalTo: contentView.widthAnchor, constant: -16)
-        roomForCancelConstraint = textView.widthAnchor.constraint(equalTo: contentView.widthAnchor, constant: -cancel.frame.width - 16)
-        fullWidthConstraint.isActive = false
-        roomForCancelConstraint.isActive = true
+        suggestHeightConstraint = textView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 120)
+        suggestHeightConstraint.isActive = true
         
+        kbHeightConstraint = textView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
+        kbHeightConstraint.isActive = true
+
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardDidChangeFrame, object: nil)
         
-        setMode(darkContent: true)
+        setBackground(.white)
     }
     
-    func setMode(darkContent: Bool) {
+    func setBackground(_ newColor: UIColor) {
+        guard isViewLoaded else { return }
+        let darkContent = !newColor.isLight
+        contentView.backgroundColor = newColor
         view.tintColor = darkContent ? .darkText : .white
+        contentView.tintColor = view.tintColor
         textView.textColor = view.tintColor
         textView.backgroundColor = darkContent ? UIColor.black.withAlphaComponent(0.1) : UIColor.white.withAlphaComponent(0.3)
         textView.placeholderColor = darkContent ? UIColor.black.withAlphaComponent(0.4) : UIColor.white.withAlphaComponent(0.4)
@@ -138,7 +143,6 @@ class TypeaheadViewController: UIViewController {
         textView.frame = newFrame;
     }
     
-    var keyboardHeight : CGFloat = 250
     @objc func keyboardWillShow(notification: NSNotification) {
         let userInfo: NSDictionary = notification.userInfo! as NSDictionary
         let keyboardFrame: NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as! NSValue
