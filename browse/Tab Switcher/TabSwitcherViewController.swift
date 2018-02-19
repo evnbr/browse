@@ -70,7 +70,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
                 width: 64,
                 height: 64),
             icon: UIImage(named: "add"),
-            onTap: self.addTab
+            onTap: self.showSearch //self.addTab
         )
         view.addSubview(fab)
         
@@ -149,19 +149,20 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
             layout.invalidateLayout()
         }
     }
+    
+    func showSearch() {
+        let search = TypeaheadViewController()
+        present(search, animated: true, completion: nil)
+    }
 
-    func addTab() {
+    func addTab(startingFrom text: String? = nil) {
         let newTab = BrowserTab()
-        showTab(newTab)
-        
-//        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
-//            self.tabs.append(newTab)
-//            self.collectionView?.insertItems(at: [ IndexPath(item: self.tabs.index(of: newTab)!, section: 0) ])
-//            self.collectionViewLayout.invalidateLayout() // todo: shouldn't the layout just know?
-//            let thumb = self.thumb(forTab: newTab)
-//            thumb?.isHidden = true
-//        }
-        
+        showTab(newTab, completion: {
+            if let t = text {
+                self.browserVC.navigateToText(t)
+            }
+            print("create tab")
+        })
     }
     
     func closeTab(fromCell cell: UICollectionViewCell) {

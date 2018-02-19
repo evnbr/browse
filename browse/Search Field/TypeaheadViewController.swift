@@ -12,17 +12,32 @@ class TypeaheadViewController: UIViewController {
 
     var contentView: UIView!
     var scrim: UIView!
-    var textView : SearchTextView!
-    var cancel   : ToolbarTextButton!
+    var textView: SearchTextView!
+    var cancel: ToolbarTextButton!
 
+    var displaySearchTransition = TypeaheadAnimationController()
+    
     var kbHeightConstraint : NSLayoutConstraint!
     var suggestHeightConstraint : NSLayoutConstraint!
+    var textHeight : NSLayoutConstraint!
+    var collapsedTextHeight : NSLayoutConstraint!
+
     var suggestionHeight : CGFloat = 160
     var keyboardHeight : CGFloat = 250
     
+    init() {
+        super.init(nibName: nil, bundle: nil)
+        modalPresentationStyle = .custom
+        transitioningDelegate = self
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         view.backgroundColor = .clear
         
         scrim = UIView(frame: view.bounds)
@@ -76,12 +91,17 @@ class TypeaheadViewController: UIViewController {
         contentView.addSubview(cancel)
         
         cancel.bottomAnchor.constraint(equalTo: textView.bottomAnchor).isActive = true
-        cancel.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -8).isActive = true
+        cancel.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: 0).isActive = true
         cancel.widthAnchor.constraint(equalToConstant: cancel.bounds.width).isActive = true
         cancel.heightAnchor.constraint(equalToConstant: cancel.bounds.height).isActive = true
 
         textView.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 12).isActive = true
-        textView.widthAnchor.constraint(equalTo: contentView.widthAnchor, constant: -cancel.frame.width - 16).isActive = true
+        textView.rightAnchor.constraint(equalTo: cancel.leftAnchor, constant: 0).isActive = true
+        textHeight = textView.heightAnchor.constraint(equalToConstant: 12)
+        textHeight.isActive = true
+        
+        collapsedTextHeight = textView.heightAnchor.constraint(equalToConstant: 12)
+        collapsedTextHeight.isActive = false
         
         suggestHeightConstraint = textView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 120)
         suggestHeightConstraint.isActive = true
@@ -93,6 +113,8 @@ class TypeaheadViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardDidChangeFrame, object: nil)
         
         setBackground(.white)
+        updateTextViewSize()
+        view.layoutIfNeeded()
     }
     
     func setBackground(_ newColor: UIColor) {
@@ -130,17 +152,16 @@ class TypeaheadViewController: UIViewController {
     
     func updateTextViewSize() {
         let fixedWidth = textView.frame.size.width
-        
-        textView.textContainerInset = UIEdgeInsetsMake(9, 12, 9, 12)
+        textView.textContainerInset = UIEdgeInsetsMake(10, 12, 10, 12)
         
         let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
         var newFrame = textView.frame
-        
         let newHeight: CGFloat = max(20, min(fullTextSize.height, SEARCHVIEW_MAX_H))  // 80.0
-        textView.isScrollEnabled = fullTextSize.height > SEARCHVIEW_MAX_H
         
         newFrame.size = CGSize(width: max(fullTextSize.width, fixedWidth), height: newHeight)
-        textView.frame = newFrame;
+//        textView.frame = newFrame;
+        textView.isScrollEnabled = fullTextSize.height > SEARCHVIEW_MAX_H
+        textHeight.constant = newHeight
     }
     
     @objc func keyboardWillShow(notification: NSNotification) {
@@ -162,6 +183,17 @@ extension TypeaheadViewController : UITextViewDelegate {
         if text == "\n" {
             if let browser = self.presentingViewController as? BrowserViewController {
                 browser.navigateToText(textView.text)
+                dismissSelf()
+                return false
+            }
+            if let nav = self.presentingViewController as? UINavigationController {
+                if let switcher = nav.topViewController as? TabSwitcherViewController {
+                    textView.resignFirstResponder()
+                    self.dismiss(animated: false, completion: {
+                        switcher.addTab(startingFrom: textView.text)
+                    })
+                    return false
+                }
             }
             dismissSelf()
             return false
@@ -170,3 +202,18 @@ extension TypeaheadViewController : UITextViewDelegate {
     }
 
 }
+
+// MARK - Animation
+
+extension TypeaheadViewController : UIViewControllerTransitioningDelegate {
+    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        displaySearchTransition.direction = .present
+        return displaySearchTransition
+    }
+    
+    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        displaySearchTransition.direction = .dismiss
+        return displaySearchTransition
+    }
+}
+

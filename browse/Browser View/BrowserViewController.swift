@@ -25,8 +25,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var aspectConstraint : NSLayoutConstraint!
     var statusHeightConstraint : NSLayoutConstraint!
 
-    var displaySearchTransition = TypeaheadAnimationController()
-
     var isDisplayingSearch : Bool = false
     var searchView: SearchView!
     var colorSampler: WebviewColorSampler!
@@ -509,8 +507,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     func displayFullSearch(animated: Bool = true) {
-        searchVC.transitioningDelegate = self
-        searchVC.modalPresentationStyle = .custom
         searchVC.setBackground(toolbar.lastColor)
         present(searchVC, animated: true, completion: nil)
     }
@@ -970,16 +966,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 btn.text = text
             }
         }
+        locationBar.progress = 0
         webView.load(URLRequest(url: url))
-//        if isBlank {
-//            webView.load(URLRequest(url: url))
-//        }
-//        else {
-//            updateSnapshot() {
-//                self.webView.load(URLRequest(url: url))
-//                self.gestureController.animateNewPage()
-//            }
-//        }
     }
     
     @objc func hideError() {
@@ -1176,19 +1164,4 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
         toolbar.cancelColorChange()
     }
 }
-
-// MARK - Animation
-
-extension BrowserViewController : UIViewControllerTransitioningDelegate {
-    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        displaySearchTransition.direction = .present
-        return displaySearchTransition
-    }
-    
-    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        displaySearchTransition.direction = .dismiss
-        return displaySearchTransition
-    }
-}
-
 

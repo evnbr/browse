@@ -588,10 +588,15 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
         
         // Swap colors
+        let statusColor = vc.statusBar.lastColor
+        let toolbarColor = vc.toolbar.lastColor
         vc.statusBar.update(toColor: mockCardView.statusView.backgroundColor ?? .white)
         vc.toolbar.update(toColor: mockCardView.toolbarView.backgroundColor ?? .white)
         vc.statusBar.backgroundView.alpha = 1
         vc.toolbar.backgroundView.alpha = 1
+        mockCardView.statusView.backgroundColor = statusColor
+        mockCardView.toolbarView.backgroundColor = toolbarColor
+
         
         // Swap pos
         let cardCenter = cardView.center
@@ -688,7 +693,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         if (direction == .top && adjustedY < 0) || (direction == .bottom && adjustedY > 0) {
             endGesture()
-            vc.resetSizes()
+            vc.gradientOverlay.alpha = 0
+             vc.resetSizes()
             return
         }
         
