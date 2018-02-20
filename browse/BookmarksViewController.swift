@@ -68,7 +68,6 @@ class BookmarksViewController : UIViewController, UITableViewDelegate, UITableVi
         
         
         table = UITableView(frame:self.view.frame)
-
         table.register(UITableViewCell.self, forCellReuseIdentifier: "MyCell")
         table.dataSource = self
         table.delegate = self

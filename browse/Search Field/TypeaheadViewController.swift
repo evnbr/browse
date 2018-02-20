@@ -8,12 +8,16 @@
 
 import UIKit
 
+let typeaheadReuseID = "TypeaheadRow"
+let MAX_ROWS : Int = 4
+
 class TypeaheadViewController: UIViewController {
 
     var contentView: UIView!
     var scrim: UIView!
     var textView: SearchTextView!
     var cancel: ToolbarTextButton!
+    var suggestionTable: UITableView!
 
     var displaySearchTransition = TypeaheadAnimationController()
     
@@ -22,8 +26,14 @@ class TypeaheadViewController: UIViewController {
     var textHeight : NSLayoutConstraint!
     var collapsedTextHeight : NSLayoutConstraint!
 
-    var suggestionHeight : CGFloat = 160
+    var suggestionHeight : CGFloat = 200
     var keyboardHeight : CGFloat = 250
+    
+    var suggestions : [String] = [
+        "Share",
+        "Copy",
+        "Refresh",
+    ]
     
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -50,15 +60,26 @@ class TypeaheadViewController: UIViewController {
         view.addSubview(scrim)
         
         contentView = UIView(frame: view.bounds)
-        contentView.layer.cornerRadius = 24
+        contentView.layer.cornerRadius = Const.shared.cardRadius
         contentView.backgroundColor = .white
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.tintColor = .darkText
+        contentView.clipsToBounds = true
         view.addSubview(contentView)
         
         contentView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
         contentView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
         contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+
+        suggestionTable = UITableView(frame:self.view.frame)
+        suggestionTable.rowHeight = 48.0
+        suggestionTable.register(UITableViewCell.self, forCellReuseIdentifier: typeaheadReuseID)
+        suggestionTable.translatesAutoresizingMaskIntoConstraints = false
+        suggestionTable.dataSource = self
+        suggestionTable.delegate = self
+        suggestionTable.isScrollEnabled = false
+        suggestionTable.separatorStyle = .none
+        contentView.addSubview(suggestionTable)
 
         textView = SearchTextView()
         textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 48)
@@ -103,7 +124,12 @@ class TypeaheadViewController: UIViewController {
         collapsedTextHeight = textView.heightAnchor.constraint(equalToConstant: 12)
         collapsedTextHeight.isActive = false
         
-        suggestHeightConstraint = textView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 120)
+        
+        suggestionTable.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
+        suggestionTable.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
+        suggestionTable.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
+        suggestionTable.bottomAnchor.constraint(equalTo: textView.topAnchor, constant: -12).isActive = true
+        suggestHeightConstraint = suggestionTable.heightAnchor.constraint(equalToConstant: suggestionHeight)
         suggestHeightConstraint.isActive = true
         
         kbHeightConstraint = textView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
@@ -133,6 +159,7 @@ class TypeaheadViewController: UIViewController {
         if let browser = self.presentingViewController as? BrowserViewController {
             textView.text = browser.editableLocation
             updateTextViewSize()
+            updateSuggestion()
         }
         
         textView.becomeFirstResponder()
@@ -150,19 +177,6 @@ class TypeaheadViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
-    func updateTextViewSize() {
-        let fixedWidth = textView.frame.size.width
-        textView.textContainerInset = UIEdgeInsetsMake(10, 12, 10, 12)
-        
-        let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
-        var newFrame = textView.frame
-        let newHeight: CGFloat = max(20, min(fullTextSize.height, SEARCHVIEW_MAX_H))  // 80.0
-        
-        newFrame.size = CGSize(width: max(fullTextSize.width, fixedWidth), height: newHeight)
-//        textView.frame = newFrame;
-        textView.isScrollEnabled = fullTextSize.height > SEARCHVIEW_MAX_H
-        textHeight.constant = newHeight
-    }
     
     @objc func keyboardWillShow(notification: NSNotification) {
         let userInfo: NSDictionary = notification.userInfo! as NSDictionary
@@ -177,30 +191,76 @@ class TypeaheadViewController: UIViewController {
 extension TypeaheadViewController : UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
         updateTextViewSize()
+        updateSuggestion()
+    }
+    
+    func updateSuggestion() {
+        Typeahead.shared.suggestions(for: textView.text, maxCount: 4) { arr in
+            self.suggestions = arr.reversed()
+            self.suggestHeightConstraint.constant = self.suggestionTable.rowHeight * CGFloat(self.suggestions.count)
+            self.suggestionTable.reloadData()
+            self.suggestionTable.layoutIfNeeded()
+        }
+    }
+    
+    func updateTextViewSize() {
+        let fixedWidth = textView.frame.size.width
+        textView.textContainerInset = UIEdgeInsetsMake(10, 12, 10, 12)
+        
+        let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
+        var newFrame = textView.frame
+        let newHeight: CGFloat = max(20, min(fullTextSize.height, SEARCHVIEW_MAX_H))  // 80.0
+        
+        newFrame.size = CGSize(width: max(fullTextSize.width, fixedWidth), height: newHeight)
+        //        textView.frame = newFrame;
+        textView.isScrollEnabled = fullTextSize.height > SEARCHVIEW_MAX_H
+        textHeight.constant = newHeight
     }
     
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
         if text == "\n" {
-            if let browser = self.presentingViewController as? BrowserViewController {
-                browser.navigateToText(textView.text)
-                dismissSelf()
-                return false
-            }
-            if let nav = self.presentingViewController as? UINavigationController {
-                if let switcher = nav.topViewController as? TabSwitcherViewController {
-                    textView.resignFirstResponder()
-                    self.dismiss(animated: false, completion: {
-                        switcher.addTab(startingFrom: textView.text)
-                    })
-                    return false
-                }
-            }
-            dismissSelf()
+            navigateTo(textView.text)
             return false
         }
         return true
     }
+    
+    func navigateTo(_ text: String) {
+        if let browser = self.presentingViewController as? BrowserViewController {
+            browser.navigateToText(text)
+            dismissSelf()
+            return
+        }
+        if let nav = self.presentingViewController as? UINavigationController {
+            if let switcher = nav.topViewController as? TabSwitcherViewController {
+                self.dismiss(animated: false, completion: {
+                    switcher.addTab(startingFrom: text)
+                })
+                textView.resignFirstResponder()
+                return
+            }
+        }
+    }
+}
 
+extension TypeaheadViewController : UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let text = suggestions[indexPath.item]
+        navigateTo(text)
+    }
+}
+
+extension TypeaheadViewController : UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return min(MAX_ROWS, suggestions.count)
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: typeaheadReuseID, for: indexPath)
+        // Configure the cells
+        cell.textLabel?.text = suggestions[indexPath.item]
+        return cell
+    }
 }
 
 // MARK - Animation

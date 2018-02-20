@@ -14,7 +14,7 @@ import Foundation
 class Typeahead: NSObject {
     static let shared = Typeahead()
     
-    func suggestions(for text: String, completion: @escaping ([String]) -> Void) {
+    func suggestions(for text: String, maxCount: Int = .max, completion: @escaping ([String]) -> Void) {
         let query = text.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
         guard let url = URL(string: "https://duckduckgo.com/ac/?q=\(query)") else { return }
         
@@ -25,7 +25,7 @@ class Typeahead: NSObject {
                 
                 var phrases : [String] = []
                 for item in suggestions {
-                    if let dict = item as? NSDictionary {
+                    if let dict = item as? NSDictionary, phrases.count < maxCount {
                         if let phrase = dict.value(forKey: "phrase") as? String {
                             phrases.append(phrase)
                         }
