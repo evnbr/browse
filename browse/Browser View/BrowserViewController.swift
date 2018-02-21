@@ -21,12 +21,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var topConstraint : NSLayoutConstraint!
     var accessoryHeightConstraint : NSLayoutConstraint!
     var toolbarHeightConstraint : NSLayoutConstraint!
-    var kbHeightConstraint : NSLayoutConstraint!
     var aspectConstraint : NSLayoutConstraint!
     var statusHeightConstraint : NSLayoutConstraint!
 
     var isDisplayingSearch : Bool = false
-    var searchView: SearchView!
     var colorSampler: WebviewColorSampler!
     
     lazy var searchVC = TypeaheadViewController()
@@ -43,14 +41,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var contentView: UIView!
     var overlay: UIView!
     var gradientOverlay: GradientView!
-
-    let keyboardBack = UIView()
     
     var backButton: ToolbarIconButton!
     var stopButton: ToolbarIconButton!
     var forwardButton: ToolbarIconButton!
     var tabButton: ToolbarIconButton!
-    var actionButton: ToolbarIconButton!
     var locationBar: LocationBar!
     
     var overflowController: UIAlertController!
@@ -234,8 +229,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         cardView.addSubview(contentView)
         
         statusBar = ColorStatusBarView()
-
-        searchView = SearchView(for: self)
         
         toolbar = setUpToolbar()
         
@@ -268,10 +261,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         constrainTop3(contentView, gradientOverlay)
         gradientOverlay.heightAnchor.constraint(equalToConstant: THUMB_H)
 
-        keyboardBack.translatesAutoresizingMaskIntoConstraints = false
-        keyboardBack.backgroundColor = .clear
-        contentView.addSubview(keyboardBack)
-
         constrainTop3(statusBar, contentView)
         statusHeightConstraint = statusBar.heightAnchor.constraint(equalToConstant: Const.statusHeight)
         statusHeightConstraint.isActive = true
@@ -286,19 +275,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         toolbar.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
         toolbar.widthAnchor.constraint(equalTo: cardView.widthAnchor).isActive = true
-        toolbar.bottomAnchor.constraint(equalTo: keyboardBack.topAnchor).isActive = true
+        toolbar.bottomAnchor.constraint(equalTo: toolbarPlaceholder.bottomAnchor).isActive = true
         
         toolbarPlaceholder.leftAnchor.constraint(equalTo: cardView.leftAnchor).isActive = true
         toolbarPlaceholder.rightAnchor.constraint(equalTo: cardView.rightAnchor).isActive = true
         toolbarPlaceholder.heightAnchor.constraint(equalToConstant: Const.toolbarHeight).isActive = true
-
-
-        keyboardBack.leftAnchor.constraint(equalTo: toolbar.leftAnchor).isActive = true
-        keyboardBack.rightAnchor.constraint(equalTo: toolbar.rightAnchor).isActive = true
-        keyboardBack.bottomAnchor.constraint(equalTo: toolbarPlaceholder.bottomAnchor).isActive = true
-        keyboardBack.topAnchor.constraint(equalTo: toolbar.bottomAnchor).isActive = true
-        kbHeightConstraint = keyboardBack.heightAnchor.constraint(equalToConstant: 0)
-        kbHeightConstraint.isActive = true
         
         accessoryView = setupAccessoryView()
         
@@ -316,10 +297,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         let historyPress = UILongPressGestureRecognizer(target: self, action: #selector(showHistory))
         backButton.addGestureRecognizer(historyPress)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardDidChangeFrame, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
     }
     
     @objc func showHistory(_ : Any?) {
@@ -328,26 +305,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         present(hNav, animated: true, completion: nil)
     }
     
-    var keyboardHeight : CGFloat = 250
-    @objc func keyboardWillShow(notification: NSNotification) {
-        let userInfo: NSDictionary = notification.userInfo! as NSDictionary
-        let keyboardFrame: NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as! NSValue
-        let keyboardRectangle = keyboardFrame.cgRectValue
-        let newHeight = keyboardRectangle.height
-        
-        if newHeight != keyboardHeight {
-            keyboardHeight = newHeight
-            self.searchSizeDidChange()
-        }
-        // Hack to prevent accessory of showing up at bottom
-//        accessoryView.isHidden = keyboardHeight < 50
-        accessoryHeightConstraint?.constant = keyboardHeight < 50 ? 0 : 48
-    }
-    
-    @objc func keyboardWillHide(notification: NSNotification) {
-        // Hack to prevent accessory of showing up at bottom
-        accessoryHeightConstraint?.constant = 0
-    }
     
 //    var accessoryHeightConstraint : NSLayoutConstraint? {
 //        print(accessoryView.constraints.first)
@@ -466,19 +423,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             icon: UIImage(named: "fwd"),
             onTap: { self.webView.goForward() }
         )
-        actionButton = ToolbarIconButton(
-            icon: UIImage(named: "action"),
-            onTap: displayOverflow
-        )
         tabButton = ToolbarIconButton(
             icon: UIImage(named: "tab"),
             onTap: dismissSelf
-//            onTap: {
-//                self.updateSnapshot() {
-//                    self.gestureController.animateNewPage()
-//                    self.displaySearch(animated: true)
-//                }
-//            }
         )
         stopButton = ToolbarIconButton(
             icon: UIImage(named: "stop"),
@@ -491,18 +438,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 
         toolbar.items = [backButton, locationBar, tabButton]
         
-        toolbar.addSubview(searchView)
-        
-        searchView.topAnchor.constraint(equalTo: toolbar.topAnchor).isActive = true
-        searchView.centerXAnchor.constraint(equalTo: toolbar.centerXAnchor).isActive = true
-        searchView.widthAnchor.constraint(equalTo: toolbar.widthAnchor).isActive = true
-//        searchView.widthAnchor.constraint(lessThanOrEqualToConstant: 320.0).isActive = true
-        
-//        toolbar.alpha = 0.5
-        
         toolbar.tintColor = .darkText
-
-        
         return toolbar
     }
     
@@ -590,12 +526,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         showToolbar(animated: false)
         statusBar.backgroundView.alpha = 1
         toolbar.backgroundView.alpha = 1
-        
-        if isBlank {
-//            displaySearch(animated: true)
-//            displayFullSearch(animated: false)
-        }
-
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -650,8 +580,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         return true
     }
 
-        
-
     // MARK: - Actions
 
     func displayBookmarks() {
@@ -660,162 +588,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         present(WebNavigationController(rootViewController: bc), animated: true)
     }
     
-
-    // MARK: - Edit Menu / First Responder
-
-    // This enables docked inputaccessory and long-press edit menu
-    // http://stackoverflow.com/questions/19764293/inputaccessoryview-docked-at-bottom/23880574#23880574
-    override var canBecomeFirstResponder : Bool {
-        return true
-    }
-//    override var inputAccessoryView:UIView{
-//        get { return searchView }
-//    }
-    
-    func displayEditMenu() {
-        if !isFirstResponder {
-            UIView.setAnimationsEnabled(false)
-            self.becomeFirstResponder()
-            UIView.setAnimationsEnabled(true)
-        }
-        DispatchQueue.main.async {
-            UIMenuController.shared.setTargetRect(self.toolbar.frame, in: self.view)
-            let copy : UIMenuItem = UIMenuItem(title: "Copy", action: #selector(self.copyURL))
-            let pasteAndGo : UIMenuItem = UIMenuItem(title: "Paste and Go", action: #selector(self.pasteURLAndGo))
-            let share : UIMenuItem = UIMenuItem(title: "Share", action: #selector(self.displayShareSheet))
-            UIMenuController.shared.menuItems = [ copy, pasteAndGo, share ]
-            UIMenuController.shared.setMenuVisible(true, animated: true)
-        }
-    }
-    
-    override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
-        if !isFirstResponder && action != #selector(pasteURLAndGo) {
-            return false
-        }
-        switch action {
-        case #selector(copyURL):
-            return true
-        case #selector(pasteURLAndGo):
-            return UIPasteboard.general.hasStrings
-        case #selector(displayShareSheet):
-            return true
-        default:
-            return false
-        }
-    }
     
     @objc func copyURL() {
         UIPasteboard.general.string = self.editableLocation
     }
     
-    @objc func pasteURLAndGo() {
-        hideSearch()
-        if let str = UIPasteboard.general.string {
-            navigateToText(str)
-        }
-    }
-
-    // MARK: - Search
-    
-    func displaySearch(animated: Bool = false) {
-        guard !UIMenuController.shared.isMenuVisible else { return }
-        
-        isDisplayingSearch = true
-        searchView.isUserInteractionEnabled = true
-        searchView.prepareToShow()
-        
-        if !searchView.textView.isFirstResponder {
-            if !animated { UIView.setAnimationsEnabled(false) }
-            searchView.textView.becomeFirstResponder()
-            if !animated { UIView.setAnimationsEnabled(true) }
-        }
-        
-        // NOTE: we probably don't have the true keyboard height yet
-        
-        self.toolbar.progressView.isHidden = true
-        
-        self.kbHeightConstraint.constant = keyboardHeight
-
-        if animated {
-            UIView.animate(
-                withDuration: 0.5,
-                delay: 0.0,
-                usingSpringWithDamping: 1,
-                initialSpringVelocity: 0.0,
-                options: [.curveLinear, .allowUserInteraction],
-                animations: {
-                    
-                self.toolbarHeightConstraint.constant = self.searchView.bounds.height
-                    
-                self.locationBar.alpha = 0
-                self.view.layoutIfNeeded()
-                    
-                self.backButton.isHidden = true
-                self.forwardButton.isHidden = true
-                self.actionButton.isHidden = true
-                self.tabButton.alpha = 0
-            })
-        }
-        else {
-//            self.cardView.frame.size.height = cardH
-//            self.cardView.layer.cornerRadius = 8
-
-            self.toolbarHeightConstraint.constant = self.searchView.frame.height
-            self.locationBar.alpha = 0
-            self.view.layoutIfNeeded()
-            
-            
-            self.backButton.isHidden = true
-            self.forwardButton.isHidden = true
-//            self.stopButton.isHidden = true
-            self.actionButton.isHidden = true
-            self.tabButton.alpha = 0
-        }
-        
-    }
-    
-    @objc func hideSearch(animated : Bool = true) {
-        
-        isDisplayingSearch = false
-        
-        if searchView.textView.isFirstResponder {
-            searchView.textView.resignFirstResponder()
-        }
-        searchView.isUserInteractionEnabled = false
-        toolbar.progressView.isHidden = false
-        locationBar.backgroundColor = locationBar.tapColor
-
-        self.kbHeightConstraint.constant = 0
-
-        UIView.animate(
-            withDuration: animated ? 0.5 : 0,
-            delay: 0.0,
-            usingSpringWithDamping: 0.9,
-            initialSpringVelocity: 0.0,
-            options: [.curveLinear, .allowUserInteraction],
-            animations: {
-            
-                self.toolbarHeightConstraint.constant = Const.toolbarHeight
-                self.locationBar.alpha = 1
-                self.locationBar.backgroundColor = .clear
-            
-                self.view.layoutIfNeeded()
-                
-                self.backButton.isHidden = false
-                self.forwardButton.isHidden = false
-                self.actionButton.isHidden = false
-                self.tabButton.alpha = 1
-        })
-    }
-    
-    
-    func searchSizeDidChange() {
-        if searchView != nil && isDisplayingSearch {
-            self.kbHeightConstraint.constant = keyboardHeight
-            self.toolbarHeightConstraint.constant = self.searchView.frame.height
-            self.toolbar.layoutIfNeeded()
-        }
-    }
     
     // MARK: - Share ActivityViewController and 1Password
     
@@ -1037,17 +814,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             self.stopButton.isEnabled = self.webView.isLoading
             self.stopButton.tintColor = self.webView.isLoading ? nil : .clear
             self.stopButton.transform = self.webView.isLoading ? .identity : small
-            
-//            self.forwardButton.isHidden = !self.webView.canGoForward
         }
         
         if self.webView.isLoading {
             showToolbar()
         }
-        
-//        self.stopButton.isHidden = !self.webView.isLoading
-        self.actionButton.isHidden = self.webView.isLoading
-        
         
         locationBar.isLoading = webView.isLoading
         locationBar.isSecure = webView.hasOnlySecureContent
@@ -1111,7 +882,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     }
     
     var bottomSamplePosition : CGFloat {
-        return cardView.bounds.height - (kbHeightConstraint.constant) - Const.statusHeight - toolbarHeightConstraint.constant
+        return cardView.bounds.height - Const.statusHeight - toolbarHeightConstraint.constant
     }
     
     func topColorChange(_ newColor: UIColor) {

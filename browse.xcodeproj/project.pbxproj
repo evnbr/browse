@@ -30,7 +30,6 @@
 		A94FE41F1ECA5A7400ED48DB /* UIColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */; };
 		A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE4201ECA661700ED48DB /* Sampler.swift */; };
 		A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */; };
-		A96184821ECEA39200EF3A6F /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96184811ECEA39200EF3A6F /* SearchView.swift */; };
 		A969D4A51F1321EC008A7BC6 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A969D4A41F1321EC008A7BC6 /* Constants.swift */; };
 		A96A42EE1F9160B300C0F3E2 /* HistoryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96A42ED1F9160B300C0F3E2 /* HistoryItem.swift */; };
 		A96A42F51F917F9C00C0F3E2 /* HistoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96A42F41F917F9C00C0F3E2 /* HistoryViewController.swift */; };
@@ -47,7 +46,6 @@
 		A9A88DE92015C64F007FC6C0 /* GradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9A88DE82015C64F007FC6C0 /* GradientView.swift */; };
 		A9AA4A581FF72471001AB639 /* PlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9AA4A571FF72471001AB639 /* PlaceholderView.swift */; };
 		A9AA4A5A1FF76CDA001AB639 /* UIView+POP.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9AA4A591FF76CDA001AB639 /* UIView+POP.swift */; };
-		A9B3176A1ED134CD00C71EBE /* SearchTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B317691ED134CD00C71EBE /* SearchTextView.swift */; };
 		A9B99797203791DB00841404 /* TypeaheadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B99796203791DB00841404 /* TypeaheadViewController.swift */; };
 		A9B9979920380C8A00841404 /* TypeaheadAnimationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B9979820380C8A00841404 /* TypeaheadAnimationController.swift */; };
 		A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */; };
@@ -110,7 +108,6 @@
 		A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIColorExtensions.swift; sourceTree = "<group>"; };
 		A94FE4201ECA661700ED48DB /* Sampler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sampler.swift; sourceTree = "<group>"; };
 		A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebNavigationController.swift; sourceTree = "<group>"; };
-		A96184811ECEA39200EF3A6F /* SearchView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		A969D4A41F1321EC008A7BC6 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		A96A42ED1F9160B300C0F3E2 /* HistoryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HistoryItem.swift; path = browse/History/HistoryItem.swift; sourceTree = SOURCE_ROOT; };
 		A96A42F41F917F9C00C0F3E2 /* HistoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewController.swift; sourceTree = "<group>"; };
@@ -133,7 +130,6 @@
 		A9A88DE82015C64F007FC6C0 /* GradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientView.swift; sourceTree = "<group>"; };
 		A9AA4A571FF72471001AB639 /* PlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderView.swift; sourceTree = "<group>"; };
 		A9AA4A591FF76CDA001AB639 /* UIView+POP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "UIView+POP.swift"; path = "browse/Utils/UIView+POP.swift"; sourceTree = SOURCE_ROOT; };
-		A9B317691ED134CD00C71EBE /* SearchTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchTextView.swift; sourceTree = "<group>"; };
 		A9B99796203791DB00841404 /* TypeaheadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TypeaheadViewController.swift; path = "browse/Search Field/TypeaheadViewController.swift"; sourceTree = SOURCE_ROOT; };
 		A9B9979820380C8A00841404 /* TypeaheadAnimationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TypeaheadAnimationController.swift; path = "browse/Search Field/TypeaheadAnimationController.swift"; sourceTree = SOURCE_ROOT; };
 		A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientColorChangeView.swift; sourceTree = "<group>"; };
@@ -204,9 +200,7 @@
 			children = (
 				A9B9979820380C8A00841404 /* TypeaheadAnimationController.swift */,
 				A9B99796203791DB00841404 /* TypeaheadViewController.swift */,
-				A96184811ECEA39200EF3A6F /* SearchView.swift */,
 				A9447A2C2027F48000654572 /* Typeahead.swift */,
-				A9B317691ED134CD00C71EBE /* SearchTextView.swift */,
 			);
 			path = "Search Field";
 			sourceTree = "<group>";
@@ -683,7 +677,6 @@
 				A92C9C3B1EF8B5E600D8AAA3 /* BrowserGestureController.swift in Sources */,
 				A90F51211F70C6CB00221815 /* UIImageColors.swift in Sources */,
 				A9E422811F86B4FD0028B4CA /* StackingCollectionViewLayout.swift in Sources */,
-				A96184821ECEA39200EF3A6F /* SearchView.swift in Sources */,
 				A9B99797203791DB00841404 /* TypeaheadViewController.swift in Sources */,
 				A98483281EEFCFE200E821AE /* ColorToolbarView.swift in Sources */,
 				A92095931EE36483009497A2 /* TabThumbnail.swift in Sources */,
@@ -718,7 +711,6 @@
 				A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */,
 				A96A42EE1F9160B300C0F3E2 /* HistoryItem.swift in Sources */,
 				A9210D511F0148E600904A0B /* URL+DisplayHost.swift in Sources */,
-				A9B3176A1ED134CD00C71EBE /* SearchTextView.swift in Sources */,
 				A99328471F098E270045EBAA /* ToolbarTextButton.swift in Sources */,
 				A96A42F51F917F9C00C0F3E2 /* HistoryViewController.swift in Sources */,
 				A94FE41F1ECA5A7400ED48DB /* UIColorExtensions.swift in Sources */,

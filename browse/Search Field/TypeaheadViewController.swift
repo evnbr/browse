@@ -10,6 +10,7 @@ import UIKit
 
 let typeaheadReuseID = "TypeaheadRow"
 let MAX_ROWS : Int = 4
+let SEARCHVIEW_MAX_H : CGFloat = 160.0
 
 struct TypeaheadRow {
     let text: String
@@ -21,7 +22,7 @@ class TypeaheadViewController: UIViewController {
 
     var contentView: UIView!
     var scrim: UIView!
-    var textView: SearchTextView!
+    var textView: UITextView!
     var cancel: ToolbarTextButton!
     var suggestionTable: UITableView!
 
@@ -117,7 +118,7 @@ class TypeaheadViewController: UIViewController {
         suggestionTable.separatorStyle = .none
         contentView.addSubview(suggestionTable)
 
-        textView = SearchTextView()
+        textView = UITextView()
         textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 48)
         textView.placeholder = "Where to?"
         

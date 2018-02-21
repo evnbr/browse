@@ -454,9 +454,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         wouldCommitPreviousY = false
         isBackForwardProgress = 1
         startScroll = vc.webView.scrollView.contentOffset
-        
-        if vc.isDisplayingSearch { vc.hideSearch() }
-        
+                
         vc.webView.scrollView.showsVerticalScrollIndicator = false
         vc.browserTab?.updateSnapshot()
         
