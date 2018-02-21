@@ -26,7 +26,7 @@
 		A9210D511F0148E600904A0B /* URL+DisplayHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9210D501F0148E600904A0B /* URL+DisplayHost.swift */; };
 		A92C9C391EF5D66B00D8AAA3 /* BrowserViewController+WKNavigationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92C9C381EF5D66B00D8AAA3 /* BrowserViewController+WKNavigationDelegate.swift */; };
 		A92C9C3B1EF8B5E600D8AAA3 /* BrowserGestureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92C9C3A1EF8B5E600D8AAA3 /* BrowserGestureController.swift */; };
-		A9447A2D2027F48000654572 /* TypeaheadController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9447A2C2027F48000654572 /* TypeaheadController.swift */; };
+		A9447A2D2027F48000654572 /* Typeahead.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9447A2C2027F48000654572 /* Typeahead.swift */; };
 		A94FE41F1ECA5A7400ED48DB /* UIColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */; };
 		A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE4201ECA661700ED48DB /* Sampler.swift */; };
 		A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */; };
@@ -106,7 +106,7 @@
 		A92C9C381EF5D66B00D8AAA3 /* BrowserViewController+WKNavigationDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "BrowserViewController+WKNavigationDelegate.swift"; sourceTree = "<group>"; };
 		A92C9C3A1EF8B5E600D8AAA3 /* BrowserGestureController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BrowserGestureController.swift; sourceTree = "<group>"; };
 		A9446E9A1ECEBFC40082B4D9 /* Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Bridging-Header.h"; sourceTree = "<group>"; };
-		A9447A2C2027F48000654572 /* TypeaheadController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeaheadController.swift; sourceTree = "<group>"; };
+		A9447A2C2027F48000654572 /* Typeahead.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Typeahead.swift; sourceTree = "<group>"; };
 		A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIColorExtensions.swift; sourceTree = "<group>"; };
 		A94FE4201ECA661700ED48DB /* Sampler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sampler.swift; sourceTree = "<group>"; };
 		A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebNavigationController.swift; sourceTree = "<group>"; };
@@ -205,7 +205,7 @@
 				A9B9979820380C8A00841404 /* TypeaheadAnimationController.swift */,
 				A9B99796203791DB00841404 /* TypeaheadViewController.swift */,
 				A96184811ECEA39200EF3A6F /* SearchView.swift */,
-				A9447A2C2027F48000654572 /* TypeaheadController.swift */,
+				A9447A2C2027F48000654572 /* Typeahead.swift */,
 				A9B317691ED134CD00C71EBE /* SearchTextView.swift */,
 			);
 			path = "Search Field";
@@ -692,7 +692,7 @@
 				A92095971EE3E2AF009497A2 /* ToolbarIconButton.swift in Sources */,
 				A97CB0721EC53DCD005DDBD1 /* BrowserViewController.swift in Sources */,
 				A908F04C1ECD03B800A74241 /* ColorStatusBarView.swift in Sources */,
-				A9447A2D2027F48000654572 /* TypeaheadController.swift in Sources */,
+				A9447A2D2027F48000654572 /* Typeahead.swift in Sources */,
 				A98466731FF0F9170009FC12 /* Utils.swift in Sources */,
 				A97CB0701EC53DCD005DDBD1 /* AppDelegate.swift in Sources */,
 				A97BF8311EF3B5B900B9ECB4 /* BrowserViewController+WKUIDelegate.swift in Sources */,

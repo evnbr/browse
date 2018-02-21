@@ -840,12 +840,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
     }
     
-    @objc func displayShareSheet() {
-        self.resignFirstResponder() // without this, action sheet dismiss animation won't go all the way
-        
-        
+    func makeShareSheet(completion: @escaping (UIActivityViewController) -> ()) {
         let onePass = OnePasswordExtension.shared()
-        
         onePass.createExtensionItem(
             forWebView: self.webView,
             completion: { (extensionItem, error) in
@@ -872,10 +868,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                         }
                     }
                 }
-                self.present(avc, animated: true, completion: nil)
+                completion(avc)
         })
-        
-        
+    }
+    
+    @objc func displayShareSheet() {
+        self.resignFirstResponder() // without this, action sheet dismiss animation won't go all the way
+        makeShareSheet { avc in
+            self.present(avc, animated: true, completion: nil)
+        }
     }
     
     func displayOverflow() {

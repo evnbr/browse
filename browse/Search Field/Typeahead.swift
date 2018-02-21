@@ -1,5 +1,5 @@
 //
-//  TypeaheadController.swift
+//  Typeahead.swift
 //  browse
 //
 //  Created by Evan Brooks on 2/4/18.

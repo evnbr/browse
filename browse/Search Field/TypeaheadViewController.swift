@@ -11,6 +11,12 @@ import UIKit
 let typeaheadReuseID = "TypeaheadRow"
 let MAX_ROWS : Int = 4
 
+struct TypeaheadRow {
+    let text: String
+    let action: (() -> Void)?
+    let isEnabled: Bool = true
+}
+
 class TypeaheadViewController: UIViewController {
 
     var contentView: UIView!
@@ -29,8 +35,42 @@ class TypeaheadViewController: UIViewController {
     var suggestionHeight : CGFloat = 0
     var keyboardHeight : CGFloat = 250
     
-    var suggestions : [String] = []
+    var suggestions : [TypeaheadRow] = []
     
+    var browser : BrowserViewController? {
+        return self.presentingViewController as? BrowserViewController
+    }
+    var switcher : TabSwitcherViewController? {
+        if let nav = self.presentingViewController as? UINavigationController,
+            let switcher = nav.topViewController as? TabSwitcherViewController {
+            return switcher
+        }
+        else { return nil }
+    }
+    var pageActions : [TypeaheadRow] {
+        return [
+        TypeaheadRow(text: browser?.webView.title ?? "Untitled Page", action: nil),
+        TypeaheadRow(text: "🔄 Refresh", action: {
+            guard let b = self.browser else { return }
+            self.dismiss(animated: true, completion: { b.webView.reload() })
+        }),
+        TypeaheadRow(text: "✉️ Share", action: {
+            guard let b = self.browser else { return }
+            self.dismiss(animated: true, completion: b.displayShareSheet)
+        }),
+        TypeaheadRow(text: "📄 Copy", action: {
+            guard let b = self.browser else { return }
+            self.dismiss(animated: true, completion: {
+                b.copyURL()
+                let alert = UIAlertController(title: "Copied", message: nil, preferredStyle: .alert)
+                b.present(alert, animated: true, completion: {
+                    alert.dismiss(animated: true, completion: nil)
+                })
+            })
+        }),
+        ]
+    }
+
     init() {
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .custom
@@ -153,20 +193,19 @@ class TypeaheadViewController: UIViewController {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        if let browser = self.presentingViewController as? BrowserViewController {
+        if let browser = self.browser {
             textView.text = browser.editableLocation
             updateTextViewSize()
             showPageActions()
         }
         
         textView.becomeFirstResponder()
-        textView.selectAll(nil) // if not nil, will show actions
+        textView.selectAll(self) // if not nil, will show actions
     }
     
     @objc
     func dismissSelf() {
         self.dismiss(animated: true)
-        textView.resignFirstResponder()
     }
 
     override func didReceiveMemoryWarning() {
@@ -198,20 +237,27 @@ extension TypeaheadViewController : UITextViewDelegate {
             return
         }
         Typeahead.shared.suggestions(for: textView.text, maxCount: 4) { arr in
-            self.suggestions = arr.reversed()
+            self.suggestions = arr.reversed().map({ txt in
+                return TypeaheadRow(text: txt, action: nil)
+            })
             self.renderSuggestions()
         }
     }
     
     func showPageActions() {
-        self.suggestions = ["Share", "Copy", "Refresh"]
-        self.renderSuggestions()
+        suggestions = pageActions
+        renderSuggestions()
+    }
+    
+    func displayShare() {
     }
     
     func renderSuggestions() {
-        self.suggestHeightConstraint.constant = self.suggestionTable.rowHeight * CGFloat(self.suggestions.count)
-        self.suggestionTable.reloadData()
-        self.suggestionTable.layoutIfNeeded()
+        let h = suggestionTable.rowHeight * CGFloat(suggestions.count)
+        suggestionHeight = h
+        suggestHeightConstraint.constant = h
+        suggestionTable.reloadData()
+        suggestionTable.layoutIfNeeded()
     }
     
     func updateTextViewSize() {
@@ -237,17 +283,15 @@ extension TypeaheadViewController : UITextViewDelegate {
     }
     
     func navigateTo(_ text: String) {
-        if let browser = self.presentingViewController as? BrowserViewController {
+        if let browser = self.browser {
             browser.navigateToText(text)
             dismissSelf()
             return
         }
-        if let nav = self.presentingViewController as? UINavigationController,
-        let switcher = nav.topViewController as? TabSwitcherViewController {
+        if let switcher = self.switcher {
             self.dismiss(animated: false, completion: {
                 switcher.addTab(startingFrom: text)
             })
-            textView.resignFirstResponder()
             return
         }
     }
@@ -255,8 +299,9 @@ extension TypeaheadViewController : UITextViewDelegate {
 
 extension TypeaheadViewController : UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let text = suggestions[indexPath.item]
-        navigateTo(text)
+        let row = suggestions[indexPath.item]
+        if let action = row.action { action() }
+        else { navigateTo(row.text) }
     }
 }
 
@@ -268,8 +313,15 @@ extension TypeaheadViewController : UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: typeaheadReuseID, for: indexPath)
         // Configure the cells
-        cell.textLabel?.text = suggestions[indexPath.item]
-        cell.textLabel?.textColor = contentView.tintColor
+        
+        if indexPath.item == 0 {
+            cell.textLabel?.text = suggestions[indexPath.item].text
+            cell.textLabel?.textColor = contentView.tintColor.withAlphaComponent(0.3)
+        }
+        else {
+            cell.textLabel?.text = suggestions[indexPath.item].text
+            cell.textLabel?.textColor = contentView.tintColor
+        }
         cell.contentView.backgroundColor = contentView.backgroundColor
         return cell
     }

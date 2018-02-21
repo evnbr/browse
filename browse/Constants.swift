@@ -26,7 +26,8 @@ class Const: NSObject {
     static var toolbarHeight : CGFloat { return shared.toolbarHeight }
 
     var thumbRadius: CGFloat
-    var thumbTitle : UIFont = UIFont.systemFont(ofSize: 15.0, weight: .medium)
+//    var thumbTitle : UIFont = UIFont.systemFont(ofSize: 15.0, weight: .medium)
+    var thumbTitle : UIFont = UIFont.systemFont(ofSize: 16.0, weight: .regular)
 
     var cardRadius: CGFloat
     

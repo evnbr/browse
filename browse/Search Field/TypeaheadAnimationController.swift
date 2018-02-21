@@ -59,6 +59,10 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
                 typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
                 typeaheadVC.cancel.alpha = self.isExpanding ? 1 : 0
 
+                if self.isDismissing {
+                    typeaheadVC.textView.resignFirstResponder()
+                }
+                
                 if let t = toolbarSnap, let tc = browserVC?.toolbar.center {
                     t.center = tc
                     if self.isExpanding { t.center.y -= typeaheadVC.keyboardHeight }
