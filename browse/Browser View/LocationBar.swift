@@ -23,7 +23,6 @@ class LocationBar: ToolbarTouchView {
     var leftConstraint : NSLayoutConstraint!
     var centerConstraint : NSLayoutConstraint!
     
-    
     private var shouldShowLock : Bool = false
 
     var text : String? {
@@ -38,7 +37,6 @@ class LocationBar: ToolbarTouchView {
             else {
                 if label.text != newValue {
                     label.text = newValue
-                    progress = 0
                 }
             }
             label.sizeToFit()

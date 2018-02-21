@@ -26,14 +26,10 @@ class TypeaheadViewController: UIViewController {
     var textHeight : NSLayoutConstraint!
     var collapsedTextHeight : NSLayoutConstraint!
 
-    var suggestionHeight : CGFloat = 200
+    var suggestionHeight : CGFloat = 0
     var keyboardHeight : CGFloat = 250
     
-    var suggestions : [String] = [
-        "Share",
-        "Copy",
-        "Refresh",
-    ]
+    var suggestions : [String] = []
     
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -125,14 +121,14 @@ class TypeaheadViewController: UIViewController {
         collapsedTextHeight.isActive = false
         
         
-        suggestionTable.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
+        suggestionTable.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12).isActive = true
         suggestionTable.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
         suggestionTable.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
         suggestionTable.bottomAnchor.constraint(equalTo: textView.topAnchor, constant: -12).isActive = true
         suggestHeightConstraint = suggestionTable.heightAnchor.constraint(equalToConstant: suggestionHeight)
         suggestHeightConstraint.isActive = true
         
-        kbHeightConstraint = textView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
+        kbHeightConstraint = contentView.bottomAnchor.constraint(equalTo: textView.bottomAnchor)
         kbHeightConstraint.isActive = true
 
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
@@ -140,6 +136,7 @@ class TypeaheadViewController: UIViewController {
         
         setBackground(.white)
         updateTextViewSize()
+        
         view.layoutIfNeeded()
     }
     
@@ -159,7 +156,7 @@ class TypeaheadViewController: UIViewController {
         if let browser = self.presentingViewController as? BrowserViewController {
             textView.text = browser.editableLocation
             updateTextViewSize()
-            updateSuggestion()
+            showPageActions()
         }
         
         textView.becomeFirstResponder()
@@ -191,16 +188,30 @@ class TypeaheadViewController: UIViewController {
 extension TypeaheadViewController : UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
         updateTextViewSize()
-        updateSuggestion()
+        updateSuggestion(for: textView.text)
     }
     
-    func updateSuggestion() {
+    func updateSuggestion(for text: String) {
+        guard text != "" else {
+            self.suggestions = []
+            self.renderSuggestions()
+            return
+        }
         Typeahead.shared.suggestions(for: textView.text, maxCount: 4) { arr in
             self.suggestions = arr.reversed()
-            self.suggestHeightConstraint.constant = self.suggestionTable.rowHeight * CGFloat(self.suggestions.count)
-            self.suggestionTable.reloadData()
-            self.suggestionTable.layoutIfNeeded()
+            self.renderSuggestions()
         }
+    }
+    
+    func showPageActions() {
+        self.suggestions = ["Share", "Copy", "Refresh"]
+        self.renderSuggestions()
+    }
+    
+    func renderSuggestions() {
+        self.suggestHeightConstraint.constant = self.suggestionTable.rowHeight * CGFloat(self.suggestions.count)
+        self.suggestionTable.reloadData()
+        self.suggestionTable.layoutIfNeeded()
     }
     
     func updateTextViewSize() {
@@ -231,14 +242,13 @@ extension TypeaheadViewController : UITextViewDelegate {
             dismissSelf()
             return
         }
-        if let nav = self.presentingViewController as? UINavigationController {
-            if let switcher = nav.topViewController as? TabSwitcherViewController {
-                self.dismiss(animated: false, completion: {
-                    switcher.addTab(startingFrom: text)
-                })
-                textView.resignFirstResponder()
-                return
-            }
+        if let nav = self.presentingViewController as? UINavigationController,
+        let switcher = nav.topViewController as? TabSwitcherViewController {
+            self.dismiss(animated: false, completion: {
+                switcher.addTab(startingFrom: text)
+            })
+            textView.resignFirstResponder()
+            return
         }
     }
 }
@@ -259,6 +269,8 @@ extension TypeaheadViewController : UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: typeaheadReuseID, for: indexPath)
         // Configure the cells
         cell.textLabel?.text = suggestions[indexPath.item]
+        cell.textLabel?.textColor = contentView.tintColor
+        cell.contentView.backgroundColor = contentView.backgroundColor
         return cell
     }
 }

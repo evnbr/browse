@@ -155,13 +155,10 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         present(search, animated: true, completion: nil)
     }
 
-    func addTab(startingFrom text: String? = nil) {
+    func addTab(startingFrom text: String? = nil, animated: Bool = true) {
         let newTab = BrowserTab()
-        showTab(newTab, completion: {
-            if let t = text {
-                self.browserVC.navigateToText(t)
-            }
-            print("create tab")
+        showTab(newTab, animated: animated, completion: {
+            if let t = text { self.browserVC.navigateToText(t) }
         })
     }
     

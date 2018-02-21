@@ -41,8 +41,8 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
         typeaheadVC.scrim.alpha = isExpanding ? 0 : 1
         typeaheadVC.suggestHeightConstraint.constant = isExpanding ? typeaheadVC.suggestionHeight : 12
         typeaheadVC.kbHeightConstraint.constant = isExpanding
-            ? -typeaheadVC.keyboardHeight - 12
-            : -24 // room for indicator
+            ? typeaheadVC.keyboardHeight + 12
+            : (browserVC != nil ? 24 : -48) // room for indicator
         typeaheadVC.collapsedTextHeight.isActive = !isExpanding
         typeaheadVC.textHeight.isActive = isExpanding
         
