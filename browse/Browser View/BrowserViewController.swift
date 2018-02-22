@@ -288,13 +288,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         gestureController = BrowserGestureController(for: self)
         
-
-        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressURL(recognizer:)))
-        longPress.minimumPressDuration = 0.4
-        longPress.cancelsTouchesInView = false
-        longPress.delaysTouchesBegan = false
-        locationBar.addGestureRecognizer(longPress)
-        
         let historyPress = UILongPressGestureRecognizer(target: self, action: #selector(showHistory))
         backButton.addGestureRecognizer(historyPress)
     }
@@ -566,16 +559,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     // MARK: - Gestures
     
-    @objc func longPressURL(recognizer: UIGestureRecognizer) {
-        if recognizer.state == .began {
-            
-//            displayEditMenu()
-            displayOverflow()
-            recognizer.isEnabled = false
-            recognizer.isEnabled = true
-        }
-    }
-    
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
     }
@@ -656,41 +639,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
     }
     
-    func displayOverflow() {
-        
-        let ac = UIAlertController(title: webView.title, message: webView.url?.absoluteString, preferredStyle: .actionSheet)
-        self.overflowController = ac
-        
-//        ac.addAction(UIAlertAction(title: "Passwords", style: .default, handler: { action in
-//            self.displayPassword()
-//        }))
-        ac.addAction(UIAlertAction(title: "Refresh", style: .default, handler: { action in
-            self.webView.reload()
-        }))
-//        ac.addAction(UIAlertAction(title: "Full Refresh", style: .default, handler: { action in
-//            self.webView.reloadFromOrigin()
-//        }))
-        
-        ac.addAction(UIAlertAction(title: "Copy URL", style: .default, handler: { action in
-            self.copyURL()
-        }))
-        
-//        ac.addAction(UIAlertAction(title: "Bookmarks", style: .default, handler: { action in
-//            self.displayBookmarks()
-//        }))
-        ac.addAction(UIAlertAction(title: "Share...", style: .default, handler: { action in
-            self.displayShareSheet()
-        }))
-        
-//        let pasteAction = UIAlertAction(title: "Paste and go", style: .default, handler: { action in
-//            self.pasteURLAndGo()
-//        })
-//        ac.addAction(pasteAction)
-        
-        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-        
-        present(ac, animated: true, completion: nil)
-    }
     
     func displayPassword() {
         OnePasswordExtension.shared().fillItem(
@@ -706,9 +654,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         )
     }
 
-
     // MARK: - Webview State
-    
     func openPage(action: UIAlertAction) {
         let url = URL(string: "https://" + action.title!)!
         webView.load(URLRequest(url: url))
@@ -932,7 +878,6 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
 
         if shouldUpdateSample {
             let _ = toolbar.animateGradient(toColor: newColor, direction: .fromTop)
-            
         }
 
     }
