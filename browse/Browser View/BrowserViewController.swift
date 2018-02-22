@@ -745,6 +745,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             }
         }
         locationBar.progress = 0
+        
+        // Does it feel faster if old page instantle disappears?
+        hideUntilNavigationDone()
+        toolbar.update(toColor:.white)
+        statusBar.update(toColor:.white)
+        
         webView.load(URLRequest(url: url))
     }
     
