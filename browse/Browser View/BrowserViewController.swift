@@ -290,6 +290,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         let historyPress = UILongPressGestureRecognizer(target: self, action: #selector(showHistory))
         backButton.addGestureRecognizer(historyPress)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
     }
     
     @objc func showHistory(_ : Any?) {
@@ -297,13 +300,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         let hNav = UINavigationController(rootViewController: history)
         present(hNav, animated: true, completion: nil)
     }
-    
-    
-//    var accessoryHeightConstraint : NSLayoutConstraint? {
-//        print(accessoryView.constraints.first)
-//        return accessoryView.constraints.first
-//    }
-
     
     var topWindow : UIWindow!
     var topLabel : UILabel!
@@ -836,6 +832,22 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     var bottomSamplePosition : CGFloat {
         return cardView.bounds.height - Const.statusHeight - toolbarHeightConstraint.constant
     }
+    
+    @objc func keyboardWillShow(notification: NSNotification) {
+        let userInfo: NSDictionary = notification.userInfo! as NSDictionary
+        let keyboardFrame: NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as! NSValue
+        let keyboardRectangle = keyboardFrame.cgRectValue
+        let newHeight = keyboardRectangle.height
+        
+        // Hack to prevent accessory of showing up at bottom
+        accessoryHeightConstraint?.constant = newHeight < 50 ? 0 : 48
+    }
+
+    @objc func keyboardWillHide(notification: NSNotification) {
+        // Hack to prevent accessory of showing up at bottom
+        accessoryHeightConstraint?.constant = 0
+    }
+
     
     func topColorChange(_ newColor: UIColor) {
         browserTab?.history.current?.topColor = newColor // this is a hack
