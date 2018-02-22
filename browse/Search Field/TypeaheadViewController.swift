@@ -98,7 +98,7 @@ class TypeaheadViewController: UIViewController {
         
         contentView = UIView(frame: view.bounds)
         contentView.layer.cornerRadius = Const.shared.cardRadius
-        contentView.backgroundColor = .white
+//        contentView.backgroundColor = .whiste
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.tintColor = .darkText
         contentView.clipsToBounds = true
@@ -116,6 +116,8 @@ class TypeaheadViewController: UIViewController {
         suggestionTable.delegate = self
         suggestionTable.isScrollEnabled = false
         suggestionTable.separatorStyle = .none
+        suggestionTable.backgroundColor = .clear
+        suggestionTable.backgroundView?.backgroundColor = .clear
         contentView.addSubview(suggestionTable)
 
         textView = UITextView()
@@ -184,7 +186,8 @@ class TypeaheadViewController: UIViewController {
     func setBackground(_ newColor: UIColor) {
         guard isViewLoaded else { return }
         let darkContent = !newColor.isLight
-        contentView.backgroundColor = newColor
+//        contentView.backgroundColor = newColor
+        scrim.backgroundColor = newColor.withAlphaComponent(0.95)
         view.tintColor = darkContent ? .darkText : .white
         contentView.tintColor = view.tintColor
         textView.textColor = view.tintColor
@@ -323,7 +326,8 @@ extension TypeaheadViewController : UITableViewDataSource {
             cell.textLabel?.text = suggestions[indexPath.item].text
             cell.textLabel?.textColor = contentView.tintColor
         }
-        cell.contentView.backgroundColor = contentView.backgroundColor
+        cell.backgroundColor = .clear
+        cell.contentView.backgroundColor = .clear//contentView.backgroundColor
         return cell
     }
 }
