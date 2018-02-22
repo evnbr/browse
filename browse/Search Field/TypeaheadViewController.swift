@@ -59,6 +59,11 @@ class TypeaheadViewController: UIViewController {
             guard let b = self.browser else { return }
             self.dismiss(animated: true, completion: b.displayShareSheet)
         }),
+//        TypeaheadRow(text: "➡️ Paste-n-go", action: {
+//            guard let b = self.browser else { return }
+//            if let str = UIPasteboard.general.string { b.navigateToText(str) }
+//            self.dismiss(animated: true)
+//        }),
         TypeaheadRow(text: "📄 Copy", action: {
             guard let b = self.browser else { return }
             self.dismiss(animated: true, completion: {
@@ -185,6 +190,7 @@ class TypeaheadViewController: UIViewController {
     
     func setBackground(_ newColor: UIColor) {
         guard isViewLoaded else { return }
+        
         let darkContent = !newColor.isLight
 //        contentView.backgroundColor = newColor
         scrim.backgroundColor = newColor.withAlphaComponent(0.95)
@@ -204,7 +210,7 @@ class TypeaheadViewController: UIViewController {
         }
         
         textView.becomeFirstResponder()
-        textView.selectAll(self) // if not nil, will show actions
+        textView.selectAll(nil) // if not nil, will show actions
     }
     
     @objc
@@ -271,14 +277,9 @@ extension TypeaheadViewController : UITextViewDelegate {
     func updateTextViewSize() {
         let fixedWidth = textView.frame.size.width
         textView.textContainerInset = UIEdgeInsetsMake(10, 12, 10, 12)
-        
         let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
-        var newFrame = textView.frame
         let newHeight: CGFloat = max(20, min(fullTextSize.height, SEARCHVIEW_MAX_H))  // 80.0
-        
-        newFrame.size = CGSize(width: max(fullTextSize.width, fixedWidth), height: newHeight)
-        //        textView.frame = newFrame;
-        textView.isScrollEnabled = fullTextSize.height > SEARCHVIEW_MAX_H
+        textView.isScrollEnabled = newHeight > SEARCHVIEW_MAX_H
         textHeight.constant = newHeight
     }
     
