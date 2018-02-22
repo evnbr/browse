@@ -240,7 +240,11 @@ extension TypeaheadViewController : UITextViewDelegate {
             self.renderSuggestions()
             return
         }
+        let suggestionsForText = textView.text
         Typeahead.shared.suggestions(for: textView.text, maxCount: 4) { arr in
+            // If text has changed since return, don't bother
+            guard self.textView.text == suggestionsForText else { return }
+            
             self.suggestions = arr.reversed().map({ txt in
                 return TypeaheadRow(text: txt, action: nil)
             })
