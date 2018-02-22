@@ -283,10 +283,8 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
             collapsedY += switcherProgress * 12 * distFromFront * distFromFront // spread less farther back
         }
         
-        
-//        center.y = switcherProgress.clip().blend(from: collapsedY, to: switchingY)
         center.y = switcherProgress < 1 ? collapsedY : switchingY
-        center.x = center.x - cardOffset.x * (1 - distFromFront * 0.1)
+//        center.x = center.x - (cardOffset.x * (1 - distFromFront * 0.1))
         
         return center
     }
@@ -303,16 +301,18 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     
     func springCards(expanded: Bool, at velocity: CGPoint = .zero) {
         for cell in visibleCells {
-            let ip = collectionView!.indexPath(for: cell)!
+//            let ip = collectionView!.indexPath(for: cell)!
             let delay : CFTimeInterval = 0//expanded ? 0 : Double(tabs.count - ip.item) * 0.02
             let center = adjustedCenterFor(cell, switcherProgress: expanded ? 0 : 1)
             
-            let anim = cell.springCenter(to: center, at: velocity, after: delay)
+            var vel = velocity
+            vel.x = 0
+            let anim = cell.springCenter(to: center, at: vel, after: delay)
 //            anim?.springSpeed = 5 - (expanded ? 0 : CGFloat(tabs.count - ip.item) * 0.2)
 //            anim?.springBounciness = 2
-            anim?.dynamicsMass = 1.3
-            anim?.dynamicsFriction = 35
-            anim?.dynamicsTension = 350 - 20 * CGFloat(tabs.count - ip.item)
+//            anim?.dynamicsTension = 350 - 20 * CGFloat(tabs.count - ip.item)
+            anim?.springSpeed = 10
+            anim?.springBounciness = 2
             
             cell.springScale(to: 1)
         }

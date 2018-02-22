@@ -146,8 +146,10 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             popCenterDone = true
             maybeFinish()
         }
-        centerAnim?.dynamicsMass = 1.3
-        centerAnim?.dynamicsFriction = 35
+//        centerAnim?.dynamicsMass = 1.3
+//        centerAnim?.dynamicsFriction = 35
+        centerAnim?.springSpeed = 10
+        centerAnim?.springBounciness = 2
         homeVC.springCards(expanded: isExpanding, at: velocity)
         
         
