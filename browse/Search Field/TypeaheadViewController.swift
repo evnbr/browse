@@ -38,6 +38,8 @@ class TypeaheadViewController: UIViewController {
     
     var suggestions : [TypeaheadRow] = []
     
+    var defaultBackground: UIColor = .black
+    
     var browser : BrowserViewController? {
         return self.presentingViewController as? BrowserViewController
     }
@@ -50,21 +52,23 @@ class TypeaheadViewController: UIViewController {
     }
     var pageActions : [TypeaheadRow] {
         return [
-        TypeaheadRow(text: browser?.webView.title ?? "Untitled Page", action: nil),
-        TypeaheadRow(text: "🔄 Refresh", action: {
+        TypeaheadRow(text: browser?.webView.title ?? "Untitled Page", action: {
             guard let b = self.browser else { return }
             self.dismiss(animated: true, completion: { b.webView.reload() })
         }),
-        TypeaheadRow(text: "✉️ Share", action: {
+        TypeaheadRow(text: "Share", action: {
             guard let b = self.browser else { return }
             self.dismiss(animated: true, completion: b.displayShareSheet)
         }),
-//        TypeaheadRow(text: "➡️ Paste-n-go", action: {
-//            guard let b = self.browser else { return }
-//            if let str = UIPasteboard.general.string { b.navigateToText(str) }
-//            self.dismiss(animated: true)
-//        }),
-        TypeaheadRow(text: "📄 Copy", action: {
+        TypeaheadRow(text: "Paste and go", action: {
+            guard let b = self.browser else { return }
+            if let str = UIPasteboard.general.string {
+                self.textView.text = str
+                b.navigateToText(str)
+            }
+            self.dismiss(animated: true)
+        }),
+        TypeaheadRow(text: "Copy", action: {
             guard let b = self.browser else { return }
             self.dismiss(animated: true, completion: {
                 b.copyURL()
@@ -115,7 +119,7 @@ class TypeaheadViewController: UIViewController {
 
         suggestionTable = UITableView(frame:self.view.frame)
         suggestionTable.rowHeight = 48.0
-        suggestionTable.register(UITableViewCell.self, forCellReuseIdentifier: typeaheadReuseID)
+        suggestionTable.register(TypeaheadCell.self, forCellReuseIdentifier: typeaheadReuseID)
         suggestionTable.translatesAutoresizingMaskIntoConstraints = false
         suggestionTable.dataSource = self
         suggestionTable.delegate = self
@@ -123,6 +127,7 @@ class TypeaheadViewController: UIViewController {
         suggestionTable.separatorStyle = .none
         suggestionTable.backgroundColor = .clear
         suggestionTable.backgroundView?.backgroundColor = .clear
+        
         contentView.addSubview(suggestionTable)
 
         textView = UITextView()
@@ -182,17 +187,20 @@ class TypeaheadViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardDidChangeFrame, object: nil)
         
-        setBackground(.black)
+        setBackground(defaultBackground)
         updateTextViewSize()
         
         view.layoutIfNeeded()
     }
     
     func setBackground(_ newColor: UIColor) {
-        guard isViewLoaded else { return }
+        guard isViewLoaded else {
+            defaultBackground = newColor
+            return
+        }
         
         let darkContent = !newColor.isLight
-//        contentView.backgroundColor = newColor
+        contentView.backgroundColor = newColor
         scrim.backgroundColor = newColor.withAlphaComponent(0.95)
         view.tintColor = darkContent ? .darkText : .white
         contentView.tintColor = view.tintColor
@@ -267,9 +275,15 @@ extension TypeaheadViewController : UITextViewDelegate {
     }
     
     func renderSuggestions() {
-        let h = suggestionTable.rowHeight * CGFloat(suggestions.count)
-        suggestionHeight = h
-        suggestHeightConstraint.constant = h
+        var suggestionH : CGFloat = 0
+        for index in 0..<suggestions.count {
+             suggestionH += tableView(
+                suggestionTable,
+                heightForRowAt: IndexPath(row: index, section: 0))
+        }
+        
+        suggestionHeight = suggestionH
+        suggestHeightConstraint.constant = suggestionH
         suggestionTable.reloadData()
         suggestionTable.layoutIfNeeded()
     }
@@ -298,7 +312,7 @@ extension TypeaheadViewController : UITextViewDelegate {
             return
         }
         if let switcher = self.switcher {
-            self.dismiss(animated: false, completion: {
+            self.dismiss(animated: true, completion: {
                 switcher.addTab(startingFrom: text)
             })
             return
@@ -320,20 +334,19 @@ extension TypeaheadViewController : UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: typeaheadReuseID, for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: typeaheadReuseID, for: indexPath) as! TypeaheadCell
         // Configure the cells
         
-        if indexPath.item == 0 {
-            cell.textLabel?.text = suggestions[indexPath.item].text
-            cell.textLabel?.textColor = contentView.tintColor.withAlphaComponent(0.3)
-        }
-        else {
-            cell.textLabel?.text = suggestions[indexPath.item].text
-            cell.textLabel?.textColor = contentView.tintColor
-        }
-        cell.backgroundColor = .clear
-        cell.contentView.backgroundColor = .clear//contentView.backgroundColor
+        cell.textLabel?.text = suggestions[indexPath.item].text
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        let text = suggestions[indexPath.item].text
+        if text.count > 60 {
+            return 96.0
+        }
+        return 48.0
     }
 }
 

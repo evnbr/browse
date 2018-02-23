@@ -30,6 +30,7 @@
 		A94FE41F1ECA5A7400ED48DB /* UIColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */; };
 		A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE4201ECA661700ED48DB /* Sampler.swift */; };
 		A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */; };
+		A966CA64204003FC00EB2771 /* TypeaheadCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A966CA63204003FC00EB2771 /* TypeaheadCell.swift */; };
 		A969D4A51F1321EC008A7BC6 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A969D4A41F1321EC008A7BC6 /* Constants.swift */; };
 		A96A42EE1F9160B300C0F3E2 /* HistoryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96A42ED1F9160B300C0F3E2 /* HistoryItem.swift */; };
 		A96A42F51F917F9C00C0F3E2 /* HistoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96A42F41F917F9C00C0F3E2 /* HistoryViewController.swift */; };
@@ -108,6 +109,7 @@
 		A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIColorExtensions.swift; sourceTree = "<group>"; };
 		A94FE4201ECA661700ED48DB /* Sampler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sampler.swift; sourceTree = "<group>"; };
 		A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebNavigationController.swift; sourceTree = "<group>"; };
+		A966CA63204003FC00EB2771 /* TypeaheadCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeaheadCell.swift; sourceTree = "<group>"; };
 		A969D4A41F1321EC008A7BC6 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		A96A42ED1F9160B300C0F3E2 /* HistoryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HistoryItem.swift; path = browse/History/HistoryItem.swift; sourceTree = SOURCE_ROOT; };
 		A96A42F41F917F9C00C0F3E2 /* HistoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewController.swift; sourceTree = "<group>"; };
@@ -198,6 +200,7 @@
 		A90F51231F71783B00221815 /* Search Field */ = {
 			isa = PBXGroup;
 			children = (
+				A966CA63204003FC00EB2771 /* TypeaheadCell.swift */,
 				A9B9979820380C8A00841404 /* TypeaheadAnimationController.swift */,
 				A9B99796203791DB00841404 /* TypeaheadViewController.swift */,
 				A9447A2C2027F48000654572 /* Typeahead.swift */,
@@ -705,6 +708,7 @@
 				A9AA4A5A1FF76CDA001AB639 /* UIView+POP.swift in Sources */,
 				A908920A1ED547C500A5E9BA /* LocationBar.swift in Sources */,
 				A920958A1EDA6526009497A2 /* Settings.swift in Sources */,
+				A966CA64204003FC00EB2771 /* TypeaheadCell.swift in Sources */,
 				A90ED966201EDB26003F4831 /* FloatButton.swift in Sources */,
 				A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */,
 				A92095861ED9E242009497A2 /* SettingsViewController.swift in Sources */,

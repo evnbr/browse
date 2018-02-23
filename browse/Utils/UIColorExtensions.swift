@@ -13,7 +13,7 @@ public extension UIColor {
     static let lightOverlay = UIColor.white.withAlphaComponent(0.2)
     static let darkOverlay = UIColor.white.withAlphaComponent(0.08)
     
-    static let darkTouch = UIColor.black.withAlphaComponent(0.15)
+    static let darkTouch = UIColor.black.withAlphaComponent(0.1)
     static let lightTouch = UIColor.white.withAlphaComponent(0.25)
     
     convenience init(r: CGFloat, g: CGFloat, b: CGFloat) {
