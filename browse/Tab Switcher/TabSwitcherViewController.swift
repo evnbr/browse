@@ -167,7 +167,9 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
             collectionView?.performBatchUpdates({
                 self.tabs.remove(at: path.row)
                 self.collectionView?.deleteItems(at: [path])
-            }, completion: nil)            
+            }, completion: { _ in
+                if self.tabs.count < 1 { self.showSearch() }
+            })
         }
     }
     
@@ -254,7 +256,8 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         return cv.layoutAttributesForItem(at: ip)!.bounds
     }
     
-    func adjustedCenterFor(_ thumb: TabThumbnail, cardOffset: CGPoint = .zero, switcherProgress: CGFloat, offsetByScroll: Bool = false) -> CGPoint {
+    var shouldAdjustX : CGFloat = 1
+    func adjustedCenterFor(_ thumb: TabThumbnail, cardOffset: CGPoint = .zero, switcherProgress: CGFloat, offsetByScroll: Bool = false, isSwitcherMode: Bool = false) -> CGPoint {
         let cv = collectionView!
         
         let ip = cv.indexPath(for: thumb)!
@@ -283,38 +286,34 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
             collapsedY += switcherProgress * 12 * distFromFront * distFromFront // spread less farther back
         }
         
-        center.y = switcherProgress < 1 ? collapsedY : switchingY
-//        center.x = center.x - (cardOffset.x * (1 - distFromFront * 0.1))
+        center.y = !isSwitcherMode ? collapsedY : switchingY
+        center.x = center.x - (cardOffset.x * (1 - distFromFront * 0.1)) * shouldAdjustX
         
         return center
     }
     
-    func setThumbPosition(switcherProgress: CGFloat, cardOffset: CGPoint = .zero, scale: CGFloat = 1, offsetForContainer: Bool = false) {
+    func setThumbPosition(switcherProgress: CGFloat, cardOffset: CGPoint = .zero, scale: CGFloat = 1, offsetForContainer: Bool = false, isSwitcherMode: Bool = false) {
         for cell in visibleCells {
-            cell.center = adjustedCenterFor(cell, cardOffset: cardOffset, switcherProgress: switcherProgress, offsetByScroll: offsetForContainer)
-            cell.transform = .init(scale: scale)
+            cell.center = adjustedCenterFor(cell, cardOffset: cardOffset, switcherProgress: switcherProgress, offsetByScroll: offsetForContainer, isSwitcherMode: isSwitcherMode)
+//            cell.transform = .init(scale: scale)
             cell.isHidden = false
         }
         navigationController?.view.alpha = switcherProgress.progress(from: 0, to: 0.7)
-        if switcherProgress < 1 { currentThumb?.isHidden = true }
+        if !isSwitcherMode { currentThumb?.isHidden = true }
     }
     
     func springCards(expanded: Bool, at velocity: CGPoint = .zero) {
         for cell in visibleCells {
 //            let ip = collectionView!.indexPath(for: cell)!
             let delay : CFTimeInterval = 0//expanded ? 0 : Double(tabs.count - ip.item) * 0.02
-            let center = adjustedCenterFor(cell, switcherProgress: expanded ? 0 : 1)
+            let center = adjustedCenterFor(cell, switcherProgress: expanded ? 0 : 1, isSwitcherMode: !expanded)
             
             var vel = velocity
             vel.x = 0
             let anim = cell.springCenter(to: center, at: vel, after: delay)
-//            anim?.springSpeed = 5 - (expanded ? 0 : CGFloat(tabs.count - ip.item) * 0.2)
-//            anim?.springBounciness = 2
-//            anim?.dynamicsTension = 350 - 20 * CGFloat(tabs.count - ip.item)
             anim?.springSpeed = 10
             anim?.springBounciness = 2
-            
-            cell.springScale(to: 1)
+//            cell.springScale(to: 1)
         }
     }
     
@@ -359,7 +358,6 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
                 cv.contentOffset.y = cv.contentSize.height - cv.bounds.size.height
             }
         }
-
     }
     
     func updateThumbs() {
@@ -406,8 +404,9 @@ extension TabSwitcherViewController {
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier,
-                                                      for: indexPath) as! TabThumbnail
+        let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: reuseIdentifier,
+            for: indexPath) as! TabThumbnail
         // Configure the cells
         
         let tab : BrowserTab = tabs[indexPath.row]
@@ -461,14 +460,6 @@ extension TabSwitcherViewController : UICollectionViewDelegateFlowLayout {
                         minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 8
     }
-//
-//    override func collectionView(_ collectionView: UICollectionView,
-//                                 moveItemAt source: IndexPath,
-//                                 to destination: IndexPath) {
-//        let item = tabs.remove(at: source.item)
-//        tabs.insert(item, at: destination.item)
-//    }
-//
 }
 
 // MARK: - Saving and restoring state

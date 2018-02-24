@@ -690,6 +690,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         // Does it feel faster if old page instantle disappears?
         hideUntilNavigationDone()
+        snap.image = nil
         toolbar.update(toColor:.white)
         statusBar.update(toColor:.white)
         
@@ -750,18 +751,16 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         locationBar.text = self.displayTitle
         
-        let small = CGAffineTransform(scaleX: 0.6, y: 0.6)
-        
         UIView.animate(withDuration: 0.25) {
             self.backButton.isEnabled = self.webView.canGoBack || self.browserTab!.canGoBackToParent
             
             self.forwardButton.isEnabled = self.webView.canGoForward
             self.forwardButton.tintColor = self.webView.canGoForward ? nil : .clear
-            self.forwardButton.transform = self.webView.canGoForward ? .identity : small
+            self.forwardButton.scale = self.webView.canGoForward ? 1 : 0.6
             
             self.stopButton.isEnabled = self.webView.isLoading
             self.stopButton.tintColor = self.webView.isLoading ? nil : .clear
-            self.stopButton.transform = self.webView.isLoading ? .identity : small
+            self.stopButton.scale = self.webView.isLoading ? 1 : 0.6
         }
         
         if self.webView.isLoading {

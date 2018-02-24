@@ -678,6 +678,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
         mockCardView.springScale(to: 1)
 //        vc.statusHeightConstraint.springConstant(to: Const.statusHeight)
+        vc.home.springCards(expanded: false, at: velocity)
         
         UIView.animate(withDuration: 0.2) {
             self.vc.gradientOverlay.alpha = 0
