@@ -163,7 +163,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         
         if touches.first != nil {
             UIView.animate(withDuration: 0.15, delay: 0.0, animations: {
-                self.contentView.scale = 0.98
+                self.contentView.scale = 0.99
             })
         }
     }

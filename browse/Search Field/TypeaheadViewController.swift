@@ -95,22 +95,15 @@ class TypeaheadViewController: UIViewController {
         super.viewDidLoad()
         
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.layer.borderWidth = 2
-        view.layer.borderColor = UIColor.red.cgColor
-        view.backgroundColor = .clear
         
         scrim = UIView(frame: view.bounds)
         scrim.backgroundColor = UIColor.black.withAlphaComponent(0.3)
         scrim.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissSelf))
         scrim.addGestureRecognizer(tap)
-        
         view.addSubview(scrim)
         
         contentView = UIView(frame: view.bounds)
-        contentView.radius = Const.shared.cardRadius
-//        contentView.backgroundColor = .whiste
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.tintColor = .darkText
         contentView.clipsToBounds = true
@@ -130,30 +123,24 @@ class TypeaheadViewController: UIViewController {
         suggestionTable.separatorStyle = .none
         suggestionTable.backgroundColor = .clear
         suggestionTable.backgroundView?.backgroundColor = .clear
-        
         contentView.addSubview(suggestionTable)
 
         textView = UITextView()
         textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 48)
-        textView.placeholder = "Where to?"
-        
         textView.font = UIFont(descriptor: .preferredFontDescriptor(withTextStyle: .body), size: 17)
         textView.text = ""
-        
+        textView.placeholder = "Where to?"
         textView.delegate = self
         textView.isScrollEnabled = true
-        
         textView.backgroundColor = UIColor.white.withAlphaComponent(0.3)
         textView.radius = SEARCH_RADIUS
         textView.textColor = .darkText
         textView.placeholderColor = UIColor.white.withAlphaComponent(0.4)
-        
         textView.keyboardAppearance = .light
         textView.enablesReturnKeyAutomatically = true
         textView.keyboardType = UIKeyboardType.webSearch
         textView.returnKeyType = .go
         textView.autocorrectionType = .no
-        
         textView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(textView)
         
@@ -175,7 +162,6 @@ class TypeaheadViewController: UIViewController {
         
         collapsedTextHeight = textView.heightAnchor.constraint(equalToConstant: 12)
         collapsedTextHeight.isActive = false
-        
         
         suggestionTable.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12).isActive = true
         suggestionTable.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
