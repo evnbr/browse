@@ -31,6 +31,9 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
         let scrollPos = collectionView!.contentOffset.y
         
         let count = collectionView!.numberOfItems(inSection: 0)
+        
+        let cardSize = UIScreen.main.bounds.size
+        
         attributesList = (0..<count).map { (i)
             -> UICollectionViewLayoutAttributes in
             // 1
@@ -41,15 +44,10 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
                 y: 240.0 + collectionView!.center.y + CGFloat(i) * itemSpacing
             )
             
-            attributes.bounds.size = CGSize(
-                width: collectionView!.bounds.width - THUMB_INSET * 2,
-                height: itemHeight
-            )
-            
+            attributes.bounds.size = cardSize
 
             let distFromTop = newCenter.y - (attributes.bounds.height / 2) - scrollPos - topScrollPos
 
-            
             let pct = distFromTop.progress(from: -400, to: 600).reverse()
             let s = (pct * pct * 0.3).reverse()
 //            attributes.transform = CGAffineTransform(scaleX: s, y: s)
@@ -58,16 +56,16 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
 
             if i < count - 1 {
                 attributes.alpha = 1 - ( pct * pct * pct ) * 1.5
-                attributes.bounds.size.width *= s
-                attributes.bounds.size.height *= s
+                attributes.transform = CGAffineTransform(scale: s)
             }
+            
+            if cardSize.width > cardSize.height {
+                attributes.transform = CGAffineTransform(scale: s * 0.95)
+            }
+            
             attributes.center = newCenter
             attributes.zIndex = i * 20
 
-//            var transform = CATransform3DIdentity
-//            transform.m34 = 1 / -500
-//            transform = CATransform3DRotate(transform, CGFloat(-5 * Double.pi / 180), 1, 0, 0)
-//            attributes.transform3D = transform
             
             return attributes
         }

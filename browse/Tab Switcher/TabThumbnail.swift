@@ -162,15 +162,13 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         super.touchesBegan(touches, with: event)
         
         if touches.first != nil {
-//            self.overlay.alpha = 0.3
             UIView.animate(withDuration: 0.15, delay: 0.0, animations: {
-                self.transform = CGAffineTransform(scaleX: 0.98, y: 0.98)
+                self.contentView.scale = 0.98
             })
         }
     }
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesEnded(touches, with: event)
-//        unSelect()
     }
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesCancelled(touches, with: event)
@@ -180,13 +178,11 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     func unSelect(animated : Bool = true) {
         if animated {
             UIView.animate(withDuration: 0.2, delay: 0.0, animations: {
-                self.transform = .identity
-//                self.overlay.alpha = 0
+                self.contentView.transform = .identity
             })
         }
         else {            
-            self.transform = .identity
-            self.overlay.alpha = 0
+            contentView.transform = .identity
         }
     }
     
@@ -234,18 +230,15 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
                 if ( vel.x > 400 || gesturePos.x > bounds.width * 0.5 ) {
                     endCenter.x = startCenter.x + bounds.width
                     endAlpha = 1
+                    closeTabCallback(self)
                 }
                 else if ( vel.x < -400 || gesturePos.x < -bounds.width * 0.5 ) {
                     endCenter.x = startCenter.x - bounds.width
                     endAlpha = 1
+                    closeTabCallback(self)
                 }
                 
-                springCenter(to: endCenter, at: vel) { _ , _ in
-                    if endAlpha == 1 {
-                        self.isHidden = true
-                        self.closeTabCallback(self)
-                    }
-                }
+                springCenter(to: endCenter, at: vel)
                 UIView.animate(withDuration: 0.4) {
                     self.overlay.alpha = endAlpha
                     self.overlay.backgroundColor = .black

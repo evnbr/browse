@@ -221,7 +221,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         if direction == .left {
             if vc.webView.canGoBack || vc.browserTab!.canGoBackToParent {
                 s = (verticalProgress * vProgressScaleMultiplier).reverse()
-                cardView.transform = CGAffineTransform(scale: s)
+                cardView.scale = s
                 
                 let scaleFromLeftShift = (1 - s) * cardView.bounds.width / 2
                 
@@ -247,7 +247,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 if isToParent {
                     let parentPct = adjustedX.progress(from: 0, to: 800)
                     mockCardView.overlay.alpha = parentPct.reverse()
-                    mockCardView.transform = CGAffineTransform(scale: 1 - parentPct.reverse() * 0.05)
+                    mockCardView.scale = 1 - parentPct.reverse() * 0.05
                 }
                     
                 springBackForwardMode(gesturePos.y < dismissPointY)
@@ -257,14 +257,14 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 let hProgress = abs(gesturePos.x) / view.bounds.width
                 s = 1 - hProgress * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
                 cardView.center.x = view.center.x + elasticLimit(adjustedX, constant: 100)
-                cardView.transform = CGAffineTransform(scale: s)
+                cardView.scale = s
             }
         }
         else if direction == .right
         && vc.webView.canGoForward {
             
             s = 1 - verticalProgress * vProgressScaleMultiplier
-            cardView.transform = CGAffineTransform(scale: s)
+            cardView.scale = s
             
             let scaleFromRightShift = (1 - s) * cardView.bounds.width / 2
             
@@ -287,7 +287,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             let hProgress = abs(gesturePos.x) / view.bounds.width
             s = 1 - hProgress * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
             cardView.center.x = view.center.x + elasticLimit(elasticLimit(adjustedX))
-            cardView.transform = CGAffineTransform(scale: s)
+            cardView.scale = s
         }
         
         
@@ -356,6 +356,12 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
     }
     
+    func resetMockCardView() {
+        mockCardView.transform = .identity
+        mockCardView.center = vc.view.center
+        mockCardView.bounds = cardView.bounds
+    }
+    
     
     @objc func leftEdgePan(gesture:UIScreenEdgePanGestureRecognizer) {
 
@@ -365,15 +371,13 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             vc.showToolbar()
             
             if vc.webView.canGoBack {
-                view.addSubview(mockCardView)
-                view.bringSubview(toFront: cardView)
-                mockCardView.transform = .identity
-                mockCardView.center = vc.view.center
-                
+                resetMockCardView()
                 if let backItem = vc.webView.backForwardList.backItem,
                     let page = vc.browserTab?.historyPageMap[backItem] {
                     mockCardView.setPage(page)
                 }
+                view.addSubview(mockCardView)
+                view.bringSubview(toFront: cardView)
             }
             else {
                 if let parent = vc.browserTab?.parentTab {
@@ -400,15 +404,13 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             vc.showToolbar()
             
             if vc.webView.canGoForward {
-                view.addSubview(mockCardView)
-                view.bringSubview(toFront: cardView)
-                mockCardView.transform = .identity
-                mockCardView.center = vc.view.center
-                
+                resetMockCardView()
                 if let fwdItem = vc.webView.backForwardList.forwardItem,
                     let page = vc.browserTab?.historyPageMap[fwdItem] {
                     mockCardView.setPage(page)
                 }
+                view.addSubview(mockCardView)
+                view.bringSubview(toFront: cardView)
             }
         }
         else if gesture.state == .changed {
@@ -509,7 +511,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 options: .allowUserInteraction,
                 animations: {
                     vc.cardView.center = vc.view.center
-                    parentMock.transform = CGAffineTransform(scale: 0.95)
+                    parentMock.scale = 0.95
                     parentMock.alpha = 0
             }, completion: { done in
                 parentMock.removeFromSuperview()
@@ -526,13 +528,12 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         vc.view.insertSubview(childMock, aboveSubview: cardView)
         vc.overlay.alpha = 0.8
-        vc.cardView.transform = CGAffineTransform(scale: 0.9)
+        vc.cardView.scale = 0.9
         childMock.center = vc.cardView.center
 
         vc.updateSnapshot {
             let vc = self.vc!
             vc.setTab(parentTab)
-//            vc.cardView.cesnter = vc.view.center
             
             UIView.animate(
                 withDuration: 0.6,

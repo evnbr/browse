@@ -67,6 +67,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         homeNav.view.transform = .identity // HACK reset to identity so we can get frame
         
         var thumbCenter : CGPoint
+        var thumbScale : CGFloat = 1
         var thumbOverlayAlpha : CGFloat = 0
         
         if thumb != nil {
@@ -77,6 +78,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             let selectedThumbCenter = attr.center
             thumbOverlayAlpha = 1 - attr.alpha
             thumbCenter = containerView.convert(selectedThumbCenter, from: thumb?.superview)
+            thumbScale = attr.transform.xScale
         }
         else {
             // animate from bottom
@@ -90,6 +92,10 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         browserVC.overlay.alpha = thumbOverlayAlpha
         browserVC.cardView.center = isExpanding ? thumbCenter : expandedCenter
         browserVC.cardView.bounds = isExpanding ? thumbBounds : expandedBounds
+        
+        if isExpanding {
+            browserVC.cardView.scale = thumbScale
+        }
 
         homeVC.visibleCellsBelow.forEach {
             containerView.addSubview($0)
@@ -137,8 +143,8 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         }
         
         browserVC.statusHeightConstraint.springConstant(to: self.isExpanding ? Const.statusHeight : THUMB_OFFSET_COLLAPSED )
-        browserVC.cardView.springScale(to: 1)
-        browserVC.cardView.springBounds(to: self.isExpanding ? expandedBounds : thumbBounds, then: {  (_, _) in
+        browserVC.cardView.springScale(to: isExpanding ? 1 : thumbScale)
+        browserVC.cardView.springBounds(to: isExpanding ? expandedBounds : thumbBounds, then: {  (_, _) in
             popBoundsDone = true
             maybeFinish()
         })
