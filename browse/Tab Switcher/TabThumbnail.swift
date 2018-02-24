@@ -87,6 +87,18 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         snapAspectConstraint = snapView.heightAnchor.constraint(equalTo: snapView.widthAnchor, multiplier: 1, constant: 0)
         snapAspectConstraint.isActive = true
 
+        label = UILabel(frame: CGRect(
+            x: 24,
+            y: 15,
+            width: frame.width - 48,
+            height: 16.0
+        ))
+        label.text = "Blank"
+        label.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
+        label.font = Const.shared.thumbTitle
+        label.textColor = .darkText
+        contentView.addSubview(label)
+        
         overlay = UIView(frame: bounds)
         overlay.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
         overlay.backgroundColor = UIColor.black
@@ -102,17 +114,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
 //        layer.shadowRadius = 24
 //        layer.shadowOpacity = 0.16
         
-        label = UILabel(frame: CGRect(
-            x: 24,
-            y: 15,
-            width: frame.width - 48,
-            height: 16.0
-        ))
-        label.text = "Blank"
-        label.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
-        label.font = Const.shared.thumbTitle
-        label.textColor = .darkText
-        contentView.addSubview(label)
         
         contentView.backgroundColor = .white
         contentView.layer.cornerRadius = Const.shared.thumbRadius
