@@ -24,7 +24,7 @@ class ToolbarTouchView: UIView {
         super.init(frame: frame)
         backgroundColor = .clear
         layer.masksToBounds = true
-        layer.cornerRadius = frame.height / 2
+        radius = frame.height / 2
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(doAction))
         tap.numberOfTapsRequired = 1

@@ -23,7 +23,7 @@ class FloatButton: UIView {
         tintColor = .white
         
         layer.masksToBounds = true
-        layer.cornerRadius = frame.height / 2
+        radius = frame.height / 2
         
         let iconTemplate = icon?.withRenderingMode(.alwaysTemplate)
         iconView = UIImageView(image: iconTemplate)

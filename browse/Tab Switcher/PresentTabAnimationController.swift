@@ -194,7 +194,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             browserVC.statusBar.backgroundView.alpha = 1
             browserVC.gradientOverlay.alpha = self.isExpanding ? 0 : 1
             browserVC.overlay.alpha = self.isExpanding ? 0 : thumbOverlayAlpha
-            browserVC.contentView.layer.cornerRadius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
+            browserVC.contentView.radius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
             homeNav.view.alpha = self.isExpanding ? 0.7 : 1
             
             homeVC.setNeedsStatusBarAppearanceUpdate()

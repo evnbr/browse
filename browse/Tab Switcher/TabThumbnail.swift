@@ -116,7 +116,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         
         
         contentView.backgroundColor = .white
-        contentView.layer.cornerRadius = Const.shared.thumbRadius
+        contentView.radius = Const.shared.thumbRadius
         contentView.clipsToBounds = true
     }
         
