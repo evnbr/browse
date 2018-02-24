@@ -94,6 +94,9 @@ class TypeaheadViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.layer.borderWidth = 2
+        view.layer.borderColor = UIColor.red.cgColor
         view.backgroundColor = .clear
         
         scrim = UIView(frame: view.bounds)
@@ -106,7 +109,7 @@ class TypeaheadViewController: UIViewController {
         view.addSubview(scrim)
         
         contentView = UIView(frame: view.bounds)
-        contentView.layer.cornerRadius = Const.shared.cardRadius
+        contentView.radius = Const.shared.cardRadius
 //        contentView.backgroundColor = .whiste
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.tintColor = .darkText
@@ -141,7 +144,7 @@ class TypeaheadViewController: UIViewController {
         textView.isScrollEnabled = true
         
         textView.backgroundColor = UIColor.white.withAlphaComponent(0.3)
-        textView.layer.cornerRadius = SEARCH_RADIUS
+        textView.radius = SEARCH_RADIUS
         textView.textColor = .darkText
         textView.placeholderColor = UIColor.white.withAlphaComponent(0.4)
         
@@ -184,9 +187,9 @@ class TypeaheadViewController: UIViewController {
         kbHeightConstraint = contentView.bottomAnchor.constraint(equalTo: textView.bottomAnchor)
         kbHeightConstraint.isActive = true
 
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardDidChangeFrame, object: nil)
-        
+        NotificationCenter.default.addObserver(self, selector: #selector(updateKeyboardHeight), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateKeyboardHeight), name: NSNotification.Name.UIKeyboardWillChangeFrame, object: nil)
+
         setBackground(defaultBackground)
         updateTextViewSize()
         
@@ -201,7 +204,7 @@ class TypeaheadViewController: UIViewController {
         
         let darkContent = !newColor.isLight
         contentView.backgroundColor = newColor
-        scrim.backgroundColor = newColor.withAlphaComponent(0.95)
+        scrim.backgroundColor = newColor.withAlphaComponent(0.9)
         view.tintColor = darkContent ? .darkText : .white
         contentView.tintColor = view.tintColor
         textView.textColor = view.tintColor
@@ -210,7 +213,11 @@ class TypeaheadViewController: UIViewController {
         textView.keyboardAppearance = darkContent ? .light : .dark
     }
     
+    
     override func viewWillAppear(_ animated: Bool) {
+        // TODO: Why?
+        view.frame = UIScreen.main.bounds
+        
         if let browser = self.browser {
             textView.text = browser.editableLocation
             updateTextViewSize()
@@ -232,13 +239,15 @@ class TypeaheadViewController: UIViewController {
     }
     
     
-    @objc func keyboardWillShow(notification: NSNotification) {
+    @objc func updateKeyboardHeight(notification: NSNotification) {
         let userInfo: NSDictionary = notification.userInfo! as NSDictionary
         let keyboardFrame: NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as! NSValue
         let keyboardRectangle = keyboardFrame.cgRectValue
-        keyboardHeight = keyboardRectangle.height
-//        kbHeightConstraint.constant = -keyboardHeight
-        // update
+        keyboardHeight = keyboardRectangle.height + 12
+        
+        if textView.isFirstResponder {
+            kbHeightConstraint.constant = keyboardHeight
+        }
     }
 }
     

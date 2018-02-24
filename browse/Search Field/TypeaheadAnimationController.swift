@@ -33,6 +33,7 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
         let toolbarSnap = browserVC?.toolbar.snapshotView(afterScreenUpdates: false)
         if let t = toolbarSnap, let tc = browserVC?.toolbar.center {
             containerView.addSubview(t)
+            browserVC?.toolbar.isHidden = true // TODO: Hide contents, not background
             t.center = tc
             if !isExpanding { t.center.y -= typeaheadVC.keyboardHeight }
         }
@@ -41,7 +42,7 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
         typeaheadVC.scrim.alpha = isExpanding ? 0 : 1
         typeaheadVC.suggestHeightConstraint.constant = isExpanding ? typeaheadVC.suggestionHeight : 12
         typeaheadVC.kbHeightConstraint.constant = isExpanding
-            ? typeaheadVC.keyboardHeight + 12
+            ? typeaheadVC.keyboardHeight
             : (browserVC != nil ? 24 : -48) // room for indicator
         
         // note order, prevent both from being enabled
@@ -80,6 +81,7 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
                 typeaheadVC.view.removeFromSuperview()
             }
             toolbarSnap?.removeFromSuperview()
+            browserVC?.toolbar.isHidden = false
             browserVC?.toolbar.backgroundView.alpha = 1
 
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
