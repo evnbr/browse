@@ -29,6 +29,9 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
         if isExpanding {
             containerView.addSubview(typeaheadVC.view)
         }
+        else {
+            typeaheadVC.textView.becomeFirstResponder() // Unclear why this is necessary
+        }
         
         let toolbarSnap = browserVC?.toolbar.snapshotView(afterScreenUpdates: false)
         if let t = toolbarSnap, let tc = browserVC?.toolbar.center {
