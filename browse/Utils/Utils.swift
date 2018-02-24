@@ -57,6 +57,14 @@ extension CGAffineTransform {
     init(scale s: CGFloat) {
         self.init(scaleX: s, y: s)
     }
+    
+    var xScale : CGFloat {
+        return sqrt(a * a + c * c);
+//            - (CGFloat)yscale {
+//                CGAffineTransform t = self.transform;
+//                return sqrt(t.b * t.b + t.d * t.d);
+//        }
+    }
 }
 
 // MARK: - Constraints
@@ -100,6 +108,11 @@ extension UIView {
     var radius : CGFloat {
         set { layer.cornerRadius = newValue }
         get { return layer.cornerRadius }
+    }
+    
+    var scale : CGFloat {
+        set { transform = CGAffineTransform(scale: newValue) }
+        get { return transform.xScale }
     }
 }
 
