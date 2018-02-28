@@ -53,6 +53,12 @@ class Typeahead: NSObject {
         
         //fetching the data from the url
         URLSession.shared.dataTask(with: url, completionHandler: {(data, response, error) -> Void in
+            if data == nil {
+                DispatchQueue.main.async {
+                    completion([ error?.localizedDescription ?? "Unknown failure" ])
+                }
+                return
+            }
             if let suggestions = try? JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! NSArray {
                 let phrases = self.parseStrings(from: suggestions, maxCount: maxCount)
                 DispatchQueue.main.async { completion(phrases) }
