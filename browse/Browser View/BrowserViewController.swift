@@ -174,7 +174,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         webView.leftAnchor.constraint(equalTo: cardView.leftAnchor).isActive = true
         webView.rightAnchor.constraint(equalTo: cardView.rightAnchor).isActive = true
-        webView.heightAnchor.constraint(equalTo: view.heightAnchor, constant: (-Const.statusHeight - Const.toolbarHeight)).isActive = true
+        webView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -Const.toolbarHeight).isActive = true
+//        webView.heightAnchor.constraint(equalTo: view.heightAnchor, constant: (-Const.statusHeight - Const.toolbarHeight)).isActive = true
         toolbarPlaceholder.topAnchor.constraint(equalTo: webView.bottomAnchor).isActive = true
         
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
@@ -195,11 +196,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        coordinator.animate(alongsideTransition: { context in
-            //
-        }, completion: { context in
-            //
-        })
+        let isLandscape = size.width > size.height
+        statusHeightConstraint.constant = isLandscape ? 0 : Const.statusHeight
+
+//        coordinator.animate(alongsideTransition: { context in
+//            //
+//        }, completion: { context in
+//            //
+//        })
     }
     
     override func viewDidLoad() {
@@ -223,6 +227,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         overlay.alpha = 0
         
         gradientOverlay = GradientView(frame: view.bounds)
+        gradientOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         gradientOverlay.alpha = 0
         
         view.addSubview(cardView)
@@ -773,7 +778,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = webView.isLoading
         
-        if hiddenUntilNavigationDone && webView.estimatedProgress > 0.9 {
+        if hiddenUntilNavigationDone && webView.estimatedProgress > 0.7 {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 self.hiddenUntilNavigationDone = false
                 self.isSnapshotMode = false

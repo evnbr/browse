@@ -142,7 +142,10 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             }
         }
         
-        browserVC.statusHeightConstraint.springConstant(to: self.isExpanding ? Const.statusHeight : THUMB_OFFSET_COLLAPSED )
+        let isLandscape = browserVC.view.bounds.width > browserVC.view.bounds.height
+        let statusHeight : CGFloat = isLandscape ? 0 : Const.statusHeight
+        
+        browserVC.statusHeightConstraint.springConstant(to: isExpanding ? statusHeight : THUMB_OFFSET_COLLAPSED )
         browserVC.cardView.springScale(to: isExpanding ? 1 : thumbScale)
         browserVC.cardView.springBounds(to: isExpanding ? expandedBounds : thumbBounds, then: {  (_, _) in
             popBoundsDone = true
@@ -169,7 +172,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             fab.springCenter(to: isExpanding ? endFabCenter : currFabCenter)
         }
 
-        browserVC.statusBar.frame.size.height = !isExpanding ? Const.statusHeight : THUMB_OFFSET_COLLAPSED
+        browserVC.statusBar.frame.size.height = !isExpanding ? statusHeight : THUMB_OFFSET_COLLAPSED
         browserVC.statusBar.label.text = browserVC.webView.title
         
         if isExpanding {
