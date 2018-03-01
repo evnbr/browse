@@ -705,41 +705,41 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     @objc func hideError() {
         errorView.removeFromSuperview()
     }
+    
+    func makeError() -> UIView {
+        let ev = UIView(frame: view.bounds)
+        ev.translatesAutoresizingMaskIntoConstraints = false
+        ev.backgroundColor = UIColor.red
+        
+        let errorLabel = UILabel()
+        errorLabel.textAlignment = .natural
+        errorLabel.font = UIFont.systemFont(ofSize: 16.0)
+        errorLabel.numberOfLines = 0
+        errorLabel.textColor = .white
+        ev.addSubview(errorLabel)
+        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(hideError))
+        ev.addGestureRecognizer(tap)
+        
+        return ev
+    }
 
     func displayError(text: String) {
-        if errorView == nil {
-            let ERROR_H : CGFloat = 80
-            errorView = UIView(frame: webView.bounds)
-            errorView.frame.size.height = ERROR_H
-            errorView.frame.origin.y = webView.frame.height - ERROR_H
-            
-//            errorView.isUserInteractionEnabled = false
-            errorView.backgroundColor = UIColor.red
-            
-            let errorLabel = UILabel()
-            errorLabel.textAlignment = .natural
-            errorLabel.font = UIFont.systemFont(ofSize: 15.0)
-            errorLabel.numberOfLines = 0
-            errorLabel.textColor = .white
-            errorView.addSubview(errorLabel)
-            
-            let errorButton = UIButton(type: .system)
-//            let errorButton = ToolbarTouchView(frame: .zero, onTap: hideError)
-            errorButton.tintColor = .white
-            errorButton.setTitle("Okay", for: .normal)
-            errorButton.sizeToFit()
-            errorButton.frame.origin.y = 20
-            errorButton.frame.origin.x = errorView.frame.width - errorButton.frame.width - 20
-            errorButton.addTarget(self, action: #selector(hideError), for: .primaryActionTriggered)
-            errorView.addSubview(errorButton)
-        }
+        if errorView == nil { errorView = makeError() }
         
+        errorView.backgroundColor = toolbar.lastColor
         let errorLabel = errorView.subviews.first as! UILabel
         errorLabel.text = text
-        let size = errorLabel.sizeThatFits(CGSize(width: 280, height: 200))
+        errorLabel.textColor = toolbar.tintColor
+        let size = errorLabel.sizeThatFits(CGSize(width: cardView.bounds.size.width - 40, height: 200))
         errorLabel.frame = CGRect(origin: CGPoint(x: 20, y: 20), size: size)
         
-        webView.addSubview(errorView)
+        cardView.addSubview(errorView)
+        
+        errorView.leftAnchor.constraint(equalTo: cardView.leftAnchor).isActive = true
+        errorView.rightAnchor.constraint(equalTo: cardView.rightAnchor).isActive = true
+        errorView.bottomAnchor.constraint(equalTo: toolbar.topAnchor).isActive = true
+        errorView.heightAnchor.constraint(equalToConstant: 60).isActive = true
     }
     
     
