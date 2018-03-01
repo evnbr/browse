@@ -105,7 +105,7 @@ class TypeaheadViewController: UIViewController {
         
         blur = PlainBlurView(frame: view.bounds)
         blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-//        view.addSubview(blur)
+        view.addSubview(blur)
 
         scrim = UIView(frame: view.bounds)
         scrim.backgroundColor = UIColor.black.withAlphaComponent(0.3)
@@ -123,8 +123,13 @@ class TypeaheadViewController: UIViewController {
         contentView.clipsToBounds = true
         view.addSubview(contentView)
         
-        contentView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
-        contentView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
+        contentView.leftAnchor.constraint(greaterThanOrEqualTo: view.leftAnchor).isActive = true
+        contentView.rightAnchor.constraint(lessThanOrEqualTo: view.rightAnchor).isActive = true
+        contentView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        let defaultW = contentView.widthAnchor.constraint(equalToConstant: 600)
+        defaultW.priority = .defaultHigh
+        defaultW.isActive = true
+        
         contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
 
         let dismissPanner = UIPanGestureRecognizer()
@@ -218,7 +223,7 @@ class TypeaheadViewController: UIViewController {
         }
         
         let darkContent = !newColor.isLight
-        contentView.backgroundColor = newColor
+//        contentView.backgroundColor = newColor
         scrim.backgroundColor = newColor.withAlphaComponent(0.6)
         view.tintColor = darkContent ? .darkText : .white
         contentView.tintColor = view.tintColor
@@ -389,7 +394,7 @@ extension TypeaheadViewController : UIGestureRecognizerDelegate {
             textView.isScrollEnabled = true
         }
         else if gesture.state == .changed {
-            if dist.y < 0 {
+            if dist.y < 10 {
                 textView.becomeFirstResponder()
                 kbHeightConstraint.springConstant(to: keyboardHeight)
 //                kbHeightConstraint.constant = keyboardHeight
