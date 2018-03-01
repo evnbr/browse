@@ -136,7 +136,7 @@ class TypeaheadViewController: UIViewController {
         suggestionTable.backgroundView?.backgroundColor = .clear
         contentView.addSubview(suggestionTable)
 
-        textView = UITextView()
+        textView = SearchTextView()
         textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 48)
         textView.font = UIFont(descriptor: .preferredFontDescriptor(withTextStyle: .body), size: 17)
         textView.text = ""
@@ -229,7 +229,8 @@ class TypeaheadViewController: UIViewController {
         }
         
         textView.becomeFirstResponder()
-        textView.selectAll(nil) // if not nil, will show actions
+//        textView.selectAll(nil) // if not nil, will show actions
+        textView.selectAll(textView)
     }
     
     @objc
@@ -305,9 +306,8 @@ extension TypeaheadViewController : UITextViewDelegate {
         let fixedWidth = textView.frame.size.width
         textView.textContainerInset = UIEdgeInsetsMake(10, 12, 10, 12)
         let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
-        let newHeight: CGFloat = max(20, min(fullTextSize.height, SEARCHVIEW_MAX_H))  // 80.0
-        textView.isScrollEnabled = newHeight > SEARCHVIEW_MAX_H
-        textHeight.constant = newHeight
+        textView.isScrollEnabled = fullTextSize.height > SEARCHVIEW_MAX_H
+        textHeight.constant = max(20, min(fullTextSize.height, SEARCHVIEW_MAX_H))
     }
     
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
