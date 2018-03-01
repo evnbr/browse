@@ -152,6 +152,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     
     func showSearch() {
         let search = TypeaheadViewController()
+        if tabs.count < 1 { search.showingCancel = false }
         present(search, animated: true, completion: nil)
     }
 

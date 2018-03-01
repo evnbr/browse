@@ -46,7 +46,7 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
         
         browserVC?.toolbar.backgroundView.alpha = 1
         typeaheadVC.scrim.alpha = isExpanding ? 0 : 1
-        typeaheadVC.suggestHeightConstraint.constant = isExpanding ? typeaheadVC.suggestionHeight : 12
+//        typeaheadVC.suggestHeightConstraint.constant = isExpanding ? typeaheadVC.suggestionHeight : 12
         typeaheadVC.kbHeightConstraint.constant = isExpanding
             ? typeaheadVC.keyboardHeight
             : (browserVC != nil ? 24 : -48) // room for indicator
@@ -62,6 +62,20 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
         }
         
         UIView.animate(
+            withDuration: 0.2,
+            animations: {
+                typeaheadVC.suggestionTable.alpha = self.isExpanding ? 1 : 0
+        })
+
+        
+        UIView.animate(
+            withDuration: 0.35,
+            animations: {
+                typeaheadVC.scrim.alpha = self.isExpanding ? 1 : 0
+                typeaheadVC.blur.alpha = self.isExpanding ? 1 : 0
+        })
+        
+        UIView.animate(
             withDuration: 0.5,
             delay: 0.0,
             usingSpringWithDamping: 1,
@@ -69,7 +83,6 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
             options: [.curveLinear],
             animations: {
                 typeaheadVC.view.layoutIfNeeded()
-                typeaheadVC.scrim.alpha = self.isExpanding ? 1 : 0
                 typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
                 typeaheadVC.cancel.alpha = self.isExpanding ? 1 : 0
 

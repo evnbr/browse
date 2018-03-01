@@ -21,6 +21,7 @@ struct TypeaheadRow {
 class TypeaheadViewController: UIViewController {
 
     var contentView: UIView!
+    var blur: UIView!
     var scrim: UIView!
     var textView: UITextView!
     var cancel: ToolbarTextButton!
@@ -35,6 +36,7 @@ class TypeaheadViewController: UIViewController {
 
     var suggestionHeight : CGFloat = 0
     var keyboardHeight : CGFloat = 250
+    var showingCancel = true
     
     var suggestions : [TypeaheadRow] = []
     
@@ -58,7 +60,9 @@ class TypeaheadViewController: UIViewController {
         }),
         TypeaheadRow(text: "Share", action: {
             guard let b = self.browser else { return }
-            self.dismiss(animated: true, completion: b.displayShareSheet)
+            b.makeShareSheet { avc in
+                self.present(avc, animated: true, completion: nil)
+            }
         }),
         TypeaheadRow(text: "Paste and go", action: {
             guard let b = self.browser else { return }
@@ -96,12 +100,19 @@ class TypeaheadViewController: UIViewController {
         
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         
+        blur = PlainBlurView(frame: view.bounds)
+        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(blur)
+
         scrim = UIView(frame: view.bounds)
         scrim.backgroundColor = UIColor.black.withAlphaComponent(0.3)
         scrim.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissSelf))
-        scrim.addGestureRecognizer(tap)
         view.addSubview(scrim)
+
+        if (showingCancel) {
+            let tap = UITapGestureRecognizer(target: self, action: #selector(dismissSelf))
+            scrim.addGestureRecognizer(tap)
+        }
         
         contentView = UIView(frame: view.bounds)
         contentView.translatesAutoresizingMaskIntoConstraints = false
@@ -143,20 +154,27 @@ class TypeaheadViewController: UIViewController {
         textView.autocorrectionType = .no
         textView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(textView)
-        
+
         cancel = ToolbarTextButton(title: "Cancel", withIcon: nil, onTap: dismissSelf)
         cancel.size = .medium
         cancel.sizeToFit()
         cancel.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(cancel)
-        
-        cancel.bottomAnchor.constraint(equalTo: textView.bottomAnchor).isActive = true
-        cancel.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: 0).isActive = true
-        cancel.widthAnchor.constraint(equalToConstant: cancel.bounds.width).isActive = true
-        cancel.heightAnchor.constraint(equalToConstant: cancel.bounds.height).isActive = true
+
+        if (showingCancel) {
+            contentView.addSubview(cancel)
+            
+            cancel.bottomAnchor.constraint(equalTo: textView.bottomAnchor).isActive = true
+            cancel.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
+            cancel.widthAnchor.constraint(equalToConstant: cancel.bounds.width).isActive = true
+            cancel.heightAnchor.constraint(equalToConstant: cancel.bounds.height).isActive = true
+            
+            textView.rightAnchor.constraint(equalTo: cancel.leftAnchor).isActive = true
+        }
+        else {
+            contentView.rightAnchor.constraint(equalTo: textView.rightAnchor, constant: 12).isActive = true
+        }
 
         textView.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 12).isActive = true
-        textView.rightAnchor.constraint(equalTo: cancel.leftAnchor, constant: 0).isActive = true
         textHeight = textView.heightAnchor.constraint(equalToConstant: 12)
         textHeight.isActive = true
         
@@ -189,8 +207,8 @@ class TypeaheadViewController: UIViewController {
         }
         
         let darkContent = !newColor.isLight
-        contentView.backgroundColor = newColor
-        scrim.backgroundColor = newColor.withAlphaComponent(0.9)
+//        contentView.backgroundColor = newColor
+        scrim.backgroundColor = newColor.withAlphaComponent(0.6)
         view.tintColor = darkContent ? .darkText : .white
         contentView.tintColor = view.tintColor
         textView.textColor = view.tintColor
