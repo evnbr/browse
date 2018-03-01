@@ -92,8 +92,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         get {
             guard let url = webView.url else { return false }
 //            let searchURL = "https://duckduckgo.com/?"
-             let searchURL = "https://www.google.com/search?"
-            return url.absoluteString.hasPrefix(searchURL)
+//             let searchURL = "https://www.google.com/search?"
+//            return url.absoluteString.hasPrefix(searchURL)
+            return url.absoluteString.contains("google") && url.absoluteString.contains("?q=")
         }
     }
     
@@ -602,6 +603,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     func makeShareSheet(completion: @escaping (UIActivityViewController) -> ()) {
+        if webView.url == nil { return }
+        
         let onePass = OnePasswordExtension.shared()
         onePass.createExtensionItem(
             forWebView: self.webView,
