@@ -36,13 +36,13 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
         let toolbarSnap = browserVC?.toolbar.snapshotView(afterScreenUpdates: false)
         if let t = toolbarSnap, let tc = browserVC?.toolbar.center {
             containerView.addSubview(t)
-            browserVC?.locationBar.isHidden = true
+//            browserVC?.locationBar.isHidden = true
             browserVC?.backButton.isHidden = true
             browserVC?.tabButton.isHidden = true
             
             t.center = tc
             if !isExpanding {
-                t.center.y -= typeaheadVC.kbHeightConstraint.constant
+                t.center.y -= typeaheadVC.kbHeightConstraint.constant - 24
             }
         }
         
@@ -95,7 +95,7 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
                 if let t = toolbarSnap, let tc = browserVC?.toolbar.center {
                     t.center = tc
                     if self.isExpanding {
-                        t.center.y -= typeaheadVC.keyboardHeight
+                        t.center.y -= typeaheadVC.keyboardHeight - 24
                     }
                     t.alpha = self.isExpanding ? 0 : 1
                 }
@@ -104,7 +104,7 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
                 typeaheadVC.view.removeFromSuperview()
             }
             toolbarSnap?.removeFromSuperview()
-            browserVC?.locationBar.isHidden = false
+//            browserVC?.locationBar.isHidden = false
             browserVC?.backButton.isHidden = false
             browserVC?.tabButton.isHidden = false
             browserVC?.toolbar.backgroundView.alpha = 1
