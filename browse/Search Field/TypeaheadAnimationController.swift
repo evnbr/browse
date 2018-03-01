@@ -30,7 +30,7 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
             containerView.addSubview(typeaheadVC.view)
         }
         else {
-            typeaheadVC.textView.becomeFirstResponder() // Unclear why this is necessary
+//            typeaheadVC.textView.becomeFirstResponder() // Unclear why this is necessary
         }
         
         let toolbarSnap = browserVC?.toolbar.snapshotView(afterScreenUpdates: false)
@@ -41,12 +41,14 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
             browserVC?.tabButton.isHidden = true
             
             t.center = tc
-            if !isExpanding { t.center.y -= typeaheadVC.keyboardHeight }
+            if !isExpanding {
+                t.center.y -= typeaheadVC.kbHeightConstraint.constant
+            }
         }
         
         browserVC?.toolbar.backgroundView.alpha = 1
         typeaheadVC.scrim.alpha = isExpanding ? 0 : 1
-//        typeaheadVC.suggestHeightConstraint.constant = isExpanding ? typeaheadVC.suggestionHeight : 12
+        typeaheadVC.suggestHeightConstraint.constant = isExpanding ? typeaheadVC.suggestionHeight : 12
         typeaheadVC.kbHeightConstraint.constant = isExpanding
             ? typeaheadVC.keyboardHeight
             : (browserVC != nil ? 24 : -48) // room for indicator
@@ -54,10 +56,10 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
         // note order, prevent both from being enabled
         if isExpanding {
             typeaheadVC.collapsedTextHeight.isActive = false
-            typeaheadVC.textHeight.isActive = true
+            typeaheadVC.textHeightConstraint.isActive = true
         }
         else {
-            typeaheadVC.textHeight.isActive = false
+            typeaheadVC.textHeightConstraint.isActive = false
             typeaheadVC.collapsedTextHeight.isActive = true
         }
         
@@ -92,7 +94,9 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
                 
                 if let t = toolbarSnap, let tc = browserVC?.toolbar.center {
                     t.center = tc
-                    if self.isExpanding { t.center.y -= typeaheadVC.keyboardHeight }
+                    if self.isExpanding {
+                        t.center.y -= typeaheadVC.keyboardHeight
+                    }
                     t.alpha = self.isExpanding ? 0 : 1
                 }
         }, completion: { _ in

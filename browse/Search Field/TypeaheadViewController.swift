@@ -26,14 +26,17 @@ class TypeaheadViewController: UIViewController {
     var textView: UITextView!
     var cancel: ToolbarTextButton!
     var suggestionTable: UITableView!
+    
+    var isDismissing = false
 
     var displaySearchTransition = TypeaheadAnimationController()
     
     var kbHeightConstraint : NSLayoutConstraint!
     var suggestHeightConstraint : NSLayoutConstraint!
-    var textHeight : NSLayoutConstraint!
+    var textHeightConstraint : NSLayoutConstraint!
     var collapsedTextHeight : NSLayoutConstraint!
 
+    var textHeight : CGFloat = 12
     var suggestionHeight : CGFloat = 0
     var keyboardHeight : CGFloat = 250
     var showingCancel = true
@@ -102,7 +105,7 @@ class TypeaheadViewController: UIViewController {
         
         blur = PlainBlurView(frame: view.bounds)
         blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(blur)
+//        view.addSubview(blur)
 
         scrim = UIView(frame: view.bounds)
         scrim.backgroundColor = UIColor.black.withAlphaComponent(0.3)
@@ -124,6 +127,13 @@ class TypeaheadViewController: UIViewController {
         contentView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
         contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
 
+        let dismissPanner = UIPanGestureRecognizer()
+        dismissPanner.delegate = self
+        dismissPanner.addTarget(self, action: #selector(verticalPan(gesture:)))
+        dismissPanner.cancelsTouchesInView = true
+        dismissPanner.delaysTouchesBegan = false
+        view.addGestureRecognizer(dismissPanner)
+        
         suggestionTable = UITableView(frame:self.view.frame)
         suggestionTable.rowHeight = 48.0
         suggestionTable.register(TypeaheadCell.self, forCellReuseIdentifier: typeaheadReuseID)
@@ -136,7 +146,8 @@ class TypeaheadViewController: UIViewController {
         suggestionTable.backgroundView?.backgroundColor = .clear
         contentView.addSubview(suggestionTable)
 
-        textView = SearchTextView()
+//        textView = SearchTextView()
+        textView = UITextView()
         textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 48)
         textView.font = UIFont(descriptor: .preferredFontDescriptor(withTextStyle: .body), size: 17)
         textView.text = ""
@@ -175,8 +186,8 @@ class TypeaheadViewController: UIViewController {
         }
 
         textView.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 12).isActive = true
-        textHeight = textView.heightAnchor.constraint(equalToConstant: 12)
-        textHeight.isActive = true
+        textHeightConstraint = textView.heightAnchor.constraint(equalToConstant: 12)
+        textHeightConstraint.isActive = true
         
         collapsedTextHeight = textView.heightAnchor.constraint(equalToConstant: 12)
         collapsedTextHeight.isActive = false
@@ -207,7 +218,7 @@ class TypeaheadViewController: UIViewController {
         }
         
         let darkContent = !newColor.isLight
-//        contentView.backgroundColor = newColor
+        contentView.backgroundColor = newColor
         scrim.backgroundColor = newColor.withAlphaComponent(0.6)
         view.tintColor = darkContent ? .darkText : .white
         contentView.tintColor = view.tintColor
@@ -229,8 +240,7 @@ class TypeaheadViewController: UIViewController {
         }
         
         textView.becomeFirstResponder()
-//        textView.selectAll(nil) // if not nil, will show actions
-        textView.selectAll(textView)
+        textView.selectAll(nil) // if not nil, will show actions
     }
     
     @objc
@@ -250,7 +260,7 @@ class TypeaheadViewController: UIViewController {
         let keyboardRectangle = keyboardFrame.cgRectValue
         keyboardHeight = keyboardRectangle.height + 12
         
-        if textView.isFirstResponder {
+        if textView.isFirstResponder && !kbHeightConstraint.isPopAnimating && !isDismissing {
             kbHeightConstraint.constant = keyboardHeight
         }
     }
@@ -307,7 +317,8 @@ extension TypeaheadViewController : UITextViewDelegate {
         textView.textContainerInset = UIEdgeInsetsMake(10, 12, 10, 12)
         let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
         textView.isScrollEnabled = fullTextSize.height > SEARCHVIEW_MAX_H
-        textHeight.constant = max(20, min(fullTextSize.height, SEARCHVIEW_MAX_H))
+        textHeight = max(20, min(fullTextSize.height, SEARCHVIEW_MAX_H))
+        textHeightConstraint.constant = textHeight
     }
     
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
@@ -362,6 +373,51 @@ extension TypeaheadViewController : UITableViewDataSource {
         return 48.0
     }
 }
+
+// MARK - Gesture
+
+extension TypeaheadViewController : UIGestureRecognizerDelegate {
+    @objc func verticalPan(gesture: UIPanGestureRecognizer) {
+        let dist = gesture.translation(in: view)
+        let vel = gesture.velocity(in: view)
+
+        if gesture.state == .began {
+            isDismissing = true
+            if let s = textView.selectedTextRange, !s.isEmpty {
+                textView.selectedRange = NSRange()
+            }
+            textView.isScrollEnabled = true
+        }
+        else if gesture.state == .changed {
+            if dist.y < 0 {
+                textView.becomeFirstResponder()
+                kbHeightConstraint.springConstant(to: keyboardHeight)
+//                kbHeightConstraint.constant = keyboardHeight
+                textHeightConstraint.constant = textHeight + 0.4 * elasticLimit(-dist.y)
+            }
+            else if showingCancel {
+                textView.resignFirstResponder()
+                kbHeightConstraint.springConstant(to: 48)
+//                kbHeightConstraint.constant = keyboardHeight - dist.y
+//                suggestHeightConstraint.constant = suggestionHeight - dist.y
+                textHeightConstraint.constant = dist.y.progress(from: 0, to: 400).clip().blend(from: textHeight, to: 48)
+            }
+        }
+        else if gesture.state == .ended || gesture.state == .cancelled {
+            isDismissing = false
+            if vel.y > 100 && showingCancel {
+                dismissSelf()
+            }
+            else {
+                kbHeightConstraint.springConstant(to: keyboardHeight)
+                suggestHeightConstraint.springConstant(to: suggestionHeight)
+                textHeightConstraint.springConstant(to: textHeight)
+                textView.becomeFirstResponder()
+            }
+        }
+    }
+}
+
 
 // MARK - Animation
 

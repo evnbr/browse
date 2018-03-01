@@ -104,6 +104,11 @@ extension UIScrollView {
 }
 
 extension NSLayoutConstraint {
+    var isPopAnimating : Bool {
+        let anims = self.pop_animationKeys()
+        return anims != nil && anims!.count > 0
+    }
+
     @discardableResult
     func springConstant(
         to newConstant: CGFloat,
