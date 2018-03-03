@@ -29,6 +29,7 @@ class TypeaheadCell: UITableViewCell {
         
         textLabel?.lineBreakMode = .byWordWrapping
         textLabel?.numberOfLines = 0
+        textLabel?.font = .systemFont(ofSize: 18)
     }
     
     required init?(coder aDecoder: NSCoder) {

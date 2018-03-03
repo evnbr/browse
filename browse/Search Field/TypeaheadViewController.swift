@@ -26,6 +26,9 @@ class TypeaheadViewController: UIViewController {
     var textView: UITextView!
     var cancel: ToolbarTextButton!
     var suggestionTable: UITableView!
+    var keyboardPlaceholder: UIImageView!
+    
+    var keyboardSnapshot: UIImage?
     
     var isDismissing = false
 
@@ -105,10 +108,10 @@ class TypeaheadViewController: UIViewController {
         
         blur = PlainBlurView(frame: view.bounds)
         blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(blur)
+//        view.addSubview(blur)
 
         scrim = UIView(frame: view.bounds)
-        scrim.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+        scrim.backgroundColor = UIColor.black.withAlphaComponent(0.2)
         scrim.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(scrim)
 
@@ -121,6 +124,7 @@ class TypeaheadViewController: UIViewController {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.tintColor = .darkText
         contentView.clipsToBounds = true
+        contentView.radius = 12
         view.addSubview(contentView)
         
         contentView.leftAnchor.constraint(greaterThanOrEqualTo: view.leftAnchor).isActive = true
@@ -154,18 +158,19 @@ class TypeaheadViewController: UIViewController {
 //        textView = SearchTextView()
         textView = UITextView()
         textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 48)
-        textView.font = UIFont(descriptor: .preferredFontDescriptor(withTextStyle: .body), size: 17)
+        textView.font = .systemFont(ofSize: 18)
+        //UIFont(descriptor: .preferredFontDescriptor(withTextStyle: .body), size: 18)
         textView.text = ""
         textView.placeholder = "Where to?"
         textView.delegate = self
         textView.isScrollEnabled = true
-        textView.backgroundColor = UIColor.white.withAlphaComponent(0.3)
+        textView.backgroundColor = .clear //UIColor.white.withAlphaComponent(0.3)
         textView.radius = SEARCH_RADIUS
         textView.textColor = .darkText
         textView.placeholderColor = UIColor.white.withAlphaComponent(0.4)
         textView.keyboardAppearance = .light
         textView.enablesReturnKeyAutomatically = true
-        textView.keyboardType = UIKeyboardType.webSearch
+        textView.keyboardType = .webSearch
         textView.returnKeyType = .go
         textView.autocorrectionType = .no
         textView.translatesAutoresizingMaskIntoConstraints = false
@@ -176,6 +181,11 @@ class TypeaheadViewController: UIViewController {
         cancel.sizeToFit()
         cancel.translatesAutoresizingMaskIntoConstraints = false
 
+        keyboardPlaceholder = UIImageView()
+        keyboardPlaceholder.translatesAutoresizingMaskIntoConstraints = false
+        keyboardPlaceholder.contentMode = .top
+        contentView.addSubview(keyboardPlaceholder)
+        
         if (showingCancel) {
             contentView.addSubview(cancel)
             
@@ -197,15 +207,27 @@ class TypeaheadViewController: UIViewController {
         collapsedTextHeight = textView.heightAnchor.constraint(equalToConstant: 12)
         collapsedTextHeight.isActive = false
         
-        suggestionTable.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12).isActive = true
+//        suggestionTable.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12).isActive = true
         suggestionTable.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
         suggestionTable.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
-        suggestionTable.bottomAnchor.constraint(equalTo: textView.topAnchor, constant: -12).isActive = true
-        suggestHeightConstraint = suggestionTable.heightAnchor.constraint(equalToConstant: suggestionHeight)
+        suggestionTable.bottomAnchor.constraint(equalTo: textView.topAnchor, constant: -8).isActive = true
+//        suggestHeightConstraint = suggestionTable.heightAnchor.constraint(equalToConstant: suggestionHeight)
+//        suggestHeightConstraint.isActive = true
+        suggestionTable.heightAnchor.constraint(equalToConstant: suggestionTable.rowHeight * 4).isActive = true
+        
+        suggestHeightConstraint = textView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: suggestionHeight)
         suggestHeightConstraint.isActive = true
         
-        kbHeightConstraint = contentView.bottomAnchor.constraint(equalTo: textView.bottomAnchor)
+        keyboardPlaceholder.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
+        keyboardPlaceholder.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
+        keyboardPlaceholder.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
+        
+        keyboardPlaceholder.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: 12).isActive = true
+        kbHeightConstraint = keyboardPlaceholder.heightAnchor.constraint(equalToConstant: 100)
         kbHeightConstraint.isActive = true
+        
+//        kbHeightConstraint = contentView.bottomAnchor.constraint(equalTo: textView.bottomAnchor)
+//        kbHeightConstraint.isActive = true
 
         NotificationCenter.default.addObserver(self, selector: #selector(updateKeyboardHeight), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateKeyboardHeight), name: NSNotification.Name.UIKeyboardWillChangeFrame, object: nil)
@@ -223,12 +245,12 @@ class TypeaheadViewController: UIViewController {
         }
         
         let darkContent = !newColor.isLight
-//        contentView.backgroundColor = newColor
-        scrim.backgroundColor = newColor.withAlphaComponent(0.6)
+        contentView.backgroundColor = newColor
+//        scrim.backgroundColor = newColor.withAlphaComponent(0.6)
         view.tintColor = darkContent ? .darkText : .white
         contentView.tintColor = view.tintColor
         textView.textColor = view.tintColor
-        textView.backgroundColor = darkContent ? UIColor.black.withAlphaComponent(0.1) : UIColor.white.withAlphaComponent(0.3)
+//        textView.backgroundColor = darkContent ? UIColor.black.withAlphaComponent(0.1) : UIColor.white.withAlphaComponent(0.3)
         textView.placeholderColor = darkContent ? UIColor.black.withAlphaComponent(0.4) : UIColor.white.withAlphaComponent(0.4)
         textView.keyboardAppearance = darkContent ? .light : .dark
     }
@@ -248,6 +270,10 @@ class TypeaheadViewController: UIViewController {
         textView.selectAll(nil) // if not nil, will show actions
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        updateKeyboardSnapshot()
+    }
+    
     @objc
     func dismissSelf() {
         self.dismiss(animated: true)
@@ -263,7 +289,7 @@ class TypeaheadViewController: UIViewController {
         let userInfo: NSDictionary = notification.userInfo! as NSDictionary
         let keyboardFrame: NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as! NSValue
         let keyboardRectangle = keyboardFrame.cgRectValue
-        keyboardHeight = keyboardRectangle.height + 12
+        keyboardHeight = keyboardRectangle.height// + 12
         
         if textView.isFirstResponder && !kbHeightConstraint.isPopAnimating && !isDismissing {
             kbHeightConstraint.constant = keyboardHeight
@@ -311,8 +337,8 @@ extension TypeaheadViewController : UITextViewDelegate {
                 heightForRowAt: IndexPath(row: index, section: 0))
         }
         
-        suggestionHeight = suggestionH
-        suggestHeightConstraint.constant = suggestionH
+        suggestionHeight = suggestionH + 24
+        suggestHeightConstraint.constant = suggestionHeight
         suggestionTable.reloadData()
         suggestionTable.layoutIfNeeded()
     }
@@ -387,25 +413,25 @@ extension TypeaheadViewController : UIGestureRecognizerDelegate {
         let vel = gesture.velocity(in: view)
 
         if gesture.state == .began {
+            showFakeKeyboard()
+            
             isDismissing = true
-            if let s = textView.selectedTextRange, !s.isEmpty {
-                textView.selectedRange = NSRange()
-            }
             textView.isScrollEnabled = true
         }
         else if gesture.state == .changed {
             if dist.y < 10 {
-                textView.becomeFirstResponder()
-                kbHeightConstraint.springConstant(to: keyboardHeight)
-//                kbHeightConstraint.constant = keyboardHeight
-                textHeightConstraint.constant = textHeight + 0.4 * elasticLimit(-dist.y)
+//                textView.becomeFirstResponder()
+//                kbHeightConstraint.springConstant(to: keyboardHeight)
+                kbHeightConstraint.constant = keyboardHeight
+                suggestHeightConstraint.constant = suggestionHeight + 0.4 * elasticLimit(-dist.y)
+//                textHeightConstraint.constant = textHeight + 0.4 * elasticLimit(-dist.y)
             }
             else if showingCancel {
-                textView.resignFirstResponder()
-                kbHeightConstraint.springConstant(to: 48)
-//                kbHeightConstraint.constant = keyboardHeight - dist.y
+//                textView.resignFirstResponder()
+//                kbHeightConstraint.springConstant(to: 48)
+                kbHeightConstraint.constant = keyboardHeight - dist.y
 //                suggestHeightConstraint.constant = suggestionHeight - dist.y
-                textHeightConstraint.constant = dist.y.progress(from: 0, to: 400).clip().blend(from: textHeight, to: 48)
+//                textHeightConstraint.constant = dist.y.progress(from: 0, to: 400).clip().blend(from: textHeight, to: 48)
             }
         }
         else if gesture.state == .ended || gesture.state == .cancelled {
@@ -414,12 +440,49 @@ extension TypeaheadViewController : UIGestureRecognizerDelegate {
                 dismissSelf()
             }
             else {
-                kbHeightConstraint.springConstant(to: keyboardHeight)
+                kbHeightConstraint.springConstant(to: keyboardHeight) {_,_ in
+                    self.showRealKeyboard()
+                }
                 suggestHeightConstraint.springConstant(to: suggestionHeight)
                 textHeightConstraint.springConstant(to: textHeight)
-                textView.becomeFirstResponder()
             }
         }
+    }
+    
+    func showFakeKeyboard() {
+        keyboardPlaceholder.image = keyboardSnapshot
+        UIView.setAnimationsEnabled(false)
+        textView.resignFirstResponder()
+        UIView.setAnimationsEnabled(true)
+        
+    }
+    func showRealKeyboard() {
+        keyboardPlaceholder.image = nil
+        UIView.setAnimationsEnabled(false)
+        textView.becomeFirstResponder()
+        UIView.setAnimationsEnabled(true)
+    }
+    
+    func updateKeyboardSnapshot() {
+        keyboardSnapshot = takeKeyboardSnapshot()
+    }
+    
+    func takeKeyboardSnapshot() -> UIImage? {
+        let size = UIScreen.main.bounds.size
+        let kbSize = CGSize(width: size.width, height: keyboardHeight)
+        
+        UIGraphicsBeginImageContextWithOptions(kbSize, false, 0)
+        let ctx = UIGraphicsGetCurrentContext()
+        ctx?.translateBy(x: 0, y: -(size.height - keyboardHeight))
+        
+        for window in UIApplication.shared.windows {
+            if (window.screen == UIScreen.main) {
+                window.drawHierarchy(in: window.frame, afterScreenUpdates: true)
+            }
+        }
+        let img = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext()
+        return img
     }
 }
 

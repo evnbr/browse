@@ -33,7 +33,8 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
 //            typeaheadVC.textView.becomeFirstResponder() // Unclear why this is necessary
         }
         
-        let toolbarSnap = browserVC?.toolbar.snapshotView(afterScreenUpdates: false)
+        browserVC?.toolbar.backgroundView.alpha = 1
+        let toolbarSnap = browserVC?.toolbar.snapshotView(afterScreenUpdates: isDismissing)
         if let t = toolbarSnap, let tc = browserVC?.toolbar.center {
             containerView.addSubview(t)
 //            browserVC?.locationBar.isHidden = true
@@ -51,7 +52,7 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
         typeaheadVC.suggestHeightConstraint.constant = isExpanding ? typeaheadVC.suggestionHeight : 12
         typeaheadVC.kbHeightConstraint.constant = isExpanding
             ? typeaheadVC.keyboardHeight
-            : (browserVC != nil ? 24 : -48) // room for indicator
+            : (browserVC != nil ? 0 : -48) // room for indicator
         
         // note order, prevent both from being enabled
         if isExpanding {
