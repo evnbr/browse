@@ -24,6 +24,7 @@
 		A92095951EE3E0DA009497A2 /* ToolbarTouchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095941EE3E0DA009497A2 /* ToolbarTouchView.swift */; };
 		A92095971EE3E2AF009497A2 /* ToolbarIconButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095961EE3E2AF009497A2 /* ToolbarIconButton.swift */; };
 		A9210D511F0148E600904A0B /* URL+DisplayHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9210D501F0148E600904A0B /* URL+DisplayHost.swift */; };
+		A925E3EA204CCE2B005778A0 /* PlainBlurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A925E3E9204CCE2B005778A0 /* PlainBlurView.swift */; };
 		A92C9C391EF5D66B00D8AAA3 /* BrowserViewController+WKNavigationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92C9C381EF5D66B00D8AAA3 /* BrowserViewController+WKNavigationDelegate.swift */; };
 		A92C9C3B1EF8B5E600D8AAA3 /* BrowserGestureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92C9C3A1EF8B5E600D8AAA3 /* BrowserGestureController.swift */; };
 		A9447A2D2027F48000654572 /* Typeahead.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9447A2C2027F48000654572 /* Typeahead.swift */; };
@@ -102,6 +103,7 @@
 		A92095941EE3E0DA009497A2 /* ToolbarTouchView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToolbarTouchView.swift; sourceTree = "<group>"; };
 		A92095961EE3E2AF009497A2 /* ToolbarIconButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToolbarIconButton.swift; sourceTree = "<group>"; };
 		A9210D501F0148E600904A0B /* URL+DisplayHost.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "URL+DisplayHost.swift"; sourceTree = "<group>"; };
+		A925E3E9204CCE2B005778A0 /* PlainBlurView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlainBlurView.swift; sourceTree = "<group>"; };
 		A92C9C381EF5D66B00D8AAA3 /* BrowserViewController+WKNavigationDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "BrowserViewController+WKNavigationDelegate.swift"; sourceTree = "<group>"; };
 		A92C9C3A1EF8B5E600D8AAA3 /* BrowserGestureController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BrowserGestureController.swift; sourceTree = "<group>"; };
 		A9446E9A1ECEBFC40082B4D9 /* Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Bridging-Header.h"; sourceTree = "<group>"; };
@@ -257,6 +259,7 @@
 		A90F51281F7178FF00221815 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				A925E3E9204CCE2B005778A0 /* PlainBlurView.swift */,
 				A9DEAE3C1F16C15700CF66BA /* ProgressToolbar.swift */,
 				A98483271EEFCFE200E821AE /* ColorToolbarView.swift */,
 				A92095941EE3E0DA009497A2 /* ToolbarTouchView.swift */,
@@ -709,6 +712,7 @@
 				A908920A1ED547C500A5E9BA /* LocationBar.swift in Sources */,
 				A920958A1EDA6526009497A2 /* Settings.swift in Sources */,
 				A966CA64204003FC00EB2771 /* TypeaheadCell.swift in Sources */,
+				A925E3EA204CCE2B005778A0 /* PlainBlurView.swift in Sources */,
 				A90ED966201EDB26003F4831 /* FloatButton.swift in Sources */,
 				A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */,
 				A92095861ED9E242009497A2 /* SettingsViewController.swift in Sources */,

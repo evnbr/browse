@@ -62,23 +62,27 @@ extension UIView {
             self.pop_add(anim, forKey: kSpringBounds)
         }
     }
-
+    
+    @discardableResult
     func springScale(
         to newScale: CGFloat,
         at velocity: CGPoint = .zero,
-        then completion: @escaping (POPAnimation?, Bool) -> Void = {_,_ in } ) {
+        then completion: @escaping (POPAnimation?, Bool) -> Void = {_,_ in } ) -> POPSpringAnimation? {
 
         let newScalePoint = CGPoint(x: newScale, y: newScale)
         
         if let anim = self.pop_animation(forKey: kSpringScale) as? POPSpringAnimation {
             anim.toValue = newScalePoint
+            return anim
         }
         else if let anim = POPSpringAnimation(propertyNamed: kPOPViewScaleXY) {
             anim.toValue = newScalePoint
             anim.velocity = velocity
             anim.completionBlock = completion
             self.pop_add(anim, forKey: kSpringScale)
+            return anim
         }
+        return nil
     }
 }
 
@@ -112,6 +116,7 @@ extension NSLayoutConstraint {
     @discardableResult
     func springConstant(
         to newConstant: CGFloat,
+        at velocity: CGFloat = 0,
         then completion: @escaping (POPAnimation?, Bool) -> Void = {_,_ in } ) -> POPSpringAnimation? {
         if let anim = self.pop_animation(forKey: kSpringConstant) as? POPSpringAnimation {
             anim.toValue = newConstant
@@ -119,6 +124,7 @@ extension NSLayoutConstraint {
         }
         if let anim = POPSpringAnimation(propertyNamed: kPOPLayoutConstraintConstant ) {
             anim.toValue = newConstant
+            anim.velocity = velocity
 //            anim.clampMode = POPAnimationClampFlags.end.rawValue
             anim.completionBlock = completion
             self.pop_add(anim, forKey: kSpringConstant)

@@ -69,7 +69,6 @@ class ToolbarTouchView: UIView {
         deSelect()
     }
 
-    
     func deSelect() {
         UIView.animate(withDuration: 0.6, delay: 0.0, options: .curveEaseInOut, animations: {
             self.backgroundColor = .clear

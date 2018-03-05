@@ -18,9 +18,9 @@ class LocationBar: ToolbarTouchView {
     var label = UILabel()
     var lock : UIImageView!
     var magnify : UIImageView!
+    var labelHolder : UIView!
     
     var alignment : LocationBarAlignment = .centered
-    var leftConstraint : NSLayoutConstraint!
     var centerConstraint : NSLayoutConstraint!
     
     private var shouldShowLock : Bool = false
@@ -85,11 +85,15 @@ class LocationBar: ToolbarTouchView {
         magnify = UIImageView(image: magnifyImage)
         
         label.text = "Where to?"
-//        label.font = UIFont.systemFont(ofSize: 16.0)
         label.font = Const.shared.thumbTitle
         label.adjustsFontSizeToFitWidth = false
         label.setContentHuggingPriority(UILayoutPriority(rawValue: 0), for: .horizontal)
 
+        labelHolder = UIView(frame: bounds)
+        labelHolder.translatesAutoresizingMaskIntoConstraints = false
+//        labelHolder.backgroundColor = .cyan
+        addSubview(labelHolder)
+        
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.distribution = .fill
@@ -101,45 +105,30 @@ class LocationBar: ToolbarTouchView {
         stackView.addArrangedSubview(label)
         stackView.translatesAutoresizingMaskIntoConstraints = false
         
-        addSubview(stackView)
-        stackView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
-        
-        label.widthAnchor.constraint(lessThanOrEqualTo: stackView.widthAnchor, constant: -32)
-        
-        centerConstraint = stackView.centerXAnchor.constraint(equalTo: self.centerXAnchor)
-        leftConstraint = stackView.leftAnchor.constraint(equalTo: self.leftAnchor)
-        centerConstraint.isActive = true
-        leftConstraint.isActive = false
-        
-//        stackView.widthAnchor.constraint(lessThanOrEqualTo: self.widthAnchor).isActive = true
+        labelHolder.addSubview(stackView)
+        labelHolder.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+        labelHolder.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
+
+        labelHolder.centerYAnchor.constraint(equalTo: stackView.centerYAnchor).isActive = true
+        labelHolder.centerXAnchor.constraint(equalTo: stackView.centerXAnchor).isActive = true
+
+        labelHolder.widthAnchor.constraint(equalTo: stackView.widthAnchor).isActive = true
+        labelHolder.heightAnchor.constraint(equalTo: heightAnchor).isActive = true
+
+        labelHolder.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
+        stackView.centerXAnchor.constraint(equalTo: labelHolder.centerXAnchor).isActive = true
         
         let maskLayer = CAGradientLayer()
-        maskLayer.frame = frame
+        maskLayer.frame = labelHolder.frame
         maskLayer.startPoint = CGPoint(x: 0, y: 0.5)
         maskLayer.endPoint = CGPoint(x: 1, y: 0.5)
         maskLayer.locations = [0, 0.01]
         maskLayer.colors = [UIColor.blue.cgColor, UIColor.blue.withAlphaComponent(0.3).cgColor]
-        layer.mask = maskLayer
-        
+        labelHolder.layer.mask = maskLayer
         
         isSecure = false
         isSearch = false
         isLoading = false
-    }
-    
-    func setAlignment(_ newAlignment: LocationBarAlignment) {
-        if newAlignment != alignment {
-            alignment = newAlignment
-            if newAlignment == .centered {
-                centerConstraint.isActive = true
-                leftConstraint.isActive = false
-            }
-            else if newAlignment == .left {
-                centerConstraint.isActive = false
-                leftConstraint.isActive = true
-            }
-            
-        }
     }
     
     var progress : CGFloat {
@@ -147,16 +136,15 @@ class LocationBar: ToolbarTouchView {
             return label.alpha
         }
         set {
-            let pctRange = (label.bounds.width + 32) / self.bounds.width
-            let adjustedPct = ((1 - pctRange) / 2) + newValue * pctRange
+            let pct = newValue
 
-            if let grad = self.layer.mask as? CAGradientLayer {
-                let val = adjustedPct as NSNumber
-                let val2 = (adjustedPct + 0.01) as NSNumber
+            if let grad = labelHolder.layer.mask as? CAGradientLayer {
+                let val = pct as NSNumber
+                let val2 = (pct + 0.005) as NSNumber
                 UIView.animate(withDuration: 0.2) {
                     grad.locations = [val, val2]
                 }
-                grad.frame = self.bounds // TODO set this in a normal place
+                grad.frame = labelHolder.bounds // TODO set this in a normal place
             }
 
         }

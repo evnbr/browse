@@ -21,7 +21,7 @@ struct TypeaheadRow {
 class TypeaheadViewController: UIViewController {
 
     var contentView: UIView!
-    var blur: UIView!
+    var backgroundView: PlainBlurView!
     var scrim: UIView!
     var textView: UITextView!
     var cancel: ToolbarTextButton!
@@ -37,10 +37,11 @@ class TypeaheadViewController: UIViewController {
     var kbHeightConstraint : NSLayoutConstraint!
     var suggestHeightConstraint : NSLayoutConstraint!
     var textHeightConstraint : NSLayoutConstraint!
-    var collapsedTextHeight : NSLayoutConstraint!
+    var toolbarBottomMargin : NSLayoutConstraint!
 
     var textHeight : CGFloat = 12
-    var suggestionHeight : CGFloat = 0
+    var suggestionSpacer : CGFloat = 24
+    var suggestionHeight : CGFloat = 24
     var keyboardHeight : CGFloat = 250
     var showingCancel = true
     
@@ -106,10 +107,6 @@ class TypeaheadViewController: UIViewController {
         
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         
-        blur = PlainBlurView(frame: view.bounds)
-        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-//        view.addSubview(blur)
-
         scrim = UIView(frame: view.bounds)
         scrim.backgroundColor = UIColor.black.withAlphaComponent(0.2)
         scrim.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -127,13 +124,14 @@ class TypeaheadViewController: UIViewController {
         contentView.radius = 12
         view.addSubview(contentView)
         
-        contentView.leftAnchor.constraint(greaterThanOrEqualTo: view.leftAnchor).isActive = true
-        contentView.rightAnchor.constraint(lessThanOrEqualTo: view.rightAnchor).isActive = true
-        contentView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        let defaultW = contentView.widthAnchor.constraint(equalToConstant: 600)
-        defaultW.priority = .defaultHigh
-        defaultW.isActive = true
-        
+        backgroundView = PlainBlurView(frame: contentView.bounds)
+        backgroundView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        backgroundView.overlayAlpha = 0.8
+        contentView.addSubview(backgroundView)
+
+        contentView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
+        contentView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
+
         contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
 
         let dismissPanner = UIPanGestureRecognizer()
@@ -165,7 +163,7 @@ class TypeaheadViewController: UIViewController {
         textView.delegate = self
         textView.isScrollEnabled = true
         textView.backgroundColor = .clear //UIColor.white.withAlphaComponent(0.3)
-        textView.radius = SEARCH_RADIUS
+//        textView.radius = SEARCH_RADIUS
         textView.textColor = .darkText
         textView.placeholderColor = UIColor.white.withAlphaComponent(0.4)
         textView.keyboardAppearance = .light
@@ -174,6 +172,7 @@ class TypeaheadViewController: UIViewController {
         textView.returnKeyType = .go
         textView.autocorrectionType = .no
         textView.translatesAutoresizingMaskIntoConstraints = false
+//        textView.backgroundColor = .red
         contentView.addSubview(textView)
 
         cancel = ToolbarTextButton(title: "Cancel", withIcon: nil, onTap: dismissSelf)
@@ -188,50 +187,42 @@ class TypeaheadViewController: UIViewController {
         
         if (showingCancel) {
             contentView.addSubview(cancel)
-            
+
             cancel.bottomAnchor.constraint(equalTo: textView.bottomAnchor).isActive = true
             cancel.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
             cancel.widthAnchor.constraint(equalToConstant: cancel.bounds.width).isActive = true
             cancel.heightAnchor.constraint(equalToConstant: cancel.bounds.height).isActive = true
-            
+
             textView.rightAnchor.constraint(equalTo: cancel.leftAnchor).isActive = true
         }
         else {
-            contentView.rightAnchor.constraint(equalTo: textView.rightAnchor, constant: 12).isActive = true
+            contentView.rightAnchor.constraint(equalTo: textView.rightAnchor).isActive = true
         }
 
-        textView.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 12).isActive = true
-        textHeightConstraint = textView.heightAnchor.constraint(equalToConstant: 12)
+        textView.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
+        textHeightConstraint = textView.heightAnchor.constraint(equalToConstant: 36)
         textHeightConstraint.isActive = true
-        
-        collapsedTextHeight = textView.heightAnchor.constraint(equalToConstant: 12)
-        collapsedTextHeight.isActive = false
-        
-//        suggestionTable.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12).isActive = true
+                
         suggestionTable.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
         suggestionTable.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
         suggestionTable.bottomAnchor.constraint(equalTo: textView.topAnchor, constant: -8).isActive = true
-//        suggestHeightConstraint = suggestionTable.heightAnchor.constraint(equalToConstant: suggestionHeight)
-//        suggestHeightConstraint.isActive = true
         suggestionTable.heightAnchor.constraint(equalToConstant: suggestionTable.rowHeight * 4).isActive = true
         
-        suggestHeightConstraint = textView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: suggestionHeight)
+        suggestHeightConstraint = textView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: suggestionSpacer)
         suggestHeightConstraint.isActive = true
         
         keyboardPlaceholder.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
         keyboardPlaceholder.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
         keyboardPlaceholder.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
         
-        keyboardPlaceholder.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: 12).isActive = true
-        kbHeightConstraint = keyboardPlaceholder.heightAnchor.constraint(equalToConstant: 100)
+        toolbarBottomMargin = keyboardPlaceholder.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: KB_MARGIN)
+        toolbarBottomMargin.isActive = true
+        kbHeightConstraint = keyboardPlaceholder.heightAnchor.constraint(equalToConstant: 0)
         kbHeightConstraint.isActive = true
-        
-//        kbHeightConstraint = contentView.bottomAnchor.constraint(equalTo: textView.bottomAnchor)
-//        kbHeightConstraint.isActive = true
 
         NotificationCenter.default.addObserver(self, selector: #selector(updateKeyboardHeight), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateKeyboardHeight), name: NSNotification.Name.UIKeyboardWillChangeFrame, object: nil)
-
+        
         setBackground(defaultBackground)
         updateTextViewSize()
         
@@ -245,7 +236,9 @@ class TypeaheadViewController: UIViewController {
         }
         
         let darkContent = !newColor.isLight
-        contentView.backgroundColor = newColor
+//        contentView.backgroundColor = newColor.withAlphaComponent(0.8)
+        backgroundView.overlayColor = newColor
+        
 //        scrim.backgroundColor = newColor.withAlphaComponent(0.6)
         view.tintColor = darkContent ? .darkText : .white
         contentView.tintColor = view.tintColor
@@ -255,6 +248,13 @@ class TypeaheadViewController: UIViewController {
         textView.keyboardAppearance = darkContent ? .light : .dark
     }
     
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        coordinator.animate(alongsideTransition: { (ctx) in
+            //
+        }) { (ctx) in
+            self.updateKeyboardSnapshot()
+        }
+    }
     
     override func viewWillAppear(_ animated: Bool) {
         // TODO: Why?
@@ -266,6 +266,7 @@ class TypeaheadViewController: UIViewController {
             showPageActions()
         }
         
+        keyboardPlaceholder.image = nil
         textView.becomeFirstResponder()
         textView.selectAll(nil) // if not nil, will show actions
     }
@@ -276,6 +277,7 @@ class TypeaheadViewController: UIViewController {
     
     @objc
     func dismissSelf() {
+        showFakeKeyboard()
         self.dismiss(animated: true)
     }
 
@@ -337,7 +339,7 @@ extension TypeaheadViewController : UITextViewDelegate {
                 heightForRowAt: IndexPath(row: index, section: 0))
         }
         
-        suggestionHeight = suggestionH + 24
+        suggestionHeight = suggestionH + suggestionSpacer
         suggestHeightConstraint.constant = suggestionHeight
         suggestionTable.reloadData()
         suggestionTable.layoutIfNeeded()
@@ -345,7 +347,8 @@ extension TypeaheadViewController : UITextViewDelegate {
     
     func updateTextViewSize() {
         let fixedWidth = textView.frame.size.width
-        textView.textContainerInset = UIEdgeInsetsMake(10, 12, 10, 12)
+//        textView.textContainerInset = UIEdgeInsetsMake(10, 12, 10, 12)
+        textView.textContainerInset = UIEdgeInsetsMake(10, 20, 10, 0)
         let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
         textView.isScrollEnabled = fullTextSize.height > SEARCHVIEW_MAX_H
         textHeight = max(20, min(fullTextSize.height, SEARCHVIEW_MAX_H))
@@ -393,6 +396,9 @@ extension TypeaheadViewController : UITableViewDataSource {
         // Configure the cells
         
         cell.textLabel?.text = suggestions[indexPath.item].text
+        if suggestions[indexPath.item].action != nil && indexPath.item == 0 {
+            cell.isTitle = true
+        }
         return cell
     }
     
@@ -407,6 +413,9 @@ extension TypeaheadViewController : UITableViewDataSource {
 
 // MARK - Gesture
 
+let KB_MARGIN : CGFloat = 12
+let SPACE_FOR_INDICATOR : CGFloat = 36
+
 extension TypeaheadViewController : UIGestureRecognizerDelegate {
     @objc func verticalPan(gesture: UIPanGestureRecognizer) {
         let dist = gesture.translation(in: view)
@@ -414,42 +423,53 @@ extension TypeaheadViewController : UIGestureRecognizerDelegate {
 
         if gesture.state == .began {
             showFakeKeyboard()
-            
             isDismissing = true
             textView.isScrollEnabled = true
         }
         else if gesture.state == .changed {
-            if dist.y < 10 {
-//                textView.becomeFirstResponder()
-//                kbHeightConstraint.springConstant(to: keyboardHeight)
+            if dist.y < 0 {
                 kbHeightConstraint.constant = keyboardHeight
                 suggestHeightConstraint.constant = suggestionHeight + 0.4 * elasticLimit(-dist.y)
-//                textHeightConstraint.constant = textHeight + 0.4 * elasticLimit(-dist.y)
             }
-            else if showingCancel {
-//                textView.resignFirstResponder()
-//                kbHeightConstraint.springConstant(to: 48)
-                kbHeightConstraint.constant = keyboardHeight - dist.y
-//                suggestHeightConstraint.constant = suggestionHeight - dist.y
-//                textHeightConstraint.constant = dist.y.progress(from: 0, to: 400).clip().blend(from: textHeight, to: 48)
+            else {
+                if dist.y < keyboardHeight {
+                    kbHeightConstraint.constant = keyboardHeight - dist.y
+                    
+                    let progress =  dist.y.progress(from: 0, to: keyboardHeight).clip()
+                    let margin = progress.blend(from: KB_MARGIN, to: SPACE_FOR_INDICATOR)
+//                    let textAdjust = progress.blend(from: 0, to: SPACE_FOR_INDICATOR - KB_MARGIN )
+                    toolbarBottomMargin.constant = margin
+//                    textHeightConstraint.constant = textHeight - textAdjust
+                    suggestHeightConstraint.constant = suggestionHeight
+                }
+                else {
+//                    toolbarBottomMargin.constant = SPACE_FOR_INDICATOR
+                    kbHeightConstraint.constant = 0
+                    suggestHeightConstraint.constant = suggestionHeight - dist.y + keyboardHeight
+                }
+                suggestionTable.alpha = dist.y.progress(from: keyboardHeight, to: keyboardHeight + 100).clip().reverse()
             }
         }
         else if gesture.state == .ended || gesture.state == .cancelled {
             isDismissing = false
-            if vel.y > 100 && showingCancel {
+            if (vel.y > 100 || kbHeightConstraint.constant < 100) && showingCancel {
                 dismissSelf()
             }
             else {
                 kbHeightConstraint.springConstant(to: keyboardHeight) {_,_ in
                     self.showRealKeyboard()
+                    self.textView.isScrollEnabled = false
                 }
                 suggestHeightConstraint.springConstant(to: suggestionHeight)
+                toolbarBottomMargin.springConstant(to: KB_MARGIN)
+                suggestionTable.alpha = 1
                 textHeightConstraint.springConstant(to: textHeight)
             }
         }
     }
     
     func showFakeKeyboard() {
+        keyboardPlaceholder.isHidden = false
         keyboardPlaceholder.image = keyboardSnapshot
         UIView.setAnimationsEnabled(false)
         textView.resignFirstResponder()
@@ -457,13 +477,13 @@ extension TypeaheadViewController : UIGestureRecognizerDelegate {
         
     }
     func showRealKeyboard() {
-        keyboardPlaceholder.image = nil
+        keyboardPlaceholder.isHidden = true
         UIView.setAnimationsEnabled(false)
         textView.becomeFirstResponder()
         UIView.setAnimationsEnabled(true)
     }
     
-    func updateKeyboardSnapshot() {
+    @objc func updateKeyboardSnapshot() {
         keyboardSnapshot = takeKeyboardSnapshot()
     }
     

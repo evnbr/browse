@@ -9,23 +9,6 @@
 import Foundation
 import UIKit
 
-class PlainBlurView : UIVisualEffectView {
-    convenience init(frame: CGRect) {
-        
-        self.init(effect: UIBlurEffect(style: .light))
-        self.frame = frame
-        self.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        
-        // TODO: gross workaround to not have lightening effect.
-        // could be more robust, make sure if v is _UIVisualEffectFilterView
-        for v in subviews {
-            if v.backgroundColor != nil {
-                v.backgroundColor = nil
-            }
-        }
-    }
-}
-
 class ColorStatusBarView : GradientColorChangeView {
     var blurView : UIVisualEffectView!
     var label : UILabel!
