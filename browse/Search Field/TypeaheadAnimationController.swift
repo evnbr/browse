@@ -55,6 +55,7 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
         var endCenter = startCenter
 //        let titleHorizontalShift : CGFloat = 60 //(browserVC!.toolbar.bounds.width - titleSnap!.bounds.width) / 3
         let titleHorizontalShift : CGFloat = (browserVC!.toolbar.bounds.width - titleSnap!.bounds.width - 40) / 2
+        let cancelShiftH : CGFloat = 80
         endCenter.x -= titleHorizontalShift
         endCenter.y -= typeaheadVC.textHeightConstraint.constant - 70
         if isDismissing {
@@ -83,7 +84,7 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
 
 //        typeaheadVC.textView.scale = isExpanding ? 0.9 : 1
         typeaheadVC.textView.transform = CGAffineTransform(translationX: self.isExpanding ? titleHorizontalShift : 0, y: 0)
-        typeaheadVC.cancel.transform = CGAffineTransform(translationX: self.isExpanding ? titleHorizontalShift : 0, y: 0)
+        typeaheadVC.cancel.transform = CGAffineTransform(translationX: self.isExpanding ? cancelShiftH : 0, y: 0)
         if isDismissing { toolbarSnap?.center.x -= titleHorizontalShift * 0.5 }
 
         typeaheadVC.textHeightConstraint.constant = isExpanding ? typeaheadVC.textHeight : 40
@@ -112,6 +113,10 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
 //            typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
 //        })
         
+        let maskStartWidth = titleSnap?.bounds.size.width ?? 0
+        let maskEndWidth = typeaheadVC.textView.bounds.size.width
+        typeaheadVC.textView.mask?.frame.size.width = isExpanding ? maskStartWidth : maskEndWidth
+
         UIView.animate(
             withDuration: 0.5,
             delay: 0.0,
@@ -128,7 +133,10 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
                 
                 if !self.isDismissing { toolbarSnap?.center.x -= titleHorizontalShift * 0.5 }
                 typeaheadVC.textView.transform = CGAffineTransform(translationX: self.isExpanding ? 0 : titleHorizontalShift, y: 0)
-                typeaheadVC.cancel.transform = CGAffineTransform(translationX: self.isExpanding ? 0 : titleHorizontalShift, y: 0)
+                typeaheadVC.cancel.transform = CGAffineTransform(translationX: self.isExpanding ? 0 : cancelShiftH, y: 0)
+                
+                typeaheadVC.textView.mask?.frame.size.width = self.isExpanding ? maskEndWidth : maskStartWidth
+
 
                 
                 if self.isDismissing {

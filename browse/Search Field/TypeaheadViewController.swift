@@ -174,7 +174,13 @@ class TypeaheadViewController: UIViewController {
         textView.translatesAutoresizingMaskIntoConstraints = false
 //        textView.backgroundColor = .red
         contentView.addSubview(textView)
-
+        
+        let maskView = UIView(frame: textView.bounds)
+        maskView.backgroundColor = .red
+        maskView.frame = textView.bounds
+        maskView.bounds.size.height = SEARCHVIEW_MAX_H
+        textView.mask = maskView
+        
         cancel = ToolbarTextButton(title: "Cancel", withIcon: nil, onTap: dismissSelf)
         cancel.size = .medium
         cancel.sizeToFit()
@@ -188,7 +194,7 @@ class TypeaheadViewController: UIViewController {
         if (showingCancel) {
             contentView.addSubview(cancel)
 
-            cancel.bottomAnchor.constraint(equalTo: textView.bottomAnchor).isActive = true
+            cancel.bottomAnchor.constraint(equalTo: textView.bottomAnchor, constant: -12).isActive = true
             cancel.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
             cancel.widthAnchor.constraint(equalToConstant: cancel.bounds.width).isActive = true
             cancel.heightAnchor.constraint(equalToConstant: cancel.bounds.height).isActive = true
@@ -348,11 +354,13 @@ extension TypeaheadViewController : UITextViewDelegate {
     func updateTextViewSize() {
         let fixedWidth = textView.frame.size.width
 //        textView.textContainerInset = UIEdgeInsetsMake(10, 12, 10, 12)
-        textView.textContainerInset = UIEdgeInsetsMake(10, 20, 10, 0)
+        textView.textContainerInset = UIEdgeInsetsMake(10, 20, 22, 0)
         let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
         textView.isScrollEnabled = fullTextSize.height > SEARCHVIEW_MAX_H
         textHeight = max(20, min(fullTextSize.height, SEARCHVIEW_MAX_H))
         textHeightConstraint.constant = textHeight
+        
+        textView.mask?.frame.size.width = textView.bounds.width
     }
     
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
@@ -413,8 +421,8 @@ extension TypeaheadViewController : UITableViewDataSource {
 
 // MARK - Gesture
 
-let KB_MARGIN : CGFloat = 12
-let SPACE_FOR_INDICATOR : CGFloat = 36
+let KB_MARGIN : CGFloat = 0
+let SPACE_FOR_INDICATOR : CGFloat = 24
 
 extension TypeaheadViewController : UIGestureRecognizerDelegate {
     @objc func verticalPan(gesture: UIPanGestureRecognizer) {
