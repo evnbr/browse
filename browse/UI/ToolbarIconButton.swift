@@ -13,12 +13,8 @@ class ToolbarIconButton: ToolbarTouchView {
     var iconView : UIImageView!
     
     var isEnabled : Bool {
-        get {
-            return self.alpha == 1.0
-        }
-        set {
-            self.alpha = newValue ? 1 : 0.3
-        }
+        get { return self.alpha == 1.0 }
+        set { self.alpha = newValue ? 1 : 0.3 }
     }
 
     override var intrinsicContentSize: CGSize {
@@ -44,6 +40,10 @@ class ToolbarIconButton: ToolbarTouchView {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+}
 
+class LargeIconButton: ToolbarIconButton {
+    override var intrinsicContentSize: CGSize {
+        return CGSize(width: 64, height: 64)
+    }
 }

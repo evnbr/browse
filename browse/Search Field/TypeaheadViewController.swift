@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import pop
 
 let typeaheadReuseID = "TypeaheadRow"
 let MAX_ROWS : Int = 4
@@ -27,6 +28,7 @@ class TypeaheadViewController: UIViewController {
     var cancel: ToolbarTextButton!
     var suggestionTable: UITableView!
     var keyboardPlaceholder: UIImageView!
+    var pageActionView: PageActionView!
     
     var keyboardSnapshot: UIImage?
     
@@ -35,13 +37,15 @@ class TypeaheadViewController: UIViewController {
     var displaySearchTransition = TypeaheadAnimationController()
     
     var kbHeightConstraint : NSLayoutConstraint!
-    var suggestHeightConstraint : NSLayoutConstraint!
+    var suggestionHeightConstraint : NSLayoutConstraint!
+    var contextAreaHeightConstraint : NSLayoutConstraint!
     var textHeightConstraint : NSLayoutConstraint!
     var toolbarBottomMargin : NSLayoutConstraint!
+    var actionsHeight : NSLayoutConstraint!
 
     var textHeight : CGFloat = 12
     var suggestionSpacer : CGFloat = 24
-    var suggestionHeight : CGFloat = 24
+    var contextAreaHeight: CGFloat = 24
     var keyboardHeight : CGFloat = 250
     var showingCancel = true
     
@@ -59,38 +63,38 @@ class TypeaheadViewController: UIViewController {
         }
         else { return nil }
     }
-    var pageActions : [TypeaheadRow] {
-        return [
-        TypeaheadRow(text: browser?.webView.title ?? "Untitled Page", action: {
-            guard let b = self.browser else { return }
-            self.dismiss(animated: true, completion: { b.webView.reload() })
-        }),
-        TypeaheadRow(text: "Share", action: {
-            guard let b = self.browser else { return }
-            b.makeShareSheet { avc in
-                self.present(avc, animated: true, completion: nil)
-            }
-        }),
-        TypeaheadRow(text: "Paste and go", action: {
-            guard let b = self.browser else { return }
-            if let str = UIPasteboard.general.string {
-                self.textView.text = str
-                b.navigateToText(str)
-            }
-            self.dismiss(animated: true)
-        }),
-        TypeaheadRow(text: "Copy", action: {
-            guard let b = self.browser else { return }
-            self.dismiss(animated: true, completion: {
-                b.copyURL()
-                let alert = UIAlertController(title: "Copied", message: nil, preferredStyle: .alert)
-                b.present(alert, animated: true, completion: {
-                    alert.dismiss(animated: true, completion: nil)
-                })
-            })
-        }),
-        ]
-    }
+//    var pageActions : [TypeaheadRow] {
+//        return [
+//        TypeaheadRow(text: browser?.webView.title ?? "Untitled Page", action: {
+//            guard let b = self.browser else { return }
+//            self.dismiss(animated: true, completion: { b.webView.reload() })
+//        }),
+//        TypeaheadRow(text: "Share", action: {
+//            guard let b = self.browser else { return }
+//            b.makeShareSheet { avc in
+//                self.present(avc, animated: true, completion: nil)
+//            }
+//        }),
+//        TypeaheadRow(text: "Paste and go", action: {
+//            guard let b = self.browser else { return }
+//            if let str = UIPasteboard.general.string {
+//                self.textView.text = str
+//                b.navigateToText(str)
+//            }
+//            self.dismiss(animated: true)
+//        }),
+//        TypeaheadRow(text: "Copy", action: {
+//            guard let b = self.browser else { return }
+//            self.dismiss(animated: true, completion: {
+//                b.copyURL()
+//                let alert = UIAlertController(title: "Copied", message: nil, preferredStyle: .alert)
+//                b.present(alert, animated: true, completion: {
+//                    alert.dismiss(animated: true, completion: nil)
+//                })
+//            })
+//        }),
+//        ]
+//    }
 
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -178,7 +182,7 @@ class TypeaheadViewController: UIViewController {
         let maskView = UIView(frame: textView.bounds)
         maskView.backgroundColor = .red
         maskView.frame = textView.bounds
-        maskView.bounds.size.height = SEARCHVIEW_MAX_H
+        maskView.bounds.size.height = 500 // TODO Large number because mask is scrollable :(
         textView.mask = maskView
         
         cancel = ToolbarTextButton(title: "Cancel", withIcon: nil, onTap: dismissSelf)
@@ -190,6 +194,10 @@ class TypeaheadViewController: UIViewController {
         keyboardPlaceholder.translatesAutoresizingMaskIntoConstraints = false
         keyboardPlaceholder.contentMode = .top
         contentView.addSubview(keyboardPlaceholder)
+        
+        pageActionView = PageActionView()
+        pageActionView.delegate = self
+        contentView.addSubview(pageActionView)
         
         if (showingCancel) {
             contentView.addSubview(cancel)
@@ -212,10 +220,18 @@ class TypeaheadViewController: UIViewController {
         suggestionTable.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
         suggestionTable.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
         suggestionTable.bottomAnchor.constraint(equalTo: textView.topAnchor, constant: -8).isActive = true
-        suggestionTable.heightAnchor.constraint(equalToConstant: suggestionTable.rowHeight * 4).isActive = true
         
-        suggestHeightConstraint = textView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: suggestionSpacer)
-        suggestHeightConstraint.isActive = true
+        suggestionHeightConstraint = suggestionTable.heightAnchor.constraint(equalToConstant: suggestionTable.rowHeight * 4)
+        suggestionHeightConstraint.isActive = true
+        
+        pageActionView.bottomAnchor.constraint(equalTo: textView.topAnchor).isActive = true
+        pageActionView.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
+        pageActionView.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
+        actionsHeight = pageActionView.heightAnchor.constraint(equalToConstant: 100)
+        actionsHeight.isActive = true
+
+        contextAreaHeightConstraint = textView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: suggestionSpacer)
+        contextAreaHeightConstraint.isActive = true
         
         keyboardPlaceholder.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
         keyboardPlaceholder.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
@@ -268,8 +284,9 @@ class TypeaheadViewController: UIViewController {
         
         if let browser = self.browser {
             textView.text = browser.editableLocation
+            pageActionView.title = browser.webView.title
             updateTextViewSize()
-            showPageActions()
+            updateSuggestion(for: textView.text)
         }
         
         keyboardPlaceholder.image = nil
@@ -317,6 +334,13 @@ extension TypeaheadViewController : UITextViewDelegate {
             self.renderSuggestions()
             return
         }
+        
+        if browser?.editableLocation == textView.text || textView.text == "" {
+            suggestions = []
+            self.renderSuggestions()
+            return
+        }
+        
         let suggestionsForText = textView.text
         Typeahead.shared.suggestions(for: textView.text, maxCount: 4) { arr in
             // If text has changed since return, don't bother
@@ -329,24 +353,24 @@ extension TypeaheadViewController : UITextViewDelegate {
         }
     }
     
-    func showPageActions() {
-        suggestions = pageActions
-        renderSuggestions()
-    }
-    
-    func displayShare() {
-    }
-    
     func renderSuggestions() {
-        var suggestionH : CGFloat = 0
-        for index in 0..<suggestions.count {
-             suggestionH += tableView(
-                suggestionTable,
-                heightForRowAt: IndexPath(row: index, section: 0))
+        if browser?.editableLocation == textView.text || textView.text == ""  {
+            contextAreaHeight = 100
+            actionsHeight.constant = contextAreaHeight
+            contextAreaHeightConstraint.constant = contextAreaHeight
         }
-        
-        suggestionHeight = suggestionH + suggestionSpacer
-        suggestHeightConstraint.constant = suggestionHeight
+        else {
+            actionsHeight.constant = 0
+            var suggestionH : CGFloat = 0
+            for index in 0..<suggestions.count {
+                suggestionH += tableView(
+                    suggestionTable,
+                    heightForRowAt: IndexPath(row: index, section: 0))
+            }
+            contextAreaHeight = suggestionH + suggestionSpacer
+        }
+
+        contextAreaHeightConstraint.springConstant(to: contextAreaHeight)
         suggestionTable.reloadData()
         suggestionTable.layoutIfNeeded()
     }
@@ -422,7 +446,7 @@ extension TypeaheadViewController : UITableViewDataSource {
 // MARK - Gesture
 
 let KB_MARGIN : CGFloat = 0
-let SPACE_FOR_INDICATOR : CGFloat = 24
+let SPACE_FOR_INDICATOR : CGFloat = 26
 
 extension TypeaheadViewController : UIGestureRecognizerDelegate {
     @objc func verticalPan(gesture: UIPanGestureRecognizer) {
@@ -437,7 +461,8 @@ extension TypeaheadViewController : UIGestureRecognizerDelegate {
         else if gesture.state == .changed {
             if dist.y < 0 {
                 kbHeightConstraint.constant = keyboardHeight
-                suggestHeightConstraint.constant = suggestionHeight + 0.4 * elasticLimit(-dist.y)
+//                contextAreaHeightConstraint.constant = contextAreaHeight+ 0.4 * elasticLimit(-dist.y)
+                textHeightConstraint.constant = textHeight + 0.4 * elasticLimit(-dist.y)
             }
             else {
                 if dist.y < keyboardHeight {
@@ -445,17 +470,15 @@ extension TypeaheadViewController : UIGestureRecognizerDelegate {
                     
                     let progress =  dist.y.progress(from: 0, to: keyboardHeight).clip()
                     let margin = progress.blend(from: KB_MARGIN, to: SPACE_FOR_INDICATOR)
-//                    let textAdjust = progress.blend(from: 0, to: SPACE_FOR_INDICATOR - KB_MARGIN )
                     toolbarBottomMargin.constant = margin
-//                    textHeightConstraint.constant = textHeight - textAdjust
-                    suggestHeightConstraint.constant = suggestionHeight
+                    contextAreaHeightConstraint.constant = contextAreaHeight
                 }
                 else {
-//                    toolbarBottomMargin.constant = SPACE_FOR_INDICATOR
                     kbHeightConstraint.constant = 0
-                    suggestHeightConstraint.constant = suggestionHeight - dist.y + keyboardHeight
+                    contextAreaHeightConstraint.constant = contextAreaHeight - elasticLimit(dist.y - keyboardHeight)
                 }
-                suggestionTable.alpha = dist.y.progress(from: keyboardHeight, to: keyboardHeight + 100).clip().reverse()
+                suggestionTable.alpha = dist.y.progress(from: keyboardHeight - 40, to: keyboardHeight + 100).clip().reverse()
+                pageActionView.alpha = dist.y.progress(from: keyboardHeight - 40, to: keyboardHeight + 60).clip().reverse()
             }
         }
         else if gesture.state == .ended || gesture.state == .cancelled {
@@ -468,10 +491,12 @@ extension TypeaheadViewController : UIGestureRecognizerDelegate {
                     self.showRealKeyboard()
                     self.textView.isScrollEnabled = false
                 }
-                suggestHeightConstraint.springConstant(to: suggestionHeight)
+                contextAreaHeightConstraint.springConstant(to: contextAreaHeight)
                 toolbarBottomMargin.springConstant(to: KB_MARGIN)
                 suggestionTable.alpha = 1
-                textHeightConstraint.springConstant(to: textHeight)
+                pageActionView.alpha = 1
+                let ta = textHeightConstraint.springConstant(to: textHeight)
+                ta?.clampMode = POPAnimationClampFlags.both.rawValue // prevent flickering when textfield too small
             }
         }
     }
@@ -514,6 +539,36 @@ extension TypeaheadViewController : UIGestureRecognizerDelegate {
     }
 }
 
+// MARK - Actions
+extension TypeaheadViewController : PageActionHandler {
+    func refresh() {
+        browser?.webView.reload()
+        dismiss(animated: true)
+    }
+    
+    func bookmark() {
+        //
+    }
+    
+    func share() {
+        browser?.makeShareSheet { avc in
+            self.present(avc, animated: true, completion: nil)
+        }
+    }
+    
+    func copy() {
+        let b = browser
+        b?.copyURL()
+        dismiss(animated: true, completion: {
+            let alert = UIAlertController(title: "Copied", message: nil, preferredStyle: .alert)
+            b?.present(alert, animated: true, completion: {
+                alert.dismiss(animated: true, completion: nil)
+            })
+        })
+    }
+    
+    
+}
 
 // MARK - Animation
 

@@ -17,6 +17,11 @@ class ToolbarTouchView: UIView {
         return frame.size
     }
     
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        radius = frame.height / 2
+    }
+    
     
     init(frame: CGRect, onTap: @escaping () -> Void) {
         action = onTap

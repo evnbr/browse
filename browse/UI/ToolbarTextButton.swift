@@ -93,7 +93,6 @@ class ToolbarTextButton: ToolbarTouchView {
         }
         
         stackView.addArrangedSubview(label)
-        
         stackView.translatesAutoresizingMaskIntoConstraints = false;
         
         addSubview(stackView)

@@ -25,11 +25,13 @@ class TypeaheadCell: UITableViewCell {
         selectedBackgroundView = bg
         
         indentationWidth = 12.0
-        indentationLevel = 1
+        indentationLevel = 0
         
         textLabel?.lineBreakMode = .byWordWrapping
         textLabel?.numberOfLines = 0
         textLabel?.font = .systemFont(ofSize: 18)
+//        textLabel?.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 24).isActive = true
+        layoutMargins = UIEdgeInsetsMake(12, 24, 12, 24)
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -39,6 +41,21 @@ class TypeaheadCell: UITableViewCell {
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
         // Configure the view for the selected state
+    }
+    
+    var isTitle : Bool {
+        get {
+            return textLabel!.font.pointSize > CGFloat(18)
+        }
+        set {
+//            textLabel?.font = .systemFont(ofSize: newValue ? 24 : 18)
+            textLabel?.alpha = newValue ? 0.3 : 1
+        }
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        isTitle = false
     }
     
     override func tintColorDidChange() {

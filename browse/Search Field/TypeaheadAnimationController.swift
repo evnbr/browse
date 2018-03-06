@@ -54,7 +54,7 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
         startCenter.y -= 12
         var endCenter = startCenter
 //        let titleHorizontalShift : CGFloat = 60 //(browserVC!.toolbar.bounds.width - titleSnap!.bounds.width) / 3
-        let titleHorizontalShift : CGFloat = (browserVC!.toolbar.bounds.width - titleSnap!.bounds.width - 40) / 2
+        let titleHorizontalShift : CGFloat = ((browserVC?.toolbar.bounds.width ?? 0) - (titleSnap?.bounds.width ?? 0) - 70) / 2
         let cancelShiftH : CGFloat = 80
         endCenter.x -= titleHorizontalShift
         endCenter.y -= typeaheadVC.textHeightConstraint.constant - 70
@@ -73,7 +73,7 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
         browserVC?.toolbar.backgroundView.alpha = 1
         typeaheadVC.scrim.alpha = isExpanding ? 0 : 1
         typeaheadVC.toolbarBottomMargin.constant = isExpanding ? KB_MARGIN : SPACE_FOR_INDICATOR
-        typeaheadVC.suggestHeightConstraint.constant = isExpanding ? typeaheadVC.suggestionHeight : 0
+        typeaheadVC.contextAreaHeightConstraint.constant = isExpanding ? typeaheadVC.contextAreaHeight: 0
         typeaheadVC.kbHeightConstraint.constant = isExpanding ? typeaheadVC.keyboardHeight : 0 // room for indicator
         
         titleSnap?.scale = isExpanding ? 1 : 1.15
@@ -92,6 +92,7 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
         
         UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: {
             typeaheadVC.suggestionTable.alpha = self.isExpanding ? 1 : 0
+            typeaheadVC.pageActionView.alpha = self.isExpanding ? 1 : 0
             toolbarSnap?.alpha = self.isExpanding ? 0 : 1
 
             titleSnap?.scale = self.isExpanding ? 1.15 : 1
@@ -127,8 +128,8 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
                 typeaheadVC.view.layoutIfNeeded()
 //                typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
                 typeaheadVC.cancel.alpha = self.isExpanding ? 1 : 0
-                typeaheadVC.suggestionTable.alpha = self.isExpanding ? 1 : 0
-                
+                typeaheadVC.pageActionView.alpha = self.isExpanding ? 1 : 0
+
                 titleSnap?.center = self.isExpanding ? endCenter : startCenter
                 
                 if !self.isDismissing { toolbarSnap?.center.x -= titleHorizontalShift * 0.5 }
