@@ -25,6 +25,9 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         
         let typeaheadVC = (isExpanding ? toVC : fromVC) as! SearchViewController
         let browserVC = (isExpanding ? fromVC : toVC) as? BrowserViewController
+        let navVC = (isExpanding ? fromVC : toVC) as? UINavigationController
+        let switcherVC = navVC?.topViewController as? TabSwitcherViewController // TODO simplify
+        let isAnimatingFromToolbar = browserVC != nil
 
         if isExpanding {
             containerView.addSubview(typeaheadVC.view)
@@ -53,8 +56,8 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         var startCenter = browserVC?.toolbar.center ?? .zero
         startCenter.y -= 12
         var endCenter = startCenter
-//        let titleHorizontalShift : CGFloat = 60 //(browserVC!.toolbar.bounds.width - titleSnap!.bounds.width) / 3
-        let titleHorizontalShift : CGFloat = ((browserVC?.toolbar.bounds.width ?? 0) - (titleSnap?.bounds.width ?? 0) - 70) / 2
+        
+        let titleHorizontalShift : CGFloat = isAnimatingFromToolbar ? (browserVC!.toolbar.bounds.width - (titleSnap?.bounds.width ?? 0) - 70) / 2 : 0
         let cancelShiftH : CGFloat = 80
         endCenter.x -= titleHorizontalShift
         endCenter.y -= typeaheadVC.textHeightConstraint.constant - 70
@@ -64,7 +67,6 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         }
         else {
             endCenter.y -= typeaheadVC.keyboardHeight
-            endCenter.y -= KB_MARGIN
         }
 
         titleSnap?.center = isExpanding ? startCenter : endCenter
@@ -72,9 +74,9 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         
         browserVC?.toolbar.backgroundView.alpha = 1
         typeaheadVC.scrim.alpha = isExpanding ? 0 : 1
-        typeaheadVC.toolbarBottomMargin.constant = isExpanding ? KB_MARGIN : SPACE_FOR_INDICATOR
+        typeaheadVC.toolbarBottomMargin.constant = isExpanding ? 0 : (isAnimatingFromToolbar ? SPACE_FOR_INDICATOR : -48)
         typeaheadVC.contextAreaHeightConstraint.constant = isExpanding ? typeaheadVC.contextAreaHeight: 0
-        typeaheadVC.kbHeightConstraint.constant = isExpanding ? typeaheadVC.keyboardHeight : 0 // room for indicator
+        typeaheadVC.kbHeightConstraint.constant = isExpanding ? typeaheadVC.keyboardHeight : 0
         
         titleSnap?.scale = isExpanding ? 1 : 1.15
         titleSnap?.alpha = isExpanding ? 1 : 0
@@ -88,7 +90,6 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         if isDismissing { toolbarSnap?.center.x -= titleHorizontalShift * 0.5 }
 
         typeaheadVC.textHeightConstraint.constant = isExpanding ? typeaheadVC.textHeight : 40
-
         
         UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: {
             typeaheadVC.suggestionTable.alpha = self.isExpanding ? 1 : 0
@@ -106,14 +107,15 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
         })
         
-        let maskStartWidth : CGFloat = titleSnap?.bounds.size.width ?? 0
-        let maskEndWidth : CGFloat = typeaheadVC.textView.bounds.size.width
-        let maskStartHeight : CGFloat = titleSnap?.bounds.size.height ?? 0
-        let maskEndHeight : CGFloat = typeaheadVC.textHeight // TODO
+        let maskStartSize : CGSize = titleSnap?.bounds.size ?? .zero
+        let maskEndSize : CGSize = CGSize(width: typeaheadVC.textView.bounds.size.width, height: typeaheadVC.textHeight)
+        // TODO - disable mask at end since it won't be scrollable
         
-        typeaheadVC.textView.mask?.frame.size.width = isExpanding ? maskStartWidth : maskEndWidth
-        typeaheadVC.textView.mask?.frame.size.height = isExpanding ? maskStartHeight : maskEndHeight
+        typeaheadVC.textView.mask?.frame.size = isExpanding ? maskStartSize : maskEndSize
 
+        switcherVC?.fab.scale = isExpanding ? 1 : 0.2
+        switcherVC?.fab.springScale(to: isExpanding ? 0.2 : 1)
+        
         UIView.animate(
             withDuration: 0.5,
             delay: 0.0,
@@ -128,12 +130,12 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
 
                 titleSnap?.center = self.isExpanding ? endCenter : startCenter
                 
-                if !self.isDismissing { toolbarSnap?.center.x -= titleHorizontalShift * 0.5 }
+                if self.isExpanding { toolbarSnap?.center.x -= titleHorizontalShift * 0.5 }
                 typeaheadVC.textView.transform = CGAffineTransform(translationX: self.isExpanding ? 0 : titleHorizontalShift, y: 0)
                 typeaheadVC.cancel.transform = CGAffineTransform(translationX: self.isExpanding ? 0 : cancelShiftH, y: 0)
                 
-                typeaheadVC.textView.mask?.frame.size.width = self.isExpanding ? maskEndWidth : maskStartWidth
-                typeaheadVC.textView.mask?.frame.size.height = self.isExpanding ? maskEndHeight : maskStartHeight
+                typeaheadVC.textView.mask?.frame.size = self.isExpanding ? maskEndSize : maskStartSize
+
                 
                 if self.isDismissing {
                     typeaheadVC.textView.resignFirstResponder()
