@@ -496,7 +496,7 @@ extension SearchViewController : UIGestureRecognizerDelegate {
         
         for window in UIApplication.shared.windows {
             if (window.screen == UIScreen.main) {
-                window.drawHierarchy(in: window.frame, afterScreenUpdates: true)
+                window.drawHierarchy(in: window.frame, afterScreenUpdates: false) // if true, weird flicker
             }
         }
         let img = UIGraphicsGetImageFromCurrentImageContext();
