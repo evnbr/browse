@@ -1,5 +1,5 @@
 //
-//  TypeaheadViewController.swift
+//  SearchViewController.swift
 //  browse
 //
 //  Created by Evan Brooks on 2/16/18.
@@ -19,7 +19,7 @@ struct TypeaheadRow {
     let isEnabled: Bool = true
 }
 
-class TypeaheadViewController: UIViewController {
+class SearchViewController: UIViewController {
 
     var contentView: UIView!
     var backgroundView: PlainBlurView!
@@ -34,7 +34,7 @@ class TypeaheadViewController: UIViewController {
     
     var isDismissing = false
 
-    var displaySearchTransition = TypeaheadAnimationController()
+    var displaySearchTransition = SearchTransitionController()
     
     var kbHeightConstraint : NSLayoutConstraint!
     var suggestionHeightConstraint : NSLayoutConstraint!
@@ -322,7 +322,7 @@ class TypeaheadViewController: UIViewController {
     }
 }
     
-extension TypeaheadViewController : UITextViewDelegate {
+extension SearchViewController : UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
         updateTextViewSize()
         updateSuggestion(for: textView.text)
@@ -410,7 +410,7 @@ extension TypeaheadViewController : UITextViewDelegate {
     }
 }
 
-extension TypeaheadViewController : UITableViewDelegate {
+extension SearchViewController : UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let row = suggestions[indexPath.item]
         if let action = row.action { action() }
@@ -418,7 +418,7 @@ extension TypeaheadViewController : UITableViewDelegate {
     }
 }
 
-extension TypeaheadViewController : UITableViewDataSource {
+extension SearchViewController : UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return min(MAX_ROWS, suggestions.count)
     }
@@ -448,7 +448,7 @@ extension TypeaheadViewController : UITableViewDataSource {
 let KB_MARGIN : CGFloat = 0
 let SPACE_FOR_INDICATOR : CGFloat = 26
 
-extension TypeaheadViewController : UIGestureRecognizerDelegate {
+extension SearchViewController : UIGestureRecognizerDelegate {
     @objc func verticalPan(gesture: UIPanGestureRecognizer) {
         guard showingCancel else { return }
 
@@ -541,7 +541,7 @@ extension TypeaheadViewController : UIGestureRecognizerDelegate {
 }
 
 // MARK - Actions
-extension TypeaheadViewController : PageActionHandler {
+extension SearchViewController : PageActionHandler {
     func refresh() {
         browser?.webView.reload()
         dismiss(animated: true)
@@ -573,7 +573,7 @@ extension TypeaheadViewController : PageActionHandler {
 
 // MARK - Animation
 
-extension TypeaheadViewController : UIViewControllerTransitioningDelegate {
+extension SearchViewController : UIViewControllerTransitioningDelegate {
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         displaySearchTransition.direction = .present
         return displaySearchTransition

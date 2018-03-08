@@ -13,7 +13,6 @@ fileprivate enum SearchProviderName : String {
     case duck = "duckduckgo"
 }
 
-// ddg search results:
 class Typeahead: NSObject {
     static let shared = Typeahead()
     
@@ -61,59 +60,5 @@ class Typeahead: NSObject {
                 DispatchQueue.main.async { completion(phrases) }
             }
         }).resume()
-    }
-}
-
-protocol SearchProvider {
-    func serpURLfor(_  query: String) -> URL?
-    func suggestionURLfor(_ query: String) -> URL?
-    func parseSuggestions(from data: NSArray, maxCount: Int) -> [String]
-}
-
-class GoogleSearchProvider : SearchProvider {
-    func serpURLfor(_ query: String) -> URL? {
-        let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
-        return URL(string: "https://www.google.com/search?q=\(encodedQuery)")
-    }
-    
-    func suggestionURLfor(_ query: String) -> URL? {
-        let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
-        return URL(string: "https://suggestqueries.google.com/complete/search?client=firefox&q=\(encodedQuery)")
-    }
-    
-    func parseSuggestions(from data: NSArray, maxCount: Int) -> [String] {
-        var phrases : [String] = []
-        
-        guard let suggestions = data[1] as? NSArray else { return phrases }
-        for item in suggestions {
-            if let phrase = item as? String, phrases.count < maxCount {
-                phrases.append(phrase)
-            }
-        }
-        return phrases
-    }
-}
-
-class DuckSearchProvider : SearchProvider {
-    func serpURLfor(_ query: String) -> URL? {
-        let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
-        return URL(string: "https://duckduckgo.com/?q=\(encodedQuery)")
-    }
-    
-    func suggestionURLfor(_ query: String) -> URL? {
-        let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
-        return URL(string: "https://duckduckgo.com/ac/?q=\(encodedQuery)")
-    }
-    
-    func parseSuggestions(from data: NSArray, maxCount: Int) -> [String] {
-        var phrases : [String] = []
-        for item in data {
-            if let dict = item as? NSDictionary,
-                phrases.count < maxCount,
-                let phrase = dict.value(forKey: "phrase") as? String {
-                phrases.append(phrase)
-            }
-        }
-        return phrases
     }
 }

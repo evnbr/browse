@@ -1,5 +1,5 @@
 //
-//  TypeaheadAnimationController.swift
+//  SearchTransitionController.swift
 //  browse
 //
 //  Created by Evan Brooks on 2/16/18.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransitioning {
+class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitioning {
     
     var direction : CustomAnimationDirection!
     var isExpanding  : Bool { return direction == .present }
@@ -23,7 +23,7 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
         let toVC = transitionContext.viewController(forKey: .to)!
         let containerView = transitionContext.containerView
         
-        let typeaheadVC = (isExpanding ? toVC : fromVC) as! TypeaheadViewController
+        let typeaheadVC = (isExpanding ? toVC : fromVC) as! SearchViewController
         let browserVC = (isExpanding ? fromVC : toVC) as? BrowserViewController
 
         if isExpanding {

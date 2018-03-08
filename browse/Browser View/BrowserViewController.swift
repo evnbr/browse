@@ -27,7 +27,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var isDisplayingSearch : Bool = false
     var colorSampler: WebviewColorSampler!
     
-    lazy var searchVC = TypeaheadViewController()
+    lazy var searchVC = SearchViewController()
 
     
     var statusBar: ColorStatusBarView!

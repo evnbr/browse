@@ -49,8 +49,8 @@
 		A9A88DE92015C64F007FC6C0 /* GradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9A88DE82015C64F007FC6C0 /* GradientView.swift */; };
 		A9AA4A581FF72471001AB639 /* PlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9AA4A571FF72471001AB639 /* PlaceholderView.swift */; };
 		A9AA4A5A1FF76CDA001AB639 /* UIView+POP.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9AA4A591FF76CDA001AB639 /* UIView+POP.swift */; };
-		A9B99797203791DB00841404 /* TypeaheadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B99796203791DB00841404 /* TypeaheadViewController.swift */; };
-		A9B9979920380C8A00841404 /* TypeaheadAnimationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B9979820380C8A00841404 /* TypeaheadAnimationController.swift */; };
+		A9B99797203791DB00841404 /* SearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B99796203791DB00841404 /* SearchViewController.swift */; };
+		A9B9979920380C8A00841404 /* SearchTransitionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B9979820380C8A00841404 /* SearchTransitionController.swift */; };
 		A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */; };
 		A9D4B8C11F72F6D6006F0F18 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */; };
 		A9DEAE3D1F16C15700CF66BA /* ProgressToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DEAE3C1F16C15700CF66BA /* ProgressToolbar.swift */; };
@@ -61,6 +61,9 @@
 		A9EF36D51F4A6451005112E2 /* WKWebview+Toolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9EF36D41F4A6451005112E2 /* WKWebview+Toolbar.swift */; };
 		A9F9D7BB204E0BAF000BA8A3 /* PageActionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F9D7BA204E0BAF000BA8A3 /* PageActionView.swift */; };
 		A9F9D7BD20509F2D000BA8A3 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = A9F9D7BC20509F2D000BA8A3 /* Settings.bundle */; };
+		A9F9D7C02050B8BA000BA8A3 /* DuckSearchProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F9D7BF2050B8BA000BA8A3 /* DuckSearchProvider.swift */; };
+		A9F9D7C22050B8F3000BA8A3 /* GoogleSearchProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F9D7C12050B8F3000BA8A3 /* GoogleSearchProvider.swift */; };
+		A9F9D7C42050B93A000BA8A3 /* SearchProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F9D7C32050B93A000BA8A3 /* SearchProvider.swift */; };
 		E7FD11F16B9CF60BCBD3DD19 /* Pods_browseTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C40CC59AFABD40322DFCDDD7 /* Pods_browseTests.framework */; };
 		F64D20A87990C82DA660E905 /* Pods_browse.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7CBD4E92318735B3DA34E02 /* Pods_browse.framework */; };
 /* End PBXBuildFile section */
@@ -138,8 +141,8 @@
 		A9A88DE82015C64F007FC6C0 /* GradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientView.swift; sourceTree = "<group>"; };
 		A9AA4A571FF72471001AB639 /* PlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderView.swift; sourceTree = "<group>"; };
 		A9AA4A591FF76CDA001AB639 /* UIView+POP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "UIView+POP.swift"; path = "browse/Utils/UIView+POP.swift"; sourceTree = SOURCE_ROOT; };
-		A9B99796203791DB00841404 /* TypeaheadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TypeaheadViewController.swift; path = "browse/Search Field/TypeaheadViewController.swift"; sourceTree = SOURCE_ROOT; };
-		A9B9979820380C8A00841404 /* TypeaheadAnimationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TypeaheadAnimationController.swift; path = "browse/Search Field/TypeaheadAnimationController.swift"; sourceTree = SOURCE_ROOT; };
+		A9B99796203791DB00841404 /* SearchViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SearchViewController.swift; path = "browse/Search Field/SearchViewController.swift"; sourceTree = SOURCE_ROOT; };
+		A9B9979820380C8A00841404 /* SearchTransitionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SearchTransitionController.swift; path = "browse/Search Field/SearchTransitionController.swift"; sourceTree = SOURCE_ROOT; };
 		A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientColorChangeView.swift; sourceTree = "<group>"; };
 		A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		A9DEAE3C1F16C15700CF66BA /* ProgressToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressToolbar.swift; sourceTree = "<group>"; };
@@ -150,6 +153,9 @@
 		A9EF36D41F4A6451005112E2 /* WKWebview+Toolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WKWebview+Toolbar.swift"; sourceTree = "<group>"; };
 		A9F9D7BA204E0BAF000BA8A3 /* PageActionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageActionView.swift; sourceTree = "<group>"; };
 		A9F9D7BC20509F2D000BA8A3 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
+		A9F9D7BF2050B8BA000BA8A3 /* DuckSearchProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuckSearchProvider.swift; sourceTree = "<group>"; };
+		A9F9D7C12050B8F3000BA8A3 /* GoogleSearchProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleSearchProvider.swift; sourceTree = "<group>"; };
+		A9F9D7C32050B93A000BA8A3 /* SearchProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchProvider.swift; sourceTree = "<group>"; };
 		C40CC59AFABD40322DFCDDD7 /* Pods_browseTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_browseTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAFEEFBF73AF0DFBC3AD7745 /* Pods-browse.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-browse.debug.xcconfig"; path = "Pods/Target Support Files/Pods-browse/Pods-browse.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -208,12 +214,15 @@
 		A90F51231F71783B00221815 /* Search Field */ = {
 			isa = PBXGroup;
 			children = (
+				A9B99796203791DB00841404 /* SearchViewController.swift */,
+				A9B9979820380C8A00841404 /* SearchTransitionController.swift */,
 				A925E3E720486A62005778A0 /* SearchTextView.swift */,
 				A966CA63204003FC00EB2771 /* TypeaheadCell.swift */,
-				A9B9979820380C8A00841404 /* TypeaheadAnimationController.swift */,
-				A9B99796203791DB00841404 /* TypeaheadViewController.swift */,
 				A9F9D7BA204E0BAF000BA8A3 /* PageActionView.swift */,
 				A9447A2C2027F48000654572 /* Typeahead.swift */,
+				A9F9D7C32050B93A000BA8A3 /* SearchProvider.swift */,
+				A9F9D7BF2050B8BA000BA8A3 /* DuckSearchProvider.swift */,
+				A9F9D7C12050B8F3000BA8A3 /* GoogleSearchProvider.swift */,
 			);
 			path = "Search Field";
 			sourceTree = "<group>";
@@ -697,11 +706,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A9B9979920380C8A00841404 /* TypeaheadAnimationController.swift in Sources */,
+				A9B9979920380C8A00841404 /* SearchTransitionController.swift in Sources */,
 				A92C9C3B1EF8B5E600D8AAA3 /* BrowserGestureController.swift in Sources */,
 				A90F51211F70C6CB00221815 /* UIImageColors.swift in Sources */,
 				A9E422811F86B4FD0028B4CA /* StackingCollectionViewLayout.swift in Sources */,
-				A9B99797203791DB00841404 /* TypeaheadViewController.swift in Sources */,
+				A9B99797203791DB00841404 /* SearchViewController.swift in Sources */,
 				A98483281EEFCFE200E821AE /* ColorToolbarView.swift in Sources */,
 				A92095931EE36483009497A2 /* TabThumbnail.swift in Sources */,
 				A92095951EE3E0DA009497A2 /* ToolbarTouchView.swift in Sources */,
@@ -726,6 +735,7 @@
 				A9A88DE92015C64F007FC6C0 /* GradientView.swift in Sources */,
 				A92095881ED9E3C0009497A2 /* SettingsTableViewCell.swift in Sources */,
 				A920958F1EDF4AB8009497A2 /* PresentTabAnimationController.swift in Sources */,
+				A9F9D7C02050B8BA000BA8A3 /* DuckSearchProvider.swift in Sources */,
 				A9AA4A581FF72471001AB639 /* PlaceholderView.swift in Sources */,
 				A9AA4A5A1FF76CDA001AB639 /* UIView+POP.swift in Sources */,
 				A908920A1ED547C500A5E9BA /* LocationBar.swift in Sources */,
@@ -733,11 +743,13 @@
 				A966CA64204003FC00EB2771 /* TypeaheadCell.swift in Sources */,
 				A925E3EA204CCE2B005778A0 /* PlainBlurView.swift in Sources */,
 				A90ED966201EDB26003F4831 /* FloatButton.swift in Sources */,
+				A9F9D7C42050B93A000BA8A3 /* SearchProvider.swift in Sources */,
 				A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */,
 				A92095861ED9E242009497A2 /* SettingsViewController.swift in Sources */,
 				A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */,
 				A96A42EE1F9160B300C0F3E2 /* HistoryItem.swift in Sources */,
 				A9210D511F0148E600904A0B /* URL+DisplayHost.swift in Sources */,
+				A9F9D7C22050B8F3000BA8A3 /* GoogleSearchProvider.swift in Sources */,
 				A99328471F098E270045EBAA /* ToolbarTextButton.swift in Sources */,
 				A96A42F51F917F9C00C0F3E2 /* HistoryViewController.swift in Sources */,
 				A94FE41F1ECA5A7400ED48DB /* UIColorExtensions.swift in Sources */,
