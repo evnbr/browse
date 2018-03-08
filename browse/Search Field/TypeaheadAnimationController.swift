@@ -100,23 +100,19 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
 
         UIView.animate(withDuration: 0.35) {
             typeaheadVC.scrim.alpha = self.isExpanding ? 1 : 0
-            
             titleSnap?.alpha = self.isExpanding ? 0 : 1
-            typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
         }
+        UIView.animate(withDuration: isExpanding ? 0.3 : 0.1, animations: {
+            typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
+        })
         
+        let maskStartWidth : CGFloat = titleSnap?.bounds.size.width ?? 0
+        let maskEndWidth : CGFloat = typeaheadVC.textView.bounds.size.width
+        let maskStartHeight : CGFloat = titleSnap?.bounds.size.height ?? 0
+        let maskEndHeight : CGFloat = typeaheadVC.textHeight // TODO
         
-        // Crossfade textview and title
-//        UIView.animate(withDuration: 0.2, delay: isExpanding ? 0 : 0.3, options: .curveEaseInOut, animations: {
-//            titleSnap?.alpha = self.isExpanding ? 0 : 1
-//        })
-//        UIView.animate(withDuration: 0.2, delay: isExpanding ? 0.3 : 0, options: .curveEaseInOut, animations: {
-//            typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
-//        })
-        
-        let maskStartWidth = titleSnap?.bounds.size.width ?? 0
-        let maskEndWidth = typeaheadVC.textView.bounds.size.width
         typeaheadVC.textView.mask?.frame.size.width = isExpanding ? maskStartWidth : maskEndWidth
+        typeaheadVC.textView.mask?.frame.size.height = isExpanding ? maskStartHeight : maskEndHeight
 
         UIView.animate(
             withDuration: 0.5,
@@ -137,8 +133,7 @@ class TypeaheadAnimationController: NSObject, UIViewControllerAnimatedTransition
                 typeaheadVC.cancel.transform = CGAffineTransform(translationX: self.isExpanding ? 0 : cancelShiftH, y: 0)
                 
                 typeaheadVC.textView.mask?.frame.size.width = self.isExpanding ? maskEndWidth : maskStartWidth
-
-
+                typeaheadVC.textView.mask?.frame.size.height = self.isExpanding ? maskEndHeight : maskStartHeight
                 
                 if self.isDismissing {
                     typeaheadVC.textView.resignFirstResponder()

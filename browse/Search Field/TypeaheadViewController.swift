@@ -182,7 +182,7 @@ class TypeaheadViewController: UIViewController {
         let maskView = UIView(frame: textView.bounds)
         maskView.backgroundColor = .red
         maskView.frame = textView.bounds
-        maskView.bounds.size.height = 500 // TODO Large number because mask is scrollable :(
+        maskView.frame.size.height = 500 // TODO Large number because mask is scrollable :(
         textView.mask = maskView
         
         cancel = ToolbarTextButton(title: "Cancel", withIcon: nil, onTap: dismissSelf)
@@ -450,6 +450,8 @@ let SPACE_FOR_INDICATOR : CGFloat = 26
 
 extension TypeaheadViewController : UIGestureRecognizerDelegate {
     @objc func verticalPan(gesture: UIPanGestureRecognizer) {
+        guard showingCancel else { return }
+
         let dist = gesture.translation(in: view)
         let vel = gesture.velocity(in: view)
 
@@ -467,8 +469,7 @@ extension TypeaheadViewController : UIGestureRecognizerDelegate {
             else {
                 if dist.y < keyboardHeight {
                     kbHeightConstraint.constant = keyboardHeight - dist.y
-                    
-                    let progress =  dist.y.progress(from: 0, to: keyboardHeight).clip()
+                    let progress = dist.y.progress(from: 0, to: keyboardHeight).clip()
                     let margin = progress.blend(from: KB_MARGIN, to: SPACE_FOR_INDICATOR)
                     toolbarBottomMargin.constant = margin
                     contextAreaHeightConstraint.constant = contextAreaHeight

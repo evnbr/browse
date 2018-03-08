@@ -686,10 +686,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             }
         }
         else {
-            let query = text.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
-            let searchURL = "https://www.google.com/search?q="
-            url = URL(string: searchURL + query)!
-            
+            url = Typeahead.shared.serpURLfor(text)!
             if let btn = locationBar {
                 btn.text = text
             }
