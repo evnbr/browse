@@ -28,7 +28,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var colorSampler: WebviewColorSampler!
     
     lazy var searchVC = SearchViewController()
-
     
     var statusBar: ColorStatusBarView!
     
@@ -91,9 +90,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var isSearching : Bool {
         get {
             guard let url = webView.url else { return false }
-//            let searchURL = "https://duckduckgo.com/?"
-//             let searchURL = "https://www.google.com/search?"
-//            return url.absoluteString.hasPrefix(searchURL)
             return url.absoluteString.contains("google") && url.absoluteString.contains("?q=")
         }
     }
@@ -872,9 +868,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
         }
         
         if shouldUpdateSample {
-            
-            let didChange = statusBar.animateGradient(toColor: newColor, direction: .fromBottom)
-
+            statusBar.animateGradient(toColor: newColor, direction: .fromBottom)
             UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
                 self.setNeedsStatusBarAppearanceUpdate()
             })
@@ -893,7 +887,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
         }
 
         if shouldUpdateSample {
-            let _ = toolbar.animateGradient(toColor: newColor, direction: .fromTop)
+            toolbar.animateGradient(toColor: newColor, direction: .fromTop)
         }
 
     }

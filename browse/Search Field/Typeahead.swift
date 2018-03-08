@@ -51,6 +51,7 @@ class Typeahead: NSObject {
         URLSession.shared.dataTask(with: url, completionHandler: {(data, response, error) -> Void in
             if data == nil {
                 DispatchQueue.main.async {
+                    // Return the error text as the first typeahead result
                     completion([ error?.localizedDescription ?? "Unknown failure" ])
                 }
                 return

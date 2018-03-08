@@ -63,38 +63,6 @@ class SearchViewController: UIViewController {
         }
         else { return nil }
     }
-//    var pageActions : [TypeaheadRow] {
-//        return [
-//        TypeaheadRow(text: browser?.webView.title ?? "Untitled Page", action: {
-//            guard let b = self.browser else { return }
-//            self.dismiss(animated: true, completion: { b.webView.reload() })
-//        }),
-//        TypeaheadRow(text: "Share", action: {
-//            guard let b = self.browser else { return }
-//            b.makeShareSheet { avc in
-//                self.present(avc, animated: true, completion: nil)
-//            }
-//        }),
-//        TypeaheadRow(text: "Paste and go", action: {
-//            guard let b = self.browser else { return }
-//            if let str = UIPasteboard.general.string {
-//                self.textView.text = str
-//                b.navigateToText(str)
-//            }
-//            self.dismiss(animated: true)
-//        }),
-//        TypeaheadRow(text: "Copy", action: {
-//            guard let b = self.browser else { return }
-//            self.dismiss(animated: true, completion: {
-//                b.copyURL()
-//                let alert = UIAlertController(title: "Copied", message: nil, preferredStyle: .alert)
-//                b.present(alert, animated: true, completion: {
-//                    alert.dismiss(animated: true, completion: nil)
-//                })
-//            })
-//        }),
-//        ]
-//    }
 
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -227,7 +195,7 @@ class SearchViewController: UIViewController {
         pageActionView.bottomAnchor.constraint(equalTo: textView.topAnchor).isActive = true
         pageActionView.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
         pageActionView.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
-        actionsHeight = pageActionView.heightAnchor.constraint(equalToConstant: 100)
+        actionsHeight = pageActionView.heightAnchor.constraint(equalToConstant: 0)
         actionsHeight.isActive = true
 
         contextAreaHeightConstraint = textView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: suggestionSpacer)
@@ -237,7 +205,7 @@ class SearchViewController: UIViewController {
         keyboardPlaceholder.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
         keyboardPlaceholder.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
         
-        toolbarBottomMargin = keyboardPlaceholder.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: KB_MARGIN)
+        toolbarBottomMargin = keyboardPlaceholder.topAnchor.constraint(equalTo: textView.bottomAnchor)
         toolbarBottomMargin.isActive = true
         kbHeightConstraint = keyboardPlaceholder.heightAnchor.constraint(equalToConstant: 0)
         kbHeightConstraint.isActive = true
@@ -329,13 +297,7 @@ extension SearchViewController : UITextViewDelegate {
     }
     
     func updateSuggestion(for text: String) {
-        guard text != "" else {
-            self.suggestions = []
-            self.renderSuggestions()
-            return
-        }
-        
-        if browser?.editableLocation == textView.text || textView.text == "" {
+        if shouldShowActions || text == "" {
             suggestions = []
             self.renderSuggestions()
             return
@@ -353,8 +315,12 @@ extension SearchViewController : UITextViewDelegate {
         }
     }
     
+    var shouldShowActions : Bool {
+        return browser?.editableLocation == textView.text || (browser != nil && textView.text == "")
+    }
+    
     func renderSuggestions() {
-        if browser?.editableLocation == textView.text || textView.text == ""  {
+        if shouldShowActions  {
             contextAreaHeight = 100
             actionsHeight.constant = contextAreaHeight
             contextAreaHeightConstraint.constant = contextAreaHeight
@@ -445,7 +411,6 @@ extension SearchViewController : UITableViewDataSource {
 
 // MARK - Gesture
 
-let KB_MARGIN : CGFloat = 0
 let SPACE_FOR_INDICATOR : CGFloat = 26
 
 extension SearchViewController : UIGestureRecognizerDelegate {
@@ -470,7 +435,7 @@ extension SearchViewController : UIGestureRecognizerDelegate {
                 if dist.y < keyboardHeight {
                     kbHeightConstraint.constant = keyboardHeight - dist.y
                     let progress = dist.y.progress(from: 0, to: keyboardHeight).clip()
-                    let margin = progress.blend(from: KB_MARGIN, to: SPACE_FOR_INDICATOR)
+                    let margin = progress.blend(from: 0, to: SPACE_FOR_INDICATOR)
                     toolbarBottomMargin.constant = margin
                     contextAreaHeightConstraint.constant = contextAreaHeight
                 }
@@ -493,7 +458,7 @@ extension SearchViewController : UIGestureRecognizerDelegate {
                     self.textView.isScrollEnabled = false
                 }
                 contextAreaHeightConstraint.springConstant(to: contextAreaHeight)
-                toolbarBottomMargin.springConstant(to: KB_MARGIN)
+                toolbarBottomMargin.springConstant(to: 0)
                 suggestionTable.alpha = 1
                 pageActionView.alpha = 1
                 let ta = textHeightConstraint.springConstant(to: textHeight)

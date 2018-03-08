@@ -109,6 +109,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         lastColor = toColor
     }
     
+    @discardableResult
     func animateGradient(toColor: UIColor, direction: GradientColorChangeDirection ) -> Bool {
         if toColor.isEqual(lastColor) { return false }
         
