@@ -253,6 +253,9 @@ class SearchViewController: UIViewController {
         if let browser = self.browser {
             textView.text = browser.editableLocation
             pageActionView.title = browser.webView.title
+            BookmarkProvider.shared.isBookmarked(browser.webView.url!, completion: { isBookmarked in
+                self.pageActionView.isBookmarked = isBookmarked
+            })
             updateTextViewSize()
             updateSuggestion(for: textView.text)
         }
@@ -514,6 +517,30 @@ extension SearchViewController : PageActionHandler {
     
     func bookmark() {
         //
+        if !BookmarkProvider.shared.isLoggedIn {
+            func success() {
+                let confirmation = UIAlertController(title: "Success", message: nil, preferredStyle: .alert)
+                confirmation.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+                DispatchQueue.main.async {
+                    self.present(confirmation, animated: true)
+                }
+            }
+            func tryAgain() {
+                DispatchQueue.main.async {
+                    let prompt = PinboardLoginController(success: success, failure: tryAgain)
+                    prompt.message = "⚠️ That didn't seem to work"
+                    prompt.view.setNeedsDisplay()
+                    self.present(prompt, animated: true)
+                }
+            }
+            let prompt = PinboardLoginController(success: success, failure: tryAgain)
+            DispatchQueue.main.async {
+                self.present(prompt, animated: true)
+            }
+        }
+        else {
+//            BookmarkProvider.shared.add(browser?.webView.url)
+        }
     }
     
     func share() {
@@ -532,9 +559,9 @@ extension SearchViewController : PageActionHandler {
             })
         })
     }
-    
-    
 }
+
+
 
 // MARK - Animation
 
