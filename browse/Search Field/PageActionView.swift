@@ -13,9 +13,16 @@ class PageActionView: UIView {
     private var label: UILabel!
     public var delegate: PageActionHandler?
     
+    private var bookmarkButton : BookmarkButton!
+    
     var title : String? {
         get { return label.text }
         set { label.text = newValue }
+    }
+    
+    var isBookmarked : Bool {
+        get { return bookmarkButton.isSelected }
+        set { bookmarkButton.isSelected = newValue }
     }
     
     override init(frame: CGRect) {
@@ -51,9 +58,10 @@ class PageActionView: UIView {
         stack.addArrangedSubview(LargeIconButton(icon: UIImage(named: "refresh")) {
             self.delegate?.refresh()
         })
-        stack.addArrangedSubview(LargeIconButton(icon: UIImage(named: "bookmark")) {
+        bookmarkButton = BookmarkButton() {
             self.delegate?.bookmark()
-        })
+        }
+        stack.addArrangedSubview(bookmarkButton)
         stack.addArrangedSubview(LargeIconButton(icon: UIImage(named: "share")) {
             self.delegate?.share()
         })
