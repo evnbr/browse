@@ -212,7 +212,7 @@ class SearchViewController: UIViewController {
 
         NotificationCenter.default.addObserver(self, selector: #selector(updateKeyboardHeight), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateKeyboardHeight), name: NSNotification.Name.UIKeyboardWillChangeFrame, object: nil)
-        
+
         setBackground(defaultBackground)
         updateTextViewSize()
         
@@ -253,9 +253,12 @@ class SearchViewController: UIViewController {
         if let browser = self.browser {
             textView.text = browser.editableLocation
             pageActionView.title = browser.webView.title
-            BookmarkProvider.shared.isBookmarked(browser.webView.url!, completion: { isBookmarked in
+            pageActionView.isBookmarked = false
+            pageActionView.isBookmarkEnabled = BookmarkProvider.shared.isLoggedIn
+            
+            BookmarkProvider.shared.isBookmarked(browser.webView.url!) { isBookmarked in
                 self.pageActionView.isBookmarked = isBookmarked
-            })
+            }
             updateTextViewSize()
             updateSuggestion(for: textView.text)
         }
@@ -456,15 +459,22 @@ extension SearchViewController : UIGestureRecognizerDelegate {
                 dismissSelf()
             }
             else {
-                kbHeightConstraint.springConstant(to: keyboardHeight) {_,_ in
+                func finish() {
                     self.showRealKeyboard()
                     self.textView.isScrollEnabled = false
+                }
+                let fromBelow = kbHeightConstraint.constant < keyboardHeight
+                kbHeightConstraint.springConstant(to: keyboardHeight) {_,_ in
+                    if fromBelow { finish() }
                 }
                 contextAreaHeightConstraint.springConstant(to: contextAreaHeight)
                 toolbarBottomMargin.springConstant(to: 0)
                 suggestionTable.alpha = 1
                 pageActionView.alpha = 1
-                let ta = textHeightConstraint.springConstant(to: textHeight)
+                let ta = textHeightConstraint.springConstant(to: textHeight) {
+                    _,_ in
+                    if !fromBelow { finish() }
+                }
                 ta?.clampMode = POPAnimationClampFlags.both.rawValue // prevent flickering when textfield too small
             }
         }
@@ -477,7 +487,13 @@ extension SearchViewController : UIGestureRecognizerDelegate {
         textView.resignFirstResponder()
         UIView.setAnimationsEnabled(true)
         
+        // shrink height to snapshot (in case was showing emoji etc)
+        if let snapH = keyboardPlaceholder.image?.size.height, snapH < kbHeightConstraint.constant {
+            keyboardHeight = snapH
+            kbHeightConstraint.constant = snapH
+        }
     }
+    
     func showRealKeyboard() {
         keyboardPlaceholder.isHidden = true
         UIView.setAnimationsEnabled(false)
@@ -512,17 +528,14 @@ extension SearchViewController : UIGestureRecognizerDelegate {
 extension SearchViewController : PageActionHandler {
     func refresh() {
         browser?.webView.reload()
-        dismiss(animated: true)
     }
     
     func bookmark() {
         //
         if !BookmarkProvider.shared.isLoggedIn {
             func success() {
-                let confirmation = UIAlertController(title: "Success", message: nil, preferredStyle: .alert)
-                confirmation.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
                 DispatchQueue.main.async {
-                    self.present(confirmation, animated: true)
+                    self.pageActionView.isBookmarkEnabled = true
                 }
             }
             func tryAgain() {
@@ -538,13 +551,45 @@ extension SearchViewController : PageActionHandler {
                 self.present(prompt, animated: true)
             }
         }
-        else {
+        else if !pageActionView.isBookmarked {
+            guard let url = browser?.webView.url, let title = browser?.webView.title else { return }
+            BookmarkProvider.shared.addBookmark(url, title: title) { isBookmarked in
+                if isBookmarked { self.pageActionView.isBookmarked = true }
+            }
+        }
+        else if pageActionView.isBookmarked {
 //            BookmarkProvider.shared.add(browser?.webView.url)
+            let options = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+            options.addAction(UIAlertAction(title: "Edit", style: .default, handler: nil))
+            options.addAction(UIAlertAction(title: "Remove", style: .destructive, handler: { _ in
+                guard let url = self.browser?.webView.url else { return }
+                BookmarkProvider.shared.removeBookmark(url) { isRemoved in
+                    if isRemoved { self.pageActionView.isBookmarked = false }
+                }
+                self.showRealKeyboard()
+            }))
+            options.addAction(UIAlertAction(title: "Log Out", style: .default, handler: { _ in
+                BookmarkProvider.shared.logOut()
+                self.pageActionView.isBookmarkEnabled = false
+                self.pageActionView.isBookmarked = false
+                self.showRealKeyboard()
+            }))
+            options.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { _ in
+                self.showRealKeyboard()
+            }))
+            DispatchQueue.main.async {
+                self.showFakeKeyboard()
+                self.present(options, animated: true)
+            }
         }
     }
     
     func share() {
         browser?.makeShareSheet { avc in
+            self.showFakeKeyboard()
+            avc.completionWithItemsHandler = { _, _, _, _ in
+                self.showRealKeyboard()
+            }
             self.present(avc, animated: true, completion: nil)
         }
     }
@@ -552,10 +597,11 @@ extension SearchViewController : PageActionHandler {
     func copy() {
         let b = browser
         b?.copyURL()
-        dismiss(animated: true, completion: {
-            let alert = UIAlertController(title: "Copied", message: nil, preferredStyle: .alert)
-            b?.present(alert, animated: true, completion: {
-                alert.dismiss(animated: true, completion: nil)
+        let alert = UIAlertController(title: "Copied", message: nil, preferredStyle: .alert)
+        self.showFakeKeyboard()
+        present(alert, animated: true, completion: {
+            alert.dismiss(animated: true, completion: {
+                self.showRealKeyboard()
             })
         })
     }

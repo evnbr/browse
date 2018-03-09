@@ -24,6 +24,10 @@ class PageActionView: UIView {
         get { return bookmarkButton.isSelected }
         set { bookmarkButton.isSelected = newValue }
     }
+    var isBookmarkEnabled : Bool {
+        get { return bookmarkButton.isEnabled }
+        set { bookmarkButton.isEnabled = newValue }
+    }
     
     override init(frame: CGRect) {
         super.init(frame: frame)

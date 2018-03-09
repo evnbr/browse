@@ -27,6 +27,11 @@ class BookmarkProvider: NSObject {
         }
     }
     
+    func logOut() {
+        authToken = nil
+        UserDefaults.standard.removeObject(forKey: kPinboardAuthToken)
+    }
+    
     func setAuthToken(_ token : String, completion: @escaping (Bool) -> ()) {
         authToken = token
         
@@ -52,6 +57,30 @@ class BookmarkProvider: NSObject {
             else { completion(false) }
         }
     }
+    
+    func addBookmark(_ url : URL, title: String, completion: @escaping (Bool) -> ()) {
+        let urlString = url.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
+        let desc = title.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
+        
+        fetch(method: "/posts/add?url=\(urlString)&description=\(desc)") { json, error in
+            if let result = json?["result_code"].string {
+                completion(result == "done")
+            }
+            else { completion(false) }
+        }
+    }
+    
+    func removeBookmark(_ url : URL, completion: @escaping (Bool) -> ()) {
+        let urlString = url.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
+        
+        fetch(method: "/posts/delete?url=\(urlString)") { json, error in
+            if let result = json?["result_code"].string {
+                completion(result == "done")
+            }
+            else { completion(false) }
+        }
+    }
+
     
     private func fetch(method: String, completion: @escaping (JSON?, Error?) -> () ) {
         guard let authToken = authToken else {
