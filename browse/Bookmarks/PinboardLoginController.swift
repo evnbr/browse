@@ -33,7 +33,12 @@ class PinboardLoginController: UIAlertController {
     }
     
     func isValidToken(_ token: String) -> Bool {
-        return token.range(of: "[^a-zA-Z0-9:]", options: .regularExpression) == nil && token.count > 20
+        // ^ start
+        // [ username characters (alphanumeric, dot, underscore)]{ more than 2}
+        // colon
+        // [ token characters (capital A to G, digits)]{ more than 16 }
+        // $ end
+        return token.matches("^[a-zA-Z0-9._]{2,}:[A-G0-9]{16,}$")
     }
     
     @objc func textDidChangeInLoginAlert() {
@@ -43,3 +48,8 @@ class PinboardLoginController: UIAlertController {
     }
 }
 
+fileprivate extension String {
+    func matches(_ regex: String) -> Bool {
+        return self.range(of: regex, options: .regularExpression, range: nil, locale: nil) != nil
+    }
+}
