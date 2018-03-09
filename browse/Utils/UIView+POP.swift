@@ -13,6 +13,7 @@ let kSpringCenter = "springCenter"
 let kSpringCenterX = "springCenterX"
 let kSpringScale = "springScale"
 let kSpringBounds = "springBounds"
+let kSpringFrame = "springFrame"
 let kSpringContentOffset = "springContentOffset"
 let kSpringConstant = "springConstant"
 
@@ -62,6 +63,28 @@ extension UIView {
             self.pop_add(anim, forKey: kSpringBounds)
         }
     }
+    
+    @discardableResult
+    func springFrame(
+        to newFrame: CGRect,
+        at velocity: CGRect = .zero,
+        then completion: @escaping (POPAnimation?, Bool) -> Void = {_,_ in } ) -> POPSpringAnimation? {
+        
+        if let anim = self.pop_animation(forKey: kSpringFrame) as? POPSpringAnimation {
+            anim.toValue = newFrame
+            return anim
+        }
+        else if let anim = POPSpringAnimation(propertyNamed: kPOPViewFrame) {
+            anim.toValue = newFrame
+            anim.velocity = velocity
+            
+            anim.completionBlock = completion
+            self.pop_add(anim, forKey: kSpringFrame)
+            return anim
+        }
+        return nil
+    }
+
     
     @discardableResult
     func springScale(
