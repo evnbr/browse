@@ -47,30 +47,3 @@ class LargeIconButton: ToolbarIconButton {
         return CGSize(width: 64, height: 64)
     }
 }
-
-class BookmarkButton : LargeIconButton {
-    var selectedImage = UIImage(named: "bookmarked")?.withRenderingMode(.alwaysTemplate)
-    var defaultImage = UIImage(named: "bookmark")?.withRenderingMode(.alwaysTemplate)
-    
-    private var _isSelected : Bool = false
-    
-    var isSelected : Bool {
-        get { return _isSelected }
-        set {
-            if newValue == _isSelected { return }
-            _isSelected = newValue
-            DispatchQueue.main.async {
-                self.iconView.image = newValue ? self.selectedImage : self.defaultImage
-            }
-        }
-    }
-    
-    init(onTap: @escaping () -> Void) {
-        super.init(icon: defaultImage, onTap: onTap)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-}

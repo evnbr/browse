@@ -59,10 +59,10 @@ class PageActionView: UIView {
         label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -6).isActive = true
         stack.heightAnchor.constraint(equalToConstant: 48).isActive = true
         
-        stack.addArrangedSubview(LargeIconButton(icon: UIImage(named: "refresh")) {
+        stack.addArrangedSubview(RefreshButton {
             self.delegate?.refresh()
         })
-        bookmarkButton = BookmarkButton() {
+        bookmarkButton = BookmarkButton {
             self.delegate?.bookmark()
         }
         stack.addArrangedSubview(bookmarkButton)
@@ -97,3 +97,53 @@ protocol PageActionHandler {
     func share()
     func copy()
 }
+
+class BookmarkButton : LargeIconButton {
+    var selectedImage = UIImage(named: "bookmarked")?.withRenderingMode(.alwaysTemplate)
+    var defaultImage = UIImage(named: "bookmark")?.withRenderingMode(.alwaysTemplate)
+    
+    private var _isSelected : Bool = false
+    
+    var isSelected : Bool {
+        get { return _isSelected }
+        set {
+            if newValue == _isSelected { return }
+            _isSelected = newValue
+            DispatchQueue.main.async {
+                self.iconView.image = newValue ? self.selectedImage : self.defaultImage
+            }
+        }
+    }
+    
+    init(onTap: @escaping () -> Void) {
+        super.init(icon: defaultImage, onTap: onTap)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+class RefreshButton : LargeIconButton {
+    var defaultImage = UIImage(named: "refresh")?.withRenderingMode(.alwaysTemplate)
+    
+    init(onTap: @escaping () -> Void) {
+        super.init(icon: defaultImage, onTap: onTap)
+    }
+    
+    override func doAction() {
+        super.doAction()
+        UIView.animate(withDuration: 0.15, delay: 0, options: .curveLinear, animations: {
+            self.iconView.transform = self.iconView.transform.rotated(by: -CGFloat.pi)
+        }, completion: { _ in
+            UIView.animate(withDuration: 0.15, delay: 0, options: .curveLinear, animations: {
+                self.iconView.transform = self.iconView.transform.rotated(by: -CGFloat.pi)
+            })
+        })
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
