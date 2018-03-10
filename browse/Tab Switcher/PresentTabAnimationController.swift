@@ -70,15 +70,15 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         var thumbScale : CGFloat = 1
         var thumbOverlayAlpha : CGFloat = 0
         
-        if thumb != nil {
+        if let thumb = thumb {
             // must be after toVC is added
             let cv = homeVC.collectionView!
-            let selIndexPath = cv.indexPath(for: thumb!)!
+            let selIndexPath = cv.indexPath(for: thumb)!
             let attr = cv.layoutAttributesForItem(at: selIndexPath)!
             let selectedThumbCenter = attr.center
             thumbOverlayAlpha = 1 - attr.alpha
-            thumbCenter = containerView.convert(selectedThumbCenter, from: thumb?.superview)
-            thumbScale = attr.transform.xScale
+            thumbCenter = containerView.convert(selectedThumbCenter, from: thumb.superview)
+            thumbScale = thumb.contentView.scale // attr.transform.xScale
         }
         else {
             // animate from bottom

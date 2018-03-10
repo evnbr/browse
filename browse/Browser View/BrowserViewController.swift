@@ -257,10 +257,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         contentView.bringSubview(toFront: toolbar)
         
         contentView.addSubview(overlay)
-        contentView.addSubview(gradientOverlay)
-        
         constrain4(contentView, overlay)
-        constrainTop3(contentView, gradientOverlay)
+
+//        contentView.addSubview(gradientOverlay)
+//        constrainTop3(contentView, gradientOverlay)
+        
         gradientOverlay.heightAnchor.constraint(equalToConstant: THUMB_H)
 
         constrainTop3(statusBar, contentView)

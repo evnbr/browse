@@ -17,7 +17,7 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
     
     override var collectionViewContentSize: CGSize {
         return CGSize(width: collectionView!.bounds.width,
-                      height: CGFloat(collectionView!.numberOfItems(inSection: 0)) * itemSpacing + (itemHeight - itemSpacing) + 0) // 240)
+                      height: CGFloat(collectionView!.numberOfItems(inSection: 0)) * itemSpacing + (itemHeight - itemSpacing) + 240)
     }
 
     override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
@@ -56,7 +56,7 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
 
             if i < count - 1 {
                 attributes.alpha = 1 - ( pct * pct * pct )
-                attributes.transform = CGAffineTransform(scale: s)
+//                attributes.transform = CGAffineTransform(scale: s)
             }
             
             if cardSize.width > cardSize.height {

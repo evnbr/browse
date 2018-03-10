@@ -14,6 +14,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
     var label : UILabel!
 //    var snap : UIView!
+    var shadowView : UIView!
     var overlay : UIView!
     var gradientOverlay : GradientView!
     var browserTab : BrowserTab!
@@ -23,15 +24,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     var snapAspectConstraint : NSLayoutConstraint!
     
     var snapView : UIImageView!
-    
-//    override var frame : CGRect {
-//        didSet {
-//            if !isDismissing {
-//                overlay?.frame = bounds
-//                gradientOverlay?.frame = bounds
-//            }
-//        }
-//    }
     
     override var bounds: CGRect {
         didSet {
@@ -100,20 +92,26 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         contentView.addSubview(label)
         
         overlay = UIView(frame: bounds)
+        overlay.bounds.size.height += 20 // ????
         overlay.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
         overlay.backgroundColor = UIColor.black
         overlay.alpha = 0
         contentView.addSubview(overlay)
-//        constrain4(overlay, contentView)
 
         gradientOverlay = GradientView(frame: bounds)
         gradientOverlay.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
-        contentView.addSubview(gradientOverlay)
-//        constrain4(gradientOverlay, contentView)
+//        contentView.addSubview(gradientOverlay)
 
-//        layer.shadowRadius = 24
-//        layer.shadowOpacity = 0.16
+        shadowView = UIView(frame: bounds)
+        shadowView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        shadowView.layer.shadowRadius = 32
+        shadowView.layer.shadowOpacity = 0.2
+        shadowView.layer.shouldRasterize = true
         
+        let path = UIBezierPath(roundedRect: bounds, cornerRadius: Const.shared.thumbRadius)
+        shadowView.layer.shadowPath = path.cgPath
+        
+        insertSubview(shadowView, belowSubview: contentView)
         
         contentView.backgroundColor = .white
         contentView.radius = Const.shared.thumbRadius
@@ -129,18 +127,21 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         
         if let img : UIImage = browserTab.history.current?.snapshot {
             setSnapshot(img)
-//            label.isHidden = true
-        }
-        else {
-//            label.isHidden = false
         }
         
         if let color : UIColor = browserTab.history.current?.topColor {
             contentView.backgroundColor = color
             label.textColor = color.isLight ? .white : .darkText
         }
-        
-        if let title : String = browserTab.restorableTitle {
+        else if let color : UIColor = browserTab.restoredTopColor {
+            contentView.backgroundColor = color
+            label.textColor = color.isLight ? .white : .darkText
+        }
+
+        if let title : String = browserTab.restorableTitle, title != "" {
+            label.text = "\(title)"
+        }
+        else if let title : String = browserTab.restoredTitle {
             label.text = "\(title)"
         }
     }
@@ -163,7 +164,8 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         
         if touches.first != nil {
             UIView.animate(withDuration: 0.15, delay: 0.0, animations: {
-                self.contentView.scale = 0.99
+                self.contentView.scale = 0.97
+                self.shadowView.scale = 0.97
             })
         }
     }
@@ -178,11 +180,13 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     func unSelect(animated : Bool = true) {
         if animated {
             UIView.animate(withDuration: 0.2, delay: 0.0, animations: {
-                self.contentView.transform = .identity
+                self.contentView.scale = 1
+                self.shadowView.scale = 1
             })
         }
         else {            
-            contentView.transform = .identity
+            self.contentView.scale = 1
+            self.shadowView.scale = 1
         }
     }
     
@@ -258,7 +262,8 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
         super.apply(layoutAttributes)
         alpha = 1
-        overlay.alpha = 1 - layoutAttributes.alpha 
+        overlay.alpha = 1 - layoutAttributes.alpha
+        overlay.bounds = layoutAttributes.bounds
         layer.zPosition = CGFloat(layoutAttributes.zIndex)
     }
     
