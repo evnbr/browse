@@ -36,7 +36,10 @@ extension CGFloat {
     func clip() -> CGFloat {
         return Swift.max(0, Swift.min(1, self))
     }
-    
+    func limit(min : CGFloat, max : CGFloat) -> CGFloat {
+        return Swift.max(min, Swift.min(max, self))
+    }
+
     func progress(from: CGFloat, to: CGFloat) -> CGFloat {
         let total = from - to
         let amt = from - self
