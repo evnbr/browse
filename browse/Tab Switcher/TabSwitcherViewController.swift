@@ -43,6 +43,8 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         browserVC = BrowserViewController(home: self)
         
         collectionView?.collectionViewLayout = StackingCollectionViewLayout()
+//        collectionView?.collectionViewLayout = BlobCollectionViewLayout()
+
         collectionView?.delaysContentTouches = false
         
         collectionView?.alwaysBounceVertical = true
@@ -109,7 +111,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     
     func restoreTabs() {
         collectionView?.performBatchUpdates({
-            let tabsToRestore = self.getPreviousOpenTabs()
+            let tabsToRestore = TabSessionPersister.shared.restore()
             for info in tabsToRestore {
                 let newTab = BrowserTab(
                     restoreInfo: info
@@ -120,14 +122,10 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
             }
         }, completion: { _ in
             //
-            if let lastIndex : Int = UserDefaults.standard.value(forKey: "presentedTabIndex") as? Int {
-                if lastIndex > -1 && lastIndex < self.tabs.count {
+            if let lastIndex = TabSessionPersister.shared.restoreIndex(), lastIndex < self.tabs.count {
                     self.showTab(self.tabs[lastIndex], animated: false, completion: {
                         self.view.isHidden = false
                     })
-                } else {
-                    self.view.isHidden = false
-                }
             } else {
                 self.view.isHidden = false
             }
@@ -135,7 +133,13 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     }
     
     @objc func applicationWillResignActive(notification: NSNotification) {
-        saveOpenTabs()
+        var presentedIndex = -1
+        if browserVC.isViewLoaded && (browserVC.view.window != nil) {
+            if let tab = browserVC.browserTab, let index = tabs.index(of: tab) {
+                presentedIndex = index
+            }
+        }
+        TabSessionPersister.shared.save(tabs, presentedIndex: presentedIndex)
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -257,15 +261,46 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         return cv.layoutAttributesForItem(at: ip)!.bounds
     }
     
-    var shouldAdjustX : CGFloat = 1
-    func adjustedCenterFor(_ thumb: TabThumbnail, cardOffset: CGPoint = .zero, switcherProgress: CGFloat, offsetByScroll: Bool = false, isSwitcherMode: Bool = false) -> CGPoint {
-        let cv = collectionView!
+    func BLOBadjustedCenterFor(_ thumb: TabThumbnail, cardOffset: CGPoint = .zero, switcherProgress: CGFloat, offsetByScroll: Bool = false, isSwitcherMode: Bool = false) -> CGPoint {
         
+        let cv = collectionView!
         let ip = cv.indexPath(for: thumb)!
         let currentIndex = currentIndexPath?.item ?? tabs.count
         let attrs = cv.layoutAttributesForItem(at: ip)!
         var center = attrs.center
+        if ip.item == currentIndex { return center }
+
+        let switchingY = center.y
+        var collapsedY = center.y
+    
+        let distFromTop = switchingY - cv.contentOffset.y + attrs.bounds.size.height / 2
         
+        if ip.item > currentIndex {
+            collapsedY -= distFromTop // leave room
+            collapsedY += view.bounds.height + Const.statusHeight // shift to bottom
+            collapsedY += attrs.bounds.size.height / 2 // shift to bottom
+//            if offsetByScroll {
+//                collapsedY -= cv.contentOffset.y
+//            }
+        }
+        else {
+            collapsedY -= cardOffset.y // track card
+            collapsedY -= distFromTop // leave room
+        }
+        
+        center.y = !isSwitcherMode ? collapsedY : switchingY
+//        center.x = center.x - (cardOffset.x * (1 - distFromFront * 0.1))
+        
+        return center
+    }
+
+    
+    func adjustedCenterFor(_ thumb: TabThumbnail, cardOffset: CGPoint = .zero, switcherProgress: CGFloat, offsetByScroll: Bool = false, isSwitcherMode: Bool = false) -> CGPoint {
+        let cv = collectionView!
+        let ip = cv.indexPath(for: thumb)!
+        let currentIndex = currentIndexPath?.item ?? tabs.count
+        let attrs = cv.layoutAttributesForItem(at: ip)!
+        var center = attrs.center
         if ip.item == currentIndex { return center }
         
         let switchingY = center.y
@@ -288,7 +323,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         }
         
         center.y = !isSwitcherMode ? collapsedY : switchingY
-        center.x = center.x - (cardOffset.x * (1 - distFromFront * 0.1)) * shouldAdjustX
+        center.x = center.x - (cardOffset.x * (1 - distFromFront * 0.1))
         
         return center
     }
@@ -463,67 +498,3 @@ extension TabSwitcherViewController : UICollectionViewDelegateFlowLayout {
     }
 }
 
-// MARK: - Saving and restoring state
-extension TabSwitcherViewController {
-    func saveOpenTabs() {
-        let info = tabs.map { tab in tab.restorableInfo.nsDictionary }
-        UserDefaults.standard.setValue(info, forKey: "openTabList")
-        
-        if browserVC.isViewLoaded && (browserVC.view.window != nil) {
-            // viewController is visible
-            let index = tabs.index(of: browserVC.browserTab!)!
-            UserDefaults.standard.set(index, forKey: "presentedTabIndex")
-        } else {
-            UserDefaults.standard.set(-1, forKey: "presentedTabIndex")
-        }
-    }
-    
-    func getPreviousOpenTabs() -> [ TabInfo ] {
-        if let openTabs = UserDefaults.standard.value(forKey: "openTabList") as? [ [ String : Any ]] {
-            let converted : [ TabInfo ] = openTabs.map { dict in
-                let title = dict["title"] as? String ?? ""
-                let urlString = dict["urlString"] as? String ?? ""
-                var topColor : UIColor
-                var bottomColor : UIColor
-                if let rgb = dict["topColor"] as? [ CGFloat ] {
-                    topColor = UIColor(r: rgb[0], g: rgb[1], b: rgb[2] )
-                }
-                else {
-                    topColor = UIColor.white
-                }
-                if let rgb = dict["bottomColor"] as? [ CGFloat ] {
-                    bottomColor = UIColor(r: rgb[0], g: rgb[1], b: rgb[2] )
-                }
-                else {
-                    bottomColor = UIColor.white
-                }
-
-                return TabInfo(
-                    title: title,
-                    urlString: urlString,
-                    topColor: topColor,
-                    bottomColor: bottomColor
-                )
-            }
-            return converted
-        }
-        return []
-    }
-}
-
-struct TabInfo {
-    var title : String
-    var urlString : String
-    var topColor: UIColor
-    var bottomColor: UIColor
-    
-    var nsDictionary : NSDictionary {
-        return NSDictionary(dictionary: [
-            "title" : title,
-            "urlString" : urlString,
-            "topColor" : topColor.getRGB(),
-            "bottomColor" : bottomColor.getRGB(),
-        ])
-    }
-    
-}
