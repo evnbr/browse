@@ -256,7 +256,7 @@ class SearchViewController: UIViewController {
             pageActionView.isBookmarked = false
             pageActionView.isBookmarkEnabled = BookmarkProvider.shared.isLoggedIn
             
-            BookmarkProvider.shared.isBookmarked(browser.webView.url!) { isBookmarked in
+            BookmarkProvider.shared.isBookmarked(browser.webView.url) { isBookmarked in
                 self.pageActionView.isBookmarked = isBookmarked
             }
             updateTextViewSize()

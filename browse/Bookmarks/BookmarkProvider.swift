@@ -47,7 +47,11 @@ class BookmarkProvider: NSObject {
         }
     }
     
-    func isBookmarked(_ url : URL, completion: @escaping (Bool) -> ()) {
+    func isBookmarked(_ url : URL?, completion: @escaping (Bool) -> ()) {
+        guard let url = url else {
+            completion(false)
+            return
+        }
         let toCheck = url.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
 
         fetch(method: "/posts/get?url=\(toCheck)") { json, error in
