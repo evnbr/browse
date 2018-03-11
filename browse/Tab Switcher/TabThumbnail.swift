@@ -10,6 +10,8 @@ import UIKit
 
 typealias CloseTabCallback = (UICollectionViewCell) -> Void
 
+let shadowRadius : CGFloat = 32
+
 class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
     var label : UILabel!
@@ -104,10 +106,9 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
 
         shadowView = UIView(frame: bounds)
         shadowView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        shadowView.layer.shadowRadius = 32
+        shadowView.layer.shadowRadius = shadowRadius
         shadowView.layer.shadowOpacity = 0.2
         shadowView.layer.shouldRasterize = true
-        
         let path = UIBezierPath(roundedRect: bounds, cornerRadius: Const.shared.thumbRadius)
         shadowView.layer.shadowPath = path.cgPath
         
@@ -168,7 +169,9 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         if touches.first != nil {
             UIView.animate(withDuration: 0.15, delay: 0.0, animations: {
                 self.contentView.scale = 0.97
+                self.contentView.transform = self.contentView.transform.translatedBy(x: 0, y: -10)
                 self.shadowView.scale = 0.97
+                self.shadowView.layer.shadowRadius = 16
             })
         }
     }
@@ -181,16 +184,14 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     }
     
     func unSelect(animated : Bool = true) {
-        if animated {
-            UIView.animate(withDuration: 0.2, delay: 0.0, animations: {
-                self.contentView.scale = 1
-                self.shadowView.scale = 1
-            })
-        }
-        else {            
-            self.contentView.scale = 1
-            self.shadowView.scale = 1
-        }
+        if animated { UIView.animate(withDuration: 0.2) { self.reset() } }
+        else { reset() }
+    }
+    
+    func reset() {
+        self.contentView.transform = .identity
+        self.shadowView.scale = 1
+        self.shadowView.layer.shadowRadius = shadowRadius
     }
     
     func setSnapshot(_ newImage : UIImage) {

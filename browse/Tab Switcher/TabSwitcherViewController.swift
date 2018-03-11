@@ -38,7 +38,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     override func viewDidLoad() {
         super.viewDidLoad()
 
-//        self.view.isHidden = true
+        self.view.isHidden = true
         
         browserVC = BrowserViewController(home: self)
         

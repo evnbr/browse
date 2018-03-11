@@ -195,12 +195,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         let isLandscape = size.width > size.height
         statusHeightConstraint.constant = isLandscape ? 0 : Const.statusHeight
-
-//        coordinator.animate(alongsideTransition: { context in
-//            //
-//        }, completion: { context in
-//            //
-//        })
     }
     
     override func viewDidLoad() {
@@ -210,8 +204,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         cardView = UIView(frame: cardViewDefaultFrame)
         cardView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-//        cardView.layer.shadowRadius = 24
-//        cardView.layer.shadowOpacity = 0.16
+        
+        let shadowView = UIView(frame: view.bounds)
+        shadowView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        shadowView.layer.shadowRadius = shadowRadius
+        shadowView.layer.shadowOpacity = 0.2
+        shadowView.layer.shouldRasterize = true
+        let path = UIBezierPath(roundedRect: view.bounds, cornerRadius: Const.shared.thumbRadius)
+        shadowView.layer.shadowPath = path.cgPath
 
         contentView = UIView(frame: cardViewDefaultFrame)
         contentView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -228,6 +228,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         gradientOverlay.alpha = 0
         
         view.addSubview(cardView)
+        cardView.addSubview(shadowView)
         cardView.addSubview(contentView)
         
         statusBar = ColorStatusBarView()

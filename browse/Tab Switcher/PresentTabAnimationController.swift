@@ -63,9 +63,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         scrollView.cancelScroll()
         browserVC.isSnapshotMode = true
         
-        let prevTransform = homeNav.view.transform
-        homeNav.view.transform = .identity // HACK reset to identity so we can get frame
-        
         var thumbCenter : CGPoint
         var thumbScale : CGFloat = 1
         var thumbOverlayAlpha : CGFloat = 0
@@ -78,7 +75,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             let selectedThumbCenter = attr.center
             thumbOverlayAlpha = 1 - attr.alpha
             thumbCenter = containerView.convert(selectedThumbCenter, from: thumb.superview)
-            thumbScale = thumb.contentView.scale // attr.transform.xScale
+            thumbScale = attr.transform.xScale
         }
         else {
             // animate from bottom
@@ -103,7 +100,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         browserVC.overlay.alpha = thumbOverlayAlpha
         browserVC.cardView.center = isExpanding ? thumbCenter : expandedCenter
         browserVC.cardView.bounds = isExpanding ? smallerBounds : expandedBounds
-        browserVC.cardView.mask = mask
+        browserVC.contentView.mask = mask
         
         if isExpanding {
             browserVC.cardView.scale = thumbScale
@@ -141,7 +138,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
                 homeVC.setThumbPosition(switcherProgress: 1, isSwitcherMode: true)
             }
             snapFab?.removeFromSuperview()
-            browserVC.cardView.mask = nil
+            browserVC.contentView.mask = nil
             
             homeVC.setNeedsStatusBarAppearanceUpdate()
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
