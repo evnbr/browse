@@ -185,7 +185,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         loadingDidChange()
         
-        if let location = browserTab?.restoredLocation {
+        if let location = browserTab?.restored?.urlString {
             if location != "" && isBlank {
                 navigateToText(location)
             }

@@ -14,10 +14,7 @@ class BrowserTab: NSObject {
     var webView: WKWebView!
     var parentTab : BrowserTab?
     
-    var restoredLocation : String?
-    var restoredTitle : String?
-    var restoredTopColor : UIColor?
-    var restoredBottomColor : UIColor?
+    var restored : TabInfo?
 
     var history : HistoryTree = HistoryTree()
     var historyPageMap : [ WKBackForwardListItem : HistoryPage ] = [:]
@@ -50,28 +47,38 @@ class BrowserTab: NSObject {
     
     init(restoreInfo : TabInfo) {
         super.init()
-        restoredTopColor = restoreInfo.topColor
-        restoredBottomColor = restoreInfo.bottomColor
-        restoredTitle = restoreInfo.title
-        restoredLocation = restoreInfo.urlString
+        restored = restoreInfo
         webView = loadWebView(withConfig: nil)
     }
     
     var restorableTitle : String? {
-        if webView?.title == nil { return restoredTitle }
-        return webView?.title ?? restoredTitle
+        return webView?.title ?? restored?.title
     }
     var restorableURL : String? {
-        return webView?.url?.absoluteString ?? restoredLocation
+        return webView?.url?.absoluteString ?? restored?.urlString
     }
     
     var restorableInfo : TabInfo {
-        return TabInfo(
-            title: restorableTitle ?? "",
-            urlString: restorableURL ?? "",
-            topColor: history.current?.topColor ?? .white,
-            bottomColor: history.current?.bottomColor ?? .white
-        )
+        if let current = history.current {
+            return TabInfo(
+                title: restorableTitle ?? "",
+                urlString: restorableURL ?? "",
+                topColor: current.topColor ?? .white,
+                bottomColor: current.bottomColor ?? .white,
+                id: current.id.uuidString,
+                image: current.snapshot
+            )
+        }
+        else if let restored = restored {
+            return restored
+        }
+        else {
+            return TabInfo(
+                title: restorableTitle ?? "",
+                urlString: restorableURL ?? "",
+                topColor: .white, bottomColor: .white, id: nil, image: nil
+            )
+        }
     }
     
     func loadWebView(withConfig config : WKWebViewConfiguration?) -> WKWebView {

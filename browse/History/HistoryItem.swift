@@ -23,11 +23,12 @@ class HistoryPage: NSObject {
     var mirroredListItem: WKBackForwardListItem?
     var title: String?
     let url: URL
+    let id = UUID()
     
     var snapshot: UIImage?
     var topColor: UIColor?
     var bottomColor: UIColor?
-
+    
     init(parent: HistoryPage?, url: URL) {
         self.parent = parent
         self.url = url

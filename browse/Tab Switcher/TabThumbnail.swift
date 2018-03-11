@@ -128,12 +128,15 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         if let img : UIImage = browserTab.history.current?.snapshot {
             setSnapshot(img)
         }
-        
+        else if let img : UIImage = browserTab.restored?.image {
+            setSnapshot(img)
+        }
+
         if let color : UIColor = browserTab.history.current?.topColor {
             contentView.backgroundColor = color
             label.textColor = color.isLight ? .white : .darkText
         }
-        else if let color : UIColor = browserTab.restoredTopColor {
+        else if let color : UIColor = browserTab.restored?.topColor {
             contentView.backgroundColor = color
             label.textColor = color.isLight ? .white : .darkText
         }
@@ -141,7 +144,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         if let title : String = browserTab.restorableTitle, title != "" {
             label.text = "\(title)"
         }
-        else if let title : String = browserTab.restoredTitle {
+        else if let title : String = browserTab.restored?.title {
             label.text = "\(title)"
         }
     }
