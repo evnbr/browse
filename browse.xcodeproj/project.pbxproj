@@ -33,6 +33,8 @@
 		A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE4201ECA661700ED48DB /* Sampler.swift */; };
 		A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */; };
 		A9667E922051F90400295E76 /* PinboardLoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E912051F90400295E76 /* PinboardLoginController.swift */; };
+		A9667E94205339B500295E76 /* BlobCollectionViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E93205339B500295E76 /* BlobCollectionViewLayout.swift */; };
+		A9667E9620549EEE00295E76 /* TabSessionPersister.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E9520549EEE00295E76 /* TabSessionPersister.swift */; };
 		A966CA64204003FC00EB2771 /* TypeaheadCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A966CA63204003FC00EB2771 /* TypeaheadCell.swift */; };
 		A969D4A51F1321EC008A7BC6 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A969D4A41F1321EC008A7BC6 /* Constants.swift */; };
 		A96A42EE1F9160B300C0F3E2 /* HistoryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96A42ED1F9160B300C0F3E2 /* HistoryItem.swift */; };
@@ -121,6 +123,8 @@
 		A94FE4201ECA661700ED48DB /* Sampler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sampler.swift; sourceTree = "<group>"; };
 		A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebNavigationController.swift; sourceTree = "<group>"; };
 		A9667E912051F90400295E76 /* PinboardLoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinboardLoginController.swift; sourceTree = "<group>"; };
+		A9667E93205339B500295E76 /* BlobCollectionViewLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlobCollectionViewLayout.swift; sourceTree = "<group>"; };
+		A9667E9520549EEE00295E76 /* TabSessionPersister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSessionPersister.swift; sourceTree = "<group>"; };
 		A966CA63204003FC00EB2771 /* TypeaheadCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeaheadCell.swift; sourceTree = "<group>"; };
 		A969D4A41F1321EC008A7BC6 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		A96A42ED1F9160B300C0F3E2 /* HistoryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HistoryItem.swift; path = browse/History/HistoryItem.swift; sourceTree = SOURCE_ROOT; };
@@ -235,9 +239,11 @@
 			isa = PBXGroup;
 			children = (
 				A92095901EE34CDC009497A2 /* TabSwitcherViewController.swift */,
+				A9667E9520549EEE00295E76 /* TabSessionPersister.swift */,
 				A92095921EE36483009497A2 /* TabThumbnail.swift */,
 				A9A88DE82015C64F007FC6C0 /* GradientView.swift */,
 				A9E422801F86B4FD0028B4CA /* StackingCollectionViewLayout.swift */,
+				A9667E93205339B500295E76 /* BlobCollectionViewLayout.swift */,
 				A920958E1EDF4AB8009497A2 /* PresentTabAnimationController.swift */,
 			);
 			path = "Tab Switcher";
@@ -746,6 +752,7 @@
 				A920958F1EDF4AB8009497A2 /* PresentTabAnimationController.swift in Sources */,
 				A9F9D7C02050B8BA000BA8A3 /* DuckSearchProvider.swift in Sources */,
 				A9AA4A581FF72471001AB639 /* PlaceholderView.swift in Sources */,
+				A9667E9620549EEE00295E76 /* TabSessionPersister.swift in Sources */,
 				A9AA4A5A1FF76CDA001AB639 /* UIView+POP.swift in Sources */,
 				A908920A1ED547C500A5E9BA /* LocationBar.swift in Sources */,
 				A920958A1EDA6526009497A2 /* Settings.swift in Sources */,
@@ -755,6 +762,7 @@
 				A9F9D7C42050B93A000BA8A3 /* SearchProvider.swift in Sources */,
 				A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */,
 				A92095861ED9E242009497A2 /* SettingsViewController.swift in Sources */,
+				A9667E94205339B500295E76 /* BlobCollectionViewLayout.swift in Sources */,
 				A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */,
 				A96A42EE1F9160B300C0F3E2 /* HistoryItem.swift in Sources */,
 				A9210D511F0148E600904A0B /* URL+DisplayHost.swift in Sources */,
