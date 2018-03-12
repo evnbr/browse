@@ -31,9 +31,9 @@ class ColorStatusBarView : GradientColorChangeView {
 
         label = UILabel(frame: CGRect(
             x: 24 ,
-            y: 15,
+            y: 12,
             width: frame.width - 48,
-            height: 16.0
+            height: 24
         ))
         label.text = "Blank"
         label.alpha = 0

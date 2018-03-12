@@ -331,7 +331,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     func setThumbPosition(switcherProgress: CGFloat, cardOffset: CGPoint = .zero, scale: CGFloat = 1, offsetForContainer: Bool = false, isSwitcherMode: Bool = false) {
         for cell in visibleCells {
             cell.center = adjustedCenterFor(cell, cardOffset: cardOffset, switcherProgress: switcherProgress, offsetByScroll: offsetForContainer, isSwitcherMode: isSwitcherMode)
-//            cell.transform = .init(scale: scale)
+            cell.scale = scale
             cell.isHidden = false
         }
         navigationController?.view.alpha = switcherProgress.progress(from: 0, to: 0.7)
@@ -349,7 +349,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
             let anim = cell.springCenter(to: center, at: vel, after: delay)
             anim?.springSpeed = 10
             anim?.springBounciness = 2
-//            cell.springScale(to: 1)
+            cell.springScale(to: 1)
         }
     }
     

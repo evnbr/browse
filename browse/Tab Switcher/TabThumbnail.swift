@@ -11,6 +11,7 @@ import UIKit
 typealias CloseTabCallback = (UICollectionViewCell) -> Void
 
 let shadowRadius : CGFloat = 32
+let shadowAlpha : Float = 0.2
 
 class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
@@ -83,9 +84,9 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
 
         label = UILabel(frame: CGRect(
             x: 24,
-            y: 15,
+            y: 12,
             width: frame.width - 48,
-            height: 16.0
+            height: 24
         ))
         label.text = "Blank"
         label.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
@@ -107,7 +108,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         shadowView = UIView(frame: bounds)
         shadowView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         shadowView.layer.shadowRadius = shadowRadius
-        shadowView.layer.shadowOpacity = 0.2
+        shadowView.layer.shadowOpacity = shadowAlpha
         shadowView.layer.shouldRasterize = true
         let path = UIBezierPath(roundedRect: bounds, cornerRadius: Const.shared.thumbRadius)
         shadowView.layer.shadowPath = path.cgPath
@@ -165,15 +166,9 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
-        
-        if touches.first != nil {
-            UIView.animate(withDuration: 0.15, delay: 0.0, animations: {
-                self.contentView.scale = 0.97
-                self.contentView.transform = self.contentView.transform.translatedBy(x: 0, y: -10)
-                self.shadowView.scale = 0.97
-                self.shadowView.layer.shadowRadius = 16
-            })
-        }
+        UIView.animate(withDuration: 0.15, delay: 0.0, animations: {
+            self.select()
+        })
     }
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesEnded(touches, with: event)
@@ -181,6 +176,14 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesCancelled(touches, with: event)
         unSelect()
+    }
+    
+    func select() {
+        self.contentView.scale = 0.98
+        self.contentView.transform = self.contentView.transform.translatedBy(x: 0, y: -4)
+        self.shadowView.scale = 0.98
+//        self.shadowView.layer.shadowRadius = shadowRadius * 0.8
+//        self.shadowView.layer.shadowOpacity = 0.3
     }
     
     func unSelect(animated : Bool = true) {
@@ -192,6 +195,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         self.contentView.transform = .identity
         self.shadowView.scale = 1
         self.shadowView.layer.shadowRadius = shadowRadius
+        self.shadowView.layer.shadowOpacity = shadowAlpha
     }
     
     func setSnapshot(_ newImage : UIImage) {

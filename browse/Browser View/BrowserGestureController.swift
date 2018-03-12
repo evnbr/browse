@@ -166,8 +166,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         vc.updateSnapshot()
     }
     
-    let vProgressScaleMultiplier : CGFloat = 0.0//0.2
-    let cantGoBackScaleMultiplier : CGFloat = 0.3
+    let vProgressScaleMultiplier : CGFloat = 0
+    let cantGoBackScaleMultiplier : CGFloat = 1.1
     
     var wouldCommitPreviousX = false
     var wouldCommitPreviousY = false
@@ -254,9 +254,11 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             }
             else {
                 // COPY PASTED A
-                let hProgress = abs(gesturePos.x) / view.bounds.width
-                s = 1 - hProgress * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
-                cardView.center.x = view.center.x + elasticLimit(adjustedX, constant: 100)
+                let hProg = abs(elasticLimit(gesturePos.x)) / view.bounds.width
+                s = 1 - hProg * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
+                
+                let spaceW = cardView.bounds.width * ( 1 - s )
+                cardView.center.x = view.center.x + spaceW * 0.4
                 cardView.scale = s
             }
         }
@@ -284,9 +286,11 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         else {
             // COPY PASTED A
             
-            let hProgress = abs(gesturePos.x) / view.bounds.width
-            s = 1 - hProgress * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
-            cardView.center.x = view.center.x + elasticLimit(elasticLimit(adjustedX))
+            let hProg = abs(elasticLimit(gesturePos.x)) / view.bounds.width
+            s = 1 - hProg * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
+
+            let spaceW = cardView.bounds.width * ( 1 - s )
+            cardView.center.x = view.center.x - spaceW * 0.4
             cardView.scale = s
         }
         
