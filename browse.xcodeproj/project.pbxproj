@@ -32,6 +32,7 @@
 		A94FE41F1ECA5A7400ED48DB /* UIColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */; };
 		A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94FE4201ECA661700ED48DB /* Sampler.swift */; };
 		A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */; };
+		A95DFF7520575F2500D540DD /* UIView+POP.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7420575F2400D540DD /* UIView+POP.swift */; };
 		A9667E922051F90400295E76 /* PinboardLoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E912051F90400295E76 /* PinboardLoginController.swift */; };
 		A9667E94205339B500295E76 /* BlobCollectionViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E93205339B500295E76 /* BlobCollectionViewLayout.swift */; };
 		A9667E9620549EEE00295E76 /* TabSessionPersister.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E9520549EEE00295E76 /* TabSessionPersister.swift */; };
@@ -52,7 +53,6 @@
 		A99328471F098E270045EBAA /* ToolbarTextButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99328461F098E270045EBAA /* ToolbarTextButton.swift */; };
 		A9A88DE92015C64F007FC6C0 /* GradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9A88DE82015C64F007FC6C0 /* GradientView.swift */; };
 		A9AA4A581FF72471001AB639 /* PlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9AA4A571FF72471001AB639 /* PlaceholderView.swift */; };
-		A9AA4A5A1FF76CDA001AB639 /* UIView+POP.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9AA4A591FF76CDA001AB639 /* UIView+POP.swift */; };
 		A9B99797203791DB00841404 /* SearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B99796203791DB00841404 /* SearchViewController.swift */; };
 		A9B9979920380C8A00841404 /* SearchTransitionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B9979820380C8A00841404 /* SearchTransitionController.swift */; };
 		A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */; };
@@ -123,6 +123,7 @@
 		A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIColorExtensions.swift; sourceTree = "<group>"; };
 		A94FE4201ECA661700ED48DB /* Sampler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sampler.swift; sourceTree = "<group>"; };
 		A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebNavigationController.swift; sourceTree = "<group>"; };
+		A95DFF7420575F2400D540DD /* UIView+POP.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIView+POP.swift"; sourceTree = "<group>"; };
 		A9667E912051F90400295E76 /* PinboardLoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinboardLoginController.swift; sourceTree = "<group>"; };
 		A9667E93205339B500295E76 /* BlobCollectionViewLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlobCollectionViewLayout.swift; sourceTree = "<group>"; };
 		A9667E9520549EEE00295E76 /* TabSessionPersister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSessionPersister.swift; sourceTree = "<group>"; };
@@ -149,7 +150,6 @@
 		A99328461F098E270045EBAA /* ToolbarTextButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToolbarTextButton.swift; sourceTree = "<group>"; };
 		A9A88DE82015C64F007FC6C0 /* GradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientView.swift; sourceTree = "<group>"; };
 		A9AA4A571FF72471001AB639 /* PlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderView.swift; sourceTree = "<group>"; };
-		A9AA4A591FF76CDA001AB639 /* UIView+POP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "UIView+POP.swift"; path = "browse/Utils/UIView+POP.swift"; sourceTree = SOURCE_ROOT; };
 		A9B99796203791DB00841404 /* SearchViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SearchViewController.swift; path = "browse/Search Field/SearchViewController.swift"; sourceTree = SOURCE_ROOT; };
 		A9B9979820380C8A00841404 /* SearchTransitionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SearchTransitionController.swift; path = "browse/Search Field/SearchTransitionController.swift"; sourceTree = SOURCE_ROOT; };
 		A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientColorChangeView.swift; sourceTree = "<group>"; };
@@ -319,6 +319,15 @@
 			name = Settings;
 			sourceTree = "<group>";
 		};
+		A9667E9920575E4700295E76 /* Animation Utils */ = {
+			isa = PBXGroup;
+			children = (
+				A95DFF7420575F2400D540DD /* UIView+POP.swift */,
+				A9667E9720574BF000295E76 /* PositionAnimator.swift */,
+			);
+			path = "Animation Utils";
+			sourceTree = "<group>";
+		};
 		A96A42EF1F91637F00C0F3E2 /* History */ = {
 			isa = PBXGroup;
 			children = (
@@ -356,6 +365,7 @@
 				A9F9D7BC20509F2D000BA8A3 /* Settings.bundle */,
 				A97CB06F1EC53DCD005DDBD1 /* AppDelegate.swift */,
 				A969D4A41F1321EC008A7BC6 /* Constants.swift */,
+				A9667E9920575E4700295E76 /* Animation Utils */,
 				A9AA4A5B1FF76D27001AB639 /* Utils */,
 				A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */,
 				A90F51241F71785E00221815 /* Tab Switcher */,
@@ -399,10 +409,8 @@
 		A9AA4A5B1FF76D27001AB639 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
-				A9AA4A591FF76CDA001AB639 /* UIView+POP.swift */,
 				A98466721FF0F9170009FC12 /* Utils.swift */,
 				A94FE41E1ECA5A7400ED48DB /* UIColorExtensions.swift */,
-				A9667E9720574BF000295E76 /* PositionAnimator.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -757,7 +765,6 @@
 				A9F9D7C02050B8BA000BA8A3 /* DuckSearchProvider.swift in Sources */,
 				A9AA4A581FF72471001AB639 /* PlaceholderView.swift in Sources */,
 				A9667E9620549EEE00295E76 /* TabSessionPersister.swift in Sources */,
-				A9AA4A5A1FF76CDA001AB639 /* UIView+POP.swift in Sources */,
 				A908920A1ED547C500A5E9BA /* LocationBar.swift in Sources */,
 				A920958A1EDA6526009497A2 /* Settings.swift in Sources */,
 				A966CA64204003FC00EB2771 /* TypeaheadCell.swift in Sources */,
@@ -775,6 +782,7 @@
 				A96A42F51F917F9C00C0F3E2 /* HistoryViewController.swift in Sources */,
 				A94FE41F1ECA5A7400ED48DB /* UIColorExtensions.swift in Sources */,
 				A9667E922051F90400295E76 /* PinboardLoginController.swift in Sources */,
+				A95DFF7520575F2500D540DD /* UIView+POP.swift in Sources */,
 				A9F9D7BB204E0BAF000BA8A3 /* PageActionView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -17,17 +17,35 @@ enum PositionAnimatorState : CGFloat {
     case end = 1
 }
 
-class PositionAnimator : NSObject {
+protocol SpringTransition {
+    associatedtype ValueType
+    var start : ValueType { get set }
+    var end : ValueType { get set }
+    func springState(_ : PositionAnimatorState ) -> POPSpringAnimation?
+    func setState(_ : PositionAnimatorState )
+    func update()
+}
+
+class PositionAnimator : NSObject, SpringTransition {
+    typealias ValueType = CGPoint
     
     var view : UIView!
     private var progress : CGFloat = 1
     
-    var startCenter : CGPoint = .zero
-    var endCenter : CGPoint = .zero
+    var start : CGPoint = .zero
+    var end : CGPoint = .zero
     
     convenience init(view: UIView) {
         self.init()
         self.view = view
+    }
+    
+    // Internal
+    private var derivedCenter : CGPoint {
+        return CGPoint(
+            x: progress.blend(from: start.x, to: end.x),
+            y: progress.blend(from: start.y, to: end.y)
+        )
     }
     
     private var progressPropery: POPAnimatableProperty? {
@@ -46,6 +64,7 @@ class PositionAnimator : NSObject {
         }) as? POPAnimatableProperty
     }
     
+    // External
     @discardableResult
     func springState(_ newState : PositionAnimatorState) -> POPSpringAnimation? {
         let newVal : CGFloat = newState.rawValue
@@ -70,12 +89,6 @@ class PositionAnimator : NSObject {
         progress = newState.rawValue
     }
     
-    private var derivedCenter : CGPoint {
-        return CGPoint(
-            x: progress.blend(from: startCenter.x, to: endCenter.x),
-            y: progress.blend(from: startCenter.y, to: endCenter.y)
-        )
-    }
     func update() {
         view.center = derivedCenter
     }

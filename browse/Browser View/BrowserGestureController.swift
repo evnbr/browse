@@ -36,9 +36,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
     var mockCardView: PlaceholderView!
     let mockCardViewSpacer : CGFloat = 8
+    
     var mockPositioner : PositionAnimator!
-    
-    
+    var cardPositioner : PositionAnimator!
+
     var isInteractiveDismiss : Bool = false
     var startPoint : CGPoint = .zero
     var startScroll : CGPoint = .zero
@@ -63,6 +64,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         mockCardView = PlaceholderView(frame: cardView.bounds)
         mockPositioner = PositionAnimator(view: mockCardView)
+        cardPositioner = PositionAnimator(view: cardView)
         
         let dismissPanner = UIPanGestureRecognizer()
         dismissPanner.delegate = self
@@ -234,7 +236,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 
                 let isToParent = !vc.webView.canGoBack
                 let offsetY = view.center.y - cardView.center.y
-                mockPositioner.endCenter = !isToParent
+                mockPositioner.end = !isToParent
                     ? CGPoint(
                         x: cardView.center.x - view.bounds.width / 2 - cardView.bounds.width * s / 2 - mockCardViewSpacer,
                         y: view.center.y)
@@ -242,7 +244,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                         x: view.center.x,
                         y: view.center.y - offsetY * 0.5)
                     
-                mockPositioner.startCenter = !isToParent
+                mockPositioner.start = !isToParent
                     ? CGPoint(x: view.center.x - view.bounds.width, y: view.center.y)
                     : cardView.center
                 mockPositioner.update()
@@ -277,11 +279,11 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 + verticalProgress.blend(from: adjustedX, to: elasticLimit(adjustedX))
                 + scaleFromRightShift
             
-            mockPositioner.endCenter = CGPoint(
+            mockPositioner.end = CGPoint(
                 x: cardView.center.x + view.bounds.width / 2 + cardView.bounds.width * s / 2 + mockCardViewSpacer,
                 y: view.center.y
             )
-            mockPositioner.startCenter = CGPoint(x: view.center.x + view.bounds.width, y: view.center.y)
+            mockPositioner.start = CGPoint(x: view.center.x + view.bounds.width, y: view.center.y)
             mockPositioner.update()
             mockPositioner.springState(gesturePos.y > dismissPointY ? .start : .end)
         }
@@ -298,7 +300,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         
         vc.home.setThumbPosition(
-            switcherProgress: gesturePos.y.progress(from: 100, to: 800),
+//            switcherProgress: gesturePos.y.progress(from: 100, to: 800) + abs(adjustedX).progress(from: 0, to: 400),
+            switcherProgress: cardView.frame.origin.y.progress(from: 0, to: 600),
             cardOffset: CGPoint(
                 x: view.center.x - cardView.center.x,
                 y: view.center.y - cardView.center.y
@@ -483,7 +486,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let mockShift = mockCardView.bounds.width + mockCardViewSpacer
         if mockCardView.center.x > view.center.x { mockEndCenter.x += mockShift }
         else { mockEndCenter.x -= mockShift }
-        mockPositioner.endCenter = mockEndCenter
+        mockPositioner.end = mockEndCenter
         mockCardView.springCenter(to: mockEndCenter) { _, _ in
             self.mockCardView.removeFromSuperview()
             self.mockCardView.imageView.image = nil
@@ -618,12 +621,12 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             self.vc.webView.scrollView.showsVerticalScrollIndicator = true
         }
         
-        mockPositioner.endCenter = self.view.center
+        mockPositioner.end = self.view.center
         let mockShift = mockCardView.bounds.width + mockCardViewSpacer
-        if action == .back || action == .toParent { mockPositioner.endCenter.x += mockShift }
-        else if action == .forward { mockPositioner.endCenter.x -= mockShift }
+        if action == .back || action == .toParent { mockPositioner.end.x += mockShift }
+        else if action == .forward { mockPositioner.end.x -= mockShift }
 
-        mockCardView.springCenter(to: mockPositioner.endCenter, at: velocity) {_,_ in
+        mockCardView.springCenter(to: mockPositioner.end, at: velocity) {_,_ in
             self.mockCardView.removeFromSuperview()
             self.mockCardView.imageView.image = nil
         }
