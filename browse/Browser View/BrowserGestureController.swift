@@ -36,6 +36,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
     var mockCardView: PlaceholderView!
     let mockCardViewSpacer : CGFloat = 8
+    var mockPositioner : PositionAnimator!
+    
     
     var isInteractiveDismiss : Bool = false
     var startPoint : CGPoint = .zero
@@ -60,6 +62,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         toolbar = vc.toolbar
         
         mockCardView = PlaceholderView(frame: cardView.bounds)
+        mockPositioner = PositionAnimator(view: mockCardView)
         
         let dismissPanner = UIPanGestureRecognizer()
         dismissPanner.delegate = self
@@ -231,7 +234,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 
                 let isToParent = !vc.webView.canGoBack
                 let offsetY = view.center.y - cardView.center.y
-                mockTrackingCenter = !isToParent
+                mockPositioner.endCenter = !isToParent
                     ? CGPoint(
                         x: cardView.center.x - view.bounds.width / 2 - cardView.bounds.width * s / 2 - mockCardViewSpacer,
                         y: view.center.y)
@@ -239,18 +242,18 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                         x: view.center.x,
                         y: view.center.y - offsetY * 0.5)
                     
-                mockHiddenCenter = !isToParent
+                mockPositioner.startCenter = !isToParent
                     ? CGPoint(x: view.center.x - view.bounds.width, y: view.center.y)
                     : cardView.center
-                mockCardView.center = mockCardViewCenter
+                mockPositioner.update()
                 
                 if isToParent {
                     let parentPct = adjustedX.progress(from: 0, to: 800)
                     mockCardView.overlay.alpha = parentPct.reverse()
                     mockCardView.scale = 1 - parentPct.reverse() * 0.05
                 }
-                    
-                springBackForwardMode(gesturePos.y < dismissPointY)
+                
+                mockPositioner.springState(gesturePos.y > dismissPointY ? .start : .end)
             }
             else {
                 // COPY PASTED A
@@ -274,14 +277,13 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 + verticalProgress.blend(from: adjustedX, to: elasticLimit(adjustedX))
                 + scaleFromRightShift
             
-            mockTrackingCenter = CGPoint(
+            mockPositioner.endCenter = CGPoint(
                 x: cardView.center.x + view.bounds.width / 2 + cardView.bounds.width * s / 2 + mockCardViewSpacer,
                 y: view.center.y
             )
-            mockHiddenCenter = CGPoint(x: view.center.x + view.bounds.width, y: view.center.y)
-            mockCardView.center = mockCardViewCenter
-            springBackForwardMode(gesturePos.y < dismissPointY)
-
+            mockPositioner.startCenter = CGPoint(x: view.center.x + view.bounds.width, y: view.center.y)
+            mockPositioner.update()
+            mockPositioner.springState(gesturePos.y > dismissPointY ? .start : .end)
         }
         else {
             // COPY PASTED A
@@ -365,7 +367,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         mockCardView.center = vc.view.center
         mockCardView.bounds = cardView.bounds
     }
-    
     
     @objc func leftEdgePan(gesture:UIScreenEdgePanGestureRecognizer) {
 
@@ -458,7 +459,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         isInteractiveDismiss = true
         wouldCommitPreviousX = false
         wouldCommitPreviousY = false
-        isBackForwardProgress = 1
+        mockPositioner.progress = 1
         startScroll = vc.webView.scrollView.contentOffset
                 
         vc.webView.scrollView.showsVerticalScrollIndicator = false
@@ -482,7 +483,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let mockShift = mockCardView.bounds.width + mockCardViewSpacer
         if mockCardView.center.x > view.center.x { mockEndCenter.x += mockShift }
         else { mockEndCenter.x -= mockShift }
-        mockTrackingCenter = mockEndCenter
+        mockPositioner.endCenter = mockEndCenter
         mockCardView.springCenter(to: mockEndCenter) { _, _ in
             self.mockCardView.removeFromSuperview()
             self.mockCardView.imageView.image = nil
@@ -641,12 +642,12 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             self.vc.webView.scrollView.showsVerticalScrollIndicator = true
         }
         
-        mockTrackingCenter = self.view.center
+        mockPositioner.endCenter = self.view.center
         let mockShift = mockCardView.bounds.width + mockCardViewSpacer
-        if action == .back || action == .toParent { mockTrackingCenter.x += mockShift }
-        else if action == .forward { mockTrackingCenter.x -= mockShift }
+        if action == .back || action == .toParent { mockPositioner.endCenter.x += mockShift }
+        else if action == .forward { mockPositioner.endCenter.x -= mockShift }
 
-        mockCardView.springCenter(to: mockTrackingCenter, at: velocity) {_,_ in
+        mockCardView.springCenter(to: mockPositioner.endCenter, at: velocity) {_,_ in
             self.mockCardView.removeFromSuperview()
             self.mockCardView.imageView.image = nil
         }
@@ -781,58 +782,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
     }
     
-    var kIsBackForwardAnimation = "kIsBackForwardAnimation"
-    var kIsBackForwardProgress = "kIsBackForwardProgress"
-    var isBackForwardProgress : CGFloat = 1
-    var mockHiddenCenter : CGPoint = .zero
-    var mockTrackingCenter : CGPoint = .zero
-    
-    var mockCardViewCenter : CGPoint {
-        return CGPoint(
-            x: isBackForwardProgress.blend(from: mockHiddenCenter.x, to: mockTrackingCenter.x),
-            y: isBackForwardProgress.blend(from: mockHiddenCenter.y, to: mockTrackingCenter.y)
-        )
-    }
-    
-    var isBackForwardAnimator: POPAnimatableProperty? {
-        return POPAnimatableProperty.property(withName: "kIsBackForwardProgress", initializer: { prop in
-            guard let prop = prop else { return }
-            prop.readBlock = { obj, values in
-                guard let values = values else { return }
-                values[0] = self.isBackForwardProgress
-            }
-            prop.writeBlock = { obj, values in
-                guard let values = values else { return }
-                self.isBackForwardProgress = values[0]
-                self.mockCardView.center = self.mockCardViewCenter
-            }
-            prop.threshold = 0.01
-        }) as? POPAnimatableProperty
-    }
-    
-    @discardableResult
-    func springBackForwardMode(_ isBackForward : Bool) -> POPSpringAnimation? {
-        let newVal : CGFloat = isBackForward ? 1 : 0
-        guard newVal != isBackForwardProgress else { return nil }
-        
-        if let anim = self.pop_animation(forKey: kIsBackForwardAnimation) as? POPSpringAnimation {
-            anim.toValue = newVal
-            return anim
-        }
-        else if let anim = POPSpringAnimation(propertyNamed: kIsBackForwardProgress) {
-            anim.toValue = newVal
-            anim.property = isBackForwardAnimator
-            anim.springBounciness = 3
-            anim.springSpeed = 10
-            self.pop_add(anim, forKey: kIsBackForwardAnimation)
-            return anim
-        }
-        return nil
-    }
-    
-    
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
     }
-    
 }
