@@ -41,6 +41,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     let mockCardViewSpacer : CGFloat = 8
     
     var mockPositioner : PointSpringSwitch!
+    var mockScaler : NumberSpringSwitch!
+
     var cardPositioner : PointSpringSwitch!
     var cardScaler : NumberSpringSwitch!
 
@@ -67,7 +69,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         toolbar = vc.toolbar
         
         mockCardView = PlaceholderView(frame: cardView.bounds)
+        
         mockPositioner = PointSpringSwitch { self.mockCardView.center = $0 }
+        mockScaler = NumberSpringSwitch { self.mockCardView.scale = $0  }
+
         cardPositioner = PointSpringSwitch { self.cardView.center = $0 }
         cardScaler = NumberSpringSwitch { self.cardView.scale = $0  }
         
@@ -82,7 +87,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         backDismissPan.delegate = self
         backDismissPan.edges = .left
         backDismissPan.addTarget(self, action: #selector(leftEdgePan(gesture:)))
-        backDismissPan.cancelsTouchesInView = false
+        backDismissPan.cancelsTouchesInView = true
         backDismissPan.delaysTouchesBegan = false
         view.addGestureRecognizer(backDismissPan)
         
@@ -90,7 +95,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         forwardDismissPan.delegate = self
         forwardDismissPan.edges = .right
         forwardDismissPan.addTarget(self, action: #selector(rightEdgePan(gesture:)))
-        forwardDismissPan.cancelsTouchesInView = false
+        forwardDismissPan.cancelsTouchesInView = true
         forwardDismissPan.delaysTouchesBegan = false
         view.addGestureRecognizer(forwardDismissPan)
     }
@@ -213,56 +218,46 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             wouldCommitPreviousY = wouldCommitY
         }
 
-        
-//        cardView.center.x = view.center.x + adjustedX
-//
         let yGestureInfluence = gesturePos.y
-//        if yGestureInfluence > 0 {
-//            cardView.center.y = view.center.y + yGestureInfluence
-//        }
-//        else {
-//            cardView.center.y = view.center.y + elasticLimit(yGestureInfluence) //* 0.6
-//        }
 
         self.vc.gradientOverlay.alpha = gesturePos.y.progress(from: 0, to: 400)
 
         let verticalProgress = gesturePos.y.progress(from: 0, to: 200).clip()
         var s : CGFloat = 1
         
-        cardScaler.setValue(of: PAGING_STATE, to: 1)
-
         let sign : CGFloat = direction == .left ? 1 : -1
         let hProg = elasticLimit(gesturePos.x) / view.bounds.width * sign
         let dismissScale = 1 - hProg * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
         let spaceW = cardView.bounds.width * ( 1 - dismissScale )
         s = dismissScale
         cardScaler.setValue(of: DISMISSING_STATE, to: dismissScale)
+        mockScaler.setValue(of: DISMISSING_STATE, to: dismissScale)
 
         let dismissingPoint = CGPoint(x: view.center.x + spaceW * 0.4 * sign, y: view.center.y + yGestureInfluence)
         cardPositioner.setValue(of: DISMISSING_STATE, to: dismissingPoint)
         mockPositioner.setValue(of: DISMISSING_STATE, to: CGPoint(x: view.center.x - view.bounds.width * sign, y: view.center.y))
-        let backFwdPoint =  CGPoint(x: view.center.x + adjustedX, y: view.center.y + 0.2 * yGestureInfluence)
+        let backFwdPoint =  CGPoint(x: view.center.x + adjustedX, y: view.center.y + 0.2 * max(0, yGestureInfluence))
         cardPositioner.setValue(of: PAGING_STATE, to: backFwdPoint)
 
         let isToParent = !vc.webView.canGoBack && vc.browserTab!.canGoBackToParent
 
         if direction == .left && (vc.webView.canGoBack || isToParent) {
-            let offsetY = view.center.y - cardView.center.y
-            if isToParent {
+//            if isToParent {
                 mockPositioner.setValue(of: PAGING_STATE, to: CGPoint(
-                        x: view.center.x,
-                        y: view.center.y - offsetY * 0.5
+                        x: view.center.x + adjustedX * 0.5 - view.bounds.width * 0.5,
+                        y: view.center.y
                 ))
-                mockPositioner.setValue(of: DISMISSING_STATE, to: cardView.center)
+                mockPositioner.setValue(of: DISMISSING_STATE, to: dismissingPoint)
                 let parentPct = adjustedX.progress(from: 0, to: 800)
-//                mockCardView.overlay.alpha = parentPct.reverse()
-                mockCardView.scale = 1 - parentPct.reverse() * 0.05
-            }
-            else {
-                mockPositioner.setValue(of: PAGING_STATE, to: CGPoint(
-                    x: backFwdPoint.x - view.bounds.width - mockCardViewSpacer,
-                    y: view.center.y))
-            }
+                mockCardView.overlay.alpha = adjustedX.progress(from: 0, to: 400).blend(from: 0.4, to: 0.1)
+                let pagingScale = 1 - parentPct.reverse() * 0.05
+                mockScaler.setValue(of: PAGING_STATE, to: 1)
+//            }
+//            else {
+//                mockPositioner.setValue(of: PAGING_STATE, to: CGPoint(
+//                    x: backFwdPoint.x - view.bounds.width - mockCardViewSpacer,
+//                    y: view.center.y))
+//            }
         }
         else if direction == .right && vc.webView.canGoForward {
             mockPositioner.setValue(of: PAGING_STATE, to: CGPoint(
@@ -275,6 +270,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         if couldBePaging {
             let newState = gesturePos.y > dismissPointY ? DISMISSING_STATE : PAGING_STATE
+            mockScaler.springState(newState)
             mockPositioner.springState(newState)
             cardScaler.springState(newState)
             cardPositioner.springState(newState)
@@ -447,12 +443,14 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         isInteractiveDismiss = true
         wouldCommitPreviousX = false
         wouldCommitPreviousY = false
-        mockPositioner.setState(.end)
         startScroll = vc.webView.scrollView.contentOffset
                 
         vc.webView.scrollView.showsVerticalScrollIndicator = false
         vc.browserTab?.updateSnapshot()
         
+        mockPositioner.setState(PAGING_STATE)
+        cardScaler.setValue(of: PAGING_STATE, to: 1)
+        cardScaler.setState(PAGING_STATE)
         
 //        feedbackGenerator = UISelectionFeedbackGenerator()
         feedbackGenerator?.prepare()
@@ -467,15 +465,17 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         dismissVelocity = vel
         self.pop_removeAllAnimations()
-        var mockEndCenter = view.center
-        let mockShift = mockCardView.bounds.width + mockCardViewSpacer
-        if mockCardView.center.x > view.center.x { mockEndCenter.x += mockShift }
-        else { mockEndCenter.x -= mockShift }
-        mockPositioner.setValue(of: .end, to: mockEndCenter)
-        mockCardView.springCenter(to: mockEndCenter) { _, _ in
-            self.mockCardView.removeFromSuperview()
-            self.mockCardView.imageView.image = nil
-        }
+//        var mockEndCenter = view.center
+//        let mockShift = mockCardView.bounds.width + mockCardViewSpacer
+//        if mockCardView.center.x > view.center.x { mockEndCenter.x += mockShift }
+//        else { mockEndCenter.x -= mockShift }
+//        mockPositioner.setValue(of: .end, to: mockEndCenter)
+//        mockCardView.springCenter(to: mockEndCenter) { _, _ in
+//            self.mockCardView.removeFromSuperview()
+//            self.mockCardView.imageView.image = nil
+//        }
+        self.mockCardView.removeFromSuperview()
+        self.mockCardView.imageView.image = nil
         
         vc.dismiss(animated: true) {
             self.dismissVelocity = nil
@@ -582,7 +582,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         vc.overlay.alpha = mockAlpha
         
         // Swap order
-        if action == .toParent {
+        if action == .toParent || action == .back {
             view.insertSubview(mockCardView, aboveSubview: cardView)
         }
     }
