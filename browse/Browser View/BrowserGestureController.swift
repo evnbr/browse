@@ -37,8 +37,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     var mockCardView: PlaceholderView!
     let mockCardViewSpacer : CGFloat = 8
     
-    var mockPositioner : PositionAnimator!
-    var cardPositioner : PositionAnimator!
+    var mockPositioner : PositionSpringTransition!
+    var cardPositioner : PositionSpringTransition!
 
     var isInteractiveDismiss : Bool = false
     var startPoint : CGPoint = .zero
@@ -63,8 +63,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         toolbar = vc.toolbar
         
         mockCardView = PlaceholderView(frame: cardView.bounds)
-        mockPositioner = PositionAnimator(view: mockCardView)
-        cardPositioner = PositionAnimator(view: cardView)
+        mockPositioner = PositionSpringTransition(view: mockCardView)
+        cardPositioner = PositionSpringTransition(view: cardView)
         
         let dismissPanner = UIPanGestureRecognizer()
         dismissPanner.delegate = self

@@ -1,5 +1,5 @@
 //
-//  PositionAnimator.swift
+//  PositionSpringTransition.swift
 //  browse
 //
 //  Created by Evan Brooks on 3/12/18.
@@ -12,21 +12,7 @@ import pop
 fileprivate let kPositionAnimation = "kPositionAnimation"
 fileprivate let kPositionProgress = "kPositionProgress"
 
-enum PositionAnimatorState : CGFloat {
-    case start = 0
-    case end = 1
-}
-
-protocol SpringTransition {
-    associatedtype ValueType
-    var start : ValueType { get set }
-    var end : ValueType { get set }
-    func springState(_ : PositionAnimatorState ) -> POPSpringAnimation?
-    func setState(_ : PositionAnimatorState )
-    func update()
-}
-
-class PositionAnimator : NSObject, SpringTransition {
+class PositionSpringTransition : NSObject, SpringTransition {
     typealias ValueType = CGPoint
     
     var view : UIView!
@@ -66,7 +52,7 @@ class PositionAnimator : NSObject, SpringTransition {
     
     // External
     @discardableResult
-    func springState(_ newState : PositionAnimatorState) -> POPSpringAnimation? {
+    func springState(_ newState : SpringTransitionState) -> POPSpringAnimation? {
         let newVal : CGFloat = newState.rawValue
         guard newVal != progress else { return nil }
         
@@ -85,7 +71,7 @@ class PositionAnimator : NSObject, SpringTransition {
         return nil
     }
     
-    func setState(_ newState : PositionAnimatorState) {
+    func setState(_ newState : SpringTransitionState) {
         progress = newState.rawValue
     }
     
