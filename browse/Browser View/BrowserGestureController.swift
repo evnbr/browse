@@ -459,7 +459,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         isInteractiveDismiss = true
         wouldCommitPreviousX = false
         wouldCommitPreviousY = false
-        mockPositioner.progress = 1
+        mockPositioner.setState(.end)
         startScroll = vc.webView.scrollView.contentOffset
                 
         vc.webView.scrollView.showsVerticalScrollIndicator = false
@@ -558,30 +558,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 vc.home.moveTabToEnd(parentTab)
             })
         }
-    }
-
-    
-    func animateNewPage() {
-        mockCardView.bounds = cardView.bounds
-        mockCardView.center.x = view.center.x + cardView.bounds.width + mockCardViewSpacer
-        
-        mockCardView.statusView.backgroundColor = .white
-        mockCardView.toolbarView.backgroundColor = .white
-        
-        view.addSubview(mockCardView)
-        animateCommit(action: .forward)
-        vc.hideUntilNavigationDone()
-    }
-    func animateCancelNewPage() {
-        mockCardView.bounds = cardView.bounds
-        mockCardView.center.x = view.center.x - cardView.bounds.width - mockCardViewSpacer
-        
-        mockCardView.statusView.backgroundColor = vc.browserTab?.history.current?.topColor
-        mockCardView.toolbarView.backgroundColor = vc.browserTab?.history.current?.bottomColor
-        
-        view.addSubview(mockCardView)
-        animateCommit(action: .back)
-        vc.isSnapshotMode = false
     }
     
     func swapCardAndPlaceholder(for action: GestureNavigationAction) {
