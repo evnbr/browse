@@ -27,7 +27,7 @@ class Const: NSObject {
 
     var thumbRadius: CGFloat
 //    var thumbTitle : UIFont = UIFont.systemFont(ofSize: 15.0, weight: .medium)
-    var thumbTitle : UIFont = UIFont.systemFont(ofSize: 16.0, weight: .regular)
+    var thumbTitle : UIFont = UIFont.systemFont(ofSize: 14.0, weight: .medium)
 
     var cardRadius: CGFloat
     

@@ -172,7 +172,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     }
     
     let vProgressScaleMultiplier : CGFloat = 0
-    let cantGoBackScaleMultiplier : CGFloat = 1.1
+    let vProgressCancelBackScaleMultiplier : CGFloat = 0.2
+    let cantGoBackScaleMultiplier : CGFloat = 1.2
     
     var wouldCommitPreviousX = false
     var wouldCommitPreviousY = false
@@ -225,7 +226,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         if direction == .left {
             if vc.webView.canGoBack || vc.browserTab!.canGoBackToParent {
-                s = (verticalProgress * vProgressScaleMultiplier).reverse()
+                s = (verticalProgress * vProgressCancelBackScaleMultiplier).reverse()
                 cardView.scale = s
                 
                 let scaleFromLeftShift = (1 - s) * cardView.bounds.width / 2
@@ -236,24 +237,23 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 
                 let isToParent = !vc.webView.canGoBack
                 let offsetY = view.center.y - cardView.center.y
-                mockPositioner.end = !isToParent
-                    ? CGPoint(
-                        x: cardView.center.x - view.bounds.width / 2 - cardView.bounds.width * s / 2 - mockCardViewSpacer,
-                        y: view.center.y)
-                    : CGPoint(
-                        x: view.center.x,
-                        y: view.center.y - offsetY * 0.5)
-                    
-                mockPositioner.start = !isToParent
-                    ? CGPoint(x: view.center.x - view.bounds.width, y: view.center.y)
-                    : cardView.center
-                mockPositioner.update()
                 
                 if isToParent {
+                    mockPositioner.end = CGPoint(
+                            x: view.center.x,
+                            y: view.center.y - offsetY * 0.5)
+                    mockPositioner.start = cardView.center
                     let parentPct = adjustedX.progress(from: 0, to: 800)
                     mockCardView.overlay.alpha = parentPct.reverse()
                     mockCardView.scale = 1 - parentPct.reverse() * 0.05
                 }
+                else {
+                    mockPositioner.end = CGPoint(
+                            x: cardView.center.x - view.bounds.width / 2 - cardView.bounds.width * s / 2 - mockCardViewSpacer,
+                            y: view.center.y)
+                    mockPositioner.start = CGPoint(x: view.center.x - view.bounds.width, y: view.center.y)
+                }
+                mockPositioner.update()
                 
                 mockPositioner.springState(gesturePos.y > dismissPointY ? .start : .end)
             }
@@ -270,7 +270,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         else if direction == .right
         && vc.webView.canGoForward {
             
-            s = 1 - verticalProgress * vProgressScaleMultiplier
+            s = (verticalProgress * vProgressCancelBackScaleMultiplier).reverse()
             cardView.scale = s
             
             let scaleFromRightShift = (1 - s) * cardView.bounds.width / 2
@@ -299,8 +299,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
         
         
+        vc.statusBar.label.alpha = cardView.frame.origin.y.progress(from: 100, to: 200).clip().blend(from: 0, to: 0.5)
         vc.home.setThumbPosition(
-//            switcherProgress: gesturePos.y.progress(from: 100, to: 800) + abs(adjustedX).progress(from: 0, to: 400),
             switcherProgress: cardView.frame.origin.y.progress(from: 0, to: 600),
             cardOffset: CGPoint(
                 x: view.center.x - cardView.center.x,
@@ -667,6 +667,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         UIView.animate(withDuration: 0.2) {
             self.vc.gradientOverlay.alpha = 0
             self.vc.overlay.alpha = 0
+            self.vc.statusBar.label.alpha = 0
         }
     }
         
@@ -700,6 +701,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         let revealProgress = abs(adjustedY) / 200
         
+        vc.statusBar.label.alpha = adjustedY.progress(from: 100, to: 200).clip().blend(from: 0, to: 0.5)
         vc.home.setThumbPosition(
             switcherProgress: adjustedY.progress(from: 0, to: 600),
             cardOffset: CGPoint(
@@ -708,6 +710,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             )
         )
 
+        
         if (Const.shared.cardRadius < Const.shared.thumbRadius) {
             cardView.radius = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
         }
