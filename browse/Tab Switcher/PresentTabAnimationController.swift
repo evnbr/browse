@@ -43,6 +43,10 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         let browserVC = (isExpanding ? toVC : fromVC) as! BrowserViewController
         let homeVC = homeNav.topViewController as! TabSwitcherViewController
         
+        homeVC.fab.isHidden = false
+        let snapFab = homeVC.fab.snapshotView(afterScreenUpdates: true)
+        homeVC.fab.isHidden = true
+
         // TODO: This is not necessarily the correct thumb.
         // When swapping between tabs it gets mixed up.
         homeVC.visibleCells.forEach { $0.isHidden = false }
@@ -116,8 +120,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         let newCenter = isExpanding ? expandedCenter : thumbCenter
         let velocity = browserVC.gestureController.dismissVelocity ?? .zero
         
-        let snapFab = homeVC.fab.snapshotView(afterScreenUpdates: false)
-        
         var popCenterDone = false
         var viewAnimFinished = false
         var popBoundsDone = false
@@ -138,6 +140,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
                 homeVC.setThumbPosition(switcherProgress: 1, isSwitcherMode: true)
             }
             snapFab?.removeFromSuperview()
+            homeVC.fab.isHidden = self.isExpanding
             browserVC.contentView.mask = nil
             
             homeVC.setNeedsStatusBarAppearanceUpdate()
