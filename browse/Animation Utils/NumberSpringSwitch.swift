@@ -1,5 +1,5 @@
 //
-//  PositionSpringTransition.swift
+//  NumberSpringSwitch.swift
 //  browse
 //
 //  Created by Evan Brooks on 3/12/18.
@@ -9,33 +9,32 @@
 import UIKit
 import pop
 
-fileprivate let kPositionAnimation = "kPositionAnimation"
-fileprivate let kPositionProgress = "kPositionProgress"
+fileprivate let kScaleAnimation = "kScaleAnimation"
+fileprivate let kScaleProgress = "kScaleProgress"
 
-class PositionSpringTransition : NSObject, SpringTransition {
-    typealias ValueType = CGPoint
+typealias NumberSpringUpdateBlock = (CGFloat) -> ()
+
+class NumberSpringSwitch: NSObject, SpringTransition {
+    typealias ValueType = CGFloat
     
-    var view : UIView!
+    let updateBlock : NumberSpringUpdateBlock
     private var progress : CGFloat = 1
     
-    var start : CGPoint = .zero
-    var end : CGPoint = .zero
+    private var start : CGFloat = 1
+    private var end : CGFloat = 1
     
-    convenience init(view: UIView) {
-        self.init()
-        self.view = view
+    init(_ block : @escaping NumberSpringUpdateBlock) {
+        updateBlock = block
+        super.init()
     }
     
     // Internal
-    private var derivedCenter : CGPoint {
-        return CGPoint(
-            x: progress.blend(from: start.x, to: end.x),
-            y: progress.blend(from: start.y, to: end.y)
-        )
+    private var derivedScale : CGFloat {
+        return progress.blend(from: start, to: end)
     }
     
     private var progressPropery: POPAnimatableProperty? {
-        return POPAnimatableProperty.property(withName: kPositionProgress, initializer: { prop in
+        return POPAnimatableProperty.property(withName: kScaleProgress, initializer: { prop in
             guard let prop = prop else { return }
             prop.readBlock = { obj, values in
                 guard let values = values else { return }
@@ -54,18 +53,21 @@ class PositionSpringTransition : NSObject, SpringTransition {
     @discardableResult
     func springState(_ newState : SpringTransitionState) -> POPSpringAnimation? {
         let newVal : CGFloat = newState.rawValue
-        guard newVal != progress else { return nil }
+        guard newVal != progress else {
+            update()
+            return nil
+        }
         
-        if let anim = self.pop_animation(forKey: kPositionAnimation) as? POPSpringAnimation {
+        if let anim = self.pop_animation(forKey: kScaleAnimation) as? POPSpringAnimation {
             anim.toValue = newVal
             return anim
         }
-        else if let anim = POPSpringAnimation(propertyNamed: kPositionProgress) {
+        else if let anim = POPSpringAnimation(propertyNamed: kScaleProgress) {
             anim.toValue = newVal
             anim.property = progressPropery
             anim.springBounciness = 3
             anim.springSpeed = 10
-            self.pop_add(anim, forKey: kPositionAnimation)
+            self.pop_add(anim, forKey: kScaleAnimation)
             return anim
         }
         return nil
@@ -73,10 +75,15 @@ class PositionSpringTransition : NSObject, SpringTransition {
     
     func setState(_ newState : SpringTransitionState) {
         progress = newState.rawValue
+        update()
     }
     
-    func update() {
-        view.center = derivedCenter
+    private func update() {
+        updateBlock(derivedScale)
+    }
+
+    func setValue(of: SpringTransitionState, to newValue: CGFloat) {
+        if of == .start { start = newValue }
+        else if of == .end { end = newValue }
     }
 }
-

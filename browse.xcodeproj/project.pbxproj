@@ -34,10 +34,11 @@
 		A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */; };
 		A95DFF7520575F2500D540DD /* UIView+POP.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7420575F2400D540DD /* UIView+POP.swift */; };
 		A95DFF7720575FDF00D540DD /* SpringTransitionPrototocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7620575FDF00D540DD /* SpringTransitionPrototocol.swift */; };
+		A95DFF79205766A800D540DD /* NumberSpringSwitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF78205766A800D540DD /* NumberSpringSwitch.swift */; };
 		A9667E922051F90400295E76 /* PinboardLoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E912051F90400295E76 /* PinboardLoginController.swift */; };
 		A9667E94205339B500295E76 /* BlobCollectionViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E93205339B500295E76 /* BlobCollectionViewLayout.swift */; };
 		A9667E9620549EEE00295E76 /* TabSessionPersister.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E9520549EEE00295E76 /* TabSessionPersister.swift */; };
-		A9667E9820574BF000295E76 /* PositionSpringTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E9720574BF000295E76 /* PositionSpringTransition.swift */; };
+		A9667E9820574BF000295E76 /* PointSpringSwitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E9720574BF000295E76 /* PointSpringSwitch.swift */; };
 		A966CA64204003FC00EB2771 /* TypeaheadCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A966CA63204003FC00EB2771 /* TypeaheadCell.swift */; };
 		A969D4A51F1321EC008A7BC6 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A969D4A41F1321EC008A7BC6 /* Constants.swift */; };
 		A96A42EE1F9160B300C0F3E2 /* HistoryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96A42ED1F9160B300C0F3E2 /* HistoryItem.swift */; };
@@ -126,10 +127,11 @@
 		A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebNavigationController.swift; sourceTree = "<group>"; };
 		A95DFF7420575F2400D540DD /* UIView+POP.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIView+POP.swift"; sourceTree = "<group>"; };
 		A95DFF7620575FDF00D540DD /* SpringTransitionPrototocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringTransitionPrototocol.swift; sourceTree = "<group>"; };
+		A95DFF78205766A800D540DD /* NumberSpringSwitch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberSpringSwitch.swift; sourceTree = "<group>"; };
 		A9667E912051F90400295E76 /* PinboardLoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinboardLoginController.swift; sourceTree = "<group>"; };
 		A9667E93205339B500295E76 /* BlobCollectionViewLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlobCollectionViewLayout.swift; sourceTree = "<group>"; };
 		A9667E9520549EEE00295E76 /* TabSessionPersister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSessionPersister.swift; sourceTree = "<group>"; };
-		A9667E9720574BF000295E76 /* PositionSpringTransition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionSpringTransition.swift; sourceTree = "<group>"; };
+		A9667E9720574BF000295E76 /* PointSpringSwitch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointSpringSwitch.swift; sourceTree = "<group>"; };
 		A966CA63204003FC00EB2771 /* TypeaheadCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeaheadCell.swift; sourceTree = "<group>"; };
 		A969D4A41F1321EC008A7BC6 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		A96A42ED1F9160B300C0F3E2 /* HistoryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HistoryItem.swift; path = browse/History/HistoryItem.swift; sourceTree = SOURCE_ROOT; };
@@ -325,7 +327,8 @@
 			isa = PBXGroup;
 			children = (
 				A95DFF7420575F2400D540DD /* UIView+POP.swift */,
-				A9667E9720574BF000295E76 /* PositionSpringTransition.swift */,
+				A9667E9720574BF000295E76 /* PointSpringSwitch.swift */,
+				A95DFF78205766A800D540DD /* NumberSpringSwitch.swift */,
 				A95DFF7620575FDF00D540DD /* SpringTransitionPrototocol.swift */,
 			);
 			path = "Animation Utils";
@@ -735,7 +738,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A9B9979920380C8A00841404 /* SearchTransitionController.swift in Sources */,
-				A9667E9820574BF000295E76 /* PositionSpringTransition.swift in Sources */,
+				A9667E9820574BF000295E76 /* PointSpringSwitch.swift in Sources */,
 				A9F9D7C6205117B2000BA8A3 /* BookmarkProvider.swift in Sources */,
 				A92C9C3B1EF8B5E600D8AAA3 /* BrowserGestureController.swift in Sources */,
 				A90F51211F70C6CB00221815 /* UIImageColors.swift in Sources */,
@@ -773,6 +776,7 @@
 				A966CA64204003FC00EB2771 /* TypeaheadCell.swift in Sources */,
 				A925E3EA204CCE2B005778A0 /* PlainBlurView.swift in Sources */,
 				A90ED966201EDB26003F4831 /* FloatButton.swift in Sources */,
+				A95DFF79205766A800D540DD /* NumberSpringSwitch.swift in Sources */,
 				A9F9D7C42050B93A000BA8A3 /* SearchProvider.swift in Sources */,
 				A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */,
 				A92095861ED9E242009497A2 /* SettingsViewController.swift in Sources */,

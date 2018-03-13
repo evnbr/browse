@@ -45,6 +45,12 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
             )
             
             attributes.bounds.size = cardSize
+            
+            if cardSize.width > cardSize.height {
+                let pct = (attributes.bounds.width - 96) / attributes.bounds.width
+                attributes.bounds.size.width *= pct
+                attributes.bounds.size.height *= pct
+            }
 
             let distFromTop = newCenter.y - (attributes.bounds.height / 2) - scrollPos - topScrollPos
 
@@ -52,15 +58,11 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
             let s = (pct * pct * 0.1).reverse()
 //            attributes.transform = CGAffineTransform(scaleX: s, y: s)
 
-            newCenter.y -= distFromTop * 0.85 * pct
+            newCenter.y -= distFromTop * 0.95 * pct
 
             if i < count - 1 {
                 attributes.alpha = 1 - ( pct * pct * pct )
 //                attributes.transform = CGAffineTransform(scale: s)
-            }
-            
-            if cardSize.width > cardSize.height {
-                attributes.transform = CGAffineTransform(scale: s * 0.95)
             }
             
             attributes.center = newCenter

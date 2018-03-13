@@ -23,6 +23,9 @@ enum GestureNavigationAction {
 }
 
 
+let DISMISSING_STATE = SpringTransitionState.start
+let PAGING_STATE = SpringTransitionState.end
+
 class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScrollViewDelegate {
     
     var vc : BrowserViewController!
@@ -37,8 +40,9 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     var mockCardView: PlaceholderView!
     let mockCardViewSpacer : CGFloat = 8
     
-    var mockPositioner : PositionSpringTransition!
-    var cardPositioner : PositionSpringTransition!
+    var mockPositioner : PointSpringSwitch!
+    var cardPositioner : PointSpringSwitch!
+    var cardScaler : NumberSpringSwitch!
 
     var isInteractiveDismiss : Bool = false
     var startPoint : CGPoint = .zero
@@ -63,8 +67,9 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         toolbar = vc.toolbar
         
         mockCardView = PlaceholderView(frame: cardView.bounds)
-        mockPositioner = PositionSpringTransition(view: mockCardView)
-        cardPositioner = PositionSpringTransition(view: cardView)
+        mockPositioner = PointSpringSwitch { self.mockCardView.center = $0 }
+        cardPositioner = PointSpringSwitch { self.cardView.center = $0 }
+        cardScaler = NumberSpringSwitch { self.cardView.scale = $0  }
         
         let dismissPanner = UIPanGestureRecognizer()
         dismissPanner.delegate = self
@@ -209,95 +214,75 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
 
         
-        cardView.center.x = view.center.x + adjustedX
-        
+//        cardView.center.x = view.center.x + adjustedX
+//
         let yGestureInfluence = gesturePos.y
-        if yGestureInfluence > 0 {
-            cardView.center.y = view.center.y + yGestureInfluence
-        }
-        else {
-            cardView.center.y = view.center.y + elasticLimit(yGestureInfluence) * 0.2
-        }
+//        if yGestureInfluence > 0 {
+//            cardView.center.y = view.center.y + yGestureInfluence
+//        }
+//        else {
+//            cardView.center.y = view.center.y + elasticLimit(yGestureInfluence) //* 0.6
+//        }
 
         self.vc.gradientOverlay.alpha = gesturePos.y.progress(from: 0, to: 400)
 
         let verticalProgress = gesturePos.y.progress(from: 0, to: 200).clip()
         var s : CGFloat = 1
         
-        if direction == .left {
-            if vc.webView.canGoBack || vc.browserTab!.canGoBackToParent {
-                s = (verticalProgress * vProgressCancelBackScaleMultiplier).reverse()
-                cardView.scale = s
-                
-                let scaleFromLeftShift = (1 - s) * cardView.bounds.width / 2
-                
-                cardView.center.x = view.center.x
-                    + verticalProgress.blend(from: adjustedX, to: elasticLimit(adjustedX))
-                    - scaleFromLeftShift
-                
-                let isToParent = !vc.webView.canGoBack
-                let offsetY = view.center.y - cardView.center.y
-                
-                if isToParent {
-                    mockPositioner.end = CGPoint(
-                            x: view.center.x,
-                            y: view.center.y - offsetY * 0.5)
-                    mockPositioner.start = cardView.center
-                    let parentPct = adjustedX.progress(from: 0, to: 800)
-                    mockCardView.overlay.alpha = parentPct.reverse()
-                    mockCardView.scale = 1 - parentPct.reverse() * 0.05
-                }
-                else {
-                    mockPositioner.end = CGPoint(
-                            x: cardView.center.x - view.bounds.width / 2 - cardView.bounds.width * s / 2 - mockCardViewSpacer,
-                            y: view.center.y)
-                    mockPositioner.start = CGPoint(x: view.center.x - view.bounds.width, y: view.center.y)
-                }
-                mockPositioner.update()
-                
-                mockPositioner.springState(gesturePos.y > dismissPointY ? .start : .end)
+        cardScaler.setValue(of: PAGING_STATE, to: 1)
+
+        let sign : CGFloat = direction == .left ? 1 : -1
+        let hProg = elasticLimit(gesturePos.x) / view.bounds.width * sign
+        let dismissScale = 1 - hProg * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
+        let spaceW = cardView.bounds.width * ( 1 - dismissScale )
+        s = dismissScale
+        cardScaler.setValue(of: DISMISSING_STATE, to: dismissScale)
+
+        let dismissingPoint = CGPoint(x: view.center.x + spaceW * 0.4 * sign, y: view.center.y + yGestureInfluence)
+        cardPositioner.setValue(of: DISMISSING_STATE, to: dismissingPoint)
+        mockPositioner.setValue(of: DISMISSING_STATE, to: CGPoint(x: view.center.x - view.bounds.width * sign, y: view.center.y))
+        let backFwdPoint =  CGPoint(x: view.center.x + adjustedX, y: view.center.y + 0.2 * yGestureInfluence)
+        cardPositioner.setValue(of: PAGING_STATE, to: backFwdPoint)
+
+        let isToParent = !vc.webView.canGoBack && vc.browserTab!.canGoBackToParent
+
+        if direction == .left && (vc.webView.canGoBack || isToParent) {
+            let offsetY = view.center.y - cardView.center.y
+            if isToParent {
+                mockPositioner.setValue(of: PAGING_STATE, to: CGPoint(
+                        x: view.center.x,
+                        y: view.center.y - offsetY * 0.5
+                ))
+                mockPositioner.setValue(of: DISMISSING_STATE, to: cardView.center)
+                let parentPct = adjustedX.progress(from: 0, to: 800)
+//                mockCardView.overlay.alpha = parentPct.reverse()
+                mockCardView.scale = 1 - parentPct.reverse() * 0.05
             }
             else {
-                // COPY PASTED A
-                let hProg = abs(elasticLimit(gesturePos.x)) / view.bounds.width
-                s = 1 - hProg * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
-                
-                let spaceW = cardView.bounds.width * ( 1 - s )
-                cardView.center.x = view.center.x + spaceW * 0.4
-                cardView.scale = s
+                mockPositioner.setValue(of: PAGING_STATE, to: CGPoint(
+                    x: backFwdPoint.x - view.bounds.width - mockCardViewSpacer,
+                    y: view.center.y))
             }
         }
-        else if direction == .right
-        && vc.webView.canGoForward {
-            
-            s = (verticalProgress * vProgressCancelBackScaleMultiplier).reverse()
-            cardView.scale = s
-            
-            let scaleFromRightShift = (1 - s) * cardView.bounds.width / 2
-            
-            cardView.center.x = view.center.x
-                + verticalProgress.blend(from: adjustedX, to: elasticLimit(adjustedX))
-                + scaleFromRightShift
-            
-            mockPositioner.end = CGPoint(
-                x: cardView.center.x + view.bounds.width / 2 + cardView.bounds.width * s / 2 + mockCardViewSpacer,
-                y: view.center.y
-            )
-            mockPositioner.start = CGPoint(x: view.center.x + view.bounds.width, y: view.center.y)
-            mockPositioner.update()
-            mockPositioner.springState(gesturePos.y > dismissPointY ? .start : .end)
-        }
-        else {
-            // COPY PASTED A
-            
-            let hProg = abs(elasticLimit(gesturePos.x)) / view.bounds.width
-            s = 1 - hProg * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier
-
-            let spaceW = cardView.bounds.width * ( 1 - s )
-            cardView.center.x = view.center.x - spaceW * 0.4
-            cardView.scale = s
+        else if direction == .right && vc.webView.canGoForward {
+            mockPositioner.setValue(of: PAGING_STATE, to: CGPoint(
+                x: backFwdPoint.x + view.bounds.width + mockCardViewSpacer,
+                y: view.center.y))
         }
         
+        let couldBePaging = (direction == .left  && (vc.webView.canGoBack || isToParent))
+                         || (direction == .right && vc.webView.canGoForward)
+        
+        if couldBePaging {
+            let newState = gesturePos.y > dismissPointY ? DISMISSING_STATE : PAGING_STATE
+            mockPositioner.springState(newState)
+            cardScaler.springState(newState)
+            cardPositioner.springState(newState)
+        }
+        else {
+            cardPositioner.setState(DISMISSING_STATE)
+            cardScaler.setState(DISMISSING_STATE)
+        }
         
         vc.statusBar.label.alpha = cardView.frame.origin.y.progress(from: 100, to: 200).clip().blend(from: 0, to: 0.5)
         vc.home.setThumbPosition(
@@ -486,7 +471,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let mockShift = mockCardView.bounds.width + mockCardViewSpacer
         if mockCardView.center.x > view.center.x { mockEndCenter.x += mockShift }
         else { mockEndCenter.x -= mockShift }
-        mockPositioner.end = mockEndCenter
+        mockPositioner.setValue(of: .end, to: mockEndCenter)
         mockCardView.springCenter(to: mockEndCenter) { _, _ in
             self.mockCardView.removeFromSuperview()
             self.mockCardView.imageView.image = nil
@@ -700,8 +685,12 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
         
         let revealProgress = abs(adjustedY) / 200
+        let s = cardView.bounds.width > cardView.bounds.height
+            ? 1 - adjustedY.progress(from: 0, to: 600).clip() * 0.2
+            : 1
         
         vc.statusBar.label.alpha = adjustedY.progress(from: 100, to: 200).clip().blend(from: 0, to: 0.5)
+        vc.cardView.scale = s
         vc.home.setThumbPosition(
             switcherProgress: adjustedY.progress(from: 0, to: 600),
             cardOffset: CGPoint(

@@ -318,9 +318,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         }
         else {
             collapsedY -= cardOffset.y // track card
-//            collapsedY += cardOffset.y * switcherProgress * (distFromFront * 0.4) // spread
-            collapsedY -= 180 * switcherProgress * distFromFront // spread
-//            collapsedY += switcherProgress * 12 * distFromFront * distFromFront // spread less farther back
+            collapsedY -= 160 * switcherProgress * distFromFront // spread
         }
         
         center.y = !isSwitcherMode ? collapsedY : switchingY

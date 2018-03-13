@@ -16,10 +16,8 @@ enum SpringTransitionState : CGFloat {
 
 protocol SpringTransition {
     associatedtype ValueType
-    var start : ValueType { get set }
-    var end : ValueType { get set }
     func springState(_ : SpringTransitionState ) -> POPSpringAnimation?
     func setState(_ : SpringTransitionState )
-    func update()
+    func setValue(of: SpringTransitionState, to newValue: ValueType)
 }
 
