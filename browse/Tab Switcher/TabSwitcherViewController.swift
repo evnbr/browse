@@ -326,11 +326,16 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         return center
     }
     
-    func setThumbPosition(switcherProgress: CGFloat, cardOffset: CGPoint = .zero, scale: CGFloat = 1, offsetForContainer: Bool = false, isSwitcherMode: Bool = false, isToParent: Bool = false) {
+    func setThumbScale(_ scale: CGFloat) {
+        for cell in visibleCells {
+            cell.scale = scale
+        }
+    }
+    
+    func setThumbPosition(switcherProgress: CGFloat, cardOffset: CGPoint = .zero, offsetForContainer: Bool = false, isSwitcherMode: Bool = false, isToParent: Bool = false) {
         for cell in visibleCells {
             let ip = collectionView!.indexPath(for: cell)!
             cell.center = adjustedCenterFor(ip, cardOffset: cardOffset, switcherProgress: switcherProgress, offsetByScroll: offsetForContainer, isSwitcherMode: isSwitcherMode)
-            cell.scale = scale
             cell.isHidden = false
         }
         if !isSwitcherMode { currentThumb?.isHidden = true }

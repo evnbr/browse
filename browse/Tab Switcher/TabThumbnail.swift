@@ -92,7 +92,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         label.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
         label.font = Const.shared.thumbTitle
         label.textColor = .darkText
-        label.alpha = 0.5
+        label.alpha = 1
         contentView.addSubview(label)
         
         overlay = UIView(frame: bounds)

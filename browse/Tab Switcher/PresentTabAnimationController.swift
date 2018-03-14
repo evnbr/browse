@@ -201,7 +201,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         }
         else {
             UIView.animate(withDuration: 0.2, delay: 0.1, animations: {
-                browserVC.statusBar.label.alpha = 0.5
+                browserVC.statusBar.label.alpha = 1
             })
         }
         
