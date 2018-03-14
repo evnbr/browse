@@ -197,7 +197,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     var wouldCommitPreviousX = false
     var wouldCommitPreviousY = false
 
-    func horizontalChange(_ gesture: UIScreenEdgePanGestureRecognizer) {
+    func horizontalChange(_ gesture: UIPanGestureRecognizer) {
         guard isInteractiveDismiss && (direction == .left || direction == .right) else { return }
         
         let gesturePos = gesture.translation(in: view)
@@ -307,7 +307,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 //            ),
 //            isToParent: isToParent
 //        )
-        let thumbAlpha = switcherRevealProgress.progress(from: 0, to: 0.7)
+        let thumbAlpha = switcherRevealProgress.progress(from: 0, to: 0.7).blend(from: 0.2, to: 1)
         vc.home.navigationController?.view.alpha = thumbAlpha
         mockAlpha.setValue(of: DISMISSING, to: thumbAlpha.reverse())
         mockAlpha.springState(newState)
@@ -380,7 +380,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
         if gesture.state == .began {
             direction = .left
-            startGesture()
+            startGesture(gesture)
             vc.showToolbar()
             
             if vc.webView.canGoBack {
@@ -412,7 +412,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     @objc func rightEdgePan(gesture:UIScreenEdgePanGestureRecognizer) {
         if gesture.state == .began {
             direction = .right
-            startGesture()
+            startGesture(gesture)
             vc.webView.scrollView.cancelScroll()
             vc.showToolbar()
             
@@ -445,7 +445,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             if scrollY == 0 && gesturePos.y > 0 {
                 direction = .top
                 startPoint = gesturePos
-                startGesture()
+                startGesture(gesture)
             }
         }
         else {
@@ -453,7 +453,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             if scrollY < 0 && gesturePos.y > 0 {
                 direction = .top
                 startPoint = gesturePos
-                startGesture()
+                startGesture(gesture)
             }
         }
         
@@ -462,7 +462,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     
     var shouldRestoreKeyboard : Bool = false
     
-    func startGesture() {
+    func startGesture(_ gesture: UIPanGestureRecognizer) {
         isInteractiveDismiss = true
         wouldCommitPreviousX = false
         wouldCommitPreviousY = false
@@ -476,7 +476,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         cardScaler.setState(PAGING)
         
 //        feedbackGenerator = UISelectionFeedbackGenerator()
-        feedbackGenerator?.prepare()
+//        feedbackGenerator?.prepare()
+        horizontalChange(gesture)
     }
     
     
@@ -623,7 +624,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         mockPositioner.end = self.view.center
         let mockShift = mockCardView.bounds.width
         if action == .back || action == .toParent { mockPositioner.end.x += mockShift }
-        else if action == .forward { mockPositioner.end.x -= mockShift }
+        else if action == .forward { mockPositioner.end.x -= mockShift / 2 }
 
         mockCardView.springCenter(to: mockPositioner.end, at: velocity) {_,_ in
             self.mockCardView.removeFromSuperview()
@@ -701,7 +702,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let spaceW = cardView.bounds.width * ( 1 - dismissScale )
         
         vc.statusBar.label.alpha = adjustedY.progress(from: 100, to: 200).clip().blend(from: 0, to: 1)
-        
+
         cardScaler.setValue(of: DISMISSING, to: dismissScale)
         cardScaler.setState(DISMISSING)
         
@@ -715,6 +716,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             y: view.center.y - cardView.center.y
         ))
         thumbPositioner.setState(DISMISSING)
+        let thumbAlpha = switcherRevealProgress.progress(from: 0, to: 0.7).blend(from: 0.2, to: 1)
+        vc.home.navigationController?.view.alpha = thumbAlpha
 
         
         if (Const.shared.cardRadius < Const.shared.thumbRadius) {
