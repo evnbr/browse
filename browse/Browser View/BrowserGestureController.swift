@@ -40,11 +40,11 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     var mockCardView: PlaceholderView!
     let mockCardViewSpacer : CGFloat = 8
     
-    var mockPositioner : PointSpringSwitch!
-    var mockScaler : NumberSpringSwitch!
+    var mockPositioner : SpringSwitch<CGPoint>!
+    var mockScaler : SpringSwitch<CGFloat>!
 
-    var cardPositioner : PointSpringSwitch!
-    var cardScaler : NumberSpringSwitch!
+    var cardPositioner : SpringSwitch<CGPoint>!
+    var cardScaler : SpringSwitch<CGFloat>!
 
     var isInteractiveDismiss : Bool = false
     var startPoint : CGPoint = .zero
@@ -70,11 +70,11 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         mockCardView = PlaceholderView(frame: cardView.bounds)
         
-        mockPositioner = PointSpringSwitch { self.mockCardView.center = $0 }
-        mockScaler = NumberSpringSwitch { self.mockCardView.scale = $0  }
+        mockPositioner = SpringSwitch { self.mockCardView.center = $0 }
+        mockScaler = SpringSwitch { self.mockCardView.scale = $0  }
 
-        cardPositioner = PointSpringSwitch { self.cardView.center = $0 }
-        cardScaler = NumberSpringSwitch { self.cardView.scale = $0  }
+        cardPositioner = SpringSwitch { self.cardView.center = $0 }
+        cardScaler = SpringSwitch { self.cardView.scale = $0  }
         
         let dismissPanner = UIPanGestureRecognizer()
         dismissPanner.delegate = self
