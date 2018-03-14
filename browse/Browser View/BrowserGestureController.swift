@@ -286,7 +286,9 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 y: view.center.y - cardView.center.y
             ),
             scale: s,
+            isToParent: isToParent
         )
+        vc.home.navigationController?.view.alpha = prog.progress(from: 0, to: 0.7)
         
         if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle {
             UIView.animate(withDuration: 0.2, animations: {

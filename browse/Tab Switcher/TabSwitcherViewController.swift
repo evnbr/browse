@@ -295,9 +295,8 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     }
 
     
-    func adjustedCenterFor(_ thumb: TabThumbnail, cardOffset: CGPoint = .zero, switcherProgress: CGFloat, offsetByScroll: Bool = false, isSwitcherMode: Bool = false) -> CGPoint {
+    func adjustedCenterFor(_ ip: IndexPath, cardOffset: CGPoint = .zero, switcherProgress: CGFloat, offsetByScroll: Bool = false, isSwitcherMode: Bool = false) -> CGPoint {
         let cv = collectionView!
-        let ip = cv.indexPath(for: thumb)!
         let currentIndex = currentIndexPath?.item ?? tabs.count
         let attrs = cv.layoutAttributesForItem(at: ip)!
         var center = attrs.center
@@ -327,21 +326,25 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         return center
     }
     
-    func setThumbPosition(switcherProgress: CGFloat, cardOffset: CGPoint = .zero, scale: CGFloat = 1, offsetForContainer: Bool = false, isSwitcherMode: Bool = false) {
+    func setThumbPosition(switcherProgress: CGFloat, cardOffset: CGPoint = .zero, scale: CGFloat = 1, offsetForContainer: Bool = false, isSwitcherMode: Bool = false, isToParent: Bool = false) {
         for cell in visibleCells {
-            cell.center = adjustedCenterFor(cell, cardOffset: cardOffset, switcherProgress: switcherProgress, offsetByScroll: offsetForContainer, isSwitcherMode: isSwitcherMode)
+            let ip = collectionView!.indexPath(for: cell)!
+            cell.center = adjustedCenterFor(ip, cardOffset: cardOffset, switcherProgress: switcherProgress, offsetByScroll: offsetForContainer, isSwitcherMode: isSwitcherMode)
             cell.scale = scale
             cell.isHidden = false
         }
-        navigationController?.view.alpha = switcherProgress.progress(from: 0, to: 0.7)
         if !isSwitcherMode { currentThumb?.isHidden = true }
+        if isToParent {
+            thumb(forTab: tabs[currentIndexPath!.item - 1]).isHidden = true
+        }
     }
     
     func springCards(expanded: Bool, at velocity: CGPoint = .zero) {
         for cell in visibleCells {
 //            let ip = collectionView!.indexPath(for: cell)!
             let delay : CFTimeInterval = 0//expanded ? 0 : Double(tabs.count - ip.item) * 0.02
-            let center = adjustedCenterFor(cell, switcherProgress: expanded ? 0 : 1, isSwitcherMode: !expanded)
+            let ip = collectionView!.indexPath(for: cell)!
+            let center = adjustedCenterFor(ip, switcherProgress: expanded ? 0 : 1, isSwitcherMode: !expanded)
             
             var vel = velocity
             vel.x = 0
