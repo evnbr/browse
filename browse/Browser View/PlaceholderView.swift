@@ -31,7 +31,7 @@ class PlaceholderView: UIView {
         clipsToBounds = false
 
         radius = Const.shared.cardRadius
-        layer.shadowRadius = 24
+        layer.shadowRadius = 32
         layer.shadowOpacity = 0.16
         
         contentView = UIView(frame: bounds)
