@@ -34,7 +34,7 @@
 		A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */; };
 		A95DFF7520575F2500D540DD /* UIView+POP.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7420575F2400D540DD /* UIView+POP.swift */; };
 		A95DFF7720575FDF00D540DD /* SpringSwitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7620575FDF00D540DD /* SpringSwitch.swift */; };
-		A95DFF7B2058BEC600D540DD /* Blendable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7A2058BEC600D540DD /* Blendable.swift */; };
+		A95DFF7B2058BEC600D540DD /* SpringSwitchable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7A2058BEC600D540DD /* SpringSwitchable.swift */; };
 		A9667E922051F90400295E76 /* PinboardLoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E912051F90400295E76 /* PinboardLoginController.swift */; };
 		A9667E94205339B500295E76 /* BlobCollectionViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E93205339B500295E76 /* BlobCollectionViewLayout.swift */; };
 		A9667E9620549EEE00295E76 /* TabSessionPersister.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E9520549EEE00295E76 /* TabSessionPersister.swift */; };
@@ -126,7 +126,7 @@
 		A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebNavigationController.swift; sourceTree = "<group>"; };
 		A95DFF7420575F2400D540DD /* UIView+POP.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIView+POP.swift"; sourceTree = "<group>"; };
 		A95DFF7620575FDF00D540DD /* SpringSwitch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringSwitch.swift; sourceTree = "<group>"; };
-		A95DFF7A2058BEC600D540DD /* Blendable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Blendable.swift; sourceTree = "<group>"; };
+		A95DFF7A2058BEC600D540DD /* SpringSwitchable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringSwitchable.swift; sourceTree = "<group>"; };
 		A9667E912051F90400295E76 /* PinboardLoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinboardLoginController.swift; sourceTree = "<group>"; };
 		A9667E93205339B500295E76 /* BlobCollectionViewLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlobCollectionViewLayout.swift; sourceTree = "<group>"; };
 		A9667E9520549EEE00295E76 /* TabSessionPersister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSessionPersister.swift; sourceTree = "<group>"; };
@@ -324,7 +324,7 @@
 		A9667E9920575E4700295E76 /* Animation Utils */ = {
 			isa = PBXGroup;
 			children = (
-				A95DFF7A2058BEC600D540DD /* Blendable.swift */,
+				A95DFF7A2058BEC600D540DD /* SpringSwitchable.swift */,
 				A95DFF7420575F2400D540DD /* UIView+POP.swift */,
 				A95DFF7620575FDF00D540DD /* SpringSwitch.swift */,
 			);
@@ -736,7 +736,7 @@
 			files = (
 				A9B9979920380C8A00841404 /* SearchTransitionController.swift in Sources */,
 				A9F9D7C6205117B2000BA8A3 /* BookmarkProvider.swift in Sources */,
-				A95DFF7B2058BEC600D540DD /* Blendable.swift in Sources */,
+				A95DFF7B2058BEC600D540DD /* SpringSwitchable.swift in Sources */,
 				A92C9C3B1EF8B5E600D8AAA3 /* BrowserGestureController.swift in Sources */,
 				A90F51211F70C6CB00221815 /* UIImageColors.swift in Sources */,
 				A9E422811F86B4FD0028B4CA /* StackingCollectionViewLayout.swift in Sources */,

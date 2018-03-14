@@ -17,7 +17,7 @@ enum SpringTransitionState : CGFloat {
 fileprivate let kProgressAnimation = "kProgressAnimation"
 fileprivate let kProgressProperty = "kProgressProperty"
 
-class SpringSwitch<T : Blendable> : NSObject {
+class SpringSwitch<T : SpringSwitchable> : NSObject {
     var progress : CGFloat = 1
     var start : T = T.initialValue
     var end : T = T.initialValue
