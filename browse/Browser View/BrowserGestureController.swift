@@ -227,6 +227,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         cardScaler.setValue(of: PAGING, to: 1)
         cardScaler.setValue(of: DISMISSING, to: dismissScale)
         mockScaler.setValue(of: DISMISSING, to: dismissScale)
+        thumbPositioner.setValue(of: PAGING, to: .zero)
 
         let isToParent = direction == .left && !vc.webView.canGoBack && vc.browserTab!.canGoBackToParent
         let cantPage = (direction == .left && !vc.webView.canGoBack && !isToParent)
@@ -282,17 +283,17 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             cardPositioner.setValue(of: PAGING, to: CGPoint(
                 x: view.center.x + elasticLimit(adjustedX, constant: 100),
                 y: backFwdPoint.y ))
+            thumbPositioner.setValue(of: PAGING, to: CGPoint(
+                x: -elasticLimit(adjustedX, constant: 100),
+                y: 0 ))
         }
 
         cardPositioner.setValue(of: DISMISSING, to: dismissingPoint)
-        thumbPositioner.setValue(of: PAGING, to: .zero)
         thumbPositioner.setValue(of: DISMISSING, to: CGPoint(
             x: view.center.x - dismissingPoint.x,
             y: view.center.y - dismissingPoint.y
         ))
         
-        let couldBePaging = (direction == .left  && (vc.webView.canGoBack || isToParent))
-                         || (direction == .right && vc.webView.canGoForward)
         
         let isVerticalDismiss = gesturePos.y > dismissPointY
         let isHorizontalDismiss = abs(gesturePos.x) > dismissPointX
@@ -306,7 +307,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         vc.statusBar.label.alpha = cardView.frame.origin.y.progress(from: 100, to: 200).clip().blend(from: 0, to: 1)
 
-        let thumbAlpha = switcherRevealProgress.progress(from: 0, to: 0.7).blend(from: 0.2, to: 1)
+        let thumbAlpha = switcherRevealProgress.progress(from: 0, to: 0.7).clip().blend(from: 0.4, to: 1)
         vc.home.navigationController?.view.alpha = thumbAlpha
         mockAlpha.setValue(of: DISMISSING, to: thumbAlpha.reverse())
         mockAlpha.springState(newState)
@@ -489,7 +490,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     
     func commitDismiss(velocity vel: CGPoint) {
         
-//        dismissVelocity = vel
+        dismissVelocity = vel
         cancelSprings()
         mockCardView.removeFromSuperview()
         mockCardView.imageView.image = nil

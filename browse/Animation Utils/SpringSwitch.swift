@@ -47,7 +47,7 @@ class SpringSwitch<T : SpringSwitchable> : NSObject {
                 self.progress = values[0]
                 self.update()
             }
-            prop.threshold = 0.01
+            prop.threshold = 0.001
         }) as? POPAnimatableProperty
     }
     
@@ -68,7 +68,7 @@ class SpringSwitch<T : SpringSwitchable> : NSObject {
             anim.toValue = newVal
             anim.property = progressPropery
             anim.springBounciness = 1
-            anim.springSpeed = 10
+            anim.springSpeed = 5
             self.pop_add(anim, forKey: kProgressAnimation)
             return anim
         }
