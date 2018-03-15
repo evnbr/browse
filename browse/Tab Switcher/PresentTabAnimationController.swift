@@ -135,14 +135,13 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             homeVC.visibleCellsBelow.forEach { homeVC.collectionView?.addSubview($0) }
             
             if self.isDismissing {
-                homeVC.visibleCells.forEach { $0.isHidden = false }
                 browserVC.view.removeFromSuperview()
                 homeVC.setThumbPosition(switcherProgress: 1, isSwitcherMode: true)
             }
             snapFab?.removeFromSuperview()
             homeVC.fab.isHidden = self.isExpanding
             browserVC.contentView.mask = nil
-            
+            homeVC.setThumbsVisible()
             homeVC.setNeedsStatusBarAppearanceUpdate()
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
             homeVC.updateThumbs()

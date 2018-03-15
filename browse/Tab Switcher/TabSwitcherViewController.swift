@@ -326,22 +326,24 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         return center
     }
     
+    func setThumbsVisible() {
+        visibleCells.forEach { $0.isHidden = false }
+    }
+    
+    func setParentHidden(_ newValue: Bool) {
+        thumb(forTab: tabs[currentIndexPath!.item - 1]).isHidden = newValue
+    }
+    
     func setThumbScale(_ scale: CGFloat) {
-        for cell in visibleCells {
-            cell.scale = scale
-        }
+        visibleCells.forEach { $0.scale = scale }
     }
     
     func setThumbPosition(switcherProgress: CGFloat, cardOffset: CGPoint = .zero, offsetForContainer: Bool = false, isSwitcherMode: Bool = false, isToParent: Bool = false) {
         for cell in visibleCells {
             let ip = collectionView!.indexPath(for: cell)!
             cell.center = adjustedCenterFor(ip, cardOffset: cardOffset, switcherProgress: switcherProgress, offsetByScroll: offsetForContainer, isSwitcherMode: isSwitcherMode)
-            cell.isHidden = false
         }
         if !isSwitcherMode { currentThumb?.isHidden = true }
-        if isToParent {
-            thumb(forTab: tabs[currentIndexPath!.item - 1]).isHidden = true
-        }
     }
     
     func springCards(expanded: Bool, at velocity: CGPoint = .zero) {
