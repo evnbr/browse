@@ -84,5 +84,9 @@ class SpringSwitch<T : SpringSwitchable> : NSObject {
         if of == .start { start = newValue }
         else if of == .end { end = newValue }
     }
+    
+    func cancel() {
+        self.pop_removeAnimation(forKey: kProgressAnimation)
+    }
 }
 

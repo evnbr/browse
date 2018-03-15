@@ -224,6 +224,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let spaceW = cardView.bounds.width * ( 1 - dismissScale )
         let spaceH = cardView.bounds.height * ( 1 - dismissScale )
 
+        cardScaler.setValue(of: PAGING, to: 1)
         cardScaler.setValue(of: DISMISSING, to: dismissScale)
         mockScaler.setValue(of: DISMISSING, to: dismissScale)
 
@@ -241,21 +242,16 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         let backFwdPoint = CGPoint(
             x: view.center.x + adjustedX,
-            y: view.center.y + 0.2 * max(
-                0,
-                yGestureInfluence
-            )
-        )
+            y: view.center.y + 0.2 * max(0, yGestureInfluence))
         
         // reveal back page from left
         if (direction == .left && vc.webView.canGoBack) || isToParent {
             dismissingPoint.y -= dismissPointY * 0.5 // to account for initial resisitance
-            cardPositioner.setValue(of: PAGING, to: backFwdPoint)
             let parallax : CGFloat = 0.5
+            cardPositioner.setValue(of: PAGING, to: backFwdPoint)
             mockPositioner.setValue(of: PAGING, to: CGPoint(
                     x: view.center.x + adjustedX * parallax - view.bounds.width * parallax,
-                    y: backFwdPoint.y //view.center.y
-            ))
+                    y: backFwdPoint.y ))
             if isToParent {
                 mockPositioner.setValue(of: DISMISSING, to: CGPoint(
                     x: dismissingPoint.x,
@@ -272,22 +268,20 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             dismissingPoint.y -= dismissPointY * 0.5 // to account for initial resisitance
             cardPositioner.setValue(of: PAGING, to: CGPoint(
                 x: view.center.x + adjustedX * 0.5,
-                y: backFwdPoint.y
-            ))
+                y: backFwdPoint.y ))
             let isBackness = adjustedX.progress(from: 0, to: -400) * gesturePos.y.progress(from: 100, to: 160).clip().reverse()
             vc.overlay.alpha = isBackness.blend(from: 0, to: 0.4)
             mockAlpha.setValue(of: PAGING, to: 0)
             mockScaler.setValue(of: DISMISSING, to: 1)
             mockPositioner.setValue(of: PAGING, to: CGPoint(
                 x: backFwdPoint.x + view.bounds.width,
-                y: view.center.y))
+                y: view.center.y ))
         }
         // rubber band
         else if cantPage {
             cardPositioner.setValue(of: PAGING, to: CGPoint(
                 x: view.center.x + elasticLimit(adjustedX, constant: 100),
-                y: backFwdPoint.y
-            ))
+                y: backFwdPoint.y ))
         }
 
         cardPositioner.setValue(of: DISMISSING, to: dismissingPoint)
@@ -343,7 +337,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 vc.hideUntilNavigationDone()
             }
             else if vc.browserTab!.canGoBackToParent
-            && gesturePos.x > backPointX{
+            && gesturePos.x > backPointX {
                 if let parentTab = vc.browserTab?.parentTab {
                     vc.updateSnapshot {
                         let vc = self.vc!
@@ -406,12 +400,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             startGesture(gesture)
             vc.showToolbar()
         }
-        else if gesture.state == .changed {
-            horizontalChange(gesture)
-        }
-        else if gesture.state == .ended {
-            horizontalEnd(gesture)
-        }
+        else if gesture.state == .changed { horizontalChange(gesture) }
+        else if gesture.state == .ended { horizontalEnd(gesture) }
     }
     
     @objc func rightEdgePan(gesture:UIScreenEdgePanGestureRecognizer) {
@@ -431,12 +421,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             vc.webView.scrollView.cancelScroll()
             vc.showToolbar()
         }
-        else if gesture.state == .changed {
-            horizontalChange(gesture)
-        }
-        else if gesture.state == .ended {
-            horizontalEnd(gesture)
-        }
+        else if gesture.state == .changed { horizontalChange(gesture) }
+        else if gesture.state == .ended { horizontalEnd(gesture) }
     }
 
     
@@ -476,13 +462,13 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 
         vc.webView.scrollView.showsVerticalScrollIndicator = false
         vc.browserTab?.updateSnapshot()
-        
-        mockPositioner.setState(PAGING)
-        cardScaler.setValue(of: PAGING, to: 1)
-        cardScaler.setState(PAGING)
 
-//        feedbackGenerator = UISelectionFeedbackGenerator()
-//        feedbackGenerator?.prepare()
+        cardPositioner.setState(PAGING)
+        cardScaler.setState(PAGING)
+        mockPositioner.setState(PAGING)
+        mockScaler.setState(PAGING)
+        mockAlpha.setState(PAGING)
+
         horizontalChange(gesture)
     }
     
@@ -491,12 +477,21 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         isInteractiveDismiss = false
     }
     
+    func cancelSprings() {
+        mockPositioner.cancel()
+        mockScaler.cancel()
+        mockAlpha.cancel()
+        cardPositioner.cancel()
+        cardScaler.cancel()
+        thumbPositioner.cancel()
+    }
+    
     func commitDismiss(velocity vel: CGPoint) {
         
 //        dismissVelocity = vel
-        self.pop_removeAllAnimations()
-        self.mockCardView.removeFromSuperview()
-        self.mockCardView.imageView.image = nil
+        cancelSprings()
+        mockCardView.removeFromSuperview()
+        mockCardView.imageView.image = nil
         
         vc.dismiss(animated: true) {
             self.dismissVelocity = nil
@@ -611,7 +606,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     }
 
     func animateCommit(action: GestureNavigationAction, velocity: CGPoint = .zero) {
-        self.pop_removeAllAnimations()
+        cancelSprings()
         swapCardAndPlaceholder(for: action)
 
         cardView.springCenter(to: view.center, at: velocity) {_,_ in
@@ -710,6 +705,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         vc.statusBar.label.alpha = adjustedY.progress(from: 100, to: 200).clip().blend(from: 0, to: 1)
 
+        cardScaler.setValue(of: PAGING, to: 1)
         cardScaler.setValue(of: DISMISSING, to: dismissScale)
         cardScaler.setState(DISMISSING)
         
