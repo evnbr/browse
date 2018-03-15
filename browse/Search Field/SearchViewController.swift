@@ -171,17 +171,20 @@ class SearchViewController: UIViewController {
             contentView.addSubview(cancel)
 
             cancel.bottomAnchor.constraint(equalTo: textView.bottomAnchor, constant: -12).isActive = true
-            cancel.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
+            cancel.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor).isActive = true
             cancel.widthAnchor.constraint(equalToConstant: cancel.bounds.width).isActive = true
             cancel.heightAnchor.constraint(equalToConstant: cancel.bounds.height).isActive = true
 
-            textView.rightAnchor.constraint(equalTo: cancel.leftAnchor).isActive = true
+            textView.trailingAnchor.constraint(equalTo: cancel.leadingAnchor).isActive = true
+
         }
         else {
-            contentView.rightAnchor.constraint(equalTo: textView.rightAnchor).isActive = true
+            textView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor).isActive = true
+
         }
 
-        textView.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
+        textView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor).isActive = true
+//        textView.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
         textHeightConstraint = textView.heightAnchor.constraint(equalToConstant: 36)
         textHeightConstraint.isActive = true
                 
@@ -192,9 +195,10 @@ class SearchViewController: UIViewController {
         suggestionHeightConstraint = suggestionTable.heightAnchor.constraint(equalToConstant: suggestionTable.rowHeight * 4)
         suggestionHeightConstraint.isActive = true
         
-        pageActionView.bottomAnchor.constraint(equalTo: textView.topAnchor).isActive = true
-        pageActionView.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
-        pageActionView.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
+        pageActionView.bottomAnchor.constraint(equalTo: textView.topAnchor).isActive = true        
+        pageActionView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor).isActive = true
+        pageActionView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor).isActive = true
+
         actionsHeight = pageActionView.heightAnchor.constraint(equalToConstant: 0)
         actionsHeight.isActive = true
 
