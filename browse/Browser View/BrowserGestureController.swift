@@ -462,6 +462,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 
         vc.webView.scrollView.showsVerticalScrollIndicator = false
         vc.browserTab?.updateSnapshot()
+        vc.contentView.radius = Const.shared.cardRadius
 
         cardPositioner.setState(PAGING)
         cardScaler.setState(PAGING)
@@ -505,7 +506,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         parentMock.radius = Const.shared.cardRadius
         
         vc.view.insertSubview(parentMock, belowSubview: cardView)
-        
+        vc.contentView.radius = Const.shared.cardRadius
+
         vc.updateSnapshot {
             let vc = self.vc!
             vc.setTab(childTab)
@@ -524,6 +526,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                     parentMock.alpha = 0
             }, completion: { done in
                 parentMock.removeFromSuperview()
+                vc.contentView.radius = 0
                 vc.home.moveTabToEnd(childTab)
             })
         }
@@ -612,7 +615,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         cardView.springCenter(to: view.center, at: velocity) {_,_ in
             self.vc.resetSizes()
             self.vc.view.bringSubview(toFront: self.cardView)
-            
+            self.vc.contentView.radius = 0
+
             UIView.animate(withDuration: 0.2, animations: {
                 self.vc.home.setNeedsStatusBarAppearanceUpdate()
             })
@@ -649,6 +653,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 self.vc.home.setNeedsStatusBarAppearanceUpdate()
             })
             self.vc.webView.scrollView.showsVerticalScrollIndicator = true
+            self.vc.contentView.radius = 0
         }
         cardView.springScale(to: 1)
 

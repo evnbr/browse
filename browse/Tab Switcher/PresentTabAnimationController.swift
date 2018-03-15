@@ -141,6 +141,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             snapFab?.removeFromSuperview()
             homeVC.fab.isHidden = self.isExpanding
             browserVC.contentView.mask = nil
+            browserVC.contentView.radius = 0
             homeVC.setThumbsVisible()
             homeVC.setNeedsStatusBarAppearanceUpdate()
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
