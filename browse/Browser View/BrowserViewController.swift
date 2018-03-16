@@ -753,6 +753,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         guard isViewLoaded else { return }
         
         locationBar.text = self.displayTitle
+        statusBar.label.text = webView.title
         
         UIView.animate(withDuration: 0.25) {
             self.backButton.isEnabled = self.webView.canGoBack || self.browserTab!.canGoBackToParent

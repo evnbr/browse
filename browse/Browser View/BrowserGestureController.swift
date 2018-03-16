@@ -243,7 +243,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         let backFwdPoint = CGPoint(
             x: view.center.x + adjustedX,
-            y: view.center.y + 0.2 * max(0, yGestureInfluence))
+            y: view.center.y + 0.5 * max(0, yGestureInfluence))
         
         // reveal back page from left
         if (direction == .left && vc.webView.canGoBack) || isToParent {
@@ -252,7 +252,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             cardPositioner.setValue(of: PAGING, to: backFwdPoint)
             mockPositioner.setValue(of: PAGING, to: CGPoint(
                     x: view.center.x + adjustedX * parallax - view.bounds.width * parallax,
-                    y: backFwdPoint.y ))
+                    y: view.center.y ))//backFwdPoint.y ))
             if isToParent {
                 mockPositioner.setValue(of: DISMISSING, to: CGPoint(
                     x: dismissingPoint.x,
@@ -373,6 +373,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     func resetMockCardView() {
         mockCardView.transform = .identity
         mockCardView.center = vc.view.center
+        mockCardView.center.x += cardView.bounds.width
         mockCardView.bounds = cardView.bounds
     }
     
@@ -465,13 +466,15 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         vc.browserTab?.updateSnapshot()
         vc.contentView.radius = Const.shared.cardRadius
 
-        cardPositioner.setState(PAGING)
-        cardScaler.setState(PAGING)
-        mockPositioner.setState(PAGING)
-        mockScaler.setState(PAGING)
-        mockAlpha.setState(PAGING)
+        if direction != .top {
+            cardPositioner.setState(PAGING)
+            cardScaler.setState(PAGING)
+            mockPositioner.setState(PAGING)
+            mockScaler.setState(PAGING)
+            mockAlpha.setState(PAGING)
 
-        horizontalChange(gesture)
+            horizontalChange(gesture)
+        }
     }
     
     
