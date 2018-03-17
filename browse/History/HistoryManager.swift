@@ -77,12 +77,14 @@ extension HistoryItem {
             return UIImage(contentsOfFile: URL(fileURLWithPath: dir.absoluteString).appendingPathComponent("\(name).png").path)
         }
         set {
-            guard let image = newValue, let data = UIImagePNGRepresentation(image),
-            let name = self.uuid?.uuidString, let dir = FileManager.defaultDirURL else { return }
-            do {
-                try data.write(to: dir.appendingPathComponent("\(name).png"))
-            } catch {
-                print(error.localizedDescription)
+            DispatchQueue.global(qos: .background).async {
+                guard let image = newValue, let data = UIImagePNGRepresentation(image),
+                    let name = self.uuid?.uuidString, let dir = FileManager.defaultDirURL else { return }
+                do {
+                    try data.write(to: dir.appendingPathComponent("\(name).png"))
+                } catch {
+                    print(error.localizedDescription)
+                }
             }
         }
     }
