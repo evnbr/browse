@@ -13,16 +13,10 @@ import WebKit
 let blockerListId = "blockerListId"
 
 class Blocker: NSObject {
-    static let shared = Blocker()
-    
     var ruleList : WKContentRuleList?
     
     var isEnabled : Bool {
         return Settings.shared.blockAds.isOn
-    }
-    
-    override init() {
-        super.init()
     }
     
     func getList(_ callback: @escaping (WKContentRuleList?) -> ()) {

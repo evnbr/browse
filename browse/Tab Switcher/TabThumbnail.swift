@@ -20,7 +20,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     var shadowView : UIView!
     var overlay : UIView!
     var gradientOverlay : GradientView!
-    var browserTab : BrowserTab!
+    var browserTab : Tab!
     var closeTabCallback : CloseTabCallback!
     
     var snapTopOffsetConstraint : NSLayoutConstraint!
@@ -125,13 +125,10 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setTab(_ newTab : BrowserTab) {
+    func setTab(_ newTab : Tab) {
         browserTab = newTab
         
         if let img : UIImage = browserTab.currentItem?.snapshot {
-            setSnapshot(img)
-        }
-        else if let img : UIImage = browserTab.restored?.image {
             setSnapshot(img)
         }
 
@@ -139,17 +136,14 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
             contentView.backgroundColor = color
             label.textColor = color.isLight ? .white : .darkText
         }
-        else if let color : UIColor = browserTab.restored?.topColor {
-            contentView.backgroundColor = color
-            label.textColor = color.isLight ? .white : .darkText
-        }
 
-        if let title : String = browserTab.restorableTitle, title != "" {
+        if let title : String = browserTab.currentItem?.title, title != "" {
             label.text = "\(title)"
         }
-        else if let title : String = browserTab.restored?.title {
-            label.text = "\(title)"
-        }
+    }
+    
+    func refresh() {
+        setTab(self.browserTab)
     }
     
     

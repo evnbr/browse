@@ -14,16 +14,48 @@ class HistoryManager: NSObject {
     static let shared = HistoryManager()
     
     var snapshotCache: [ UUID : UIImage ] = [:]
-    
+    private var historyPageMap: [ WKBackForwardListItem : HistoryItem ] = [:]
+
     lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "HistoryModel")
         container.loadPersistentStores { (storeDescription, error) in
             if let error = error as NSError? {
-                fatalError("Unresolved error \(error), \(error.userInfo)")
+                print("Unresolved error \(error), \(error.userInfo)")
             }
         }
         return container
     }()
+    
+    func page(from item: WKBackForwardListItem) -> HistoryItem? {
+        return historyPageMap[item]
+    }
+
+    func sync(tab: Tab, with list: WKBackForwardList) {
+        guard let currentWKItem = list.currentItem else { return }
+        var anItem = historyPageMap[currentWKItem]
+        if anItem == nil {
+            if let backWKItem = list.backItem,
+                let backItem = historyPageMap[backWKItem],
+                backItem == tab.currentItem {
+                // We went forward, link these pages together
+                anItem = addPage(from: currentWKItem, parent: tab.currentItem)
+                if let it = anItem { tab.currentItem?.addToForwardItems(it) }
+            }
+            else {
+                // Create a new entry (probably restored)
+                print("unknown parent")
+                anItem = addPage(from: currentWKItem, parent: nil)
+            }
+            historyPageMap[currentWKItem] = anItem
+        } else {
+            // Update title and url
+            if let title = currentWKItem.title, title != "" {
+                tab.currentItem?.title = title
+            }
+            tab.currentItem?.url = currentWKItem.url
+        }
+        tab.currentItem = anItem
+    }
     
     // Convenience to convert wkwebview history item
     func addPage(from item: WKBackForwardListItem, parent: HistoryItem?) -> HistoryItem? {
@@ -38,7 +70,7 @@ class HistoryManager: NSObject {
         
         historyItem.firstVisit = Date()
         historyItem.uuid = UUID()
-        historyItem.url = url.absoluteString
+        historyItem.url = url
         historyItem.title = title ?? "Untitled"
         historyItem.backItem = parent
         
@@ -61,45 +93,10 @@ class HistoryManager: NSObject {
             } catch {
                 // You should not use this function in a shipping application, although it may be useful during development.
                 let nserror = error as NSError
-                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
+                print("Unresolved error \(nserror), \(nserror.userInfo)")
             }
         }
     }
 }
 
-// MARK: - Snapshots
 
-// TODO: This reads and writes to filesystem on every change.
-// Investigate whether its better to store some/all UIImages in memory,
-// and/or whether its better to store images in coredata instead of file
-extension HistoryItem {
-    var snapshot: UIImage? {
-        get {
-            guard let uuid = self.uuid else { return nil }
-            if let cached = HistoryManager.shared.snapshotCache[uuid] {
-                return cached
-            }
-            guard let dir = FileManager.defaultDirURL else { return nil }
-            return UIImage(contentsOfFile: URL(fileURLWithPath: dir.absoluteString).appendingPathComponent("\(uuid.uuidString).png").path)
-        }
-        set {
-            guard let image = newValue, let uuid = self.uuid else { return }
-            HistoryManager.shared.snapshotCache[uuid] = image
-
-            DispatchQueue.global(qos: .userInitiated).async {
-                guard let data = UIImagePNGRepresentation(image), let dir = FileManager.defaultDirURL else { return }
-                do {
-                    try data.write(to: dir.appendingPathComponent("\(uuid.uuidString).png"))
-                } catch {
-                    print(error.localizedDescription)
-                }
-            }
-        }
-    }
-}
-
-fileprivate extension FileManager {
-    static var defaultDirURL : URL? {
-        return try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
-    }
-}

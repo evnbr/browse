@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		2DCBCAE350BA34FBF1FAAC0B /* Pods_browseUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59786C71254C3E45B35E124B /* Pods_browseUITests.framework */; };
 		A907DBA8205C9C5C009554C9 /* Blend.swift in Sources */ = {isa = PBXBuildFile; fileRef = A907DBA7205C9C5C009554C9 /* Blend.swift */; };
+		A907DBAA205CFAB4009554C9 /* HistoryItem+snapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A907DBA9205CFAB4009554C9 /* HistoryItem+snapshot.swift */; };
+		A907DBAC205DB055009554C9 /* Tab+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A907DBAB205DB055009554C9 /* Tab+Extensions.swift */; };
+		A907DBAE205DB7A6009554C9 /* WebViewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A907DBAD205DB7A6009554C9 /* WebViewManager.swift */; };
 		A908920A1ED547C500A5E9BA /* LocationBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90892091ED547C500A5E9BA /* LocationBar.swift */; };
 		A908F04C1ECD03B800A74241 /* ColorStatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */; };
 		A908F04E1ECD60CD00A74241 /* BookmarksViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */; };
@@ -103,6 +106,9 @@
 		9F545EFABCF9F87A9BBE6214 /* Pods-browseTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-browseTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-browseTests/Pods-browseTests.debug.xcconfig"; sourceTree = "<group>"; };
 		A7CBD4E92318735B3DA34E02 /* Pods_browse.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_browse.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A907DBA7205C9C5C009554C9 /* Blend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Blend.swift; sourceTree = "<group>"; };
+		A907DBA9205CFAB4009554C9 /* HistoryItem+snapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HistoryItem+snapshot.swift"; sourceTree = "<group>"; };
+		A907DBAB205DB055009554C9 /* Tab+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tab+Extensions.swift"; sourceTree = "<group>"; };
+		A907DBAD205DB7A6009554C9 /* WebViewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewManager.swift; sourceTree = "<group>"; };
 		A90892091ED547C500A5E9BA /* LocationBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationBar.swift; sourceTree = "<group>"; };
 		A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorStatusBarView.swift; sourceTree = "<group>"; };
 		A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarksViewController.swift; sourceTree = "<group>"; };
@@ -287,6 +293,8 @@
 			isa = PBXGroup;
 			children = (
 				A9DEAE3E1F199E3200CF66BA /* BrowserTab.swift */,
+				A907DBAB205DB055009554C9 /* Tab+Extensions.swift */,
+				A907DBAD205DB7A6009554C9 /* WebViewManager.swift */,
 				A9EF36D41F4A6451005112E2 /* WKWebview+Toolbar.swift */,
 				A9210D501F0148E600904A0B /* URL+DisplayHost.swift */,
 			);
@@ -344,6 +352,7 @@
 				A96A42ED1F9160B300C0F3E2 /* HistoryItem.swift */,
 				A96A42F41F917F9C00C0F3E2 /* HistoryViewController.swift */,
 				A95DFFBE205B6A8F00D540DD /* HistoryManager.swift */,
+				A907DBA9205CFAB4009554C9 /* HistoryItem+snapshot.swift */,
 				A95DFF7C205B2FB700D540DD /* HistoryModel.xcdatamodeld */,
 			);
 			path = History;
@@ -762,6 +771,8 @@
 				A98466731FF0F9170009FC12 /* Utils.swift in Sources */,
 				A97CB0701EC53DCD005DDBD1 /* AppDelegate.swift in Sources */,
 				A97BF8311EF3B5B900B9ECB4 /* BrowserViewController+WKUIDelegate.swift in Sources */,
+				A907DBAE205DB7A6009554C9 /* WebViewManager.swift in Sources */,
+				A907DBAA205CFAB4009554C9 /* HistoryItem+snapshot.swift in Sources */,
 				A969D4A51F1321EC008A7BC6 /* Constants.swift in Sources */,
 				A92095911EE34CDC009497A2 /* TabSwitcherViewController.swift in Sources */,
 				A92095841ED90E7B009497A2 /* Blocker.swift in Sources */,
@@ -777,6 +788,7 @@
 				A920958F1EDF4AB8009497A2 /* PresentTabAnimationController.swift in Sources */,
 				A9F9D7C02050B8BA000BA8A3 /* DuckSearchProvider.swift in Sources */,
 				A95DFF7E205B2FB700D540DD /* HistoryModel.xcdatamodeld in Sources */,
+				A907DBAC205DB055009554C9 /* Tab+Extensions.swift in Sources */,
 				A9AA4A581FF72471001AB639 /* PlaceholderView.swift in Sources */,
 				A9667E9620549EEE00295E76 /* TabSessionPersister.swift in Sources */,
 				A908920A1ED547C500A5E9BA /* LocationBar.swift in Sources */,

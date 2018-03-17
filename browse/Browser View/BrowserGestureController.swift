@@ -62,7 +62,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     var feedbackGenerator : UISelectionFeedbackGenerator? = nil
     
     var canGoBackToParent : Bool {
-        return !vc.webView.canGoBack && vc.browserTab?.parentTab != nil
+        return !vc.webView.canGoBack && vc.browserTab!.hasParent
     }
     
     var switcherRevealProgress : CGFloat {
@@ -240,7 +240,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         mockScaler.setValue(of: DISMISSING, to: dismissScale)
         thumbPositioner.setValue(of: PAGING, to: .zero)
 
-        let isToParent = direction == .left && !vc.webView.canGoBack && vc.browserTab!.canGoBackToParent
+        let isToParent = direction == .left && !vc.webView.canGoBack && canGoBackToParent
         let cantPage = (direction == .left && !vc.webView.canGoBack && !isToParent)
                     || (direction == .right && !vc.webView.canGoForward)
         
@@ -345,7 +345,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 animateCommit(action: .back, velocity: vel)
                 vc.hideUntilNavigationDone()
             }
-            else if vc.browserTab!.canGoBackToParent
+            else if canGoBackToParent
             && gesturePos.x > backPointX {
                 if let parentTab = vc.browserTab?.parentTab {
                     vc.updateSnapshot {
@@ -393,7 +393,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             if vc.webView.canGoBack {
                 resetMockCardView()
                 if let backItem = vc.webView.backForwardList.backItem,
-                    let page = vc.browserTab?.historyPageMap[backItem] {
+                    let page = HistoryManager.shared.page(from: backItem) {
                     mockCardView.setPage(page)
                 }
                 view.addSubview(mockCardView)
@@ -404,7 +404,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                     let parentPage = parent.currentItem {
                     view.insertSubview(mockCardView, belowSubview: cardView)
                     mockCardView.setPage(parentPage)
-                    vc.home.setParentHidden(true)
+                    vc.home.setParentHidden(parent, hidden: true)
                 }
             }
             startGesture(gesture)
@@ -421,7 +421,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             if vc.webView.canGoForward {
                 resetMockCardView()
                 if let fwdItem = vc.webView.backForwardList.forwardItem,
-                    let page = vc.browserTab?.historyPageMap[fwdItem] {
+                    let page = HistoryManager.shared.page(from: fwdItem) {
                     mockCardView.setPage(page)
                 }
                 view.addSubview(mockCardView)
@@ -471,7 +471,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         startScroll = vc.webView.scrollView.contentOffset
                 
         vc.webView.scrollView.showsVerticalScrollIndicator = false
-        vc.browserTab?.updateSnapshot()
+        vc.browserTab?.updateSnapshot(from: vc.webView)
         vc.contentView.radius = Const.shared.cardRadius
 
         if direction != .top {
@@ -498,7 +498,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
     }
     
-    func swapTo(childTab: BrowserTab) {
+    func swapTo(childTab: Tab) {
         let parentMock = cardView.snapshotView(afterScreenUpdates: false)!
         parentMock.contentMode = .top
         parentMock.clipsToBounds = true
@@ -532,7 +532,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
     }
     
-    func swapTo(parentTab: BrowserTab) {
+    func swapTo(parentTab: Tab) {
         let childMock = cardView.snapshotView(afterScreenUpdates: false)!
         childMock.contentMode = .top
         childMock.clipsToBounds = true

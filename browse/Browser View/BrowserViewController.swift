@@ -14,9 +14,12 @@ import pop
 class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIActivityItemSource {
     
     var home: TabSwitcherViewController!
+    
+    let webViewManager = WebViewManager()
+    
     var webView: WKWebView!
     var snap: UIImageView = UIImageView()
-    var browserTab: BrowserTab?
+    var browserTab: Tab?
     
     var topConstraint : NSLayoutConstraint!
     var accessoryHeightConstraint : NSLayoutConstraint!
@@ -118,7 +121,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     
-    func setTab(_ newTab: BrowserTab ) {
+    func setTab(_ newTab: Tab) {
         if newTab === browserTab { return }
         
         let oldWebView = webView
@@ -136,7 +139,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         oldWebView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.canGoForward))
         
         browserTab = newTab
-        webView = newTab.webView
+        webView = webViewManager.webViewFor(newTab)
         
         if let img = newTab.currentItem?.snapshot {
             snap.image = img
@@ -185,8 +188,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         loadingDidChange()
         
-        if let location = browserTab?.restored?.urlString {
-            if location != "" && isBlank {
+        if let location = browserTab?.currentItem?.url?.absoluteString {
+            if location != "" && self.isBlank {
                 navigateToText(location)
             }
         }
@@ -495,10 +498,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             return
         }
         // Image snapshot
-        browserTab?.updateSnapshot(completionHandler: { img in
+        browserTab?.updateSnapshot(from: webView) { img in
             self.setSnapshot(img)
             done()
-        })
+        }
     }
     
     func setSnapshot(_ image : UIImage?) {
@@ -756,7 +759,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         statusBar.label.text = webView.title
         
         UIView.animate(withDuration: 0.25) {
-            self.backButton.isEnabled = self.webView.canGoBack || self.browserTab!.canGoBackToParent
+            self.backButton.isEnabled = self.webView.canGoBack || self.browserTab!.hasParent
             
             self.forwardButton.isEnabled = self.webView.canGoForward
             self.forwardButton.tintColor = self.webView.canGoForward ? nil : .clear
@@ -784,7 +787,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             }
         }
         
-        browserTab?.updateHistory()
+        HistoryManager.shared.sync(tab: browserTab!, with: webView.backForwardList)
     }
         
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
@@ -858,16 +861,18 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
         webView.evaluateFixedNav() { (isFixed) in
             let sv = self.webView.scrollView
             
-            let newAlpha : CGFloat = (
+            let transparentStatusBar = (
                 sv.isScrollable
                 && sv.contentOffset.y > Const.statusHeight
                 && !isFixed
-            ) ? 0.8 : 1
+            )
+            let newAlpha : CGFloat = transparentStatusBar ? 0.8 : 1
             if newAlpha != self.statusBar.backgroundView.alpha {
                 UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
                     self.statusBar.backgroundView.alpha = newAlpha
                 })
             }
+            self.statusBar.isHidden = transparentStatusBar
         }
         
         if shouldUpdateSample {

@@ -5,18 +5,21 @@
         <attribute name="firstVisit" optional="YES" attributeType="Date" usesScalarValueType="NO" syncable="YES"/>
         <attribute name="title" attributeType="String" syncable="YES"/>
         <attribute name="topColor" optional="YES" attributeType="Transformable" customClassName="UIColor" syncable="YES"/>
-        <attribute name="url" attributeType="String" syncable="YES"/>
+        <attribute name="url" attributeType="URI" syncable="YES"/>
         <attribute name="uuid" attributeType="UUID" usesScalarValueType="NO" syncable="YES"/>
         <relationship name="backItem" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="HistoryItem" inverseName="forwardItems" inverseEntity="HistoryItem" syncable="YES"/>
         <relationship name="forwardItems" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="HistoryItem" inverseName="backItem" inverseEntity="HistoryItem" syncable="YES"/>
-        <relationship name="tab" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Tab" inverseName="currentPage" inverseEntity="Tab" syncable="YES"/>
+        <relationship name="tab" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Tab" inverseName="currentItem" inverseEntity="Tab" syncable="YES"/>
     </entity>
     <entity name="Tab" representedClassName="Tab" syncable="YES" codeGenerationType="class">
         <attribute name="createdBy" optional="YES" attributeType="String" syncable="YES"/>
-        <relationship name="currentPage" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="HistoryItem" inverseName="tab" inverseEntity="HistoryItem" syncable="YES"/>
+        <attribute name="sortIndex" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <relationship name="childTabs" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Tab" inverseName="parentTab" inverseEntity="Tab" syncable="YES"/>
+        <relationship name="currentItem" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="HistoryItem" inverseName="tab" inverseEntity="HistoryItem" syncable="YES"/>
+        <relationship name="parentTab" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Tab" inverseName="childTabs" inverseEntity="Tab" syncable="YES"/>
     </entity>
     <elements>
         <element name="HistoryItem" positionX="-63" positionY="-18" width="135" height="178"/>
-        <element name="Tab" positionX="-234" positionY="-18" width="128" height="73"/>
+        <element name="Tab" positionX="-234" positionY="-18" width="128" height="118"/>
     </elements>
 </model>

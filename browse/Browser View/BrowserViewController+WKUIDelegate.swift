@@ -13,7 +13,9 @@ extension BrowserViewController : WKUIDelegate {
     
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         if navigationAction.targetFrame == nil {
-            return home.openInNewTab(withConfig: configuration)
+            let newTab = home.createTab()
+            let newWebView = webViewManager.webViewFor(newTab)
+            return newWebView
         }
         return nil
     }
