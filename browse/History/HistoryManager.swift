@@ -13,6 +13,8 @@ import WebKit
 class HistoryManager: NSObject {
     static let shared = HistoryManager()
     
+    var snapshotCache: [ UUID : UIImage ] = [:]
+    
     lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "HistoryModel")
         container.loadPersistentStores { (storeDescription, error) in
@@ -73,15 +75,21 @@ class HistoryManager: NSObject {
 extension HistoryItem {
     var snapshot: UIImage? {
         get {
-            guard let dir = FileManager.defaultDirURL, let name = self.uuid?.uuidString else { return nil }
-            return UIImage(contentsOfFile: URL(fileURLWithPath: dir.absoluteString).appendingPathComponent("\(name).png").path)
+            guard let uuid = self.uuid else { return nil }
+            if let cached = HistoryManager.shared.snapshotCache[uuid] {
+                return cached
+            }
+            guard let dir = FileManager.defaultDirURL else { return nil }
+            return UIImage(contentsOfFile: URL(fileURLWithPath: dir.absoluteString).appendingPathComponent("\(uuid.uuidString).png").path)
         }
         set {
-            DispatchQueue.global(qos: .background).async {
-                guard let image = newValue, let data = UIImagePNGRepresentation(image),
-                    let name = self.uuid?.uuidString, let dir = FileManager.defaultDirURL else { return }
+            guard let image = newValue, let uuid = self.uuid else { return }
+            HistoryManager.shared.snapshotCache[uuid] = image
+
+            DispatchQueue.global(qos: .userInitiated).async {
+                guard let data = UIImagePNGRepresentation(image), let dir = FileManager.defaultDirURL else { return }
                 do {
-                    try data.write(to: dir.appendingPathComponent("\(name).png"))
+                    try data.write(to: dir.appendingPathComponent("\(uuid.uuidString).png"))
                 } catch {
                     print(error.localizedDescription)
                 }
