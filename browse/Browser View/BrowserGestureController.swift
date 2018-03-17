@@ -331,12 +331,14 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
         let gesturePos = gesture.translation(in: view)
         let vel = gesture.velocity(in: view)
+        let isHorizontal = abs(gesturePos.y) < abs(gesturePos.x)
         
         if (direction == .left || direction == .right)
-        && cardView.center.y > view.center.y + dismissPointY {
+        && cardView.center.y > view.center.y + dismissPointY
+        && !isHorizontal {
             commitDismiss(velocity: vel)
         }
-        else if gesturePos.x > backPointX {
+        else if gesturePos.x > backPointX && isHorizontal{
             if vc.webView.canGoBack
             && mockCardView.frame.origin.x + mockCardView.frame.width > backPointX {
                 vc.webView.goBack()
@@ -360,7 +362,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 //                reset(velocity: vel)
             }
         }
-        else if gesturePos.x < -backPointX {
+        else if gesturePos.x < -backPointX && isHorizontal {
             if vc.webView.canGoForward {
                 vc.webView.goForward()
                 animateCommit(action: .forward, velocity: vel)
@@ -502,6 +504,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         parentMock.clipsToBounds = true
         parentMock.radius = Const.shared.cardRadius
         
+        vc.home.navigationController?.view.alpha = 0 // TODO not here
         vc.view.insertSubview(parentMock, belowSubview: cardView)
         vc.contentView.radius = Const.shared.cardRadius
 
@@ -687,12 +690,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             return
         }
         
-        let wouldCommitY = abs(adjustedY) > dismissPointY
-        if wouldCommitY != wouldCommitPreviousY {
-            feedbackGenerator?.selectionChanged()
-            feedbackGenerator?.prepare()
-            wouldCommitPreviousY = wouldCommitY
-        }
         
         self.vc.gradientOverlay.alpha = adjustedY.progress(from: 0, to: 400)
 
@@ -712,9 +709,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         let extraH = cardView.bounds.height * (1 - dismissScale) * 0.4
         
-        cardView.center.y = view.center.y + adjustedY - extraH
-        cardView.center.x = view.center.x + gesturePos.x.progress(from: 0, to: 500) * spaceW
-
+        cardPositioner.setValue(of: DISMISSING, to: CGPoint(
+            x: view.center.x + gesturePos.x.progress(from: 0, to: 500) * spaceW,
+            y: view.center.y + adjustedY - extraH
+        ))
         thumbPositioner.setValue(of: DISMISSING, to: CGPoint(
             x: view.center.x - cardView.center.x,
             y: view.center.y - cardView.center.y
