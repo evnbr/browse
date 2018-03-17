@@ -38,21 +38,26 @@ class WebViewManager: NSObject {
         return configuration
     }()
     
-    func webViewFor(_ tab: Tab, with config: WKWebViewConfiguration? = nil) -> WKWebView {
+    func webViewFor(_ tab: Tab) -> WKWebView {
         if let existing = webViewMap[tab] {
             return existing
         }
         else {
-            let newWebView = createWebView(with: config)
+            print("creating base config")
+            let newWebView = createWebView(with: baseConfiguration)
             webViewMap[tab] = newWebView
             return newWebView
         }
     }
     
-    private func createWebView(with config: WKWebViewConfiguration?) -> WKWebView {
-        let config = config ?? baseConfiguration
+    func addWebView(for tab: Tab, with config: WKWebViewConfiguration) -> WKWebView {
+        let newWebView = createWebView(with: config)
+        webViewMap[tab] = newWebView
+        return newWebView
+    }
+    
+    private func createWebView(with config: WKWebViewConfiguration) -> WKWebView {
         let webView = WKWebView(frame: UIScreen.main.bounds, configuration: config)
-        
         webView.translatesAutoresizingMaskIntoConstraints = false
         webView.scrollView.contentInset = .zero
         webView.scrollView.contentInsetAdjustmentBehavior = .never

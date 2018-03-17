@@ -50,7 +50,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         // TODO: This is not necessarily the correct thumb.
         // When swapping between tabs it gets mixed up.
         homeVC.visibleCells.forEach { $0.isHidden = false }
-        let thumb = homeVC.thumb(forTab: browserVC.browserTab!)
+        let thumb = homeVC.thumb(forTab: browserVC.currentTab!)
         thumb?.isHidden = true
         
         if isExpanding {
@@ -88,7 +88,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         let expandedCenter = browserVC.cardView.center
         let expandedBounds = browserVC.cardView.bounds
-        let thumbBounds = homeVC.boundsForThumb(forTab: browserVC.browserTab) ?? CGRect(origin: .zero, size: expandedBounds.size)
+        let thumbBounds = homeVC.boundsForThumb(forTab: browserVC.currentTab) ?? CGRect(origin: .zero, size: expandedBounds.size)
         
         let mask = UIView()
         mask.backgroundColor = .red
@@ -130,7 +130,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
                 browserVC.webView.scrollView.isScrollEnabled = true
                 browserVC.webView.scrollView.showsVerticalScrollIndicator = true
             }
-            thumb?.setTab(browserVC.browserTab!)
+            thumb?.setTab(browserVC.currentTab!)
             
             homeVC.visibleCellsBelow.forEach { homeVC.collectionView?.addSubview($0) }
             

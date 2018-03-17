@@ -235,7 +235,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     }
     
     var currentThumb : TabThumbnail? {
-        guard let tab = browserVC.browserTab else { return nil }
+        guard let tab = browserVC.currentTab else { return nil }
         return thumb(forTab: tab)
     }
 

@@ -19,7 +19,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     var webView: WKWebView!
     var snap: UIImageView = UIImageView()
-    var browserTab: Tab?
+    var currentTab: Tab?
     
     var topConstraint : NSLayoutConstraint!
     var accessoryHeightConstraint : NSLayoutConstraint!
@@ -122,7 +122,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     
     func setTab(_ newTab: Tab) {
-        if newTab === browserTab { return }
+        if newTab === currentTab { return }
         
         let oldWebView = webView
         
@@ -138,7 +138,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         oldWebView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.canGoBack))
         oldWebView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.canGoForward))
         
-        browserTab = newTab
+        currentTab = newTab
         webView = webViewManager.webViewFor(newTab)
         
         if let img = newTab.currentItem?.snapshot {
@@ -188,7 +188,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         loadingDidChange()
         
-        if let location = browserTab?.currentItem?.url?.absoluteString {
+        if let location = currentTab?.currentItem?.url?.absoluteString {
             if location != "" && self.isBlank {
                 navigateToText(location)
             }
@@ -410,7 +410,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 if self.webView.canGoBack {
                     self.webView.goBack()
                 }
-                else if let parent = self.browserTab?.parentTab {
+                else if let parent = self.currentTab?.parentTab {
                     self.gestureController.swapTo(parentTab: parent)
                 }
             }
@@ -498,7 +498,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             return
         }
         // Image snapshot
-        browserTab?.updateSnapshot(from: webView) { img in
+        currentTab?.updateSnapshot(from: webView) { img in
             self.setSnapshot(img)
             done()
         }
@@ -759,7 +759,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         statusBar.label.text = webView.title
         
         UIView.animate(withDuration: 0.25) {
-            self.backButton.isEnabled = self.webView.canGoBack || self.browserTab!.hasParent
+            self.backButton.isEnabled = self.webView.canGoBack || self.currentTab!.hasParent
             
             self.forwardButton.isEnabled = self.webView.canGoForward
             self.forwardButton.tintColor = self.webView.canGoForward ? nil : .clear
@@ -787,7 +787,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             }
         }
         
-        HistoryManager.shared.sync(tab: browserTab!, with: webView.backForwardList)
+        HistoryManager.shared.sync(tab: currentTab!, with: webView.backForwardList)
     }
         
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
@@ -856,7 +856,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
 
     
     func topColorChange(_ newColor: UIColor) {
-        browserTab?.currentItem?.topColor = newColor // this is a hack
+        currentTab?.currentItem?.topColor = newColor // this is a hack
         
         webView.evaluateFixedNav() { (isFixed) in
             let sv = self.webView.scrollView
@@ -884,7 +884,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     }
     
     func bottomColorChange(_ newColor: UIColor) {
-        browserTab?.currentItem?.bottomColor = newColor
+        currentTab?.currentItem?.bottomColor = newColor
         
         let newAlpha : CGFloat = webView.scrollView.isScrollable ? 0.8 : 1
         if newAlpha != self.toolbar.backgroundView.alpha {

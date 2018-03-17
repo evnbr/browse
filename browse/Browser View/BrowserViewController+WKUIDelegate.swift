@@ -12,9 +12,15 @@ import WebKit
 extension BrowserViewController : WKUIDelegate {
     
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+        
         if navigationAction.targetFrame == nil {
             let newTab = home.createTab()
-            let newWebView = webViewManager.webViewFor(newTab)
+            newTab.parentTab = currentTab
+            let newWebView = webViewManager.addWebView(for: newTab, with: configuration)
+            DispatchQueue.main.async {
+                // TODO: Why?
+                self.gestureController.swapTo(childTab: newTab)
+            }
             return newWebView
         }
         return nil

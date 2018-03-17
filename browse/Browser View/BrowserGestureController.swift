@@ -62,7 +62,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     var feedbackGenerator : UISelectionFeedbackGenerator? = nil
     
     var canGoBackToParent : Bool {
-        return !vc.webView.canGoBack && vc.browserTab!.hasParent
+        return !vc.webView.canGoBack && vc.currentTab!.hasParent
     }
     
     var switcherRevealProgress : CGFloat {
@@ -347,10 +347,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             }
             else if canGoBackToParent
             && gesturePos.x > backPointX {
-                if let parentTab = vc.browserTab?.parentTab {
+                if let parentTab = vc.currentTab?.parentTab {
                     vc.updateSnapshot {
                         let vc = self.vc!
-                        self.mockCardView.imageView.image = vc.browserTab?.currentItem?.snapshot
+                        self.mockCardView.imageView.image = vc.currentTab?.currentItem?.snapshot
                         vc.setTab(parentTab)
                         self.animateCommit(action: .toParent)
                         vc.home.moveTabToEnd(parentTab)
@@ -400,7 +400,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 view.bringSubview(toFront: cardView)
             }
             else {
-                if let parent = vc.browserTab?.parentTab,
+                if let parent = vc.currentTab?.parentTab,
                     let parentPage = parent.currentItem {
                     view.insertSubview(mockCardView, belowSubview: cardView)
                     mockCardView.setPage(parentPage)
@@ -471,7 +471,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         startScroll = vc.webView.scrollView.contentOffset
                 
         vc.webView.scrollView.showsVerticalScrollIndicator = false
-        vc.browserTab?.updateSnapshot(from: vc.webView)
+        vc.currentTab?.updateSnapshot(from: vc.webView)
         vc.contentView.radius = Const.shared.cardRadius
 
         if direction != .top {
@@ -571,7 +571,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         // Swap image
         vc.setSnapshot(mockCardView.imageView.image)
         if action != .toParent {
-            mockCardView.imageView.image = vc.browserTab?.currentItem?.snapshot
+            mockCardView.imageView.image = vc.currentTab?.currentItem?.snapshot
         }
         
         // Swap colors
