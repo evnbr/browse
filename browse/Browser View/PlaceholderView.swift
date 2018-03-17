@@ -23,6 +23,7 @@ class PlaceholderView: UIView {
     var toolbarView: UIView!
     var overlay: UIView!
     var imageView: UIImageView!
+    var aspectConstraint : NSLayoutConstraint!
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -56,9 +57,15 @@ class PlaceholderView: UIView {
         contentView.addSubview(imageView)
         
         imageView.topAnchor.constraint(equalTo: topAnchor, constant: Const.statusHeight).isActive = true
-        imageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -Const.toolbarHeight).isActive = true
-        imageView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
-
+        imageView.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
+        imageView.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
+        
+        aspectConstraint = imageView.heightAnchor.constraint(
+            equalTo: imageView.widthAnchor,
+            multiplier: 1,
+            constant: 0)
+        aspectConstraint.isActive = true
+        
         overlay = UIView(frame: bounds)
         overlay.backgroundColor = .black
         overlay.alpha = 0
@@ -67,9 +74,24 @@ class PlaceholderView: UIView {
     }
     
     func setPage(_ page: HistoryItem) {
-        imageView.image = page.snapshot
+        setSnapshot(page.snapshot)
         statusView.backgroundColor = page.topColor
         toolbarView.backgroundColor = page.bottomColor
+    }
+    
+    func setSnapshot(_ image : UIImage?) {
+        guard let image = image else { return }
+        imageView.image = image
+        
+        let newAspect = image.size.height / image.size.width
+        if newAspect != self.aspectConstraint.multiplier {
+            imageView.removeConstraint(aspectConstraint)
+            aspectConstraint = imageView.heightAnchor.constraint(
+                equalTo: imageView.widthAnchor,
+                multiplier: newAspect,
+                constant: 0)
+            aspectConstraint.isActive = true
+        }
     }
     
     required init?(coder aDecoder: NSCoder) {
