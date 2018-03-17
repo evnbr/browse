@@ -35,6 +35,8 @@
 		A95DFF7520575F2500D540DD /* UIView+POP.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7420575F2400D540DD /* UIView+POP.swift */; };
 		A95DFF7720575FDF00D540DD /* SpringSwitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7620575FDF00D540DD /* SpringSwitch.swift */; };
 		A95DFF7B2058BEC600D540DD /* SpringSwitchable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7A2058BEC600D540DD /* SpringSwitchable.swift */; };
+		A95DFF7E205B2FB700D540DD /* HistoryModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7C205B2FB700D540DD /* HistoryModel.xcdatamodeld */; };
+		A95DFFBF205B6A8F00D540DD /* HistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFFBE205B6A8F00D540DD /* HistoryManager.swift */; };
 		A9667E922051F90400295E76 /* PinboardLoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E912051F90400295E76 /* PinboardLoginController.swift */; };
 		A9667E94205339B500295E76 /* BlobCollectionViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E93205339B500295E76 /* BlobCollectionViewLayout.swift */; };
 		A9667E9620549EEE00295E76 /* TabSessionPersister.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E9520549EEE00295E76 /* TabSessionPersister.swift */; };
@@ -127,6 +129,8 @@
 		A95DFF7420575F2400D540DD /* UIView+POP.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIView+POP.swift"; sourceTree = "<group>"; };
 		A95DFF7620575FDF00D540DD /* SpringSwitch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringSwitch.swift; sourceTree = "<group>"; };
 		A95DFF7A2058BEC600D540DD /* SpringSwitchable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringSwitchable.swift; sourceTree = "<group>"; };
+		A95DFF7D205B2FB700D540DD /* HistoryModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = HistoryModel.xcdatamodel; sourceTree = "<group>"; };
+		A95DFFBE205B6A8F00D540DD /* HistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryManager.swift; sourceTree = "<group>"; };
 		A9667E912051F90400295E76 /* PinboardLoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinboardLoginController.swift; sourceTree = "<group>"; };
 		A9667E93205339B500295E76 /* BlobCollectionViewLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlobCollectionViewLayout.swift; sourceTree = "<group>"; };
 		A9667E9520549EEE00295E76 /* TabSessionPersister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSessionPersister.swift; sourceTree = "<group>"; };
@@ -336,6 +340,8 @@
 			children = (
 				A96A42ED1F9160B300C0F3E2 /* HistoryItem.swift */,
 				A96A42F41F917F9C00C0F3E2 /* HistoryViewController.swift */,
+				A95DFFBE205B6A8F00D540DD /* HistoryManager.swift */,
+				A95DFF7C205B2FB700D540DD /* HistoryModel.xcdatamodeld */,
 			);
 			path = History;
 			sourceTree = "<group>";
@@ -758,6 +764,7 @@
 				A92095841ED90E7B009497A2 /* Blocker.swift in Sources */,
 				A9DEAE3F1F199E3200CF66BA /* BrowserTab.swift in Sources */,
 				A9E4859D1EC8D7BE0021D155 /* WebviewColorSampler.swift in Sources */,
+				A95DFFBF205B6A8F00D540DD /* HistoryManager.swift in Sources */,
 				A92C9C391EF5D66B00D8AAA3 /* BrowserViewController+WKNavigationDelegate.swift in Sources */,
 				A9EF36D51F4A6451005112E2 /* WKWebview+Toolbar.swift in Sources */,
 				A9DEAE3D1F16C15700CF66BA /* ProgressToolbar.swift in Sources */,
@@ -766,6 +773,7 @@
 				A92095881ED9E3C0009497A2 /* SettingsTableViewCell.swift in Sources */,
 				A920958F1EDF4AB8009497A2 /* PresentTabAnimationController.swift in Sources */,
 				A9F9D7C02050B8BA000BA8A3 /* DuckSearchProvider.swift in Sources */,
+				A95DFF7E205B2FB700D540DD /* HistoryModel.xcdatamodeld in Sources */,
 				A9AA4A581FF72471001AB639 /* PlaceholderView.swift in Sources */,
 				A9667E9620549EEE00295E76 /* TabSessionPersister.swift in Sources */,
 				A908920A1ED547C500A5E9BA /* LocationBar.swift in Sources */,
@@ -1075,6 +1083,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		A95DFF7C205B2FB700D540DD /* HistoryModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				A95DFF7D205B2FB700D540DD /* HistoryModel.xcdatamodel */,
+			);
+			currentVersion = A95DFF7D205B2FB700D540DD /* HistoryModel.xcdatamodel */;
+			path = HistoryModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = A97CB0641EC53DCC005DDBD1 /* Project object */;
 }

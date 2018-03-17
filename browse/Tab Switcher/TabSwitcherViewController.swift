@@ -407,7 +407,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     
     func updateThumbs() {
         for tab in tabs {
-            if let thumb = thumb(forTab: tab), let image = tab.history.current?.snapshot {
+            if let thumb = thumb(forTab: tab), let image = tab.currentItem?.snapshot {
                 thumb.setSnapshot(image)
             }
         }

@@ -84,7 +84,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     var isBlank : Bool {
-        return (webView?.url == nil) ?? false
+        return webView?.url == nil
     }
     
     var isSearching : Bool {
@@ -138,7 +138,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         browserTab = newTab
         webView = newTab.webView
         
-        if let img = newTab.history.current?.snapshot {
+        if let img = newTab.currentItem?.snapshot {
             snap.image = img
 //            updateSnapshotPosition()
         }
@@ -146,13 +146,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             snap.image = nil
         }
         
-        if let newTop = newTab.history.current?.topColor {
+        if let newTop = newTab.currentItem?.topColor {
             statusBar.update(toColor: newTop)
         }
         else {
             statusBar.update(toColor: .white)
         }
-        if let newBottom = newTab.history.current?.bottomColor {
+        if let newBottom = newTab.currentItem?.bottomColor {
             toolbar.update(toColor: newBottom)
         }
         else {
@@ -853,7 +853,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
 
     
     func topColorChange(_ newColor: UIColor) {
-        browserTab?.history.current?.topColor = newColor // this is a hack
+        browserTab?.currentItem?.topColor = newColor // this is a hack
         
         webView.evaluateFixedNav() { (isFixed) in
             let sv = self.webView.scrollView
@@ -879,8 +879,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     }
     
     func bottomColorChange(_ newColor: UIColor) {
-        browserTab?.history.current?.bottomColor = newColor
-        
+        browserTab?.currentItem?.bottomColor = newColor
         
         let newAlpha : CGFloat = webView.scrollView.isScrollable ? 0.8 : 1
         if newAlpha != self.toolbar.backgroundView.alpha {

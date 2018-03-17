@@ -16,9 +16,11 @@ class BrowserTab: NSObject {
     
     var restored : TabInfo?
 
-    var history : HistoryTree = HistoryTree()
-    var historyPageMap : [ WKBackForwardListItem : HistoryPage ] = [:]
-    
+    //    var history : HistoryTree = HistoryTree()
+    //    var historyPageMap : [ WKBackForwardListItem : HistoryPage ] = [:]
+    var currentItem : HistoryItem?
+    var historyPageMap : [ WKBackForwardListItem : HistoryItem ] = [:]
+
     static var baseConfiguration: WKWebViewConfiguration = {
         let configuration = WKWebViewConfiguration()
         configuration.processPool = WKProcessPool()
@@ -59,13 +61,13 @@ class BrowserTab: NSObject {
     }
     
     var restorableInfo : TabInfo {
-        if let current = history.current {
+        if let current = currentItem {
             return TabInfo(
                 title: restorableTitle ?? "",
                 urlString: restorableURL ?? "",
                 topColor: current.topColor ?? .white,
                 bottomColor: current.bottomColor ?? .white,
-                id: current.id.uuidString,
+                id: current.uuid?.uuidString ?? "",
                 image: current.snapshot
             )
         }
@@ -116,21 +118,21 @@ class BrowserTab: NSObject {
                  self.webView.scrollView.showsVerticalScrollIndicator = true
             }
             if let img : UIImage = image {
-                self.history.current?.snapshot = img
+                self.currentItem?.snapshot = img
                 completionHandler(img)
             }
         }
     }
     
     func updateHistory() {
-        guard let currentItem = webView.backForwardList.currentItem else { return }
-        var currentPage = historyPageMap[currentItem]
-        if currentPage == nil {
+        guard let currentWKItem = webView.backForwardList.currentItem else { return }
+        var anItem = historyPageMap[currentWKItem]
+        if anItem == nil {
             // Create entry to mirror backForwardList
-            currentPage = HistoryPage(parent: nil, from: currentItem)
-            historyPageMap[currentItem] = currentPage
+            anItem = HistoryController.shared.addPage(from: currentWKItem, parent: nil)
+            historyPageMap[currentWKItem] = anItem
         }
-        history.current = currentPage
+        currentItem = anItem
     }
     
 }

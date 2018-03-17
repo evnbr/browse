@@ -66,7 +66,7 @@ class PlaceholderView: UIView {
         contentView.addSubview(overlay)
     }
     
-    func setPage(_ page: HistoryPage) {
+    func setPage(_ page: HistoryItem) {
         imageView.image = page.snapshot
         statusView.backgroundColor = page.topColor
         toolbarView.backgroundColor = page.bottomColor

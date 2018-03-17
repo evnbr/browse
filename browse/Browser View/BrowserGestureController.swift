@@ -342,7 +342,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 if let parentTab = vc.browserTab?.parentTab {
                     vc.updateSnapshot {
                         let vc = self.vc!
-                        self.mockCardView.imageView.image = vc.browserTab!.history.current?.snapshot
+                        self.mockCardView.imageView.image = vc.browserTab?.currentItem?.snapshot
                         vc.setTab(parentTab)
                         self.animateCommit(action: .toParent)
                         vc.home.moveTabToEnd(parentTab)
@@ -393,7 +393,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             }
             else {
                 if let parent = vc.browserTab?.parentTab,
-                    let parentPage = parent.history.current {
+                    let parentPage = parent.currentItem {
                     view.insertSubview(mockCardView, belowSubview: cardView)
                     mockCardView.setPage(parentPage)
                     vc.home.setParentHidden(true)
@@ -575,7 +575,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         // Swap image
         vc.setSnapshot(mockCardView.imageView.image)
         if action != .toParent {
-            mockCardView.imageView.image = vc.browserTab?.history.current?.snapshot
+            mockCardView.imageView.image = vc.browserTab?.currentItem?.snapshot
         }
         
         // Swap colors

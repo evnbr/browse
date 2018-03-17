@@ -9,16 +9,16 @@
 import UIKit
 import WebKit
 
-class HistoryTree: NSObject {
-    var root: HistoryPage?
-    var current: HistoryPage?
+class HistoryTreeLegacyDEPRECATED: NSObject {
+    var root: HistoryPageDEPRECATED?
+    var current: HistoryPageDEPRECATED?
 }
 
-class HistoryPage: NSObject {
+class HistoryPageDEPRECATED: NSObject {
     var browserTab: BrowserTab?
     
-    let parent: HistoryPage?
-    var children: [ HistoryPage ] = []
+    let parent: HistoryPageDEPRECATED?
+    var children: [ HistoryPageDEPRECATED ] = []
     
     var mirroredListItem: WKBackForwardListItem?
     var title: String?
@@ -29,14 +29,14 @@ class HistoryPage: NSObject {
     var topColor: UIColor?
     var bottomColor: UIColor?
     
-    init(parent: HistoryPage?, url: URL) {
+    init(parent: HistoryPageDEPRECATED?, url: URL) {
         self.parent = parent
         self.url = url
         
         super.init()
     }
     
-    init(parent: HistoryPage?, from item: WKBackForwardListItem) {
+    init(parent: HistoryPageDEPRECATED?, from item: WKBackForwardListItem) {
         self.parent = parent
         self.url = item.url
         

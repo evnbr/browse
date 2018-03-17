@@ -128,14 +128,14 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     func setTab(_ newTab : BrowserTab) {
         browserTab = newTab
         
-        if let img : UIImage = browserTab.history.current?.snapshot {
+        if let img : UIImage = browserTab.currentItem?.snapshot {
             setSnapshot(img)
         }
         else if let img : UIImage = browserTab.restored?.image {
             setSnapshot(img)
         }
 
-        if let color : UIColor = browserTab.history.current?.topColor {
+        if let color : UIColor = browserTab.currentItem?.topColor {
             contentView.backgroundColor = color
             label.textColor = color.isLight ? .white : .darkText
         }
