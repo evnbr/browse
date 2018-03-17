@@ -128,8 +128,18 @@ class BrowserTab: NSObject {
         guard let currentWKItem = webView.backForwardList.currentItem else { return }
         var anItem = historyPageMap[currentWKItem]
         if anItem == nil {
-            // Create entry to mirror backForwardList
-            anItem = HistoryController.shared.addPage(from: currentWKItem, parent: nil)
+            if let backWKItem = webView.backForwardList.backItem,
+                let backItem = historyPageMap[backWKItem],
+                backItem == currentItem {
+                // We went forward, link these pages together
+                anItem = HistoryManager.shared.addPage(from: currentWKItem, parent: currentItem)
+                if let it = anItem { currentItem?.addToForwardItems(it) }
+            }
+            else {
+                // Create a new entry (probably restored)
+                print("unknown parent")
+                anItem = HistoryManager.shared.addPage(from: currentWKItem, parent: nil)
+            }
             historyPageMap[currentWKItem] = anItem
         }
         currentItem = anItem
