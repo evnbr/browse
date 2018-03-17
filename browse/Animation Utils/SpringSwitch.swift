@@ -17,12 +17,12 @@ enum SpringTransitionState : CGFloat {
 fileprivate let kProgressAnimation = "kProgressAnimation"
 fileprivate let kProgressProperty = "kProgressProperty"
 
-class SpringSwitch<T : SpringSwitchable> : NSObject {
-    var progress : CGFloat = 1
-    var start : T = T.initialValue
-    var end : T = T.initialValue
+typealias SpringProgress = CGFloat
+typealias SpringUpdateBlock = (SpringProgress) -> ()
 
-    typealias SpringUpdateBlock = (T) -> ()
+class SpringSwitch : NSObject {
+    private var progress : SpringProgress = 0
+
     let updateBlock : SpringUpdateBlock
 
     init(update block : @escaping SpringUpdateBlock) {
@@ -32,7 +32,7 @@ class SpringSwitch<T : SpringSwitchable> : NSObject {
     
     func setState(_ newState : SpringTransitionState) {
         progress = newState.rawValue
-        update()
+        self.updateBlock(progress)
     }
     
     private var progressPropery: POPAnimatableProperty? {
@@ -45,7 +45,7 @@ class SpringSwitch<T : SpringSwitchable> : NSObject {
             prop.writeBlock = { obj, values in
                 guard let values = values else { return }
                 self.progress = values[0]
-                self.update()
+                self.updateBlock(self.progress)
             }
             prop.threshold = 0.001
         }) as? POPAnimatableProperty
@@ -56,7 +56,7 @@ class SpringSwitch<T : SpringSwitchable> : NSObject {
     func springState(_ newState : SpringTransitionState) -> POPSpringAnimation? {
         let newVal : CGFloat = newState.rawValue
         guard newVal != progress else {
-            update()
+            updateBlock(progress)
             return nil
         }
         
@@ -73,16 +73,6 @@ class SpringSwitch<T : SpringSwitchable> : NSObject {
             return anim
         }
         return nil
-    }
-    
-    private func update() {
-        let newVal : T = T.blend(from: start, to: end, by: progress)
-        updateBlock(newVal)
-    }
-    
-    func setValue(of: SpringTransitionState, to newValue: T) {
-        if of == .start { start = newValue }
-        else if of == .end { end = newValue }
     }
     
     func cancel() {

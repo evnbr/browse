@@ -40,14 +40,16 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     var mockCardView: PlaceholderView!
     let mockCardViewSpacer: CGFloat = 8
     
-    var mockPositioner: SpringSwitch<CGPoint>!
-    var mockScaler: SpringSwitch<CGFloat>!
-    var mockAlpha:  SpringSwitch<CGFloat>!
-
-    var cardPositioner : SpringSwitch<CGPoint>!
-    var cardScaler : SpringSwitch<CGFloat>!
+    var dismissSwitch : SpringSwitch!
     
-    var thumbPositioner : SpringSwitch<CGPoint>!
+    var mockPositioner: Blend<CGPoint>!
+    var mockScaler: Blend<CGFloat>!
+    var mockAlpha:  Blend<CGFloat>!
+
+    var cardPositioner : Blend<CGPoint>!
+    var cardScaler : Blend<CGFloat>!
+    
+    var thumbPositioner : Blend<CGPoint>!
 
     var isInteractiveDismiss : Bool = false
     var startPoint : CGPoint = .zero
@@ -77,19 +79,28 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         mockCardView = PlaceholderView(frame: cardView.bounds)
         
-        mockPositioner = SpringSwitch { self.mockCardView.center = $0 }
-        mockScaler = SpringSwitch { self.mockCardView.scale = $0  }
-        mockAlpha = SpringSwitch { self.mockCardView.overlay.alpha = $0  }
+        mockPositioner = Blend { self.mockCardView.center = $0 }
+        mockScaler = Blend { self.mockCardView.scale = $0  }
+        mockAlpha = Blend { self.mockCardView.overlay.alpha = $0  }
 
-        cardPositioner = SpringSwitch { self.cardView.center = $0 }
-        cardScaler = SpringSwitch {
+        cardPositioner = Blend { self.cardView.center = $0 }
+        cardScaler = Blend {
             self.cardView.scale = $0
             self.vc.home.setThumbScale($0)
         }
-        thumbPositioner = SpringSwitch {
+        thumbPositioner = Blend {
             self.vc.home.setThumbPosition(
                 switcherProgress: self.switcherRevealProgress,
                 cardOffset: $0)
+        }
+        
+        dismissSwitch = SpringSwitch {
+            self.mockPositioner.progress = $0
+            self.mockScaler.progress = $0
+            self.mockAlpha.progress = $0
+            self.cardPositioner.progress = $0
+            self.cardScaler.progress = $0
+            self.thumbPositioner.progress = $0
         }
 
         
@@ -295,22 +306,17 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         ))
         
         
-        let isVerticalDismiss = gesturePos.y > dismissPointY
-        let isHorizontalDismiss = abs(gesturePos.x) > dismissPointX
-        
-        let newState = (isVerticalDismiss || (cantPage && isHorizontalDismiss)) ? DISMISSING : PAGING
-        mockScaler.springState(newState)
-        mockPositioner.springState(newState)
-        cardScaler.springState(newState)
-        cardPositioner.springState(newState)
-        thumbPositioner.springState(newState)
         
         vc.statusBar.label.alpha = cardView.frame.origin.y.progress(from: 100, to: 200).clip().blend(from: 0, to: 1)
 
         let thumbAlpha = switcherRevealProgress.progress(from: 0, to: 0.7).clip().blend(from: 0.4, to: 1)
         vc.home.navigationController?.view.alpha = thumbAlpha
         mockAlpha.setValue(of: DISMISSING, to: thumbAlpha.reverse())
-        mockAlpha.springState(newState)
+        
+        let isVerticalDismiss = gesturePos.y > dismissPointY
+        let isHorizontalDismiss = abs(gesturePos.x) > dismissPointX
+        let newState = (isVerticalDismiss || (cantPage && isHorizontalDismiss)) ? DISMISSING : PAGING
+        dismissSwitch.springState(newState)
 
         if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle {
             UIView.animate(withDuration: 0.2, animations: {
@@ -467,11 +473,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         vc.contentView.radius = Const.shared.cardRadius
 
         if direction != .top {
-            cardPositioner.setState(PAGING)
-            cardScaler.setState(PAGING)
-            mockPositioner.setState(PAGING)
-            mockScaler.setState(PAGING)
-            mockAlpha.setState(PAGING)
+            dismissSwitch.setState(PAGING)
 
             horizontalChange(gesture)
         }
@@ -482,19 +484,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         isInteractiveDismiss = false
     }
     
-    func cancelSprings() {
-        mockPositioner.cancel()
-        mockScaler.cancel()
-        mockAlpha.cancel()
-        cardPositioner.cancel()
-        cardScaler.cancel()
-        thumbPositioner.cancel()
-    }
-    
     func commitDismiss(velocity vel: CGPoint) {
         
         dismissVelocity = vel
-        cancelSprings()
+        dismissSwitch.cancel()
         mockCardView.removeFromSuperview()
         mockCardView.imageView.image = nil
         
@@ -613,7 +606,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     }
 
     func animateCommit(action: GestureNavigationAction, velocity: CGPoint = .zero) {
-        cancelSprings()
+        dismissSwitch.cancel()
         swapCardAndPlaceholder(for: action)
 
         cardView.springCenter(to: view.center, at: velocity) {_,_ in
@@ -716,7 +709,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
         cardScaler.setValue(of: PAGING, to: 1)
         cardScaler.setValue(of: DISMISSING, to: dismissScale)
-        cardScaler.setState(DISMISSING)
         
         let extraH = cardView.bounds.height * (1 - dismissScale) * 0.4
         
@@ -727,10 +719,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             x: view.center.x - cardView.center.x,
             y: view.center.y - cardView.center.y
         ))
-        thumbPositioner.setState(DISMISSING)
         let thumbAlpha = switcherRevealProgress.progress(from: 0, to: 0.7).blend(from: 0.2, to: 1)
         vc.home.navigationController?.view.alpha = thumbAlpha
 
+        dismissSwitch.setState(DISMISSING)
         
         if (Const.shared.cardRadius < Const.shared.thumbRadius) {
             cardView.radius = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)

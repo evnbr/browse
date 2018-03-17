@@ -1,17 +1,17 @@
 //
-//  SpringSwitchable.swift
+//  Blendable.swift
 //  browse
 //
 //  Created by Evan Brooks on 3/13/18.
 //  Copyright © 2018 Evan Brooks. All rights reserved.
 //
 
-public protocol SpringSwitchable {
+public protocol Blendable {
     static var initialValue : Self { get }
     static func blend(from: Self, to: Self, by: CGFloat) -> Self
 }
 
-extension CGPoint : SpringSwitchable {
+extension CGPoint : Blendable {
     public static var initialValue: CGPoint { return .zero }
     
     public static func blend(from start: CGPoint, to end: CGPoint, by progress: CGFloat) -> CGPoint {
@@ -19,7 +19,7 @@ extension CGPoint : SpringSwitchable {
     }
 }
 
-extension CGFloat : SpringSwitchable {
+extension CGFloat : Blendable {
     public static var initialValue: CGFloat { return 0 }
 
     public static func blend(from start: CGFloat, to end: CGFloat, by progress: CGFloat) -> CGFloat {

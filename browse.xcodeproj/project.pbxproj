@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		2DCBCAE350BA34FBF1FAAC0B /* Pods_browseUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59786C71254C3E45B35E124B /* Pods_browseUITests.framework */; };
+		A907DBA8205C9C5C009554C9 /* Blend.swift in Sources */ = {isa = PBXBuildFile; fileRef = A907DBA7205C9C5C009554C9 /* Blend.swift */; };
 		A908920A1ED547C500A5E9BA /* LocationBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90892091ED547C500A5E9BA /* LocationBar.swift */; };
 		A908F04C1ECD03B800A74241 /* ColorStatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */; };
 		A908F04E1ECD60CD00A74241 /* BookmarksViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */; };
@@ -34,7 +35,7 @@
 		A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */; };
 		A95DFF7520575F2500D540DD /* UIView+POP.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7420575F2400D540DD /* UIView+POP.swift */; };
 		A95DFF7720575FDF00D540DD /* SpringSwitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7620575FDF00D540DD /* SpringSwitch.swift */; };
-		A95DFF7B2058BEC600D540DD /* SpringSwitchable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7A2058BEC600D540DD /* SpringSwitchable.swift */; };
+		A95DFF7B2058BEC600D540DD /* Blendable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7A2058BEC600D540DD /* Blendable.swift */; };
 		A95DFF7E205B2FB700D540DD /* HistoryModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7C205B2FB700D540DD /* HistoryModel.xcdatamodeld */; };
 		A95DFFBF205B6A8F00D540DD /* HistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFFBE205B6A8F00D540DD /* HistoryManager.swift */; };
 		A9667E922051F90400295E76 /* PinboardLoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E912051F90400295E76 /* PinboardLoginController.swift */; };
@@ -101,6 +102,7 @@
 		59786C71254C3E45B35E124B /* Pods_browseUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_browseUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F545EFABCF9F87A9BBE6214 /* Pods-browseTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-browseTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-browseTests/Pods-browseTests.debug.xcconfig"; sourceTree = "<group>"; };
 		A7CBD4E92318735B3DA34E02 /* Pods_browse.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_browse.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		A907DBA7205C9C5C009554C9 /* Blend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Blend.swift; sourceTree = "<group>"; };
 		A90892091ED547C500A5E9BA /* LocationBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationBar.swift; sourceTree = "<group>"; };
 		A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorStatusBarView.swift; sourceTree = "<group>"; };
 		A908F04D1ECD60CD00A74241 /* BookmarksViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarksViewController.swift; sourceTree = "<group>"; };
@@ -128,7 +130,7 @@
 		A9526D4C1ED238C300A73A8A /* WebNavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebNavigationController.swift; sourceTree = "<group>"; };
 		A95DFF7420575F2400D540DD /* UIView+POP.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIView+POP.swift"; sourceTree = "<group>"; };
 		A95DFF7620575FDF00D540DD /* SpringSwitch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringSwitch.swift; sourceTree = "<group>"; };
-		A95DFF7A2058BEC600D540DD /* SpringSwitchable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpringSwitchable.swift; sourceTree = "<group>"; };
+		A95DFF7A2058BEC600D540DD /* Blendable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Blendable.swift; sourceTree = "<group>"; };
 		A95DFF7D205B2FB700D540DD /* HistoryModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = HistoryModel.xcdatamodel; sourceTree = "<group>"; };
 		A95DFFBE205B6A8F00D540DD /* HistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryManager.swift; sourceTree = "<group>"; };
 		A9667E912051F90400295E76 /* PinboardLoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinboardLoginController.swift; sourceTree = "<group>"; };
@@ -328,9 +330,10 @@
 		A9667E9920575E4700295E76 /* Animation Utils */ = {
 			isa = PBXGroup;
 			children = (
-				A95DFF7A2058BEC600D540DD /* SpringSwitchable.swift */,
 				A95DFF7420575F2400D540DD /* UIView+POP.swift */,
 				A95DFF7620575FDF00D540DD /* SpringSwitch.swift */,
+				A907DBA7205C9C5C009554C9 /* Blend.swift */,
+				A95DFF7A2058BEC600D540DD /* Blendable.swift */,
 			);
 			path = "Animation Utils";
 			sourceTree = "<group>";
@@ -742,7 +745,7 @@
 			files = (
 				A9B9979920380C8A00841404 /* SearchTransitionController.swift in Sources */,
 				A9F9D7C6205117B2000BA8A3 /* BookmarkProvider.swift in Sources */,
-				A95DFF7B2058BEC600D540DD /* SpringSwitchable.swift in Sources */,
+				A95DFF7B2058BEC600D540DD /* Blendable.swift in Sources */,
 				A92C9C3B1EF8B5E600D8AAA3 /* BrowserGestureController.swift in Sources */,
 				A90F51211F70C6CB00221815 /* UIImageColors.swift in Sources */,
 				A9E422811F86B4FD0028B4CA /* StackingCollectionViewLayout.swift in Sources */,
@@ -796,6 +799,7 @@
 				A9667E922051F90400295E76 /* PinboardLoginController.swift in Sources */,
 				A95DFF7520575F2500D540DD /* UIView+POP.swift in Sources */,
 				A9F9D7BB204E0BAF000BA8A3 /* PageActionView.swift in Sources */,
+				A907DBA8205C9C5C009554C9 /* Blend.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
