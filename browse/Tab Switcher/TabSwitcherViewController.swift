@@ -98,43 +98,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         if #available(iOS 11.0, *) {
             collectionView?.contentInsetAdjustmentBehavior = .never
         }
-        
-//        NotificationCenter.default.addObserver(self, selector: #selector(applicationWillResignActive(notification:)), name: NSNotification.Name.UIApplicationWillResignActive, object: UIApplication.shared)
-//        self.restoreTabs()
     }
-    
-//    func restoreTabs() {
-//        collectionView?.performBatchUpdates({
-//            let tabsToRestore = TabSessionPersister.shared.restore()
-//            for info in tabsToRestore {
-//                let newTab = BrowserTab(
-//                    restoreInfo: info
-//                )
-//                self.tabs.append(newTab)
-//                let ip = IndexPath(item: self.tabs.index(of: newTab)!, section: 0)
-//                self.collectionView?.insertItems(at: [ ip ])
-//            }
-//        }, completion: { _ in
-//            //
-//            if let lastIndex = TabSessionPersister.shared.restoreIndex(), lastIndex < self.tabs.count {
-//                    self.showTab(self.tabs[lastIndex], animated: false, completion: {
-//                        self.view.isHidden = false
-//                    })
-//            } else {
-//                self.view.isHidden = false
-//            }
-//        })
-//    }
-//
-//    @objc func applicationWillResignActive(notification: NSNotification) {
-//        var presentedIndex = -1
-//        if browserVC.isViewLoaded && (browserVC.view.window != nil) {
-//            if let tab = browserVC.browserTab, let index = tabs.index(of: tab) {
-//                presentedIndex = index
-//            }
-//        }
-//        TabSessionPersister.shared.save(tabs, presentedIndex: presentedIndex)
-//    }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
@@ -143,7 +107,6 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     
     private func updateCollectionViewLayout(with size: CGSize) {
         if let layout = collectionView?.collectionViewLayout as? UICollectionViewFlowLayout {
-//            layout.itemSize = (size.width < size.height) ? itemSizeForPortraitMode : itemSizeForLandscapeMode
             layout.invalidateLayout()
         }
     }
@@ -191,35 +154,6 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         }
     }
     
-//    func clearTabs() {
-//        collectionView?.performBatchUpdates({
-//            for tab in self.tabs {
-//                let ip = IndexPath(row: self.tabs.index(of: tab)!, section: 0)
-//                self.collectionView?.deleteItems(at: [ip])
-//            }
-//            self.tabs = []
-//        })
-//    }
-    
-    
-    // todo: less copypasta with addTab()
-//    func openInNewTab(withConfig config: WKWebViewConfiguration) -> WKWebView {
-//
-//        let newTab = BrowserTab(withNewTabConfig: config)
-//        let prevTab = browserVC.browserTab!
-//        newTab.parentTab = prevTab
-//
-//        self.collectionView?.performBatchUpdates({
-//            self.tabs.append(newTab)
-//            let ip = IndexPath(item: self.tabs.count - 1, section: 0)
-//            self.collectionView?.insertItems(at: [ ip ])
-//            self.collectionViewLayout.invalidateLayout()
-//        }, completion: { _ in
-//            self.browserVC.gestureController.swapTo(childTab: newTab)
-//        })
-//
-//        return newTab.webView
-//    }
     
     func thumb(forTab tab: Tab) -> TabThumbnail? {
         return collectionView?.visibleCells.first(where: { (cell) -> Bool in
@@ -451,18 +385,15 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
         return _fetchedResultsController!
     }
 
-    
-    
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         switch type {
         case .insert:
-            collectionView?.insertItems(at: [newIndexPath!])
             blockOperations.append(BlockOperation {
                 self.collectionView!.insertItems(at: [newIndexPath!])
             })
         case .delete:
             blockOperations.append(BlockOperation {
-                self.collectionView!.deleteItems(at: [newIndexPath!])
+                self.collectionView!.deleteItems(at: [indexPath!])
             })
         case .update:
             blockOperations.append(BlockOperation {
@@ -480,18 +411,14 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
         }
     }
     
-//    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-//        collectionView!.performBatchUpdates({ () -> Void in
-//            for operation: BlockOperation in self.blockOperations {
-//                operation.start()
-//            }
-//        }, completion: { (finished) -> Void in
-//            self.blockOperations.removeAll(keepingCapacity: false)
-//        })
-//    }
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        // In the simplest, most efficient, case, reload the table view.
-        collectionView?.reloadData()
+        collectionView!.performBatchUpdates({ () -> Void in
+            for operation: BlockOperation in self.blockOperations {
+                operation.start()
+            }
+        }, completion: { (finished) -> Void in
+            self.blockOperations.removeAll(keepingCapacity: false)
+        })
     }
 
 }
