@@ -66,7 +66,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         let scrollView = browserVC.webView.scrollView
         scrollView.isScrollEnabled = false
         scrollView.cancelScroll()
-        browserVC.isSnapshotMode = true
+//        browserVC.isSnapshotMode = true
         
         var thumbCenter : CGPoint
         var thumbScale : CGFloat = 1
