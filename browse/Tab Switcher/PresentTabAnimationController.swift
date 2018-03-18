@@ -52,6 +52,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         homeVC.visibleCells.forEach { $0.isHidden = false }
         let thumb = homeVC.thumb(forTab: browserVC.currentTab!)
         thumb?.isHidden = true
+        browserVC.statusBar.isHidden = false // TODO
         
         if isExpanding {
             browserVC.resetSizes(withKeyboard: browserVC.isBlank)

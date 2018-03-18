@@ -10,7 +10,7 @@
 import UIKit
 import WebKit
 
-let blockerListId = "blockerListId"
+fileprivate let blockerListId = "blockerListId"
 
 class Blocker: NSObject {
     var ruleList : WKContentRuleList?

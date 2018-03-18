@@ -101,6 +101,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             self.cardPositioner.progress = $0
             self.cardScaler.progress = $0
             self.thumbPositioner.progress = $0
+            self.vc.statusBar.label.alpha = $0.reverse().clip()
         }
 
         
@@ -263,14 +264,19 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             cardPositioner.setValue(of: PAGING, to: backFwdPoint)
             mockPositioner.setValue(of: PAGING, to: CGPoint(
                     x: view.center.x + adjustedX * parallax - view.bounds.width * parallax,
-                    y: view.center.y ))//backFwdPoint.y ))
+                    y: view.center.y ))
             if isToParent {
                 mockPositioner.setValue(of: DISMISSING, to: CGPoint(
                     x: dismissingPoint.x,
                     y: dismissingPoint.y - 160 * switcherRevealProgress ))
             }
             else {
-                mockPositioner.setValue(of: DISMISSING, to: dismissingPoint)
+//                mockPositioner.setValue(of: DISMISSING, to: dismissingPoint)
+                mockScaler.setValue(of: DISMISSING, to: 1)
+                mockAlpha.setValue(of: DISMISSING, to: 1)
+                mockPositioner.setValue(of: DISMISSING, to: CGPoint(
+                    x: view.center.x - vc.cardView.bounds.width,
+                    y: view.center.y ))
             }
             mockAlpha.setValue(of: PAGING, to: adjustedX.progress(from: 0, to: 400).blend(from: 0.4, to: 0.1))
             mockScaler.setValue(of: PAGING, to: 1)
@@ -309,9 +315,9 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         vc.statusBar.label.alpha = cardView.frame.origin.y.progress(from: 100, to: 200).clip().blend(from: 0, to: 1)
 
-        let thumbAlpha = switcherRevealProgress.progress(from: 0, to: 0.7).clip().blend(from: 0.4, to: 1)
+        let thumbAlpha = switcherRevealProgress.progress(from: 0, to: 0.7).clip().blend(from: 0, to: 1)
         vc.home.navigationController?.view.alpha = thumbAlpha
-        mockAlpha.setValue(of: DISMISSING, to: thumbAlpha.reverse())
+        if direction != .left { mockAlpha.setValue(of: DISMISSING, to: thumbAlpha.reverse()) }
         
         let isVerticalDismiss = gesturePos.y > dismissPointY
         let isHorizontalDismiss = abs(gesturePos.x) > dismissPointX
@@ -334,8 +340,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let isHorizontal = abs(gesturePos.y) < abs(gesturePos.x)
         
         if (direction == .left || direction == .right)
-        && cardView.center.y > view.center.y + dismissPointY
-        && !isHorizontal {
+        && gesturePos.y > dismissPointY  {
             commitDismiss(velocity: vel)
         }
         else if gesturePos.x > backPointX && isHorizontal{
@@ -645,6 +650,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     }
 
     func reset(velocity: CGPoint) {
+        dismissSwitch.cancel()
         vc.webView.scrollView.cancelScroll()
 
         // Move card back to center
@@ -690,7 +696,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             return
         }
         
-        
         self.vc.gradientOverlay.alpha = adjustedY.progress(from: 0, to: 400)
 
         if adjustedY > 0 {
@@ -702,8 +707,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         let spaceW = cardView.bounds.width * ( 1 - dismissScale )
         
-        vc.statusBar.label.alpha = adjustedY.progress(from: 100, to: 200).clip().blend(from: 0, to: 1)
-
         cardScaler.setValue(of: PAGING, to: 1)
         cardScaler.setValue(of: DISMISSING, to: dismissScale)
         

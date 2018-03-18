@@ -177,8 +177,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         self.contentView.scale = 0.98
         self.contentView.transform = self.contentView.transform.translatedBy(x: 0, y: -4)
         self.shadowView.scale = 0.98
-//        self.shadowView.layer.shadowRadius = shadowRadius * 0.8
-//        self.shadowView.layer.shadowOpacity = 0.3
     }
     
     func unSelect(animated : Bool = true) {

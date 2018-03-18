@@ -18,7 +18,8 @@ class WebViewManager: NSObject {
         super.init()
         blocker.getList({ ruleList in
             if let list = ruleList {
-                print("rules ready")
+                self.baseConfiguration.userContentController.add(list)
+                // in case any have veen added already
                 for (_, wv) in self.webViewMap {
                     wv.configuration.userContentController.add(list)
                 }
@@ -26,12 +27,11 @@ class WebViewManager: NSObject {
         })
     }
     
-    private let baseConfiguration: WKWebViewConfiguration = {
+    private var baseConfiguration: WKWebViewConfiguration = {
         let configuration = WKWebViewConfiguration()
         configuration.processPool = WKProcessPool()
         configuration.allowsInlineMediaPlayback = true
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
-        
         configuration.userContentController.addUserScript(
             WKUserScript(source: checkFixedFunc, injectionTime: .atDocumentStart, forMainFrameOnly: false)
         )

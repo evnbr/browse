@@ -6,35 +6,13 @@
 //  Copyright © 2018 Evan Brooks. All rights reserved.
 //
 
-// Extend codegen'd HistoryItem model to support uiimage snapshots
+// Extend codegen'd HistoryItem model to simplify snapshots
 extension HistoryItem {
     var snapshot: UIImage? {
-        get {
-            guard let uuid = self.uuid else { return nil }
-            if let cached = HistoryManager.shared.snapshotCache[uuid] {
-                return cached
-            }
-            guard let dir = FileManager.defaultDirURL else { return nil }
-            return UIImage(contentsOfFile: URL(fileURLWithPath: dir.absoluteString).appendingPathComponent("\(uuid.uuidString).png").path)
-        }
+        get { return HistoryManager.shared.snapshot(for: self) }
         set {
-            guard let image = newValue, let uuid = self.uuid else { return }
-            HistoryManager.shared.snapshotCache[uuid] = image
-            
-            DispatchQueue.global(qos: .userInitiated).async {
-                guard let data = UIImagePNGRepresentation(image), let dir = FileManager.defaultDirURL else { return }
-                do {
-                    try data.write(to: dir.appendingPathComponent("\(uuid.uuidString).png"))
-                } catch {
-                    print(error.localizedDescription)
-                }
-            }
+            guard let image = newValue else { return }
+            HistoryManager.shared.setSnapshot(image, for: self)
         }
-    }
-}
-
-fileprivate extension FileManager {
-    static var defaultDirURL : URL? {
-        return try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
     }
 }

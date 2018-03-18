@@ -326,20 +326,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         if isDisplayingSearch { return }
         if toolbarHeightConstraint.constant == 0 { return }
         
-//        toolbarHeightConstraint.constant = 0
-        
         UIView.animate(
             withDuration: 0.2,
             delay: 0,
             options: .curveEaseInOut,
             animations: {
                 self.webView.scrollView.scrollIndicatorInsets.bottom = -Const.toolbarHeight
-
                 self.locationBar.alpha = 0
                 self.backButton.alpha = 0
                 self.tabButton.alpha = 0
-                
-//                self.view.layoutIfNeeded()
             }
         )
         toolbarHeightConstraint.springConstant(to: 0)
@@ -355,8 +350,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         let dist = Const.toolbarHeight - toolbarHeightConstraint.constant
 
-//        toolbarHeightConstraint.constant = Const.toolbarHeight
-
         if (animated) {
             UIView.animate(
                 withDuration: animated ? 0.2 : 0,
@@ -367,8 +360,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                     self.locationBar.alpha = 1
                     self.backButton.alpha = 1
                     self.tabButton.alpha = 1
-            }
-            )
+            })
             
             toolbarHeightConstraint.springConstant(to: Const.toolbarHeight)
             webView.scrollView.springBottomInset(to: 0)
@@ -401,9 +393,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         toolbarHeightConstraint.isActive = true
         
         locationBar = LocationBar(
-            onTap: { self.displayFullSearch(animated: true) }
-//            onTap: { self.displayOverflow() }
-        )
+            onTap: { self.displayFullSearch(animated: true) })
         backButton = ToolbarIconButton(
             icon: UIImage(named: "back"),
             onTap: {
@@ -413,20 +403,16 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 else if let parent = self.currentTab?.parentTab {
                     self.gestureController.swapTo(parentTab: parent)
                 }
-            }
-        )
+            })
         forwardButton = ToolbarIconButton(
             icon: UIImage(named: "fwd"),
-            onTap: { self.webView.goForward() }
-        )
+            onTap: { self.webView.goForward() })
         tabButton = ToolbarIconButton(
             icon: UIImage(named: "tab"),
-            onTap: dismissSelf
-        )
+            onTap: dismissSelf)
         stopButton = ToolbarIconButton(
             icon: UIImage(named: "stop"),
-            onTap: { self.webView.stopLoading() }
-        )
+            onTap: { self.webView.stopLoading() })
         
         locationBar.addSubview(stopButton)
         stopButton.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
@@ -466,6 +452,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
         
         accessoryHeightConstraint = acc.heightAnchor.constraint(equalToConstant: 24)
+        accessoryHeightConstraint.priority = .required
         accessoryHeightConstraint.isActive = true
         
 //        passButton.frame.size.height = acc.frame.height
@@ -851,7 +838,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
 
     @objc func keyboardWillHide(notification: NSNotification) {
         // Hack to prevent accessory of showing up at bottom
-        accessoryHeightConstraint?.constant = 0
+//        accessoryHeightConstraint?.constant = 0
     }
 
     
@@ -872,7 +859,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
                     self.statusBar.backgroundView.alpha = newAlpha
                 })
             }
-            self.statusBar.isHidden = transparentStatusBar
+//            self.statusBar.isHidden = transparentStatusBar
         }
         
         if shouldUpdateSample {

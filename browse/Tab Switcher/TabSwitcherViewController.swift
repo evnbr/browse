@@ -44,31 +44,19 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     override func viewDidLoad() {
         super.viewDidLoad()
 
-//        self.view.isHidden = true
-        
         browserVC = BrowserViewController(home: self)
         
         collectionView?.collectionViewLayout = StackingCollectionViewLayout()
-//        collectionView?.collectionViewLayout = BlobCollectionViewLayout()
-
         collectionView?.delaysContentTouches = false
-        
         collectionView?.alwaysBounceVertical = true
-//        collectionView?.scrollIndicatorInsets.bottom = Const.toolbarHeight
         collectionView?.scrollIndicatorInsets.top = Const.statusHeight
         collectionView?.indicatorStyle = .white
         collectionView?.showsVerticalScrollIndicator = false
-        
         collectionView?.register(TabThumbnail.self, forCellWithReuseIdentifier: reuseIdentifier)
-        
+        collectionView?.backgroundColor = .black
+
         title = ""
         view.backgroundColor = .black
-        
-        collectionView?.backgroundColor = .black
-        
-        navigationController?.navigationBar.tintColor = .white
-        navigationController?.navigationBar.barStyle = .black
-        
         
         
         fab = FloatButton(
@@ -412,11 +400,9 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
     }
     
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        collectionView!.performBatchUpdates({ () -> Void in
-            for operation: BlockOperation in self.blockOperations {
-                operation.start()
-            }
-        }, completion: { (finished) -> Void in
+        collectionView!.performBatchUpdates({
+            for operation: BlockOperation in self.blockOperations { operation.start() }
+        }, completion: { finished in
             self.blockOperations.removeAll(keepingCapacity: false)
         })
     }

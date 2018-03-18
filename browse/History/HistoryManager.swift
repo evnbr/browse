@@ -13,7 +13,7 @@ import WebKit
 class HistoryManager: NSObject {
     static let shared = HistoryManager()
     
-    var snapshotCache: [ UUID : UIImage ] = [:]
+    private var snapshotCache: [ UUID : UIImage ] = [:]
     private var historyPageMap: [ WKBackForwardListItem : HistoryItem ] = [:]
 
     lazy var persistentContainer: NSPersistentContainer = {
@@ -29,59 +29,48 @@ class HistoryManager: NSObject {
     func page(from item: WKBackForwardListItem) -> HistoryItem? {
         return historyPageMap[item]
     }
-
+    
     func sync(tab: Tab, with list: WKBackForwardList) {
         guard let currentWKItem = list.currentItem else { return }
-        var anItem = historyPageMap[currentWKItem]
-        if anItem == nil {
-            if let backWKItem = list.backItem,
-                let backItem = historyPageMap[backWKItem],
-                backItem == tab.currentItem {
-                // We went forward, link these pages together
-                anItem = addPage(from: currentWKItem, parent: tab.currentItem)
-                if let it = anItem { tab.currentItem?.addToForwardItems(it) }
-            }
-            else {
-                // Create a new entry (probably restored)
-                print("unknown parent")
-                anItem = addPage(from: currentWKItem, parent: nil)
-            }
-            historyPageMap[currentWKItem] = anItem
-        } else {
+        if let cachedItem = page(from: currentWKItem) {
             // Update title and url
             if let title = currentWKItem.title, title != "" {
-                tab.currentItem?.title = title
+                cachedItem.title = title
             }
-            tab.currentItem?.url = currentWKItem.url
+            cachedItem.url = currentWKItem.url
+            tab.currentItem = cachedItem
         }
-        tab.currentItem = anItem
+        else {
+            // Create a new entry
+            let newItem = addPage(from: currentWKItem, parent: nil)
+            if let backWKItem = list.backItem,
+                let backItem = page(from: backWKItem),
+                backItem == tab.currentItem {
+                // We went forward, link these pages together
+                newItem?.backItem = tab.currentItem
+                tab.currentItem?.addToForwardItems(newItem!)
+            }
+            historyPageMap[currentWKItem] = newItem
+            tab.currentItem = newItem
+        }
+        saveContext()
     }
     
-    // Convenience to convert wkwebview history item
+    // Convert wkwebview history item
     func addPage(from item: WKBackForwardListItem, parent: HistoryItem?) -> HistoryItem? {
         return addPage(parent: parent, url: item.url, title: item.title)
     }
     
+    // Convert and save history item
     func addPage(parent: HistoryItem?, url: URL, title: String?) -> HistoryItem? {
-
         let context = persistentContainer.viewContext
         
         let historyItem = HistoryItem(context: context)
-        
         historyItem.firstVisit = Date()
         historyItem.uuid = UUID()
         historyItem.url = url
         historyItem.title = title ?? "Untitled"
         historyItem.backItem = parent
-        
-        // Save the context.
-        do {
-            try context.save()
-        } catch {
-            // Replace this implementation with code to handle the error appropriately.
-            let nserror = error as NSError
-            print("Unresolved error \(nserror), \(nserror.userInfo)")
-        }
         return historyItem
     }
     
@@ -91,7 +80,6 @@ class HistoryManager: NSObject {
             do {
                 try context.save()
             } catch {
-                // You should not use this function in a shipping application, although it may be useful during development.
                 let nserror = error as NSError
                 print("Unresolved error \(nserror), \(nserror.userInfo)")
             }
@@ -99,4 +87,43 @@ class HistoryManager: NSObject {
     }
 }
 
+// Deal with snapshots
+extension HistoryManager {
+    func snapshot(for item: HistoryItem) -> UIImage? {
+        guard let id = item.uuid else { return nil }
+        if let cached = snapshotCache[id] { return cached }
+        return loadSnapshotFromFile(id)
+    }
+    
+    func setSnapshot(_ image: UIImage, for item: HistoryItem) {
+        guard let uuid = item.uuid else { return }
+        snapshotCache[uuid] = image
+        writeSnapshotToFile(image, id: uuid)
+    }
+    
+    func loadSnapshotFromFile(_ id: UUID) -> UIImage? {
+        guard let dir = FileManager.defaultDirURL else { return nil }
+        return UIImage(contentsOfFile:
+            URL(fileURLWithPath: dir.absoluteString).appendingPathComponent("\(id.uuidString).png").path)
+    }
+    
+    func writeSnapshotToFile(_ image: UIImage, id: UUID) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            guard let data = UIImagePNGRepresentation(image),
+                let dir = FileManager.defaultDirURL
+                else { return }
+            do {
+                try data.write(to: dir.appendingPathComponent("\(id.uuidString).png"))
+            } catch {
+                print(error.localizedDescription)
+            }
+        }
+    }
+}
 
+
+fileprivate extension FileManager {
+    static var defaultDirURL : URL? {
+        return try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+    }
+}
