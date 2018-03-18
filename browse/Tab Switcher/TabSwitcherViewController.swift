@@ -115,8 +115,12 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     func createTab() -> Tab {
         let context = self.fetchedResultsController.managedObjectContext
         let newTab = Tab(context: context)
-        
-        // Save the context.
+        saveContext()
+        return newTab
+    }
+    
+    func saveContext() {
+        let context = self.fetchedResultsController.managedObjectContext
         do {
             try context.save()
         } catch {
@@ -124,21 +128,13 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
             let nserror = error as NSError
             print("Unresolved error \(nserror), \(nserror.userInfo)")
         }
-        return newTab
     }
     
     func closeTab(fromCell cell: UICollectionViewCell) {
         if let indexPath = collectionView?.indexPath(for: cell) {
             let context = fetchedResultsController.managedObjectContext
             context.delete(fetchedResultsController.object(at: indexPath))
-            
-            do {
-                try context.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                let nserror = error as NSError
-                print("Unresolved error \(nserror), \(nserror.userInfo)")
-            }
+            saveContext()
         }
     }
     
@@ -265,20 +261,16 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     }
     
     func moveTabToEnd(_ tab: Tab) {
-//        if let cv = self.collectionView {
-//            // Move this item to end of tabs array
-//            if let index = self.tabs.index(of: tab) {
-//                self.tabs.remove(at: index)
-//            }
-//            self.tabs.append(tab)
-//            cv.reloadData()
-//
-//            self.scrollToBottom()
-//
-//            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
-//                self.setThumbPosition(switcherProgress: 0)
-//            }
-//        }
+        tab.sortIndex = Int16(tabCount - 1)
+        let tabs = fetchedResultsController.fetchedObjects ?? []
+        var i : Int16 = 0
+        for t in tabs {
+            if t != tab {
+                t.sortIndex = i
+                i += 1
+            }
+        }
+        saveContext()
     }
     
     func showTab(_ tab: Tab, animated: Bool = true, completion: (() -> Void)? = nil) {
