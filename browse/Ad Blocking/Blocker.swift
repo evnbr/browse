@@ -31,10 +31,10 @@ class Blocker: NSObject {
     func buildList(_ done: @escaping (WKContentRuleList?) -> ()) {
         WKContentRuleListStore.default().getAvailableContentRuleListIdentifiers { (identifiers) in
             if identifiers != nil && identifiers!.contains(blockerListId) {
-                print("existing rules found")
+//                print("existing rules found")
                 WKContentRuleListStore.default().lookUpContentRuleList(forIdentifier: blockerListId, completionHandler: { (list, error) in
                     if let list : WKContentRuleList = list {
-                        print("existing rules fetched")
+//                        print("existing rules fetched")
                         self.ruleList = list
                         done(list)
                     } else {
@@ -50,7 +50,7 @@ class Blocker: NSObject {
                         let data = try String(contentsOfFile:path, encoding: String.Encoding.utf8)
                         WKContentRuleListStore.default().compileContentRuleList(forIdentifier: blockerListId, encodedContentRuleList: data) { (list, error) in
                             if let list : WKContentRuleList = list {
-                                print("rules compiled!")
+//                                print("rules compiled!")
                                 self.ruleList = list
                                 done(list)
                             } else {

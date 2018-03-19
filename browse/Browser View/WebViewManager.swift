@@ -43,7 +43,6 @@ class WebViewManager: NSObject {
             return existing
         }
         else {
-            print("creating base config")
             let newWebView = createWebView(with: baseConfiguration)
             webViewMap[tab] = newWebView
             return newWebView
