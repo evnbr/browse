@@ -445,7 +445,6 @@ extension SearchViewController : UIGestureRecognizerDelegate {
         else if gesture.state == .changed {
             if dist.y < 0 {
                 kbHeightConstraint.constant = keyboardHeight
-//                contextAreaHeightConstraint.constant = contextAreaHeight+ 0.4 * elasticLimit(-dist.y)
                 textHeightConstraint.constant = textHeight + 0.4 * elasticLimit(-dist.y)
             }
             else {

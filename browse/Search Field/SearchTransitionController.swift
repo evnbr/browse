@@ -76,10 +76,16 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         
         browserVC?.toolbar.backgroundView.alpha = 1
         typeaheadVC.scrim.alpha = isExpanding ? 0 : 1
-        typeaheadVC.toolbarBottomMargin.constant = isExpanding ? 0 : (isAnimatingFromToolbar ? SPACE_FOR_INDICATOR : -48)
-        typeaheadVC.contextAreaHeightConstraint.constant = isExpanding ? typeaheadVC.contextAreaHeight: 0
-        typeaheadVC.kbHeightConstraint.constant = (isExpanding && showKeyboard) ? typeaheadVC.keyboardHeight : 0
         
+        typeaheadVC.kbHeightConstraint.constant = isExpanding && showKeyboard
+            ? typeaheadVC.keyboardHeight : 0
+        typeaheadVC.contextAreaHeightConstraint.springConstant(to: isExpanding
+            ? typeaheadVC.contextAreaHeight : 0)
+        typeaheadVC.toolbarBottomMargin.springConstant(to: isExpanding && showKeyboard
+            ? 0 : (isAnimatingFromToolbar ? SPACE_FOR_INDICATOR : -48))
+        typeaheadVC.textHeightConstraint.springConstant(to: isExpanding
+            ? typeaheadVC.textHeight : 40)
+
         titleSnap?.scale = isExpanding ? 1 : 1.15
         titleSnap?.alpha = isExpanding ? 1 : 0
         toolbarSnap?.alpha = isExpanding ? 1 : -1
@@ -90,8 +96,6 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         typeaheadVC.textView.transform = CGAffineTransform(translationX: self.isExpanding ? titleHorizontalShift : 0, y: 0)
         typeaheadVC.cancel.transform = CGAffineTransform(translationX: self.isExpanding ? cancelShiftH : 0, y: 0)
         if isDismissing { toolbarSnap?.center.x -= titleHorizontalShift * 0.5 }
-
-        typeaheadVC.textHeightConstraint.constant = isExpanding ? typeaheadVC.textHeight : 40
         
         UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: {
             typeaheadVC.suggestionTable.alpha = self.isExpanding ? 1 : 0
@@ -122,8 +126,27 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             typeaheadVC.focusTextView()
         }
         
+        func completeTransition() {
+            if self.isDismissing {
+                typeaheadVC.view.removeFromSuperview()
+            }
+            toolbarSnap?.removeFromSuperview()
+            titleSnap?.removeFromSuperview()
+            browserVC?.locationBar.labelHolder.isHidden = false
+            
+            //            browserVC?.locationBar.isHidden = false
+            browserVC?.backButton.isHidden = false
+            browserVC?.tabButton.isHidden = false
+            browserVC?.toolbar.backgroundView.alpha = 1
+            
+            transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
+        }
+        
+        let completeEarly = !showKeyboard && isExpanding
+        if completeEarly { completeTransition() }
+        
         UIView.animate(
-            withDuration: showKeyboard ? 0.5 : 0.2,
+            withDuration: 0.5,
             delay: 0.0,
             usingSpringWithDamping: 1,
             initialSpringVelocity: 0.0,
@@ -155,19 +178,7 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
                     tbar.alpha = self.isExpanding ? 0 : 1
                 }
         }, completion: { _ in
-            if self.isDismissing {
-                typeaheadVC.view.removeFromSuperview()
-            }
-            toolbarSnap?.removeFromSuperview()
-            titleSnap?.removeFromSuperview()
-            browserVC?.locationBar.labelHolder.isHidden = false
-
-//            browserVC?.locationBar.isHidden = false
-            browserVC?.backButton.isHidden = false
-            browserVC?.tabButton.isHidden = false
-            browserVC?.toolbar.backgroundView.alpha = 1
-
-            transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
+            if !completeEarly { completeTransition() }
         })
     }
     
