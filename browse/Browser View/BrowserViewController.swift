@@ -42,7 +42,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var cardView: UIView!
     var contentView: UIView!
     var overlay: UIView!
-    var gradientOverlay: GradientView!
     
     var backButton: ToolbarIconButton!
     var stopButton: ToolbarIconButton!
@@ -226,16 +225,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         overlay.backgroundColor = UIColor.black
         overlay.alpha = 0
         
-        gradientOverlay = GradientView(frame: view.bounds)
-        gradientOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        gradientOverlay.alpha = 0
-        
         view.addSubview(cardView)
         cardView.addSubview(shadowView)
         cardView.addSubview(contentView)
         
         statusBar = ColorStatusBarView()
-        
         toolbar = setUpToolbar()
         
         toolbarPlaceholder.translatesAutoresizingMaskIntoConstraints = false
@@ -244,7 +238,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         toolbarPlaceholder.addGestureRecognizer(tap)
         
         contentView.addSubview(toolbarPlaceholder)
-        
         
         snap.contentMode = .scaleAspectFill
         snap.translatesAutoresizingMaskIntoConstraints = false
@@ -256,17 +249,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         contentView.addSubview(snap)
         contentView.addSubview(toolbar)
         contentView.addSubview(statusBar)
-        
         contentView.bringSubview(toFront: statusBar)
         contentView.bringSubview(toFront: toolbar)
         
         contentView.addSubview(overlay)
         constrain4(contentView, overlay)
 
-//        contentView.addSubview(gradientOverlay)
-//        constrainTop3(contentView, gradientOverlay)
-        
-        gradientOverlay.heightAnchor.constraint(equalToConstant: THUMB_H)
 
         constrainTop3(statusBar, contentView)
         statusHeightConstraint = statusBar.heightAnchor.constraint(equalToConstant: Const.statusHeight)

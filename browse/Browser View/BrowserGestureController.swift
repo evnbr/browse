@@ -239,8 +239,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let adjustedX = gesturePos.x - startPoint.x
         let yGestureInfluence = gesturePos.y
 
-        self.vc.gradientOverlay.alpha = gesturePos.y.progress(from: 0, to: 400)
-
         let verticalProgress = gesturePos.y.progress(from: 0, to: 200).clip()
         
         let sign : CGFloat = direction == .left ? 1 : -1
@@ -708,7 +706,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         UIView.animate(withDuration: 0.3) {
             self.vc.overlay.alpha = 0
-            self.vc.gradientOverlay.alpha = 0
         }
     }
 
@@ -741,7 +738,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         vc.home.setThumbsVisible()
         
         UIView.animate(withDuration: 0.2) {
-            self.vc.gradientOverlay.alpha = 0
             self.vc.overlay.alpha = 0
             self.vc.statusBar.label.alpha = 0
         }
@@ -753,13 +749,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         if (direction == .top && adjustedY < 0) || (direction == .bottom && adjustedY > 0) {
             endGesture()
-            vc.gradientOverlay.alpha = 0
              vc.resetSizes()
             return
         }
         
-        self.vc.gradientOverlay.alpha = adjustedY.progress(from: 0, to: 400)
-
         if adjustedY > 0 {
             vc.toolbarHeightConstraint.constant = max(0, Const.toolbarHeight)
         }
