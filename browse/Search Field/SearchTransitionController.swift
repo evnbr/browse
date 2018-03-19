@@ -13,6 +13,8 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
     var direction : CustomAnimationDirection!
     var isExpanding  : Bool { return direction == .present }
     var isDismissing : Bool { return direction == .dismiss }
+    
+    var showKeyboard : Bool = true
 
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         return 0.5
@@ -65,7 +67,7 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             endCenter.y -= typeaheadVC.kbHeightConstraint.constant
             endCenter.y -= typeaheadVC.toolbarBottomMargin.constant
         }
-        else {
+        else if showKeyboard {
             endCenter.y -= typeaheadVC.keyboardHeight
         }
 
@@ -76,7 +78,7 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         typeaheadVC.scrim.alpha = isExpanding ? 0 : 1
         typeaheadVC.toolbarBottomMargin.constant = isExpanding ? 0 : (isAnimatingFromToolbar ? SPACE_FOR_INDICATOR : -48)
         typeaheadVC.contextAreaHeightConstraint.constant = isExpanding ? typeaheadVC.contextAreaHeight: 0
-        typeaheadVC.kbHeightConstraint.constant = isExpanding ? typeaheadVC.keyboardHeight : 0
+        typeaheadVC.kbHeightConstraint.constant = (isExpanding && showKeyboard) ? typeaheadVC.keyboardHeight : 0
         
         titleSnap?.scale = isExpanding ? 1 : 1.15
         titleSnap?.alpha = isExpanding ? 1 : 0
@@ -116,8 +118,12 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         switcherVC?.fab.scale = isExpanding ? 1 : 0.2
         switcherVC?.fab.springScale(to: isExpanding ? 0.2 : 1)
         
+        if showKeyboard && isExpanding {
+            typeaheadVC.focusTextView()
+        }
+        
         UIView.animate(
-            withDuration: 0.5,
+            withDuration: showKeyboard ? 0.5 : 0.2,
             delay: 0.0,
             usingSpringWithDamping: 1,
             initialSpringVelocity: 0.0,
@@ -143,7 +149,7 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
                 
                 if let tbar = toolbarSnap, let tc = browserVC?.toolbar.center {
                     tbar.center = tc
-                    if self.isExpanding {
+                    if self.isExpanding && self.showKeyboard {
                         tbar.center.y -= typeaheadVC.keyboardHeight - 24
                     }
                     tbar.alpha = self.isExpanding ? 0 : 1

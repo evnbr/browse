@@ -177,7 +177,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         if scrollView.isDragging
         && scrollView.isTracking
         && scrollView.isScrollableY
-        && !vc.isDisplayingSearch
         && !scrollView.isOverScrolledTop
         && !scrollView.isOverScrolledBottom
         && !vc.webView.isLoading {

@@ -27,7 +27,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var aspectConstraint : NSLayoutConstraint!
     var statusHeightConstraint : NSLayoutConstraint!
 
-    var isDisplayingSearch : Bool = false
     var colorSampler: WebviewColorSampler!
     
     lazy var searchVC = SearchViewController()
@@ -286,6 +285,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         let historyPress = UILongPressGestureRecognizer(target: self, action: #selector(showHistory))
         backButton.addGestureRecognizer(historyPress)
         
+        let searchSwipe = UIPanGestureRecognizer(target: self, action: #selector(showSearchGesture(_:)))
+        locationBar.addGestureRecognizer(searchSwipe)
+
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
     }
@@ -296,8 +298,16 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         present(hNav, animated: true, completion: nil)
     }
     
-    var topWindow : UIWindow!
-    var topLabel : UILabel!
+    @objc func showSearchGesture(_ gesture: UIPanGestureRecognizer) {
+        if gesture.state == .began {
+            searchVC.displaySearchTransition.showKeyboard = false
+            searchVC.setBackground(toolbar.lastColor)
+            present(searchVC, animated: true) {
+                self.searchVC.displaySearchTransition.showKeyboard = true
+            }
+        }
+        searchVC.handleEntrancePan(gesture)
+    }
     
     var cardViewDefaultFrame : CGRect {
         return CGRect(
@@ -311,7 +321,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     func hideToolbar(animated : Bool = true) {
         if !webView.scrollView.isScrollableY { return }
         if webView.isLoading { return }
-        if isDisplayingSearch { return }
         if toolbarHeightConstraint.constant == 0 { return }
         
         UIView.animate(
@@ -333,7 +342,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         showToolbar(adjustScroll: true)
     }
     func showToolbar(animated: Bool = true, adjustScroll: Bool = false) {
-        if isDisplayingSearch { return }
         if toolbarHeightConstraint.constant == Const.toolbarHeight { return }
         
         let dist = Const.toolbarHeight - toolbarHeightConstraint.constant

@@ -32,7 +32,7 @@ class SearchViewController: UIViewController {
     
     var keyboardSnapshot: UIImage?
     
-    var isDismissing = false
+    var isTransitioning = false
 
     var displaySearchTransition = SearchTransitionController()
     
@@ -109,7 +109,7 @@ class SearchViewController: UIViewController {
 
         let dismissPanner = UIPanGestureRecognizer()
         dismissPanner.delegate = self
-        dismissPanner.addTarget(self, action: #selector(verticalPan(gesture:)))
+        dismissPanner.addTarget(self, action: #selector(handleDimissPan(_:)))
         dismissPanner.cancelsTouchesInView = true
         dismissPanner.delaysTouchesBegan = false
         view.addGestureRecognizer(dismissPanner)
@@ -169,18 +169,18 @@ class SearchViewController: UIViewController {
         contextAreaHeightConstraint = textView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: suggestionSpacer)
         suggestionHeightConstraint = suggestionTable.heightAnchor.constraint(equalToConstant: suggestionTable.rowHeight * 4)
         actionsHeight = pageActionView.heightAnchor.constraint(equalToConstant: 0)
-        contentView.addSubview(pageActionView, constraints: [
-            actionsHeight,
-            pageActionView.bottomAnchor.constraint(equalTo: textView.topAnchor),
-            pageActionView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor),
-            pageActionView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor),
-        ])
         contentView.addSubview(suggestionTable, constraints: [
             contextAreaHeightConstraint,
             suggestionHeightConstraint,
             suggestionTable.leftAnchor.constraint(equalTo: contentView.leftAnchor),
             suggestionTable.rightAnchor.constraint(equalTo: contentView.rightAnchor),
             suggestionTable.bottomAnchor.constraint(equalTo: textView.topAnchor, constant: -8),
+        ])
+        contentView.addSubview(pageActionView, constraints: [
+            actionsHeight,
+            pageActionView.bottomAnchor.constraint(equalTo: textView.topAnchor),
+            pageActionView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor),
+            pageActionView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor),
         ])
 
         if (showingCancel) {
@@ -266,7 +266,10 @@ class SearchViewController: UIViewController {
             updateSuggestion(for: textView.text)
         }
         
-        keyboardPlaceholder.image = nil
+//        keybsoardPlaceholder.image = nil
+    }
+    
+    func focusTextView() {
         textView.becomeFirstResponder()
         textView.selectAll(nil) // if not nil, will show actions
     }
@@ -293,7 +296,7 @@ class SearchViewController: UIViewController {
         let keyboardRectangle = keyboardFrame.cgRectValue
         keyboardHeight = keyboardRectangle.height// + 12
         
-        if textView.isFirstResponder && !kbHeightConstraint.isPopAnimating && !isDismissing {
+        if textView.isFirstResponder && !kbHeightConstraint.isPopAnimating && !isTransitioning {
             kbHeightConstraint.constant = keyboardHeight
         }
     }
@@ -424,15 +427,19 @@ extension SearchViewController : UITableViewDataSource {
 let SPACE_FOR_INDICATOR : CGFloat = 26
 
 extension SearchViewController : UIGestureRecognizerDelegate {
-    @objc func verticalPan(gesture: UIPanGestureRecognizer) {
+    private func verticalPan(gesture: UIPanGestureRecognizer, isEntrance: Bool = false) {
         guard showingCancel else { return }
 
-        let dist = gesture.translation(in: view)
+        var dist = gesture.translation(in: view)
         let vel = gesture.velocity(in: view)
+        
+        if isEntrance {
+            dist.y += keyboardHeight
+        }
 
         if gesture.state == .began {
             showFakeKeyboard()
-            isDismissing = true
+            isTransitioning = true
             textView.isScrollEnabled = true
         }
         else if gesture.state == .changed {
@@ -458,7 +465,7 @@ extension SearchViewController : UIGestureRecognizerDelegate {
             }
         }
         else if gesture.state == .ended || gesture.state == .cancelled {
-            isDismissing = false
+            isTransitioning = false
             if (vel.y > 100 || kbHeightConstraint.constant < 100) && showingCancel {
                 dismissSelf()
             }
@@ -484,6 +491,15 @@ extension SearchViewController : UIGestureRecognizerDelegate {
         }
     }
     
+    @objc func handleDimissPan(_ gesture: UIPanGestureRecognizer) {
+        verticalPan(gesture: gesture, isEntrance: false)
+    }
+    
+    func handleEntrancePan(_ gesture: UIPanGestureRecognizer) {
+        isTransitioning = true
+        verticalPan(gesture: gesture, isEntrance: true)
+    }
+    
     func showFakeKeyboard() {
         keyboardPlaceholder.isHidden = false
         keyboardPlaceholder.image = keyboardSnapshot
@@ -506,6 +522,7 @@ extension SearchViewController : UIGestureRecognizerDelegate {
     }
     
     @objc func updateKeyboardSnapshot() {
+        if !textView.isFirstResponder { return }
         keyboardSnapshot = takeKeyboardSnapshot()
     }
     
