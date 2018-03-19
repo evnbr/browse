@@ -321,7 +321,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     func hideToolbar(animated : Bool = true) {
-        if !webView.scrollView.isScrollable { return }
+        if !webView.scrollView.isScrollableY { return }
         if webView.isLoading { return }
         if isDisplayingSearch { return }
         if toolbarHeightConstraint.constant == 0 { return }
@@ -849,7 +849,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
             let sv = self.webView.scrollView
             
             let transparentStatusBar = (
-                sv.isScrollable
+                sv.isScrollableY
                 && sv.contentOffset.y > Const.statusHeight
                 && !isFixed
             )
@@ -873,7 +873,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     func bottomColorChange(_ newColor: UIColor) {
         currentTab?.currentItem?.bottomColor = newColor
         
-        let newAlpha : CGFloat = webView.scrollView.isScrollable ? 0.8 : 1
+        let newAlpha : CGFloat = webView.scrollView.isScrollableY ? 0.8 : 1
         if newAlpha != self.toolbar.backgroundView.alpha {
             UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
                 self.toolbar.backgroundView.alpha = newAlpha

@@ -344,6 +344,7 @@ extension SearchViewController : UITextViewDelegate {
                     heightForRowAt: IndexPath(row: index, section: 0))
             }
             contextAreaHeight = suggestionH + suggestionSpacer
+            suggestionHeightConstraint.constant = suggestionH
         }
 
         contextAreaHeightConstraint.springConstant(to: contextAreaHeight)

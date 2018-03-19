@@ -87,14 +87,29 @@ func constrainBottom3(_ A: UIView, _ B: UIView) {
 
 // MARK: - UIScrollView
 extension UIScrollView {
-    var isScrollable : Bool {
+    var isScrollableY: Bool {
         return contentSize.height > bounds.height
     }
-    var isOverScrolledTop : Bool {
+    var isScrollableX: Bool {
+        return contentSize.width > bounds.width
+    }
+    var isOverScrolledTop: Bool {
         return contentOffset.y < 0
     }
-    var isOverScrolledBottom : Bool {
-        return contentOffset.y > (contentSize.height - bounds.height)
+    var isOverScrolledLeft: Bool {
+        return contentOffset.x < 0
+    }
+    var isOverScrolledBottom: Bool {
+        return contentOffset.y > maxScrollY
+    }
+    var isOverScrolledRight: Bool {
+        return contentOffset.x > maxScrollX
+    }
+    var maxScrollX: CGFloat {
+        return contentSize.width - bounds.size.width
+    }
+    var maxScrollY: CGFloat {
+        return contentSize.height - bounds.size.height
     }
 }
 

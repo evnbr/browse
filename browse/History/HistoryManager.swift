@@ -87,6 +87,13 @@ class HistoryManager: NSObject {
     }
 }
 
+// Convenience to get HistoryItem from webview
+extension WKBackForwardListItem {
+    var model : HistoryItem? {
+        return HistoryManager.shared.page(from: self)
+    }
+}
+
 // Deal with snapshots
 extension HistoryManager {
     func snapshot(for item: HistoryItem) -> UIImage? {
@@ -120,7 +127,6 @@ extension HistoryManager {
         }
     }
 }
-
 
 fileprivate extension FileManager {
     static var defaultDirURL : URL? {

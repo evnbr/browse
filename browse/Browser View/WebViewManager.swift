@@ -62,6 +62,7 @@ class WebViewManager: NSObject {
         webView.scrollView.contentInset = .zero
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.scrollView.clipsToBounds = false
+        webView.scrollView.alwaysBounceHorizontal = true
         webView.allowsLinkPreview = false
         
         return webView
