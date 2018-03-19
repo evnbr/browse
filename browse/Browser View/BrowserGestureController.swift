@@ -1,9 +1,15 @@
 //
-//  BrowserViewInteractiveDismiss.swift
+//  BrowserGestureController.swift
 //  browse
 //
 //  Created by Evan Brooks on 6/20/17.
 //  Copyright © 2017 Evan Brooks. All rights reserved.
+//
+//  We want to capture swipes without interfering with any of
+//  the web content. Since we don't know what's in the web
+//  content, we just see if any actions bubble out to
+//  the elastic scrollview. If they do, we cancel
+//  the scroll and begin shifting the cardview ourselves.
 //
 
 import UIKit
@@ -15,13 +21,11 @@ enum GestureNavigationDirection {
     case left
     case right
 }
-
 enum GestureNavigationAction {
-    case back
-    case forward
-    case toParent
+    case goBack
+    case goForward
+    case goToParent
 }
-
 
 let DISMISSING = SpringTransitionState.start
 let PAGING = SpringTransitionState.end
@@ -155,13 +159,13 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 //            scrollView.contentOffset.y = max(startScroll.y, 0)
 //        }
         
-        if scrollView.isOverScrolledLeft && isInteractiveDismiss{
+        if scrollView.isOverScrolledLeft && isInteractiveDismiss {
             // Cancel, assume gesture will handle
             if !scrollView.isDecelerating {
                 scrollView.contentOffset.x = 0
             }
         }
-        else if scrollView.isOverScrolledRight && isInteractiveDismiss{
+        else if scrollView.isOverScrolledRight && isInteractiveDismiss {
             if !scrollView.isDecelerating {
                 scrollView.contentOffset.x = scrollView.maxScrollX
             }
@@ -323,15 +327,12 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         ))
         
         
-        
-        vc.statusBar.label.alpha = cardView.frame.origin.y.progress(from: 100, to: 200).clip().blend(from: 0, to: 1)
-
         let thumbAlpha = switcherRevealProgress.progress(from: 0, to: 0.7).clip().blend(from: 0, to: 1)
         vc.home.navigationController?.view.alpha = thumbAlpha
         if direction != .left { mockAlpha.setValue(of: DISMISSING, to: thumbAlpha.reverse()) }
         
         let isVerticalDismiss = gesturePos.y > dismissPointY
-        let isHorizontalDismiss = abs(adjustedX) > 80
+        let isHorizontalDismiss = false //abs(adjustedX) > 80
         let newState = (isVerticalDismiss || (cantPage && isHorizontalDismiss)) ? DISMISSING : PAGING
         dismissSwitch.springState(newState)
 
@@ -386,7 +387,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             if vc.webView.canGoBack
             && mockCardView.frame.origin.x + mockCardView.frame.width > backPointX {
                 vc.webView.goBack()
-                animateCommit(action: .back, velocity: vel)
+                animateCommit(action: .goBack, velocity: vel)
                 vc.hideUntilNavigationDone()
             }
             else if canGoBackToParent
@@ -396,25 +397,31 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                         let vc = self.vc!
                         self.mockCardView.imageView.image = vc.currentTab?.currentItem?.snapshot
                         vc.setTab(parentTab)
-                        self.animateCommit(action: .toParent)
+                        self.animateCommit(action: .goToParent)
                         vc.home.moveTabToEnd(parentTab)
                     }
                 }
             }
             else {
-                commitDismiss(velocity: vel)
-//                reset(velocity: vel)
+//                commitDismiss(velocity: vel)
+                reset(velocity: vel)
             }
         }
         else if adjustedX < -backPointX && isHorizontal {
             if vc.webView.canGoForward {
+                print("Could go forward to one of the following")
+                let items = vc.currentTab?.currentItem?.forwardItems?.allObjects.map({ item in
+                    if let item = item as? HistoryItem {
+                        print("- \(item.title ?? "No Title")")
+                    }
+                })
                 vc.webView.goForward()
-                animateCommit(action: .forward, velocity: vel)
+                animateCommit(action: .goForward, velocity: vel)
                 vc.hideUntilNavigationDone()
             }
             else {
-                commitDismiss(velocity: vel)
-//                reset(velocity: vel)
+//                commitDismiss(velocity: vel)
+                reset(velocity: vel)
             }
         }
         else {
@@ -533,6 +540,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         startScroll = vc.webView.scrollView.contentOffset
         vc.webView.scrollView.showsVerticalScrollIndicator = false
+        vc.webView.scrollView.cancelScroll()
         
         vc.currentTab?.updateSnapshot(from: vc.webView)
         vc.contentView.radius = Const.shared.cardRadius
@@ -635,7 +643,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     func swapCardAndPlaceholder(for action: GestureNavigationAction) {
         // Swap image
         vc.setSnapshot(mockCardView.imageView.image)
-        if action != .toParent {
+        if action != .goToParent {
             mockCardView.imageView.image = vc.currentTab?.currentItem?.snapshot
         }
         
@@ -666,7 +674,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         vc.overlay.alpha = mockAlpha
         
         // Swap order
-        if action == .toParent || action == .back {
+        if action == .goToParent || action == .goBack {
             view.insertSubview(mockCardView, aboveSubview: cardView)
         } else {
             view.insertSubview(mockCardView, belowSubview: cardView)
@@ -676,9 +684,22 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     func animateCommit(action: GestureNavigationAction, velocity: CGPoint = .zero) {
         dismissSwitch.cancel()
         swapCardAndPlaceholder(for: action)
-        print(action)
 
-        cardView.springCenter(to: view.center, at: velocity) {_,_ in
+        var adjustedVel = velocity
+        adjustedVel.y = 0
+        
+        mockPositioner.end = self.view.center
+        let mockShift = mockCardView.bounds.width
+        if action == .goBack || action == .goToParent {
+            mockPositioner.end.x += mockShift
+        }
+        else if action == .goForward {
+            mockPositioner.end.x -= mockShift / 2
+        }
+
+        // dont use velocity for this part, since it
+        // wasn't directly tracking gesture
+        cardView.springCenter(to: view.center, at: adjustedVel) {_,_ in
             self.vc.resetSizes()
             self.vc.view.bringSubview(toFront: self.cardView)
             self.vc.contentView.radius = 0
@@ -686,18 +707,13 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             UIView.animate(withDuration: 0.2, animations: {
                 self.vc.home.setNeedsStatusBarAppearanceUpdate()
             })
-            if action == .toParent {
+            if action == .goToParent {
                 self.vc.isSnapshotMode = false
             }
             self.vc.webView.scrollView.showsVerticalScrollIndicator = true
         }
         
-        mockPositioner.end = self.view.center
-        let mockShift = mockCardView.bounds.width
-        if action == .back || action == .toParent { mockPositioner.end.x += mockShift }
-        else if action == .forward { mockPositioner.end.x -= mockShift / 2 }
-
-        mockCardView.springCenter(to: mockPositioner.end, at: velocity) {_,_ in
+        mockCardView.springCenter(to: mockPositioner.end, at: adjustedVel) {_,_ in
             self.mockCardView.removeFromSuperview()
             self.mockCardView.imageView.image = nil
         }
@@ -713,6 +729,9 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         dismissSwitch.cancel()
         vc.webView.scrollView.cancelScroll()
 
+        var hVel = velocity
+        hVel.y = 0
+
         // Move card back to center
         cardView.springCenter(to: view.center, at: velocity) {_,_ in
             UIView.animate(withDuration: 0.2, animations: {
@@ -725,10 +744,15 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
         var mockCenter = self.view.center
         let mockShift = mockCardView.bounds.width
-        if mockCardView.center.x > view.center.x { mockCenter.x += mockShift }
-        else { mockCenter.x -= mockShift / 2 }
+        if mockCardView.center.x > view.center.x {
+            mockCenter.x += mockShift
+        }
+        else {
+            mockCenter.x -= mockShift / 2
+        }
         
-        mockCardView.springCenter(to: mockCenter, at: velocity) {_,_ in
+        /* don't use velocity for this */
+        mockCardView.springCenter(to: mockCenter, at: hVel) {_,_ in
             self.mockCardView.removeFromSuperview()
             self.mockCardView.imageView.image = nil
         }
@@ -816,6 +840,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     }
     
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        // TODO: Want to recognize swipe with scroll,
+        // but not edgeswipe and real swipe at same time
         return true
     }
 }
