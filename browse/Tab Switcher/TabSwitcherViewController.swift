@@ -293,7 +293,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     
     func scrollToBottom() {
         if let cv = self.collectionView {
-            if cv.isScrollable {
+            if cv.isScrollableY {
                 cv.contentOffset.y = cv.contentSize.height - cv.bounds.size.height
             }
         }
@@ -368,25 +368,23 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         switch type {
         case .insert:
-            blockOperations.append(BlockOperation {
-                self.collectionView!.insertItems(at: [newIndexPath!])
+            blockOperations.append(BlockOperation { [weak self] in
+                self?.collectionView!.insertItems(at: [newIndexPath!])
             })
         case .delete:
-            blockOperations.append(BlockOperation {
-                self.collectionView!.deleteItems(at: [indexPath!])
+            blockOperations.append(BlockOperation { [weak self] in
+                self?.collectionView!.deleteItems(at: [indexPath!])
             })
         case .update:
-            blockOperations.append(BlockOperation {
-                self.configureThumbnail(
-                    self.collectionView!.cellForItem(at: indexPath!)!,
-                    withTab: anObject as! Tab)
+            blockOperations.append(BlockOperation { [weak self] in
+                guard let cv = self?.collectionView, let ip = indexPath, let cell = cv.cellForItem(at: ip) else { return }
+                self?.configureThumbnail(cell, withTab: anObject as! Tab)
             })
         case .move:
-            blockOperations.append(BlockOperation {
-                self.configureThumbnail(
-                    self.collectionView!.cellForItem(at: indexPath!)!,
-                    withTab: anObject as! Tab)
-                self.collectionView?.moveItem(at: indexPath!, to: newIndexPath!)
+            blockOperations.append(BlockOperation { [weak self] in
+                guard let cv = self?.collectionView, let ip = indexPath, let cell = cv.cellForItem(at: ip) else { return }
+                self?.configureThumbnail(cell, withTab: anObject as! Tab)
+                cv.moveItem(at: ip, to: newIndexPath!)
             })
         }
     }
