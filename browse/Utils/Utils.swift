@@ -63,6 +63,14 @@ extension CGAffineTransform {
 }
 
 // MARK: - Constraints
+extension UIView {
+    func addSubview(_ child: UIView, constraints: [NSLayoutConstraint]) {
+        addSubview(child)
+        child.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate(constraints)
+    }
+}
+
 func constrain4(_ A: UIView, _ B: UIView) {
     A.topAnchor.constraint(equalTo: B.topAnchor).isActive = true
     A.bottomAnchor.constraint(equalTo: B.bottomAnchor).isActive = true

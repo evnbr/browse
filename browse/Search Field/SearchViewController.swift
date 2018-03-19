@@ -101,10 +101,11 @@ class SearchViewController: UIViewController {
         backgroundView.overlayAlpha = 0.8
         contentView.addSubview(backgroundView)
 
-        contentView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
-        contentView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
-
-        contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        NSLayoutConstraint.activate([
+            contentView.leftAnchor.constraint(equalTo: view.leftAnchor),
+            contentView.rightAnchor.constraint(equalTo: view.rightAnchor),
+            contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
 
         let dismissPanner = UIPanGestureRecognizer()
         dismissPanner.delegate = self
@@ -123,7 +124,6 @@ class SearchViewController: UIViewController {
         suggestionTable.separatorStyle = .none
         suggestionTable.backgroundColor = .clear
         suggestionTable.backgroundView?.backgroundColor = .clear
-        contentView.addSubview(suggestionTable)
 
 //        textView = SearchTextView()
         textView = UITextView()
@@ -165,61 +165,60 @@ class SearchViewController: UIViewController {
         
         pageActionView = PageActionView()
         pageActionView.delegate = self
-        contentView.addSubview(pageActionView)
         
+        contextAreaHeightConstraint = textView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: suggestionSpacer)
+        suggestionHeightConstraint = suggestionTable.heightAnchor.constraint(equalToConstant: suggestionTable.rowHeight * 4)
+        actionsHeight = pageActionView.heightAnchor.constraint(equalToConstant: 0)
+        contentView.addSubview(pageActionView, constraints: [
+            actionsHeight,
+            pageActionView.bottomAnchor.constraint(equalTo: textView.topAnchor),
+            pageActionView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor),
+            pageActionView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor),
+        ])
+        contentView.addSubview(suggestionTable, constraints: [
+            contextAreaHeightConstraint,
+            suggestionHeightConstraint,
+            suggestionTable.leftAnchor.constraint(equalTo: contentView.leftAnchor),
+            suggestionTable.rightAnchor.constraint(equalTo: contentView.rightAnchor),
+            suggestionTable.bottomAnchor.constraint(equalTo: textView.topAnchor, constant: -8),
+        ])
+
         if (showingCancel) {
-            contentView.addSubview(cancel)
-
-            cancel.bottomAnchor.constraint(equalTo: textView.bottomAnchor, constant: -12).isActive = true
-            cancel.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor).isActive = true
-            cancel.widthAnchor.constraint(equalToConstant: cancel.bounds.width).isActive = true
-            cancel.heightAnchor.constraint(equalToConstant: cancel.bounds.height).isActive = true
-
+            contentView.addSubview(cancel, constraints: [
+                cancel.bottomAnchor.constraint(equalTo: textView.bottomAnchor, constant: -12),
+                cancel.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor),
+                cancel.widthAnchor.constraint(equalToConstant: cancel.bounds.width),
+                cancel.heightAnchor.constraint(equalToConstant: cancel.bounds.height),
+            ])
             textView.trailingAnchor.constraint(equalTo: cancel.leadingAnchor).isActive = true
-
         }
         else {
             textView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor).isActive = true
-
         }
-
-        textView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor).isActive = true
-//        textView.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
+        
         textHeightConstraint = textView.heightAnchor.constraint(equalToConstant: 36)
-        textHeightConstraint.isActive = true
-                
-        suggestionTable.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
-        suggestionTable.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
-        suggestionTable.bottomAnchor.constraint(equalTo: textView.topAnchor, constant: -8).isActive = true
-        
-        suggestionHeightConstraint = suggestionTable.heightAnchor.constraint(equalToConstant: suggestionTable.rowHeight * 4)
-        suggestionHeightConstraint.isActive = true
-        
-        pageActionView.bottomAnchor.constraint(equalTo: textView.topAnchor).isActive = true        
-        pageActionView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor).isActive = true
-        pageActionView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor).isActive = true
-
-        actionsHeight = pageActionView.heightAnchor.constraint(equalToConstant: 0)
-        actionsHeight.isActive = true
-
-        contextAreaHeightConstraint = textView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: suggestionSpacer)
-        contextAreaHeightConstraint.isActive = true
-        
-        keyboardPlaceholder.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
-        keyboardPlaceholder.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
-        keyboardPlaceholder.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
-        
         toolbarBottomMargin = keyboardPlaceholder.topAnchor.constraint(equalTo: textView.bottomAnchor)
-        toolbarBottomMargin.isActive = true
         kbHeightConstraint = keyboardPlaceholder.heightAnchor.constraint(equalToConstant: 0)
-        kbHeightConstraint.isActive = true
 
-        NotificationCenter.default.addObserver(self, selector: #selector(updateKeyboardHeight), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(updateKeyboardHeight), name: NSNotification.Name.UIKeyboardWillChangeFrame, object: nil)
+        NSLayoutConstraint.activate([
+            toolbarBottomMargin,
+            textHeightConstraint,
+            textView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor),
+            
+            // Keyboard
+            kbHeightConstraint,
+            keyboardPlaceholder.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            keyboardPlaceholder.leftAnchor.constraint(equalTo: contentView.leftAnchor),
+            keyboardPlaceholder.rightAnchor.constraint(equalTo: contentView.rightAnchor),
+        ])
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(updateKeyboardHeight),
+                                               name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateKeyboardHeight),
+                                               name: NSNotification.Name.UIKeyboardWillChangeFrame, object: nil)
 
         setBackground(defaultBackground)
         updateTextViewSize()
-        
         view.layoutIfNeeded()
     }
     
