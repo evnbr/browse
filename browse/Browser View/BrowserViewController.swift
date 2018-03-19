@@ -258,23 +258,23 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 
         constrainTop3(statusBar, contentView)
         statusHeightConstraint = statusBar.heightAnchor.constraint(equalToConstant: Const.statusHeight)
-        statusHeightConstraint.isActive = true
         
-        snap.topAnchor.constraint(equalTo: statusBar.bottomAnchor).isActive = true
-        snap.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
-        snap.widthAnchor.constraint(equalTo: contentView.widthAnchor).isActive = true
         snap.isHidden = true
-        
         aspectConstraint = snap.heightAnchor.constraint(equalTo: snap.widthAnchor, multiplier: 1)
-        aspectConstraint.isActive = true
         
-        toolbar.centerXAnchor.constraint(equalTo: cardView.centerXAnchor).isActive = true
-        toolbar.widthAnchor.constraint(equalTo: cardView.widthAnchor).isActive = true
-        toolbar.bottomAnchor.constraint(equalTo: toolbarPlaceholder.bottomAnchor).isActive = true
-        
-        toolbarPlaceholder.leftAnchor.constraint(equalTo: cardView.leftAnchor).isActive = true
-        toolbarPlaceholder.rightAnchor.constraint(equalTo: cardView.rightAnchor).isActive = true
-        toolbarPlaceholder.heightAnchor.constraint(equalToConstant: Const.toolbarHeight).isActive = true
+        NSLayoutConstraint.activate([
+            statusHeightConstraint,
+            aspectConstraint,
+            snap.topAnchor.constraint(equalTo: statusBar.bottomAnchor),
+            snap.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            snap.widthAnchor.constraint(equalTo: contentView.widthAnchor),
+            toolbar.centerXAnchor.constraint(equalTo: cardView.centerXAnchor),
+            toolbar.widthAnchor.constraint(equalTo: cardView.widthAnchor),
+            toolbar.bottomAnchor.constraint(equalTo: toolbarPlaceholder.bottomAnchor),
+            toolbarPlaceholder.leftAnchor.constraint(equalTo: cardView.leftAnchor),
+            toolbarPlaceholder.rightAnchor.constraint(equalTo: cardView.rightAnchor),
+            toolbarPlaceholder.heightAnchor.constraint(equalToConstant: Const.toolbarHeight)
+        ])
         
         accessoryView = setupAccessoryView()
         
@@ -826,7 +826,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
 
     @objc func keyboardWillHide(notification: NSNotification) {
         // Hack to prevent accessory of showing up at bottom
-//        accessoryHeightConstraint?.constant = 0
+        accessoryHeightConstraint?.constant = 0
     }
 
     
