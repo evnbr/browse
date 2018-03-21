@@ -16,8 +16,8 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     var _fetchedResultsController: NSFetchedResultsController<Tab>? = nil
     var blockOperations: [BlockOperation] = []
 
-    var fabConstraint : NSLayoutConstraint!
     var fab : FloatButton!
+    var fabSnapshot : UIView?
     
     let reuseIdentifier = "TabCell"
     let sectionInsets = UIEdgeInsets(top: 120.0, left: THUMB_INSET, bottom: 8.0, right: THUMB_INSET)
@@ -60,21 +60,16 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         
         
         fab = FloatButton(
-            frame: CGRect(
-                x: view.bounds.width - 80,
-                y: view.bounds.height - Const.toolbarHeight,
-                width: 64,
-                height: 64),
+            frame: CGRect(x: 0, y: 0, width: 64, height: 64),
             icon: UIImage(named: "add"),
-            onTap: self.showSearch //self.addTab
+            onTap: self.showSearch
         )
-        view.addSubview(fab)
-        
-        fabConstraint = view.bottomAnchor.constraint(equalTo: fab.bottomAnchor, constant: 32.0)
-        fabConstraint.isActive = true
-        fab.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        fab.widthAnchor.constraint(equalToConstant: 64).isActive = true
-        fab.heightAnchor.constraint(equalToConstant: 64).isActive = true
+        view.addSubview(fab, constraints: [
+            view.bottomAnchor.constraint(equalTo: fab.bottomAnchor, constant: 32),
+            fab.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            fab.widthAnchor.constraint(equalToConstant: 64),
+            fab.heightAnchor.constraint(equalToConstant: 64),
+        ])
 
         collectionView?.contentInset = UIEdgeInsets(
             top: Const.statusHeight,
@@ -304,6 +299,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     
     override func viewDidAppear(_ animated: Bool) {
         navigationController?.isNavigationBarHidden = true
+        fabSnapshot = fab.snapshotView(afterScreenUpdates: false)
         
         isFirstLoad = false
     }

@@ -43,8 +43,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         let browserVC = (isExpanding ? toVC : fromVC) as! BrowserViewController
         let homeVC = homeNav.topViewController as! TabSwitcherViewController
         
-        homeVC.fab.isHidden = false
-        let snapFab = homeVC.fab.snapshotView(afterScreenUpdates: false)
+        let snapFab = homeVC.fabSnapshot
         homeVC.fab.isHidden = true
 
         // TODO: This is not necessarily the correct thumb.
@@ -185,6 +184,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
 
         if let fab = snapFab {
             containerView.addSubview(fab)
+            fab.layer.zPosition = 99
             let currFabCenter = homeVC.fab.center
             var endFabCenter = currFabCenter
             endFabCenter.y += 120
