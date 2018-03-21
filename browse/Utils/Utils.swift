@@ -110,11 +110,18 @@ extension UIScrollView {
     var isOverScrolledBottom: Bool {
         return contentOffset.y > maxScrollY
     }
+    var isOverScrolledBottomWithInset: Bool {
+        return contentOffset.y > maxScrollYWithInset
+    }
     var isOverScrolledRight: Bool {
         return contentOffset.x > maxScrollX
     }
     var maxScrollX: CGFloat {
         return contentSize.width - bounds.size.width
+    }
+    var maxScrollYWithInset: CGFloat {
+        // handle negative content inset used on webview
+        return contentSize.height - bounds.size.height + contentInset.bottom
     }
     var maxScrollY: CGFloat {
         return contentSize.height - bounds.size.height
