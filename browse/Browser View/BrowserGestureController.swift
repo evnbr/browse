@@ -306,7 +306,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             if isToParent {
                 mockAlpha.setValue(of: DISMISSING, to: thumbAlpha.reverse())
                 mockPositioner.setValue(of: DISMISSING, to: CGPoint(
-                    x: dismissingPoint.x,
+                    x: view.center.x + (dismissingPoint.x - view.center.x) * 0.9,
                     y: dismissingPoint.y - 160 * switcherRevealProgress ))
             }
             else {
