@@ -267,17 +267,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         overlay.bounds = layoutAttributes.bounds
         layer.zPosition = CGFloat(layoutAttributes.zIndex)
     }
-    
-    func frameForSnap(_ snap : UIView) -> CGRect {
-        let aspect = snap.frame.height / snap.frame.width
-        return CGRect(
-            x: 0,
-            y: THUMB_OFFSET_COLLAPSED,
-            width: frame.width,
-            height: aspect * frame.width
-        )
-    }
-
 }
 
 

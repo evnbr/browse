@@ -43,16 +43,10 @@ class ColorStatusBarView : GradientColorChangeView {
         self.addSubview(label)
     }
     
-//    convenience init(color: UIColor) {
-//        self.init()
-//        self.backgroundColor = color
-//    }
-    
     override func tintColorDidChange() {
         super.tintColorDidChange()
         label.textColor = tintColor
     }
-
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")

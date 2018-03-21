@@ -272,9 +272,9 @@
 			isa = PBXGroup;
 			children = (
 				A97CB0711EC53DCD005DDBD1 /* BrowserViewController.swift */,
+				A92C9C3A1EF8B5E600D8AAA3 /* BrowserGestureController.swift */,
 				A907DBAD205DB7A6009554C9 /* WebViewManager.swift */,
 				A9EF36D41F4A6451005112E2 /* WKWebview+Toolbar.swift */,
-				A92C9C3A1EF8B5E600D8AAA3 /* BrowserGestureController.swift */,
 				A9AA4A571FF72471001AB639 /* PlaceholderView.swift */,
 				A92C9C381EF5D66B00D8AAA3 /* BrowserViewController+WKNavigationDelegate.swift */,
 				A97BF8301EF3B5B900B9ECB4 /* BrowserViewController+WKUIDelegate.swift */,
