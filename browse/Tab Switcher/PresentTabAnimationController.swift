@@ -147,6 +147,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             homeVC.setNeedsStatusBarAppearanceUpdate()
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
             homeVC.updateThumbs()
+            homeVC.collectionView?.reloadData() // TODO: touch targets dont work without this
         }
         func maybeFinish() {
             if viewAnimFinished
@@ -180,7 +181,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         centerAnim?.springSpeed = 10
         centerAnim?.springBounciness = 2
         homeVC.springCards(expanded: isExpanding, at: velocity)
-        
         
 
         if let fab = snapFab {
