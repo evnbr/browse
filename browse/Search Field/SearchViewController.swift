@@ -183,6 +183,8 @@ class SearchViewController: UIViewController {
             pageActionView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor),
         ])
 
+        textView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor).isActive = true
+
         if (showingCancel) {
             contentView.addSubview(cancel, constraints: [
                 cancel.bottomAnchor.constraint(equalTo: textView.bottomAnchor, constant: -12),
@@ -190,10 +192,6 @@ class SearchViewController: UIViewController {
                 cancel.widthAnchor.constraint(equalToConstant: cancel.bounds.width),
                 cancel.heightAnchor.constraint(equalToConstant: cancel.bounds.height),
             ])
-            textView.trailingAnchor.constraint(equalTo: cancel.leadingAnchor).isActive = true
-        }
-        else {
-            textView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor).isActive = true
         }
         
         textHeightConstraint = textView.heightAnchor.constraint(equalToConstant: 36)
@@ -357,7 +355,7 @@ extension SearchViewController : UITextViewDelegate {
     func updateTextViewSize() {
         let fixedWidth = textView.frame.size.width
 //        textView.textContainerInset = UIEdgeInsetsMake(10, 12, 10, 12)
-        textView.textContainerInset = UIEdgeInsetsMake(10, 20, 22, 0)
+        textView.textContainerInset = UIEdgeInsetsMake(10, 20, 22, showingCancel ? cancel.bounds.width : 0 )
         let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
         textView.isScrollEnabled = fullTextSize.height > SEARCHVIEW_MAX_H
         textHeight = max(20, min(fullTextSize.height, SEARCHVIEW_MAX_H))
@@ -440,7 +438,6 @@ extension SearchViewController : UIGestureRecognizerDelegate {
         if gesture.state == .began {
             showFakeKeyboard()
             isTransitioning = true
-            textView.isScrollEnabled = true
         }
         else if gesture.state == .changed {
             if dist.y < 0 {
@@ -471,7 +468,7 @@ extension SearchViewController : UIGestureRecognizerDelegate {
             else {
                 func finish() {
                     self.showRealKeyboard()
-                    self.textView.isScrollEnabled = false
+                    self.updateTextViewSize() // maybe reenable scrolls
                 }
                 let fromBelow = kbHeightConstraint.constant < keyboardHeight
                 kbHeightConstraint.springConstant(to: keyboardHeight) {_,_ in
