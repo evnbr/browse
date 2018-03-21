@@ -71,7 +71,7 @@ class PlaceholderView: UIView {
             constant: 0)
         aspectConstraint.isActive = true
         
-        overlay = UIView(frame: bounds)
+        overlay = UIView(frame: bounds.insetBy(dx: -20, dy: -20) ) // inset since the exact same size flickers
         overlay.backgroundColor = .black
         overlay.alpha = 0
         overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]

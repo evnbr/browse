@@ -156,8 +156,8 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
 //        colorChangeAnimation.delegate = self
         
         
-        CATransaction.setCompletionBlock({
-            self.backgroundView.backgroundColor = toColor
+        CATransaction.setCompletionBlock({ [weak self] in
+            self?.backgroundView.backgroundColor = toColor
             gLayer.removeAnimation(forKey: "gradientChange")
             gLayer.removeFromSuperlayer()
         })

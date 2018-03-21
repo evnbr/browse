@@ -277,8 +277,6 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         browserVC.modalPresentationStyle = .custom
         browserVC.transitioningDelegate = self
         
-        // TODO: settab is too expensive, noticable delay. only
-        // need to set screenshot, not rearrange webview
         self.browserVC.setTab(tab)
         
         present(browserVC, animated: animated, completion: {

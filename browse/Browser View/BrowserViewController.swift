@@ -120,7 +120,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     
     func setTab(_ newTab: Tab) {
-        if newTab === currentTab { return }
+        if newTab == currentTab { return }
         
         let oldWebView = webView
         
@@ -141,7 +141,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         if let img = newTab.currentItem?.snapshot {
             snap.image = img
-//            updateSnapshotPosition()
         }
         else {
             snap.image = nil
@@ -166,14 +165,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         webView.scrollView.isScrollEnabled = true
                 
         contentView.insertSubview(webView, belowSubview: snap)
-        //        topConstraint = webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: Const.statusHeight)
         topConstraint = webView.topAnchor.constraint(equalTo: statusBar.bottomAnchor)
         topConstraint.isActive = true
         
         webView.leftAnchor.constraint(equalTo: cardView.leftAnchor).isActive = true
         webView.rightAnchor.constraint(equalTo: cardView.rightAnchor).isActive = true
         webView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -Const.toolbarHeight).isActive = true
-//        webView.heightAnchor.constraint(equalTo: view.heightAnchor, constant: (-Const.statusHeight - Const.toolbarHeight)).isActive = true
         toolbarPlaceholder.topAnchor.constraint(equalTo: webView.bottomAnchor).isActive = true
         
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
@@ -253,7 +250,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         contentView.addSubview(overlay)
         constrain4(contentView, overlay)
-
 
         constrainTop3(statusBar, contentView)
         statusHeightConstraint = statusBar.heightAnchor.constraint(equalToConstant: Const.statusHeight)
@@ -482,23 +478,21 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             return
         }
         // Image snapshot
-        currentTab?.updateSnapshot(from: webView) { img in
-            self.setSnapshot(img)
+        currentTab?.updateSnapshot(from: webView) { [weak self] img in
+            self?.setSnapshot(img)
             done()
         }
     }
     
     func setSnapshot(_ image : UIImage?) {
-        guard let image = image else {
-            return
-        }
+        guard let image = image else { return }
         snap.image = image
         
         let newAspect = image.size.height / image.size.width
-        if newAspect != self.aspectConstraint.multiplier {
-            self.snap.removeConstraint(self.aspectConstraint)
-            self.aspectConstraint = self.snap.heightAnchor.constraint(equalTo: self.snap.widthAnchor, multiplier: newAspect, constant: 0)
-            self.aspectConstraint.isActive = true
+        if newAspect != aspectConstraint.multiplier {
+            snap.removeConstraint(aspectConstraint)
+            aspectConstraint = snap.heightAnchor.constraint(equalTo: snap.widthAnchor, multiplier: newAspect, constant: 0)
+            aspectConstraint.isActive = true
         }
     }
     
@@ -880,7 +874,6 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
         if shouldUpdateSample {
             toolbar.animateGradient(toColor: newColor, direction: .fromTop)
         }
-
     }
     
     func cancelColorChange() {

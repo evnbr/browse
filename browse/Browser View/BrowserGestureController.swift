@@ -306,6 +306,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             if isToParent {
                 mockAlpha.setValue(of: DISMISSING, to: thumbAlpha.reverse())
                 mockPositioner.setValue(of: DISMISSING, to: CGPoint(
+                    // TODO: keep x and y positions in sync with
+                    // how tabswitcher is calculating it
                     x: view.center.x + (dismissingPoint.x - view.center.x) * 0.9,
                     y: dismissingPoint.y - 160 * switcherRevealProgress ))
             }
