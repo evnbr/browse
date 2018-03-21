@@ -175,14 +175,22 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         scrollDelta = scrollView.contentOffset.y - prevScrollY
         prevScrollY = scrollView.contentOffset.y
         
-        if scrollView.isDragging
-        && scrollView.isTracking
-        && scrollView.isScrollableY
-        && !scrollView.isOverScrolledTop
-        && !scrollView.isOverScrolledBottom
-        && !vc.webView.isLoading {
-            let newH = vc.toolbar.bounds.height - scrollDelta
-            let toolbarH = max(0, min(Const.toolbarHeight, newH))
+        if self.shouldUpdateToolbar {
+            var newH : CGFloat
+            if scrollView.isOverScrolledBottomWithInset {
+                // Scroll toolbar into view 'naturally' in same direction of scroll
+                let amtOver = scrollView.maxScrollY - scrollView.contentOffset.y
+                newH = Const.toolbarHeight - amtOver
+            } else {
+                // Hide on scroll down / show on scroll up
+                newH = vc.toolbar.bounds.height - scrollDelta
+                if scrollView.contentOffset.y + Const.toolbarHeight > scrollView.maxScrollY {
+                    print("wouldn't be able to hide in time")
+                }
+            }
+
+            let toolbarH = newH.limit(min: 0, max: Const.toolbarHeight)
+            
             let pct = toolbarH / Const.toolbarHeight
             
             vc.toolbarHeightConstraint.constant = toolbarH
@@ -198,6 +206,15 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
     }
     
+    var shouldUpdateToolbar : Bool {
+        let scrollView = vc.webView.scrollView
+        return scrollView.isDragging
+            && scrollView.isTracking
+            && scrollView.isScrollableY
+            && !scrollView.isOverScrolledTop
+            && !vc.webView.isLoading
+    }
+    
     var dragStartScroll : CGFloat = 0
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         dragStartScroll = scrollView.contentOffset.y
@@ -205,7 +222,11 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         guard !scrollView.isOverScrolledTop else { return }
-        guard !scrollView.isOverScrolledBottom else { return }
+
+        if scrollView.isOverScrolledBottom || scrollView.contentOffset.y == scrollView.maxScrollYWithInset {
+            vc.showToolbar(animated: true, adjustScroll: true)
+            return 
+        }
 
         let dragAmount = scrollView.contentOffset.y - dragStartScroll
         
