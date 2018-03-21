@@ -44,7 +44,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         let homeVC = homeNav.topViewController as! TabSwitcherViewController
         
         homeVC.fab.isHidden = false
-        let snapFab = homeVC.fab.snapshotView(afterScreenUpdates: true)
+        let snapFab = homeVC.fab.snapshotView(afterScreenUpdates: false)
         homeVC.fab.isHidden = true
 
         // TODO: This is not necessarily the correct thumb.
