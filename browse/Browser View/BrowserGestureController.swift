@@ -106,6 +106,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             self.cardScaler.progress = $0
             self.thumbPositioner.progress = $0
             self.vc.statusBar.label.alpha = $0.reverse().clip()
+            self.mockCardView.statusBar.label.alpha = $0.reverse().clip()
         }
 
         
@@ -649,11 +650,11 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         // Swap colors
         let statusColor = vc.statusBar.lastColor
         let toolbarColor = vc.toolbar.lastColor
-        vc.statusBar.update(toColor: mockCardView.statusView.backgroundColor ?? .white)
-        vc.toolbar.update(toColor: mockCardView.toolbarView.backgroundColor ?? .white)
+        vc.statusBar.setBackground(to: mockCardView.statusBar.lastColor ?? .white)
+        vc.toolbar.setBackground(to: mockCardView.toolbarView.backgroundColor ?? .white)
         vc.statusBar.backgroundView.alpha = 1
         vc.toolbar.backgroundView.alpha = 1
-        mockCardView.statusView.backgroundColor = statusColor
+        mockCardView.statusBar.setBackground(to: statusColor)
         mockCardView.toolbarView.backgroundColor = toolbarColor
 
         

@@ -148,16 +148,16 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
         
         if let newTop = newTab.currentItem?.topColor {
-            statusBar.update(toColor: newTop)
+            statusBar.setBackground(to: newTop)
         }
         else {
-            statusBar.update(toColor: .white)
+            statusBar.setBackground(to: .white)
         }
         if let newBottom = newTab.currentItem?.bottomColor {
-            toolbar.update(toColor: newBottom)
+            toolbar.setBackground(to: newBottom)
         }
         else {
-            toolbar.update(toColor: .white)
+            toolbar.setBackground(to: .white)
         }
         
         webView.navigationDelegate = self
@@ -361,9 +361,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             toolbarHeightConstraint.springConstant(to: Const.toolbarHeight)
             webView.scrollView.springBottomInset(to: 0)
             if adjustScroll {
-                var newOffset = webView.scrollView.contentOffset
-                newOffset.y += dist
-                webView.scrollView.springContentOffset(to: newOffset)
+                let scroll = webView.scrollView
+                var newOffset = scroll.contentOffset
+                newOffset.y = min(scroll.maxScrollY, scroll.contentOffset.y + dist)
+                scroll.springContentOffset(to: newOffset)
             }
         }
         else {
@@ -680,8 +681,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         // Does it feel faster if old page instantle disappears?
         hideUntilNavigationDone()
         snap.image = nil
-        toolbar.update(toColor:.white)
-        statusBar.update(toColor:.white)
+        toolbar.setBackground(to: .white)
+        statusBar.setBackground(to: .white)
         
         webView.load(URLRequest(url: url))
     }

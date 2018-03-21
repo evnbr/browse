@@ -19,7 +19,7 @@ class PlaceholderView: UIView {
     */
     
     var contentView: UIView!
-    var statusView: UIView!
+    var statusBar: ColorStatusBarView!
     var toolbarView: UIView!
     var overlay: UIView!
     var imageView: UIImageView!
@@ -41,9 +41,14 @@ class PlaceholderView: UIView {
         contentView.layer.cornerRadius = Const.shared.cardRadius
         addSubview(contentView)
         
-        statusView = UIView(frame: CGRect(x: 0, y: 0, width: bounds.width, height: Const.statusHeight))
-        statusView.backgroundColor = .red
-        contentView.addSubview(statusView)
+        statusBar = ColorStatusBarView()
+        statusBar.setBackground(to: .red)
+        contentView.addSubview(statusBar, constraints: [
+            statusBar.leftAnchor.constraint(equalTo: contentView.leftAnchor),
+            statusBar.rightAnchor.constraint(equalTo: contentView.rightAnchor),
+            statusBar.topAnchor.constraint(equalTo: contentView.topAnchor),
+            statusBar.heightAnchor.constraint(equalToConstant: Const.statusHeight)
+        ])
         
         toolbarView = UIView(frame: CGRect(x: 0, y: bounds.height - Const.toolbarHeight, width: bounds.width, height: Const.toolbarHeight))
         toolbarView.backgroundColor = .red
@@ -75,7 +80,8 @@ class PlaceholderView: UIView {
     
     func setPage(_ page: HistoryItem) {
         setSnapshot(page.snapshot)
-        statusView.backgroundColor = page.topColor
+        if let color = page.topColor { statusBar.setBackground(to: color) }
+        statusBar.label.text = page.title
         toolbarView.backgroundColor = page.bottomColor
     }
     

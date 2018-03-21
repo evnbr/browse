@@ -103,10 +103,10 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         return true
     }
     
-    func update(toColor: UIColor) {
-        self.backgroundView.backgroundColor = toColor
-        self.tintColor = toColor.isLight ? .white : .darkText
-        lastColor = toColor
+    func setBackground(to newColor: UIColor) {
+        self.backgroundView.backgroundColor = newColor
+        self.tintColor = newColor.isLight ? .white : .darkText
+        lastColor = newColor
     }
     
     @discardableResult
