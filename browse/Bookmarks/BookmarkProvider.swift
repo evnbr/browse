@@ -104,7 +104,9 @@ class BookmarkProvider: NSObject {
                 completion(nil, error)
             }
             if let data = data {
-                completion(JSON(data: data), nil)
+                if let parsed = try? JSON(data: data) {
+                    completion(parsed, nil)
+                }
             }
         }).resume()
 
