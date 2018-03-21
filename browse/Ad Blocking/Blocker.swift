@@ -20,15 +20,18 @@ class Blocker: NSObject {
     }
     
     func getList(_ callback: @escaping (WKContentRuleList?) -> ()) {
+        callback(nil)
+        return
+        
         if (ruleList != nil) {
             callback(ruleList)
         }
         else {
-            buildList(callback)
+            findList(callback)
         }
     }
     
-    func buildList(_ done: @escaping (WKContentRuleList?) -> ()) {
+    func findList(_ done: @escaping (WKContentRuleList?) -> ()) {
         WKContentRuleListStore.default().getAvailableContentRuleListIdentifiers { (identifiers) in
             if identifiers != nil && identifiers!.contains(blockerListId) {
 //                print("existing rules found")
@@ -44,30 +47,35 @@ class Blocker: NSObject {
                     }
                 })
             } else {
-                print("compiling rules...")
-                do {
-                    if let path = Bundle.main.path(forResource: "ultimateAdblockList", ofType: "json") {
-                        let data = try String(contentsOfFile:path, encoding: String.Encoding.utf8)
-                        WKContentRuleListStore.default().compileContentRuleList(forIdentifier: blockerListId, encodedContentRuleList: data) { (list, error) in
-                            if let list : WKContentRuleList = list {
-//                                print("rules compiled!")
-                                self.ruleList = list
-                                done(list)
-                            } else {
-                                print("rules failed to be compiled")
-                                if (error != nil) { print(error as Any) }
-                                done(nil)
-                            }
-                        }
-                    } else {
-                        print("rules file not found")
-                        done(nil)
-                    }
-                } catch let error as NSError {
-                    print("rules not compiled: ", error)
-                    done(nil)
-                }
+                self.compileList(done)
             }
         }
     }
+    
+    func compileList(_ done: @escaping (WKContentRuleList?) -> ()) {
+        print("compiling rules...")
+        do {
+            if let path = Bundle.main.path(forResource: "ultimateAdblockList", ofType: "json") {
+                let data = try String(contentsOfFile:path, encoding: String.Encoding.utf8)
+                WKContentRuleListStore.default().compileContentRuleList(forIdentifier: blockerListId, encodedContentRuleList: data) { (list, error) in
+                    if let list : WKContentRuleList = list {
+                        //                                print("rules compiled!")
+                        self.ruleList = list
+                        done(list)
+                    } else {
+                        print("rules failed to be compiled")
+                        if (error != nil) { print(error as Any) }
+                        done(nil)
+                    }
+                }
+            } else {
+                print("rules file not found")
+                done(nil)
+            }
+        } catch let error as NSError {
+            print("rules not compiled: ", error)
+            done(nil)
+        }
+    }
+
 }
