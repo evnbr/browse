@@ -584,6 +584,9 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         dismissVelocity = vel
         dismissSwitch.cancel()
+        if let parent = vc.currentTab?.parentTab {
+            vc.home.setParentHidden(parent, hidden: false)
+        }
         mockCardView.removeFromSuperview()
         mockCardView.imageView.image = nil
         
