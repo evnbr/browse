@@ -45,20 +45,43 @@ class Typeahead: NSObject {
     }
 
     func suggestions(for text: String, maxCount: Int = .max, completion: @escaping ([String]) -> Void) {
+        var isHistoryLoaded = false
+        var isSuggestionLoaded = false
+        
+        var phrases: [ String ] = []
+        var firstHistoryItem: URL? = nil
+        
+        let maybeCompletion = {
+            if isHistoryLoaded && isSuggestionLoaded {
+                if let url = firstHistoryItem {
+                    phrases.insert(url.cleanString, at: 0)
+                    phrases.removeLast()
+                }
+                DispatchQueue.main.async {
+                    print(phrases)
+                    completion(phrases)
+                }
+            }
+        }
+        
+        HistoryManager.shared.fetchItemsContaining(text) { urls in
+            isHistoryLoaded = true
+            firstHistoryItem = urls?.first
+            maybeCompletion()
+        }
+        
         guard let url = provider.suggestionURLfor(text) else { return }
         
         //fetching the data from the url
         URLSession.shared.dataTask(with: url, completionHandler: {(data, response, error) -> Void in
+            isSuggestionLoaded = true
             if data == nil {
-                DispatchQueue.main.async {
-                    // Return the error text as the first typeahead result
-                    completion([ error?.localizedDescription ?? "Unknown failure" ])
-                }
-                return
+                phrases = [ error?.localizedDescription ?? "Unknown failure" ]
+                maybeCompletion()
             }
-            if let suggestions = try? JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! NSArray {
-                let phrases = self.provider.parseSuggestions(from: suggestions, maxCount: maxCount)
-                DispatchQueue.main.async { completion(phrases) }
+            else if let suggestions = try? JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! NSArray {
+                phrases = self.provider.parseSuggestions(from: suggestions, maxCount: maxCount)
+                maybeCompletion()
             }
         }).resume()
     }

@@ -29,4 +29,14 @@ extension URL {
             return withoutPlus
         }
     }
+    var cleanString : String {
+        get {
+            var clean = absoluteString
+            clean = clean.replacingOccurrences(of: "http://", with: "")
+            clean = clean.replacingOccurrences(of: "https://", with: "")
+            if clean.starts(with: "www.") { clean = clean.replacingOccurrences(of: "www.", with: "") }
+            if clean.last == "/" { clean.removeLast() }
+            return clean
+        }
+    }
 }

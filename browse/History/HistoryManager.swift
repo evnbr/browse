@@ -94,6 +94,30 @@ extension WKBackForwardListItem {
     }
 }
 
+// Fetch
+extension HistoryManager {
+    func fetchItemsContaining(_ str: String, completion: @escaping ([URL]?) -> () ) {
+        guard str.count > 0 else { return }
+        persistentContainer.performBackgroundTask { ctx in
+            let request = NSFetchRequest<HistoryItem>(entityName: "HistoryItem")
+//            request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", str)
+            request.predicate = NSPredicate(format: "url CONTAINS[cd] %@ OR url CONTAINS[cd] %@", argumentArray: [".\(str)", "/\(str)"])
+            request.sortDescriptors = [ NSSortDescriptor(key: "firstVisit", ascending: true) ]
+            request.returnsObjectsAsFaults = false
+            request.fetchBatchSize = 4
+            request.fetchLimit = 4
+            do {
+                let results = try ctx.fetch(request)
+                let urls = results.flatMap { $0.url } //.map { $0.url }
+                completion(urls)
+            } catch let error{
+                completion(nil)
+                print(error)
+            }
+        }
+    }
+}
+
 // Deal with snapshots
 extension HistoryManager {
     func snapshot(for item: HistoryItem) -> UIImage? {
