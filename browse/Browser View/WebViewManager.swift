@@ -16,13 +16,10 @@ class WebViewManager: NSObject {
     
     override init() {
         super.init()
-        blocker.getList({ ruleList in
-            if let list = ruleList {
-                self.baseConfiguration.userContentController.add(list)
-                // in case any have veen added already
-                for (_, wv) in self.webViewMap {
-                    wv.configuration.userContentController.add(list)
-                }
+        blocker.getRules({ lists in
+            lists.forEach { self.baseConfiguration.userContentController.add($0) }
+            for (_, wv) in self.webViewMap {
+                lists.forEach { wv.configuration.userContentController.add($0) }
             }
         })
     }
