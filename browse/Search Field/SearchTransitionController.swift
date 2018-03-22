@@ -36,9 +36,9 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         }
         
         browserVC?.toolbar.backgroundView.alpha = 1
-        let titleSnap = browserVC?.locationBar.labelHolder.snapshotView(afterScreenUpdates: isDismissing)
+        let titleSnap = browserVC?.locationBar.labelHolder.snapshotView(afterScreenUpdates: false) // TODO doesnt work if hidden
         browserVC?.locationBar.labelHolder.isHidden = true
-        let toolbarSnap = browserVC?.toolbar.snapshotView(afterScreenUpdates: isDismissing)
+        let toolbarSnap = browserVC?.toolbar.snapshotView(afterScreenUpdates: false) // TODO doesnt work if hidden
         if let tbar = toolbarSnap, let tc = browserVC?.toolbar.center {
             containerView.addSubview(tbar)
             browserVC?.backButton.isHidden = true
