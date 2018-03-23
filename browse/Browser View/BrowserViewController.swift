@@ -278,20 +278,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         gestureController = BrowserGestureController(for: self)
         
-        let historyPress = UILongPressGestureRecognizer(target: self, action: #selector(showHistory))
-        backButton.addGestureRecognizer(historyPress)
-        
         let searchSwipe = UIPanGestureRecognizer(target: self, action: #selector(showSearchGesture(_:)))
         locationBar.addGestureRecognizer(searchSwipe)
 
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
-    }
-    
-    @objc func showHistory(_ : Any?) {
-        let history = HistoryViewController(collectionViewLayout: UICollectionViewFlowLayout() )
-        let hNav = UINavigationController(rootViewController: history)
-        present(hNav, animated: true, completion: nil)
     }
     
     @objc func showSearchGesture(_ gesture: UIPanGestureRecognizer) {
@@ -544,14 +535,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         return true
     }
 
-    // MARK: - Actions
-
-    func displayBookmarks() {
-        let bc = BookmarksViewController()
-        bc.browserVC = self
-        present(WebNavigationController(rootViewController: bc), animated: true)
-    }
-    
+    // MARK: - Actions    
     
     @objc func copyURL() {
         UIPasteboard.general.string = self.editableLocation
