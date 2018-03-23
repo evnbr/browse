@@ -13,29 +13,25 @@ extension BrowserViewController: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
         errorView?.removeFromSuperview()
         
-        loadingDidChange()
+        updateLoadingState()
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        loadingDidChange()
-        
+        updateLoadingState()
     }
     
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        
-        loadingDidChange()
+        updateLoadingState()
 
         if (error as NSError).code == NSURLErrorCancelled { return }
-        
         displayError(text: error.localizedDescription)
     }
     
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         if (error as NSError).code == NSURLErrorCancelled { return }
-        loadingDidChange()
+        updateLoadingState()
         
         print("failed provisional")
-        
         displayError(text: error.localizedDescription)
     }
     
@@ -50,11 +46,6 @@ extension BrowserViewController: WKNavigationDelegate {
             if navigationAction.targetFrame == nil { // Handle target="_blank"
                 decisionHandler(.allow)
                 return
-//                if app.canOpenURL(url) {
-//                    app.open(url, options: [:], completionHandler: nil)
-//                    decisionHandler(.cancel)
-//                    return
-//                }
             }
             if url.scheme == "http" || url.scheme == "https" || url.scheme == "about" || url.scheme == "data" {
                 self.updateSnapshot {

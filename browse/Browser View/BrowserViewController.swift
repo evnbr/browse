@@ -181,7 +181,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         webView.addInputAccessory(toolbar: accessoryView)
         
-        loadingDidChange()
+        updateLoadingState()
         
         if let location = currentTab?.currentItem?.url?.absoluteString {
             if location != "" && self.isBlank {
@@ -714,7 +714,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         cardView.center = view.center        
     }
     
-    func loadingDidChange() {
+    func updateLoadingState() {
         guard isViewLoaded else { return }
         
         locationBar.text = self.displayTitle
@@ -757,7 +757,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             toolbar.progress = Float(webView.estimatedProgress)
             locationBar.progress = CGFloat(webView.estimatedProgress)
         }
-        loadingDidChange()
+        updateLoadingState()
     }
 }
 
