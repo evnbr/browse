@@ -40,3 +40,10 @@ extension URL {
         }
     }
 }
+
+// TODO: Make more robust
+extension String {
+    var isProbablyURL: Bool {
+        return self.range(of:".") != nil && self.range(of:" ") == nil
+    }
+}

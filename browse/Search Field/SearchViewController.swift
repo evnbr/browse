@@ -11,13 +11,7 @@ import pop
 
 let typeaheadReuseID = "TypeaheadRow"
 let MAX_ROWS : Int = 4
-let SEARCHVIEW_MAX_H : CGFloat = 160.0
-
-struct TypeaheadRow {
-    let text: String
-    let action: (() -> Void)?
-    let isEnabled: Bool = true
-}
+let SEARCHVIEW_MAX_H : CGFloat = 240.0
 
 class SearchViewController: UIViewController {
 
@@ -49,7 +43,7 @@ class SearchViewController: UIViewController {
     var keyboardHeight : CGFloat = 250
     var showingCancel = true
     
-    var suggestions : [TypeaheadRow] = []
+    var suggestions : [TypeaheadSuggestion] = []
     
     var defaultBackground: UIColor = .black
     
@@ -318,9 +312,7 @@ extension SearchViewController : UITextViewDelegate {
             // If text has changed since return, don't bother
             guard self.textView.text == suggestionsForText else { return }
             
-            self.suggestions = arr.reversed().map({ txt in
-                return TypeaheadRow(text: txt, action: nil)
-            })
+            self.suggestions = arr.reversed()
             self.renderSuggestions()
         }
     }
@@ -365,22 +357,37 @@ extension SearchViewController : UITextViewDelegate {
     }
     
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-        if text == "\n" {
-            navigateTo(textView.text)
+        if text == "\n", let entry = textView.text {
+            if entry.isProbablyURL {
+                var url : URL?
+                if (text.hasPrefix("http://") || text.hasPrefix("https://")) {
+                    url = URL(string: text)
+                }
+                else {
+                    url = URL(string: "http://" + text)
+                }
+                if let url = url {
+                    navigateTo(url)
+                    return false
+                }
+            }
+            
+            let url = Typeahead.shared.serpURLfor(entry)!
+            navigateTo(url)
             return false
         }
         return true
     }
     
-    func navigateTo(_ text: String) {
+    func navigateTo(_ url: URL) {
         if let browser = self.browser {
-            browser.navigateToText(text)
+            browser.navigateTo(url)
             dismissSelf()
             return
         }
         if let switcher = self.switcher {
             self.dismiss(animated: true, completion: {
-                switcher.addTab(startingFrom: text)
+                switcher.addTab(startingFrom: url)
             })
             return
         }
@@ -390,8 +397,12 @@ extension SearchViewController : UITextViewDelegate {
 extension SearchViewController : UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let row = suggestions[indexPath.item]
-        if let action = row.action { action() }
-        else { navigateTo(row.text) }
+        if let url = row.url { navigateTo(url) }
+    }
+    
+    func tableView(_ tableView: UITableView, shouldHighlightRowAt indexPath: IndexPath) -> Bool {
+        let row = suggestions[indexPath.item]
+        return row.url != nil
     }
 }
 
@@ -404,15 +415,14 @@ extension SearchViewController : UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: typeaheadReuseID, for: indexPath) as! TypeaheadCell
         // Configure the cells
         
-        cell.textLabel?.text = suggestions[indexPath.item].text
-        if suggestions[indexPath.item].action != nil && indexPath.item == 0 {
-            cell.isTitle = true
-        }
+        let suggestion = suggestions[indexPath.item]
+        cell.textLabel?.text = suggestion.title
+        cell.detailTextLabel?.text = suggestion.detail
         return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        let text = suggestions[indexPath.item].text
+        let text = suggestions[indexPath.item].title
         if text.count > 60 {
             return 96.0
         }

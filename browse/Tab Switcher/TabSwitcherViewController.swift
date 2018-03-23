@@ -100,10 +100,10 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         present(search, animated: true, completion: nil)
     }
 
-    func addTab(startingFrom text: String? = nil, animated: Bool = true) {
+    func addTab(startingFrom url: URL? = nil, animated: Bool = true) {
         let newTab = createTab()
         showTab(newTab, animated: animated, completion: {
-            if let t = text { self.browserVC.navigateToText(t) }
+            if let u = url { self.browserVC.navigateTo(u) }
         })
     }
     
@@ -335,8 +335,7 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
         fetchRequest.fetchBatchSize = 20
         
         // Edit the sort key as appropriate.
-        let sortDescriptor = NSSortDescriptor(key: "sortIndex", ascending: true)
-        fetchRequest.sortDescriptors = [sortDescriptor]
+        fetchRequest.sortDescriptors = [ NSSortDescriptor(key: "sortIndex", ascending: true) ]
         
         // Edit the section name key path and cache name if appropriate.
         // nil for section name key path means "no sections".

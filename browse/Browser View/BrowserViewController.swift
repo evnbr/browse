@@ -183,10 +183,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         updateLoadingState()
         
-        if let location = currentTab?.currentItem?.url?.absoluteString {
-            if location != "" && self.isBlank {
-                navigateToText(location)
-            }
+        if let startLocation = currentTab?.currentItem?.url, self.isBlank {
+            navigateTo(startLocation)
         }
     }
     
@@ -622,40 +620,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
 
     // MARK: - Webview State
-    func openPage(action: UIAlertAction) {
-        let url = URL(string: "https://" + action.title!)!
-        webView.load(URLRequest(url: url))
-    }
     
-    func isProbablyURL(_ text: String) -> Bool {
-        // TODO: Make more robust
-        return text.range(of:".") != nil && text.range(of:" ") == nil
-    }
-    
-    
-    func navigateToText(_ text: String) {
-        
+    func navigateTo(_ url: URL) {
         errorView?.removeFromSuperview()
-        var url : URL
-        
-        if isProbablyURL(text) {
-            if (text.hasPrefix("http://") || text.hasPrefix("https://")) {
-                url = URL(string: text)!
-                if let btn = locationBar { btn.text = url.displayHost }
-            }
-            else {
-                url = URL(string: "http://" + text)!
-                if let btn = locationBar { btn.text = url.displayHost }
-            }
+        if let btn = locationBar {
+            btn.text = url.displayHost
+            btn.progress = 0
         }
-        else {
-            url = Typeahead.shared.serpURLfor(text)!
-            if let btn = locationBar {
-                btn.text = text
-            }
-        }
-        locationBar.progress = 0
-        
         // Does it feel faster if old page instantle disappears?
         hideUntilNavigationDone()
         snap.image = nil

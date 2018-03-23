@@ -96,7 +96,7 @@ extension WKBackForwardListItem {
 
 // Fetch
 extension HistoryManager {
-    func fetchItemsContaining(_ str: String, completion: @escaping ([URL]?) -> () ) {
+    func fetchItemsContaining(_ str: String, completion: @escaping ([HistorySearchResult]?) -> () ) {
         guard str.count > 0 else { return }
         persistentContainer.performBackgroundTask { ctx in
             let request = NSFetchRequest<HistoryItem>(entityName: "HistoryItem")
@@ -104,18 +104,29 @@ extension HistoryManager {
             request.predicate = NSPredicate(format: "url CONTAINS[cd] %@ OR url CONTAINS[cd] %@", argumentArray: [".\(str)", "/\(str)"])
             request.sortDescriptors = [ NSSortDescriptor(key: "firstVisit", ascending: true) ]
             request.returnsObjectsAsFaults = false
-            request.fetchBatchSize = 4
-            request.fetchLimit = 4
+            request.includesPropertyValues = true
+            request.fetchBatchSize = 20
+            request.fetchLimit = 20
             do {
                 let results = try ctx.fetch(request)
-                let urls = results.flatMap { $0.url } //.map { $0.url }
-                completion(urls)
+                var cleanResults : [ HistorySearchResult ] = []
+                for result in results {
+                    if let title = result.title, let url = result.url {
+                        cleanResults.append(HistorySearchResult(title: title, url: url))
+                    }
+                }
+                completion(cleanResults)
             } catch let error{
                 completion(nil)
                 print(error)
             }
         }
     }
+}
+
+struct HistorySearchResult {
+    let title: String
+    let url: URL
 }
 
 // Deal with snapshots

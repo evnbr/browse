@@ -13,6 +13,13 @@ fileprivate enum SearchProviderName : String {
     case duck = "duckduckgo"
 }
 
+struct TypeaheadSuggestion {
+    let title: String
+    let detail: String?
+    let url: URL?
+}
+
+
 class Typeahead: NSObject {
     static let shared = Typeahead()
     
@@ -44,29 +51,30 @@ class Typeahead: NSObject {
         return provider.serpURLfor(query)
     }
 
-    func suggestions(for text: String, maxCount: Int = .max, completion: @escaping ([String]) -> Void) {
+    func suggestions(for text: String, maxCount: Int = .max, completion: @escaping ([TypeaheadSuggestion]) -> Void) {
         var isHistoryLoaded = false
         var isSuggestionLoaded = false
         
-        var phrases: [ String ] = []
-        var firstHistoryItem: URL? = nil
+        var suggestions: [ TypeaheadSuggestion ] = []
+        var firstHistoryItem: TypeaheadSuggestion? = nil
         
         let maybeCompletion = {
             if isHistoryLoaded && isSuggestionLoaded {
-                if let url = firstHistoryItem {
-                    phrases.insert(url.cleanString, at: 0)
-                    phrases.removeLast()
+                if let item = firstHistoryItem {
+                    suggestions.insert(item, at: 0)
+                    suggestions.removeLast()
                 }
                 DispatchQueue.main.async {
-                    print(phrases)
-                    completion(phrases)
+                    completion(suggestions)
                 }
             }
         }
         
-        HistoryManager.shared.fetchItemsContaining(text) { urls in
+        HistoryManager.shared.fetchItemsContaining(text) { results in
             isHistoryLoaded = true
-            firstHistoryItem = urls?.first
+            if let page = results?.first {
+                firstHistoryItem = TypeaheadSuggestion(title: page.url.cleanString, detail: page.title, url: page.url)
+            }
             maybeCompletion()
         }
         
@@ -76,11 +84,13 @@ class Typeahead: NSObject {
         URLSession.shared.dataTask(with: url, completionHandler: {(data, response, error) -> Void in
             isSuggestionLoaded = true
             if data == nil {
-                phrases = [ error?.localizedDescription ?? "Unknown failure" ]
+                suggestions = [ TypeaheadSuggestion(title: "Unable to search", detail: error?.localizedDescription, url: nil)  ]
                 maybeCompletion()
             }
-            else if let suggestions = try? JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! NSArray {
-                phrases = self.provider.parseSuggestions(from: suggestions, maxCount: maxCount)
+            else if let json = try? JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! NSArray {
+                suggestions = self.provider.parseSuggestions(from: json, maxCount: maxCount).map({ str in
+                    return TypeaheadSuggestion(title: str, detail: nil, url: self.serpURLfor(str))
+                })
                 maybeCompletion()
             }
         }).resume()
