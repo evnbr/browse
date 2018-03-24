@@ -73,7 +73,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     var displayTitle : String {
         guard let url = webView?.url else { return "" }
-        if isSearching { return url.searchQuery }
+        if let q = url.searchQuery { return q }
         else { return displayURL }
     }
     
@@ -98,7 +98,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var editableLocation : String {
         get {
             guard let url = webView?.url else { return "" }
-            if isSearching { return url.searchQuery }
+            if let q = url.searchQuery { return q }
             else { return url.absoluteString }
         }
     }

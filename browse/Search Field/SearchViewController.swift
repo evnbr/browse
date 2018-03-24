@@ -310,7 +310,7 @@ extension SearchViewController : UITextViewDelegate {
         }
         
         let suggestionsForText = textView.text
-        Typeahead.shared.suggestions(for: textView.text, maxCount: 4) { arr in
+        TypeaheadProvider.shared.suggestions(for: textView.text, maxCount: 4) { arr in
             // If text has changed since return, don't bother
             guard self.textView.text == suggestionsForText else { return }
             
@@ -348,8 +348,8 @@ extension SearchViewController : UITextViewDelegate {
     
     func updateTextViewSize() {
         let fixedWidth = textView.frame.size.width
-//        textView.textContainerInset = UIEdgeInsetsMake(10, 12, 10, 12)
-        textView.textContainerInset = UIEdgeInsetsMake(10, 20, 22, showingCancel ? cancel.bounds.width : 0 )
+//        textView.textContainerInset = UIEdgeInsetsMake(10, 20, 22, showingCancel ? cancel.bounds.width : 0 )
+        textView.textContainerInset = UIEdgeInsetsMake(10, 20, 24, 20 )
         let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
         textView.isScrollEnabled = fullTextSize.height > SEARCHVIEW_MAX_H
         textHeight = max(20, min(fullTextSize.height, SEARCHVIEW_MAX_H))
@@ -374,7 +374,7 @@ extension SearchViewController : UITextViewDelegate {
                 }
             }
             
-            let url = Typeahead.shared.serpURLfor(entry)!
+            let url = TypeaheadProvider.shared.serpURLfor(entry)!
             navigateTo(url)
             return false
         }
@@ -476,7 +476,7 @@ extension SearchViewController : UIGestureRecognizerDelegate {
         }
         else if gesture.state == .ended || gesture.state == .cancelled {
             isTransitioning = false
-            if (vel.y > 100 || kbHeightConstraint.constant < 100) && showingCancel {
+            if (vel.y > 100 || kbHeightConstraint.constant < 50) && showingCancel {
                 dismissSelf()
             }
             else {
@@ -525,6 +525,7 @@ extension SearchViewController : UIGestureRecognizerDelegate {
     }
     
     func showRealKeyboard() {
+        if isTransitioning { return }
         keyboardPlaceholder.isHidden = true
         UIView.setAnimationsEnabled(false)
         textView.becomeFirstResponder()
@@ -532,7 +533,8 @@ extension SearchViewController : UIGestureRecognizerDelegate {
     }
     
     @objc func updateKeyboardSnapshot() {
-        if !textView.isFirstResponder { return }
+        if !textView.isFirstResponder
+            || kbHeightConstraint.constant != keyboardHeight { return }
         keyboardSnapshot = takeKeyboardSnapshot()
     }
     
@@ -653,4 +655,3 @@ extension SearchViewController : UIViewControllerTransitioningDelegate {
         return displaySearchTransition
     }
 }
-

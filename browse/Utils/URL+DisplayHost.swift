@@ -21,13 +21,15 @@ extension URL {
             }
         }
     }
-    var searchQuery : String {
-        get {
-            guard let components = URLComponents(string: self.absoluteString) else { return "?" }
-            let queryParam : String = (components.queryItems?.first(where: { $0.name == "q" })?.value)!
-            let withoutPlus : String = queryParam.replacingOccurrences(of: "+", with: " ")
-            return withoutPlus
-        }
+    var isSearching : Bool {
+        return searchQuery != nil
+    }
+    var searchQuery : String? {
+        guard let components = URLComponents(string: self.absoluteString),
+            let queryParam : String = components.queryItems?.first(where: { $0.name == "q" })?.value
+        else { return nil }
+        let withoutPlus : String = queryParam.replacingOccurrences(of: "+", with: " ")
+        return withoutPlus
     }
     var cleanString : String {
         get {

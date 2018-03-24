@@ -34,19 +34,18 @@ class TypeaheadCell: UITableViewCell {
         
         detailTextLabel?.font = .systemFont(ofSize: 14)
         detailTextLabel?.numberOfLines = 2
-        detailTextLabel?.alpha = 0.5
     }
     
     func configure(title: String, detail: String?, highlight: String) {
         let titleOverlaps = title.allNSRanges(of: highlight, split: true)
         let attributedTitle = NSMutableAttributedString(string: title)
-        titleOverlaps.forEach { attributedTitle.addAttributes([.foregroundColor : UIColor.black.withAlphaComponent(0.5)], range: $0) }
+        titleOverlaps.forEach { attributedTitle.addAttributes([.foregroundColor : tintColor.withAlphaComponent(0.5)], range: $0) }
         textLabel?.attributedText = attributedTitle
         
         if let detail = detail {
             let detailOverlaps = detail.allNSRanges(of: highlight, split: true)
             let attributedDetail = NSMutableAttributedString(string: detail)
-            detailOverlaps.forEach { attributedDetail.addAttributes([.foregroundColor : UIColor.black.withAlphaComponent(0.5)], range: $0) }
+            detailOverlaps.forEach { attributedDetail.addAttributes([.foregroundColor : tintColor], range: $0) }
             detailTextLabel?.attributedText = attributedDetail
         }
     }
@@ -61,7 +60,7 @@ class TypeaheadCell: UITableViewCell {
     
     override func tintColorDidChange() {
         textLabel?.textColor = tintColor
-        detailTextLabel?.textColor = tintColor
+        detailTextLabel?.textColor = tintColor.withAlphaComponent(0.5)
         selectedBackgroundView?.backgroundColor = tintColor.isLight ? .darkTouch : .lightTouch
     }
 

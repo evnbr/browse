@@ -1,5 +1,5 @@
 //
-//  Typeahead.swift
+//  TypeaheadProvider.swift
 //  browse
 //
 //  Created by Evan Brooks on 2/4/18.
@@ -28,8 +28,8 @@ struct TypeaheadSuggestion: Hashable {
 }
 
 
-class Typeahead: NSObject {
-    static let shared = Typeahead()
+class TypeaheadProvider: NSObject {
+    static let shared = TypeaheadProvider()
     
     fileprivate var provider : SearchProvider = DuckSearchProvider()
 
@@ -60,6 +60,7 @@ class Typeahead: NSObject {
     }
 
     func suggestions(for text: String, maxCount: Int = .max, completion: @escaping ([TypeaheadSuggestion]) -> Void) {
+        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         var isHistoryLoaded = false
         var isSuggestionLoaded = false
         
@@ -70,7 +71,7 @@ class Typeahead: NSObject {
         let maybeCompletion = {
             guard isHistoryLoaded && isSuggestionLoaded else { return }
             let sorted = (searchSuggestions + historySuggestions).sorted { suggestionScore[$0]! > suggestionScore[$1]! }
-            let suggestions = Array(sorted[..<maxCount])
+            let suggestions = Array(sorted[..<min(sorted.count, maxCount)])
             DispatchQueue.main.async { completion(suggestions) }
         }
         
@@ -79,7 +80,16 @@ class Typeahead: NSObject {
             if let results = historyItems {
                 historySuggestions = results.map { item in
                     let score = self.splitMatchingScore(for: item, query: text)
-                    let suggestion = TypeaheadSuggestion(title: item.url.cleanString, detail: item.title, url: item.url)
+                    
+                    var suggestion : TypeaheadSuggestion
+                    
+                    if let q = item.url.searchQuery {
+                        suggestion = TypeaheadSuggestion(title: q, detail: nil, url: item.url)
+                    }
+                    else {
+                        suggestion = TypeaheadSuggestion(title: item.url.cleanString, detail: item.title, url: item.url)
+                    }
+
                     suggestionScore[suggestion] = score
                     return suggestion
                 }
@@ -111,7 +121,7 @@ class Typeahead: NSObject {
 
 
 // History result scoring and sorting
-extension Typeahead {
+extension TypeaheadProvider {
     func splitMatchingScore(for item: HistorySearchResult, query: String) -> Int {
         let inOrderScore = matchingScore(for: item, query: query)
         let splitScore = query.split(separator: " ")
