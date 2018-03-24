@@ -123,13 +123,11 @@ class SearchViewController: UIViewController {
         textView = UITextView()
         textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 48)
         textView.font = .systemFont(ofSize: 18)
-        //UIFont(descriptor: .preferredFontDescriptor(withTextStyle: .body), size: 18)
         textView.text = ""
         textView.placeholder = "Where to?"
         textView.delegate = self
         textView.isScrollEnabled = true
-        textView.backgroundColor = .clear //UIColor.white.withAlphaComponent(0.3)
-//        textView.radius = SEARCH_RADIUS
+        textView.backgroundColor = .clear
         textView.textColor = .darkText
         textView.placeholderColor = UIColor.white.withAlphaComponent(0.4)
         textView.keyboardAppearance = .light
@@ -138,7 +136,6 @@ class SearchViewController: UIViewController {
         textView.returnKeyType = .go
         textView.autocorrectionType = .no
         textView.translatesAutoresizingMaskIntoConstraints = false
-//        textView.backgroundColor = .red
         contentView.addSubview(textView)
         
         let maskView = UIView(frame: textView.bounds)
@@ -155,7 +152,6 @@ class SearchViewController: UIViewController {
         keyboardPlaceholder = UIImageView()
         keyboardPlaceholder.translatesAutoresizingMaskIntoConstraints = false
         keyboardPlaceholder.contentMode = .top
-        contentView.addSubview(keyboardPlaceholder)
         
         pageActionView = PageActionView()
         pageActionView.delegate = self
@@ -188,26 +184,29 @@ class SearchViewController: UIViewController {
             ])
         }
         
-        textHeightConstraint = textView.heightAnchor.constraint(equalToConstant: 36)
-        toolbarBottomMargin = keyboardPlaceholder.topAnchor.constraint(equalTo: textView.bottomAnchor)
         kbHeightConstraint = keyboardPlaceholder.heightAnchor.constraint(equalToConstant: 0)
-
-        NSLayoutConstraint.activate([
-            toolbarBottomMargin,
-            textHeightConstraint,
-            textView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor),
-            
-            // Keyboard
+        contentView.addSubview(keyboardPlaceholder, constraints: [
             kbHeightConstraint,
             keyboardPlaceholder.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             keyboardPlaceholder.leftAnchor.constraint(equalTo: contentView.leftAnchor),
             keyboardPlaceholder.rightAnchor.constraint(equalTo: contentView.rightAnchor),
         ])
+
+        textHeightConstraint = textView.heightAnchor.constraint(equalToConstant: 36)
+        toolbarBottomMargin = keyboardPlaceholder.topAnchor.constraint(equalTo: textView.bottomAnchor)
+
+        NSLayoutConstraint.activate([
+            toolbarBottomMargin,
+            textHeightConstraint,
+            textView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor),
+        ])
         
-        NotificationCenter.default.addObserver(self, selector: #selector(updateKeyboardHeight),
-                                               name: NSNotification.Name.UIKeyboardWillShow, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(updateKeyboardHeight),
-                                               name: NSNotification.Name.UIKeyboardWillChangeFrame, object: nil)
+        NotificationCenter.default.addObserver(self,
+            selector: #selector(updateKeyboardHeight),
+            name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self,
+            selector: #selector(updateKeyboardHeight),
+            name: NSNotification.Name.UIKeyboardWillChangeFrame, object: nil)
 
         setBackground(defaultBackground)
         updateTextViewSize()
@@ -221,10 +220,7 @@ class SearchViewController: UIViewController {
         }
         
         let darkContent = !newColor.isLight
-//        contentView.backgroundColor = newColor.withAlphaComponent(0.8)
         backgroundView.overlayColor = newColor
-        
-//        scrim.backgroundColor = newColor.withAlphaComponent(0.6)
         view.tintColor = darkContent ? .darkText : .white
         contentView.tintColor = view.tintColor
         textView.textColor = view.tintColor
@@ -286,7 +282,13 @@ class SearchViewController: UIViewController {
         let userInfo: NSDictionary = notification.userInfo! as NSDictionary
         let keyboardFrame: NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as! NSValue
         let keyboardRectangle = keyboardFrame.cgRectValue
-        keyboardHeight = keyboardRectangle.height// + 12
+        
+        if keyboardRectangle.height < 10 {
+            // thats not what we meant by keyboard height
+            return
+        }
+        
+        keyboardHeight = keyboardRectangle.height
         
         if textView.isFirstResponder && !kbHeightConstraint.isPopAnimating && !isTransitioning {
             kbHeightConstraint.constant = keyboardHeight
@@ -422,11 +424,11 @@ extension SearchViewController : UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        let text = suggestions[indexPath.item].title
-        if text.count > 60 {
-            return 96.0
-        }
-        return 48.0
+        let item = suggestions[indexPath.item]
+        var h : CGFloat = 48.0
+        if item.title.count > 60 { h += 48 }
+        if item.detail != nil { h += 16 }
+        return h
     }
 }
 

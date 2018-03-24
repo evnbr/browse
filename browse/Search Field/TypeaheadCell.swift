@@ -16,7 +16,7 @@ class TypeaheadCell: UITableViewCell {
     }
     
     override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
         backgroundColor = .clear
         contentView.backgroundColor = .clear
         
@@ -28,10 +28,13 @@ class TypeaheadCell: UITableViewCell {
         indentationLevel = 0
         
         textLabel?.lineBreakMode = .byWordWrapping
-        textLabel?.numberOfLines = 0
+        textLabel?.numberOfLines = 3
         textLabel?.font = .systemFont(ofSize: 18)
-//        textLabel?.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 24).isActive = true
         layoutMargins = UIEdgeInsetsMake(12, 24, 12, 24)
+        
+        detailTextLabel?.font = .systemFont(ofSize: 14)
+        detailTextLabel?.numberOfLines = 2
+        detailTextLabel?.alpha = 0.5
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -43,23 +46,9 @@ class TypeaheadCell: UITableViewCell {
         // Configure the view for the selected state
     }
     
-    var isTitle : Bool {
-        get {
-            return textLabel!.font.pointSize > CGFloat(18)
-        }
-        set {
-//            textLabel?.font = .systemFont(ofSize: newValue ? 24 : 18)
-            textLabel?.alpha = newValue ? 0.3 : 1
-        }
-    }
-    
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        isTitle = false
-    }
-    
     override func tintColorDidChange() {
         textLabel?.textColor = tintColor
+        detailTextLabel?.textColor = tintColor
         selectedBackgroundView?.backgroundColor = tintColor.isLight ? .darkTouch : .lightTouch
     }
 
