@@ -104,13 +104,14 @@ extension HistoryManager {
             // todo: doesn't handle spaces
             var predicates : [NSPredicate] = []
             for word in str.split(separator: " ") {
-                if word != "" {
-                    predicates.append(NSPredicate(format: "url CONTAINS[cd] %@", ".\(word)")) // www.WOrd.com
-                    predicates.append(NSPredicate(format: "url CONTAINS[cd] %@", "/\(word)")) // prot://WOrd.com
-                    predicates.append(NSPredicate(format: "title CONTAINS[cd] %@", " \(word)")) // The WOrd
-                }
+                if word.count < 2 { continue }
+                predicates.append(NSCompoundPredicate(orPredicateWithSubpredicates: [
+                    NSPredicate(format: "url CONTAINS[cd] %@", ".\(word)"), // www.WOrd.com
+                    NSPredicate(format: "url CONTAINS[cd] %@", "/\(word)"), // prot://WOrd.com
+                    NSPredicate(format: "title CONTAINS[cd] %@", " \(word)"), // The WOrd
+                ]))
             }
-            request.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: predicates)
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
             request.sortDescriptors = [ NSSortDescriptor(key: "firstVisit", ascending: true) ]
             
             // Distinct on URL or Title else full of dupes
@@ -150,17 +151,6 @@ extension HistoryManager {
         return inOrderScore * 2 + splitScore
     }
     
-    func matchesStrictly(item: HistorySearchResult, text: String) -> Bool {
-        for word in text.split(separator: " ") {
-            if word.count > 0
-                && !item.title.localizedCaseInsensitiveContains(word)
-                && !(item.url.host?.localizedCaseInsensitiveContains(word) ?? false) {
-                return false
-            }
-        }
-        return true
-    }
-    
     func componentScore(item: HistorySearchResult, text: String) -> Int {
         if text == "" { return 0 }
         var score : Float = 0
@@ -189,15 +179,18 @@ extension HistoryManager {
         if let host = item.url.host, host.localizedCaseInsensitiveContains(text) {
             let parts = host.split(separator: ".")
             parts.forEach { part in
+                // bias against really long urls
+                let partPct : Float = Float(part.count) / Float(item.url.absoluteString.count)
+
                 if part.starts(with: text) {
                     // 100 points per host component starting with text
                     let pct : Float = Float(text.count) / Float(part.count)
-                    score += 200 * pct
+                    score += 200 * pct * partPct
                 }
                 else {
                     // 20 points if its elsewhere
                     let pct : Float = Float(text.count) / Float(part.count)
-                    score += 60 * pct
+                    score += 60 * pct * partPct
                 }
             }
         }
@@ -208,9 +201,7 @@ extension HistoryManager {
     func findItemsMatching(_ str: String, completion: @escaping ([HistorySearchResult]?) -> () ) {
         fetchItemsContaining(str) { poorlySorted in
             DispatchQueue.global(qos: .userInitiated).async {
-                let nicelySorted = poorlySorted?
-                    .filter { self.matchesStrictly(item: $0, text: str) }
-                    .sorted(by: { (a, b) -> Bool in
+                let nicelySorted = poorlySorted?.sorted(by: { (a, b) -> Bool in
                     self.matchingScore(item: a, text: str) > self.matchingScore(item: b, text: str)
                 })
                 completion(nicelySorted)
