@@ -183,7 +183,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 // Hide on scroll down / show on scroll up
                 newH = vc.toolbar.bounds.height - scrollDelta
                 if scrollView.contentOffset.y + Const.toolbarHeight > scrollView.maxScrollY {
-                    print("wouldn't be able to hide in time")
+                    // print("wouldn't be able to hide in time")
                 }
             }
 
@@ -281,9 +281,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         var dismissingPoint = CGPoint(
             x: view.center.x + spaceW * 0.4 * sign,
-            y: view.center.y + max(elasticLimit(yGestureInfluence), yGestureInfluence) - spaceH * 0.3
+            y: view.center.y + max(elasticLimit(yGestureInfluence), yGestureInfluence) - spaceH * (0.5 - startAnchorOffsetPct)
         )
-        
+        print(startAnchorOffsetPct)
+
         mockPositioner.setValue(of: DISMISSING, to: CGPoint(
             x: view.center.x - view.bounds.width * sign,
             y: view.center.y))
@@ -545,12 +546,15 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     }
     
     
-    var shouldRestoreKeyboard : Bool = false
+    var shouldRestoreKeyboard: Bool = false
+    var startAnchorOffsetPct: CGFloat = 0
     
     func startGesture(_ gesture: UIPanGestureRecognizer, direction newDir: GestureNavigationDirection) {
         isInteractiveDismiss = true
         direction = newDir
         startPoint = gesture.translation(in: view)
+        
+        startAnchorOffsetPct = gesture.location(in: view).y / view.bounds.height
         
         startScroll = vc.webView.scrollView.contentOffset
         vc.webView.scrollView.showsVerticalScrollIndicator = false
@@ -805,7 +809,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         cardScaler.setValue(of: PAGING, to: 1)
         cardScaler.setValue(of: DISMISSING, to: dismissScale)
         
-        let extraH = cardView.bounds.height * (1 - dismissScale) * 0.4
+        let extraH = cardView.bounds.height * (1 - dismissScale) * 0.5
         
         cardPositioner.setValue(of: DISMISSING, to: CGPoint(
             x: view.center.x + gesturePos.x.progress(from: 0, to: 500) * spaceW,
