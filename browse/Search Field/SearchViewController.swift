@@ -418,15 +418,17 @@ extension SearchViewController : UITableViewDataSource {
         // Configure the cells
         
         let suggestion = suggestions[indexPath.item]
-        cell.textLabel?.text = suggestion.title
-        cell.detailTextLabel?.text = suggestion.detail
+        let currentText = textView.text ?? ""
+
+        cell.configure(title: suggestion.title, detail: suggestion.detail, highlight: currentText)
+        
         return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let item = suggestions[indexPath.item]
         var h : CGFloat = 48.0
-        if item.title.count > 60 { h += 48 }
+        if item.title.count > 40 { h += 32 }
         if item.detail != nil { h += 16 }
         return h
     }

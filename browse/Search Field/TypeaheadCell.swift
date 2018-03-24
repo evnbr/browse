@@ -28,7 +28,7 @@ class TypeaheadCell: UITableViewCell {
         indentationLevel = 0
         
         textLabel?.lineBreakMode = .byWordWrapping
-        textLabel?.numberOfLines = 3
+        textLabel?.numberOfLines = 2
         textLabel?.font = .systemFont(ofSize: 18)
         layoutMargins = UIEdgeInsetsMake(12, 24, 12, 24)
         
@@ -37,13 +37,26 @@ class TypeaheadCell: UITableViewCell {
         detailTextLabel?.alpha = 0.5
     }
     
+    func configure(title: String, detail: String?, highlight: String) {
+        let titleOverlaps = title.allNSRanges(of: highlight, split: true)
+        let attributedTitle = NSMutableAttributedString(string: title)
+        titleOverlaps.forEach { attributedTitle.addAttributes([.foregroundColor : UIColor.black.withAlphaComponent(0.5)], range: $0) }
+        textLabel?.attributedText = attributedTitle
+        
+        if let detail = detail {
+            let detailOverlaps = detail.allNSRanges(of: highlight, split: true)
+            let attributedDetail = NSMutableAttributedString(string: detail)
+            detailOverlaps.forEach { attributedDetail.addAttributes([.foregroundColor : UIColor.black.withAlphaComponent(0.5)], range: $0) }
+            detailTextLabel?.attributedText = attributedDetail
+        }
+    }
+    
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-        // Configure the view for the selected state
+    override func prepareForReuse() {
+        detailTextLabel?.text = nil
     }
     
     override func tintColorDidChange() {
@@ -52,4 +65,50 @@ class TypeaheadCell: UITableViewCell {
         selectedBackgroundView?.backgroundColor = tintColor.isLight ? .darkTouch : .lightTouch
     }
 
+}
+
+// based on https://stackoverflow.com/questions/40413218/swift-find-all-occurrences-of-a-substring
+fileprivate extension String {
+    func allRanges(of text: String, split: Bool = false) -> [Range<String.Index>] {
+        if split {
+            // split query into words, find ranges of each word, and append ranges
+            return text.split(separator: " ").map { self.allRanges(of: String($0) ) }.reduce([], +)
+        }
+        //the slice within which to search
+        let slice = self
+        
+        var previousEnd: String.Index? = slice.startIndex
+        var ranges = [Range<String.Index>]()
+        
+        while let r = slice.range(
+            of: text,
+            options: [.caseInsensitive, .diacriticInsensitive],
+            range: previousEnd! ..< slice.endIndex,
+            locale: nil) {
+                if previousEnd != self.endIndex { //don't increment past the end
+                    previousEnd = self.index(after: r.lowerBound)
+                }
+                ranges.append(r)
+        }
+        
+        return ranges
+    }
+    
+    func allNSRanges(of text: String, split: Bool = false) -> [NSRange] {
+        return allRanges(of: text, split: split).map(indexRangeToNSRange)
+    }
+    
+    func indexToInt(_ index: String.Index) -> Int {
+        return self.distance(from: self.startIndex, to: index)
+    }
+    
+    func indexRangeToIntRange(_ range: Range<String.Index>) -> Range<Int> {
+        return indexToInt(range.lowerBound) ..< indexToInt(range.upperBound)
+    }
+    
+    func indexRangeToNSRange(_ range: Range<String.Index>) -> NSRange {
+        let start = indexToInt(range.lowerBound)
+        let end = indexToInt(range.upperBound)
+        return NSMakeRange(start, end - start)
+    }
 }
