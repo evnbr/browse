@@ -362,11 +362,11 @@ extension SearchViewController : UITextViewDelegate {
         if text == "\n", let entry = textView.text {
             if entry.isProbablyURL {
                 var url : URL?
-                if (text.hasPrefix("http://") || text.hasPrefix("https://")) {
-                    url = URL(string: text)
+                if (entry.hasPrefix("http://") || entry.hasPrefix("https://")) {
+                    url = URL(string: entry)
                 }
                 else {
-                    url = URL(string: "http://" + text)
+                    url = URL(string: "http://" + entry)
                 }
                 if let url = url {
                     navigateTo(url)
