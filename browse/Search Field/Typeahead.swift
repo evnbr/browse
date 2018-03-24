@@ -13,10 +13,18 @@ fileprivate enum SearchProviderName : String {
     case duck = "duckduckgo"
 }
 
-struct TypeaheadSuggestion {
+struct TypeaheadSuggestion: Hashable {
     let title: String
     let detail: String?
     let url: URL?
+    
+    var hashValue: Int {
+        return url?.hashValue ?? 0
+    }
+    
+    static func ==(lhs: TypeaheadSuggestion, rhs: TypeaheadSuggestion) -> Bool {
+        return lhs.url == rhs.url
+    }
 }
 
 
@@ -55,25 +63,26 @@ class Typeahead: NSObject {
         var isHistoryLoaded = false
         var isSuggestionLoaded = false
         
-        var suggestions: [ TypeaheadSuggestion ] = []
-        var firstHistoryItem: TypeaheadSuggestion? = nil
+        var searchSuggestions: [ TypeaheadSuggestion ] = []
+        var historySuggestions: [ TypeaheadSuggestion ] = []
+        var suggestionScore : [ TypeaheadSuggestion : Int ] = [:]
         
         let maybeCompletion = {
-            if isHistoryLoaded && isSuggestionLoaded {
-                if let item = firstHistoryItem {
-                    suggestions.insert(item, at: 0)
-                    suggestions.removeLast()
-                }
-                DispatchQueue.main.async {
-                    completion(suggestions)
-                }
-            }
+            guard isHistoryLoaded && isSuggestionLoaded else { return }
+            let sorted = (searchSuggestions + historySuggestions).sorted { suggestionScore[$0]! > suggestionScore[$1]! }
+            let suggestions = Array(sorted[..<maxCount])
+            DispatchQueue.main.async { completion(suggestions) }
         }
         
-        HistoryManager.shared.findItemsMatching(text) { results in
+        HistoryManager.shared.findItemsMatching(text) { historyItems in
             isHistoryLoaded = true
-            if let page = results?.first {
-                firstHistoryItem = TypeaheadSuggestion(title: page.url.cleanString, detail: page.title, url: page.url)
+            if let results = historyItems {
+                historySuggestions = results.map { item in
+                    let score = self.splitMatchingScore(for: item, query: text)
+                    let suggestion = TypeaheadSuggestion(title: item.url.cleanString, detail: item.title, url: item.url)
+                    suggestionScore[suggestion] = score
+                    return suggestion
+                }
             }
             maybeCompletion()
         }
@@ -84,15 +93,76 @@ class Typeahead: NSObject {
         URLSession.shared.dataTask(with: url, completionHandler: {(data, response, error) -> Void in
             isSuggestionLoaded = true
             if data == nil {
-                suggestions = [ TypeaheadSuggestion(title: "Unable to search", detail: error?.localizedDescription, url: nil)  ]
+                searchSuggestions = [ TypeaheadSuggestion(title: "Unable to search", detail: error?.localizedDescription, url: nil)  ]
                 maybeCompletion()
             }
             else if let json = try? JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! NSArray {
-                suggestions = self.provider.parseSuggestions(from: json, maxCount: maxCount).map({ str in
-                    return TypeaheadSuggestion(title: str, detail: nil, url: self.serpURLfor(str))
+                searchSuggestions = self.provider.parseSuggestions(from: json, maxCount: maxCount).map({ str in
+                    let score = self.splitMatchingScore(for: str, query: text)
+                    let suggestion = TypeaheadSuggestion(title: str, detail: nil, url: self.serpURLfor(str))
+                    suggestionScore[suggestion] = score
+                    return suggestion
                 })
                 maybeCompletion()
             }
         }).resume()
+    }
+}
+
+
+// History result scoring and sorting
+extension Typeahead {
+    func splitMatchingScore(for item: HistorySearchResult, query: String) -> Int {
+        let inOrderScore = matchingScore(for: item, query: query)
+        let splitScore = query.split(separator: " ")
+            .map { matchingScore(for: item, query: String($0)) }
+            .reduce(0, { $0 + $1 })
+        return inOrderScore * 2 + splitScore
+    }
+    
+    func splitMatchingScore(for text: String, query: String) -> Int {
+        let inOrderScore = matchingScore(for: text, query: query)
+        let splitScore = query.split(separator: " ")
+            .map { matchingScore(for: text, query: String($0)) }
+            .reduce(0, { $0 + $1 })
+        return inOrderScore * 2 + splitScore
+    }
+    
+    func matchingScore(for item: HistorySearchResult, query: String) -> Int {
+        if query == "" { return 0 }
+        var score : Float = 0
+        score += Float(matchingScore(for: item.title, query: query))
+        score += Float(matchingScore(for: item.url, query: query))
+        return Int(score)
+    }
+    
+    func matchingScore(for url: URL, query: String) -> Int {
+        var score : Float = 0
+        // Points for host matching
+        if let host = url.host, host.localizedCaseInsensitiveContains(query) {
+            let parts = host.split(separator: ".")
+            parts.forEach { part in
+                let partPct = Float(part.count) / Float(url.absoluteString.count) // bias against long urls
+                let pct = Float(query.count) / Float(part.count)
+                score += pct * partPct * ( part.starts(with: query) ? 200 : 60 )
+            }
+        }
+        return Int(score)
+    }
+    
+    func matchingScore(for text: String, query: String) -> Int {
+        var score : Float = 0
+        
+        // Points for words in the title
+        if text.localizedCaseInsensitiveContains(query) {
+            let words = text.split(separator: " ")
+            let maxWordScore : Float = 200 / Float(words.count)
+            
+            words.forEach { word in
+                let pct = Float(query.count) / Float(word.count)
+                score += maxWordScore * pct * ( word.starts(with: query) ? 1 : 0.2 )
+            }
+        }
+        return Int(score)
     }
 }

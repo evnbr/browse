@@ -140,73 +140,9 @@ extension HistoryManager {
             }
         }
     }
-    
-    func matchingScore(item: HistorySearchResult, text: String) -> Int {
-        let inOrderScore = componentScore(item: item, text: text)
         
-        // Split on spaces and sum scores
-        let splitScore = text.split(separator: " ")
-            .map { componentScore(item: item, text: String($0)) }
-            .reduce(0, { $0 + $1 })
-        return inOrderScore * 2 + splitScore
-    }
-    
-    func componentScore(item: HistorySearchResult, text: String) -> Int {
-        if text == "" { return 0 }
-        var score : Float = 0
-        
-        // Points for words in the title
-        if item.title.localizedCaseInsensitiveContains(text) {
-            let words = item.title.split(separator: " ")
-            let maxWordScore : Float = Float(words.count) / 200
-            
-            words.forEach { word in
-                
-                if word.starts(with: text) {
-                    // 100 points per word starting with text
-                    let pct : Float = Float(text.count) / Float(word.count)
-                    score += maxWordScore * pct
-                }
-                else {
-                    // 20 points if its elsewhere
-                    let pct : Float = Float(text.count) / Float(word.count)
-                    score += maxWordScore * pct * 0.2
-                }
-            }
-        }
-        
-        // Points for host matching
-        if let host = item.url.host, host.localizedCaseInsensitiveContains(text) {
-            let parts = host.split(separator: ".")
-            parts.forEach { part in
-                // bias against really long urls
-                let partPct : Float = Float(part.count) / Float(item.url.absoluteString.count)
-
-                if part.starts(with: text) {
-                    // 100 points per host component starting with text
-                    let pct : Float = Float(text.count) / Float(part.count)
-                    score += 200 * pct * partPct
-                }
-                else {
-                    // 20 points if its elsewhere
-                    let pct : Float = Float(text.count) / Float(part.count)
-                    score += 60 * pct * partPct
-                }
-            }
-        }
-        
-        return Int(score)
-    }
-    
     func findItemsMatching(_ str: String, completion: @escaping ([HistorySearchResult]?) -> () ) {
-        fetchItemsContaining(str) { poorlySorted in
-            DispatchQueue.global(qos: .userInitiated).async {
-                let nicelySorted = poorlySorted?.sorted(by: { (a, b) -> Bool in
-                    self.matchingScore(item: a, text: str) > self.matchingScore(item: b, text: str)
-                })
-                completion(nicelySorted)
-            }
-        }
+        fetchItemsContaining(str) { completion($0) }
     }
 }
 
