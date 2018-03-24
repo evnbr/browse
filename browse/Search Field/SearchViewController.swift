@@ -373,7 +373,6 @@ extension SearchViewController : UITextViewDelegate {
                     return false
                 }
             }
-            
             let url = TypeaheadProvider.shared.serpURLfor(entry)!
             navigateTo(url)
             return false
@@ -428,7 +427,7 @@ extension SearchViewController : UITableViewDataSource {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let item = suggestions[indexPath.item]
         var h : CGFloat = 48.0
-        if item.title.count > 40 { h += 32 }
+//        if item.title.count > 40 { h += 32 }
         if item.detail != nil { h += 16 }
         return h
     }

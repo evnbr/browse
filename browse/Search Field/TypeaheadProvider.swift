@@ -87,7 +87,8 @@ class TypeaheadProvider: NSObject {
                         suggestion = TypeaheadSuggestion(title: q, detail: nil, url: item.url)
                     }
                     else {
-                        suggestion = TypeaheadSuggestion(title: item.url.cleanString, detail: item.title, url: item.url)
+//                        suggestion = TypeaheadSuggestion(title: item.url.cleanString, detail: item.title, url: item.url)
+                        suggestion = TypeaheadSuggestion(title: item.title, detail: item.url.cleanString, url: item.url)
                     }
 
                     suggestionScore[suggestion] = score
@@ -169,6 +170,7 @@ extension TypeaheadProvider {
             let maxWordScore : Float = 200 / Float(words.count)
             
             words.forEach { word in
+                let partPct = Float(word.count) / Float(text.count) // bias against long urls
                 let pct = Float(query.count) / Float(word.count)
                 score += maxWordScore * pct * ( word.starts(with: query) ? 1 : 0.2 )
             }

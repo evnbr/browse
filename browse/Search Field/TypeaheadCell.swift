@@ -28,24 +28,27 @@ class TypeaheadCell: UITableViewCell {
         indentationLevel = 0
         
         textLabel?.lineBreakMode = .byWordWrapping
-        textLabel?.numberOfLines = 2
+        textLabel?.numberOfLines = 1
         textLabel?.font = .systemFont(ofSize: 18)
         layoutMargins = UIEdgeInsetsMake(12, 24, 12, 24)
         
         detailTextLabel?.font = .systemFont(ofSize: 14)
-        detailTextLabel?.numberOfLines = 2
+        detailTextLabel?.numberOfLines = 1
     }
     
     func configure(title: String, detail: String?, highlight: String) {
         let titleOverlaps = title.allNSRanges(of: highlight, split: true)
         let attributedTitle = NSMutableAttributedString(string: title)
+//        titleOverlaps.forEach { attributedTitle.addAttributes([.font : UIFont.systemFont(ofSize: 18, weight: .semibold)], range: $0) }
         titleOverlaps.forEach { attributedTitle.addAttributes([.foregroundColor : tintColor.withAlphaComponent(0.5)], range: $0) }
+//        titleOverlaps.forEach { attributedTitle.addAttributes([ .underlineStyle : NSUnderlineStyle.styleSingle.rawValue ], range: $0) }
+//        titleOverlaps.forEach { attributedTitle.addAttributes([ .underlineColor : tintColor.withAlphaComponent(0.2) ], range: $0) }
         textLabel?.attributedText = attributedTitle
         
         if let detail = detail {
             let detailOverlaps = detail.allNSRanges(of: highlight, split: true)
             let attributedDetail = NSMutableAttributedString(string: detail)
-            detailOverlaps.forEach { attributedDetail.addAttributes([.foregroundColor : tintColor], range: $0) }
+            detailOverlaps.forEach { attributedDetail.addAttributes([.foregroundColor : tintColor.withAlphaComponent(0.5)], range: $0) }
             detailTextLabel?.attributedText = attributedDetail
         }
     }
@@ -60,7 +63,7 @@ class TypeaheadCell: UITableViewCell {
     
     override func tintColorDidChange() {
         textLabel?.textColor = tintColor
-        detailTextLabel?.textColor = tintColor.withAlphaComponent(0.5)
+        detailTextLabel?.textColor = tintColor //.withAlphaComponent(0.7)
         selectedBackgroundView?.backgroundColor = tintColor.isLight ? .darkTouch : .lightTouch
     }
 
