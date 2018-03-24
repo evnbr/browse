@@ -70,7 +70,7 @@ class Typeahead: NSObject {
             }
         }
         
-        HistoryManager.shared.fetchItemsContaining(text) { results in
+        HistoryManager.shared.findItemsMatching(text) { results in
             isHistoryLoaded = true
             if let page = results?.first {
                 firstHistoryItem = TypeaheadSuggestion(title: page.url.cleanString, detail: page.title, url: page.url)

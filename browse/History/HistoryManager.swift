@@ -96,22 +96,39 @@ extension WKBackForwardListItem {
 
 // Fetch
 extension HistoryManager {
-    func fetchItemsContaining(_ str: String, completion: @escaping ([HistorySearchResult]?) -> () ) {
+    private func fetchItemsContaining(_ str: String, completion: @escaping ([HistorySearchResult]?) -> () ) {
         guard str.count > 0 else { return }
         persistentContainer.performBackgroundTask { ctx in
-            let request = NSFetchRequest<HistoryItem>(entityName: "HistoryItem")
-//            request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", str)
-            request.predicate = NSPredicate(format: "url CONTAINS[cd] %@ OR url CONTAINS[cd] %@", argumentArray: [".\(str)", "/\(str)"])
+            let request = NSFetchRequest<NSFetchRequestResult>(entityName: "HistoryItem")
+            
+            // todo: doesn't handle spaces
+            var predicates : [NSPredicate] = []
+            for word in str.split(separator: " ") {
+                if word != "" {
+                    predicates.append(NSPredicate(format: "url CONTAINS[cd] %@", ".\(word)")) // www.WOrd.com
+                    predicates.append(NSPredicate(format: "url CONTAINS[cd] %@", "/\(word)")) // prot://WOrd.com
+                    predicates.append(NSPredicate(format: "title CONTAINS[cd] %@", " \(word)")) // The WOrd
+                }
+            }
+            request.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: predicates)
             request.sortDescriptors = [ NSSortDescriptor(key: "firstVisit", ascending: true) ]
+            
+            // Distinct on URL or Title else full of dupes
+            request.propertiesToFetch = ["url", "title"]
+            request.returnsDistinctResults = true
+            request.resultType = .dictionaryResultType
+
+            // Should be enough to filter more carefully later
             request.returnsObjectsAsFaults = false
-            request.includesPropertyValues = true
             request.fetchBatchSize = 20
             request.fetchLimit = 20
             do {
                 let results = try ctx.fetch(request)
                 var cleanResults : [ HistorySearchResult ] = []
                 for result in results {
-                    if let title = result.title, let url = result.url {
+                    if let dict = result as? NSDictionary,
+                        let title = dict["title"] as? String,
+                        let url = dict["url"] as? URL {
                         cleanResults.append(HistorySearchResult(title: title, url: url))
                     }
                 }
@@ -119,6 +136,84 @@ extension HistoryManager {
             } catch let error{
                 completion(nil)
                 print(error)
+            }
+        }
+    }
+    
+    func matchingScore(item: HistorySearchResult, text: String) -> Int {
+        let inOrderScore = componentScore(item: item, text: text)
+        
+        // Split on spaces and sum scores
+        let splitScore = text.split(separator: " ")
+            .map { componentScore(item: item, text: String($0)) }
+            .reduce(0, { $0 + $1 })
+        return inOrderScore * 2 + splitScore
+    }
+    
+    func matchesStrictly(item: HistorySearchResult, text: String) -> Bool {
+        for word in text.split(separator: " ") {
+            if word.count > 0
+                && !item.title.localizedCaseInsensitiveContains(word)
+                && !(item.url.host?.localizedCaseInsensitiveContains(word) ?? false) {
+                return false
+            }
+        }
+        return true
+    }
+    
+    func componentScore(item: HistorySearchResult, text: String) -> Int {
+        if text == "" { return 0 }
+        var score : Float = 0
+        
+        // Points for words in the title
+        if item.title.localizedCaseInsensitiveContains(text) {
+            let words = item.title.split(separator: " ")
+            let maxWordScore : Float = Float(words.count) / 200
+            
+            words.forEach { word in
+                
+                if word.starts(with: text) {
+                    // 100 points per word starting with text
+                    let pct : Float = Float(text.count) / Float(word.count)
+                    score += maxWordScore * pct
+                }
+                else {
+                    // 20 points if its elsewhere
+                    let pct : Float = Float(text.count) / Float(word.count)
+                    score += maxWordScore * pct * 0.2
+                }
+            }
+        }
+        
+        // Points for host matching
+        if let host = item.url.host, host.localizedCaseInsensitiveContains(text) {
+            let parts = host.split(separator: ".")
+            parts.forEach { part in
+                if part.starts(with: text) {
+                    // 100 points per host component starting with text
+                    let pct : Float = Float(text.count) / Float(part.count)
+                    score += 200 * pct
+                }
+                else {
+                    // 20 points if its elsewhere
+                    let pct : Float = Float(text.count) / Float(part.count)
+                    score += 60 * pct
+                }
+            }
+        }
+        
+        return Int(score)
+    }
+    
+    func findItemsMatching(_ str: String, completion: @escaping ([HistorySearchResult]?) -> () ) {
+        fetchItemsContaining(str) { poorlySorted in
+            DispatchQueue.global(qos: .userInitiated).async {
+                let nicelySorted = poorlySorted?
+                    .filter { self.matchesStrictly(item: $0, text: str) }
+                    .sorted(by: { (a, b) -> Bool in
+                    self.matchingScore(item: a, text: str) > self.matchingScore(item: b, text: str)
+                })
+                completion(nicelySorted)
             }
         }
     }
