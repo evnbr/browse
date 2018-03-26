@@ -93,9 +93,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             self.vc.home.setThumbScale($0)
         }
         thumbPositioner = Blend {
-            self.vc.home.setThumbPosition(
-                switcherProgress: self.switcherRevealProgress,
-                cardOffset: $0)
+            self.vc.home.setThumbPosition(cardOffset: $0)
         }
         
         dismissSwitch = SpringSwitch {
@@ -108,7 +106,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             self.vc.statusBar.label.alpha = $0.reverse().clip()
             self.mockCardView.statusBar.label.alpha = $0.reverse().clip()
         }
-
         
         let dismissPanner = UIPanGestureRecognizer()
         dismissPanner.delegate = self
@@ -154,6 +151,14 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             if !scrollView.isDecelerating {
                 scrollView.contentOffset.y = 0
             }
+        }
+        if !scrollView.isScrollableX && scrollView.isDecelerating {
+            // For cases that dont trigger an interactivedismiss,
+            // but did have horizontal momentum,
+            // on a mobile-formatted site that shouldn't allow
+            // hscrolling, we want to pretend we haven't set
+            // alwaysBouncesHorizontal
+            scrollView.contentOffset.x = 0
         }
         
         // Cancel scroll, assume gesture will handle
@@ -283,8 +288,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             x: view.center.x + spaceW * 0.4 * sign,
             y: view.center.y + max(elasticLimit(yGestureInfluence), yGestureInfluence) - spaceH * (0.5 - startAnchorOffsetPct)
         )
-        print(startAnchorOffsetPct)
-
         mockPositioner.setValue(of: DISMISSING, to: CGPoint(
             x: view.center.x - view.bounds.width * sign,
             y: view.center.y))
@@ -294,7 +297,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             y: view.center.y + 0.5 * max(0, yGestureInfluence))
         
         let thumbAlpha = switcherRevealProgress.progress(from: 0, to: 0.7).clip().blend(from: 0, to: 1)
-        vc.home.navigationController?.view.alpha = thumbAlpha
+//        vc.home.navigationController?.view.alpha = thumbAlpha
 
         // reveal back page from left
         if (direction == .left && vc.webView.canGoBack) || isToParent {
@@ -778,7 +781,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
         mockCardView.springScale(to: 1)
 //        vc.statusHeightConstraint.springConstant(to: Const.statusHeight)
-        vc.home.springCards(expanded: false, at: velocity)
+        vc.home.springCards(toStacked: false, at: velocity)
         vc.home.setThumbsVisible()
         
         UIView.animate(withDuration: 0.2) {
@@ -819,8 +822,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             x: view.center.x - cardView.center.x,
             y: view.center.y - cardView.center.y
         ))
-        let thumbAlpha = switcherRevealProgress.progress(from: 0, to: 0.7).blend(from: 0.2, to: 1)
-        vc.home.navigationController?.view.alpha = thumbAlpha
+//        let thumbAlpha = switcherRevealProgress.progress(from: 0, to: 0.7).blend(from: 0.2, to: 1)
+//        vc.home.navigationController?.view.alpha = thumbAlpha
 
         dismissSwitch.setState(DISMISSING)
         

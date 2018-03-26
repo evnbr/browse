@@ -24,7 +24,9 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     let itemsPerRow : CGFloat = 2
     
     let thumbAnimationController = PresentTabAnimationController()
-    
+    let stackedLayout = StackingCollectionViewLayout(isStacked: true)
+    let spreadLayout = StackingCollectionViewLayout(isStacked: false)
+
     var isFirstLoad = true
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -46,7 +48,9 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
 
         browserVC = BrowserViewController(home: self)
         
-        collectionView?.collectionViewLayout = StackingCollectionViewLayout()
+        view.clipsToBounds = false
+        collectionView?.clipsToBounds = false
+        collectionView?.collectionViewLayout = stackedLayout
         collectionView?.delaysContentTouches = false
         collectionView?.alwaysBounceVertical = true
         collectionView?.scrollIndicatorInsets.top = Const.statusHeight
@@ -142,16 +146,14 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     }
     
     var currentIndexPath : IndexPath? {
-        guard let thumb = currentThumb else { return nil }
-        guard let cv = collectionView else { return nil }
-        return cv.indexPath(for: thumb)
+        guard let tab = browserVC.currentTab else { return nil }
+        return fetchedResultsController.indexPath(forObject: tab)
     }
     
     var currentThumb : TabThumbnail? {
         guard let tab = browserVC.currentTab else { return nil }
         return thumb(forTab: tab)
     }
-
 
     var visibleCells: [TabThumbnail] {
         guard let cv = collectionView else { return [] }
@@ -187,7 +189,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         return cv.layoutAttributesForItem(at: ip)!.bounds
     }
     
-    func adjustedCenterFor(_ ip: IndexPath, cardOffset: CGPoint = .zero, switcherProgress: CGFloat, offsetByScroll: Bool = false, isSwitcherMode: Bool = false) -> CGPoint {
+    func adjustedCenterSTACKEDFor(_ ip: IndexPath, cardOffset: CGPoint = .zero, switcherProgress: CGFloat, offsetByScroll: Bool = false, isSwitcherMode: Bool = false) -> CGPoint {
         let cv = collectionView!
         let count = fetchedResultsController.fetchedObjects?.count ?? 0
         let currentIndex = currentIndexPath?.item ?? count
@@ -200,7 +202,6 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         
         let distFromFront : CGFloat = CGFloat(count - ip.item - 1)
         
-//        collapsedY = Const.statusHeight + cv.contentOffset.y + attrs.bounds.height / 2
         collapsedY = cv.contentOffset.y + attrs.bounds.height / 2
         if ip.item > currentIndex {
             collapsedY += view.bounds.height + Const.statusHeight
@@ -219,6 +220,12 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         return center
     }
     
+    func adjustedCenterFor(_ ip: IndexPath, offsetByScroll: Bool = false, isSwitcherMode: Bool = false) -> CGPoint {
+//        let cv = collectionView!
+        return (isSwitcherMode ? stackedLayout : spreadLayout).layoutAttributesForItem(at: ip)!.center
+    }
+
+    
     func setThumbsVisible() {
         visibleCells.forEach { $0.isHidden = false }
     }
@@ -228,31 +235,21 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     }
     
     func setThumbScale(_ scale: CGFloat) {
-        visibleCells.forEach { $0.scale = scale }
+        spreadLayout.scale = scale
+        spreadLayout.invalidateLayout()
     }
     
-    func setThumbPosition(switcherProgress: CGFloat, cardOffset: CGPoint = .zero, offsetForContainer: Bool = false, isSwitcherMode: Bool = false, isToParent: Bool = false) {
-        for cell in visibleCells {
-            let ip = collectionView!.indexPath(for: cell)!
-            cell.center = adjustedCenterFor(ip, cardOffset: cardOffset, switcherProgress: switcherProgress, offsetByScroll: offsetForContainer, isSwitcherMode: isSwitcherMode)
-        }
-        if !isSwitcherMode { currentThumb?.isHidden = true }
-    }
+    func setThumbPosition(cardOffset: CGPoint = .zero, offsetForContainer: Bool = false, isSwitcherMode: Bool = false, isToParent: Bool = false) {
+        spreadLayout.offset = cardOffset
+        spreadLayout.invalidateLayout()
+        currentThumb?.isHidden = true
+    }    
     
-    func springCards(expanded: Bool, at velocity: CGPoint = .zero) {
-        for cell in visibleCells {
-//            let ip = collectionView!.indexPath(for: cell)!
-            let delay : CFTimeInterval = 0//expanded ? 0 : Double(tabs.count - ip.item) * 0.02
-            let ip = collectionView!.indexPath(for: cell)!
-            let center = adjustedCenterFor(ip, switcherProgress: expanded ? 0 : 1, isSwitcherMode: !expanded)
-            
-            var vel = velocity
-            vel.x = 0
-            let anim = cell.springCenter(to: center, at: vel, after: delay)
-            anim?.springSpeed = 10
-            anim?.springBounciness = 2
-            cell.springScale(to: 1)
+    func springCards(toStacked: Bool, at velocity: CGPoint = .zero) {
+        if !toStacked {
+            spreadLayout.scale = 1
         }
+        collectionView?.setCollectionViewLayout(toStacked ? stackedLayout : spreadLayout, animated: true)
     }
     
     func moveTabToEnd(_ tab: Tab) {
@@ -285,10 +282,8 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     }
     
     func scrollToBottom() {
-        if let cv = self.collectionView {
-            if cv.isScrollableY {
-                cv.contentOffset.y = cv.contentSize.height - cv.bounds.size.height
-            }
+        if let cv = self.collectionView, cv.isScrollableY {
+            cv.contentOffset.y = cv.maxScrollY
         }
     }
     
@@ -433,6 +428,9 @@ extension TabSwitcherViewController {
         return CGSize(width: view.frame.width - sectionInsets.left - sectionInsets.right, height: THUMB_H)
     }
     
+    override func collectionView(_ collectionView: UICollectionView, transitionLayoutForOldLayout fromLayout: UICollectionViewLayout, newLayout toLayout: UICollectionViewLayout) -> UICollectionViewTransitionLayout {
+        return StackingTransition(currentLayout: fromLayout, nextLayout: toLayout)
+    }
 }
 
 // MARK: - UICollectionViewDelegateFlowLayout
@@ -442,7 +440,6 @@ extension TabSwitcherViewController : UICollectionViewDelegateFlowLayout {
         
         return thumbSize
     }
-
 
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
@@ -461,5 +458,6 @@ extension TabSwitcherViewController : UICollectionViewDelegateFlowLayout {
                         minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 8
     }
+    
 }
 

@@ -48,9 +48,9 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
 
         // TODO: This is not necessarily the correct thumb.
         // When swapping between tabs it gets mixed up.
-        homeVC.visibleCells.forEach { $0.isHidden = false }
+        homeVC.setThumbsVisible()
         let thumb = homeVC.thumb(forTab: browserVC.currentTab!)
-        thumb?.isHidden = true
+//        thumb?.isHidden = true
         browserVC.statusBar.isHidden = false // TODO
         
         if isExpanding {
@@ -58,31 +58,27 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             containerView.addSubview(browserVC.view)
         }
         else {
-            homeVC.scrollToBottom()
             browserVC.updateSnapshot()
         }
         
         let scrollView = browserVC.webView.scrollView
         scrollView.isScrollEnabled = false
         scrollView.cancelScroll()
-//        browserVC.isSnapshotMode = true
         
         var thumbCenter : CGPoint
         var thumbScale : CGFloat = 1
         var thumbOverlayAlpha : CGFloat = 0
         
-        if let thumb = thumb {
+        if let ip = homeVC.currentIndexPath, let cv = homeVC.collectionView {
             // must be after toVC is added
-            let cv = homeVC.collectionView!
-            let selIndexPath = cv.indexPath(for: thumb)!
-            let attr = cv.layoutAttributesForItem(at: selIndexPath)!
+            let attr = homeVC.stackedLayout.layoutAttributesForItem(at: ip)!
             let selectedThumbCenter = attr.center
             thumbOverlayAlpha = 1 - attr.alpha
-            thumbCenter = containerView.convert(selectedThumbCenter, from: thumb.superview)
+            thumbCenter = containerView.convert(selectedThumbCenter, from: cv)
             thumbScale = attr.transform.xScale
         }
         else {
-            // animate from bottom
+            // If can't find end point for some reason, just animate from bottom
             thumbCenter = CGPoint(x: homeVC.view.center.x, y: homeVC.view.center.y + (homeVC.view.bounds.height))
         }
         
@@ -125,6 +121,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         var popBoundsDone = false
         
         func finishTransition() {
+            guard viewAnimFinished && popCenterDone && popBoundsDone else {  return }
             if self.isExpanding {
                 browserVC.isSnapshotMode = false
                 browserVC.webView.scrollView.isScrollEnabled = true
@@ -136,24 +133,20 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             
             if self.isDismissing {
                 browserVC.view.removeFromSuperview()
-                homeVC.setThumbPosition(switcherProgress: 1, isSwitcherMode: true)
+//                homeVC.setThumbPosition(isSwitcherMode: true)
             }
+
             snapFab?.removeFromSuperview()
             homeVC.fab.isHidden = self.isExpanding
             browserVC.contentView.mask = nil
             browserVC.contentView.radius = 0
-            homeVC.setThumbsVisible()
             homeVC.setNeedsStatusBarAppearanceUpdate()
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
-            homeVC.updateThumbs()
+            
+            homeVC.setThumbPosition(isSwitcherMode: self.isDismissing)
+            homeVC.setThumbsVisible()
+            homeVC.scrollToBottom()
             homeVC.collectionView?.reloadData() // TODO: touch targets dont work without this
-        }
-        func maybeFinish() {
-            if viewAnimFinished
-            && popCenterDone
-            && popBoundsDone {
-                finishTransition()
-            }
         }
         
         let isLandscape = browserVC.view.bounds.width > browserVC.view.bounds.height
@@ -161,25 +154,24 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         
         browserVC.statusHeightConstraint.springConstant(to: isExpanding ? statusHeight : THUMB_OFFSET_COLLAPSED )
         browserVC.cardView.springScale(to: isExpanding ? 1 : thumbScale)
-        browserVC.cardView.springBounds(to: isExpanding ? expandedBounds : smallerBounds, then: {  _, _ in
-//            popBoundsDone = true
-//            maybeFinish()
-        })
+        browserVC.cardView.springBounds(to: isExpanding ? expandedBounds : smallerBounds)
         let maskAnim = mask.springFrame(to: isExpanding ? expandedBounds : thumbBounds) { _, _ in
             popBoundsDone = true
-            maybeFinish()
+            finishTransition()
         }
         maskAnim?.springBounciness = 2
         
         let centerAnim = browserVC.cardView.springCenter(to: newCenter, at: velocity) { (_, _) in
             popCenterDone = true
-            maybeFinish()
+            finishTransition()
         }
-//        centerAnim?.dynamicsMass = 1.3
-//        centerAnim?.dynamicsFriction = 35
         centerAnim?.springSpeed = 10
         centerAnim?.springBounciness = 2
-        homeVC.springCards(expanded: isExpanding, at: velocity)
+        
+        if isExpanding {
+            homeVC.spreadLayout.offset.y = -(thumbCenter.y - thumbBounds.height / 2 )
+        }
+        homeVC.springCards(toStacked: isDismissing, at: velocity)
         
 
         if let fab = snapFab {
@@ -224,7 +216,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
                 
         }, completion: { finished in
             viewAnimFinished = true
-            maybeFinish()
+            finishTransition()
         })
     }
     
