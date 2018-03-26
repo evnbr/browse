@@ -245,7 +245,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         spreadLayout.invalidateLayout()
     }
     
-    func springCards(toStacked: Bool, at velocity: CGPoint = .zero) {
+    func springCards(toStacked: Bool, at velocity: CGPoint = .zero, completion: (() -> ())? = nil) {
         if !toStacked {
             spreadLayout.offset = .zero
             spreadLayout.scale = 1
@@ -258,7 +258,9 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         }
         spring.setState(.start)
         spring.springState(.end) { (_, _) in
+            print("finish spring cards")
             self.collectionView?.finishInteractiveTransition()
+            completion?()
         }
     }
     
@@ -275,6 +277,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
             }
         }
         saveContext()
+        scrollToBottom()
     }
     
     func showTab(_ tab: Tab, animated: Bool = true, completion: (() -> Void)? = nil) {
@@ -446,6 +449,12 @@ extension TabSwitcherViewController {
     
     override func collectionView(_ collectionView: UICollectionView, transitionLayoutForOldLayout fromLayout: UICollectionViewLayout, newLayout toLayout: UICollectionViewLayout) -> UICollectionViewTransitionLayout {
         return StackingTransition(currentLayout: fromLayout, nextLayout: toLayout)
+    }
+}
+
+extension TabSwitcherViewController {
+    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        print("didScroll: \(scrollView.contentOffset.y)")
     }
 }
 

@@ -49,9 +49,6 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         // TODO: This is not necessarily the correct thumb.
         // When swapping between tabs it gets mixed up.
         homeVC.setThumbsVisible()
-        let thumb = homeVC.thumb(forTab: browserVC.currentTab!)
-//        thumb?.isHidden = true
-        browserVC.statusBar.isHidden = false // TODO
         
         if isExpanding {
             browserVC.resetSizes(withKeyboard: browserVC.isBlank)
@@ -119,21 +116,21 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         var popCenterDone = false
         var viewAnimFinished = false
         var popBoundsDone = false
+        var popCardsDone = false
         
         func finishTransition() {
-            guard viewAnimFinished && popCenterDone && popBoundsDone else {  return }
+            guard viewAnimFinished && popCenterDone && popBoundsDone && popCardsDone else {  return }
+            print("finish transition")
             if self.isExpanding {
                 browserVC.isSnapshotMode = false
                 browserVC.webView.scrollView.isScrollEnabled = true
                 browserVC.webView.scrollView.showsVerticalScrollIndicator = true
             }
-            thumb?.setTab(browserVC.currentTab!)
             
             homeVC.visibleCellsBelow.forEach { homeVC.collectionView?.addSubview($0) }
             
             if self.isDismissing {
                 browserVC.view.removeFromSuperview()
-//                homeVC.setThumbPosition(isSwitcherMode: true)
             }
 
             snapFab?.removeFromSuperview()
@@ -143,10 +140,11 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             homeVC.setNeedsStatusBarAppearanceUpdate()
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
             
-            homeVC.setThumbPosition(isSwitcherMode: self.isDismissing)
+//            homeVC.setThumbPosition(isSwitcherMode: self.isDismissing)
             homeVC.setThumbsVisible()
-            homeVC.scrollToBottom()
-            homeVC.collectionView?.reloadData() // TODO: touch targets dont work without this
+            homeVC.visibleCells.forEach { $0.refresh() }
+//            homeVC.scrollToBottom()
+//            homeVC.collectionView?.reloadData() // TODO: touch targets dont work without this
         }
         
         let isLandscape = browserVC.view.bounds.width > browserVC.view.bounds.height
@@ -171,8 +169,10 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         if isExpanding {
             homeVC.spreadLayout.offset.y = -(thumbCenter.y - thumbBounds.height / 2 )
         }
-        homeVC.springCards(toStacked: isDismissing, at: velocity)
-        
+        homeVC.springCards(toStacked: isDismissing, at: velocity) {
+            popCardsDone = true
+            finishTransition()
+        }
 
         if let fab = snapFab {
             containerView.addSubview(fab)

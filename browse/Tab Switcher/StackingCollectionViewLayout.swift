@@ -16,7 +16,10 @@ let itemHeight : CGFloat = THUMB_H
 // http://www.nicnocquee.com/ios/2015/01/29/drive-uicollectionview-interactive-layout-transition-using-facebooks-pop.html
 
 class StackingTransition: UICollectionViewTransitionLayout {
-    
+    override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
+        // Only adjust scroll for user, "proposed" seems to be garbage?
+        return collectionView!.contentOffset
+    }
 }
 
 class StackingCollectionViewLayout: UICollectionViewFlowLayout {
@@ -41,25 +44,33 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
     }
     
     override var collectionViewContentSize: CGSize {
-        return CGSize(
+        let newSize = CGSize(
             width: collectionView!.bounds.width,
             height: CGFloat(collectionView!.numberOfItems(inSection: 0)) * itemSpacing + (itemHeight - itemSpacing) + 240)
+//        print("ScrollPos: \(collectionView!.contentOffset.y)   H: \(newSize.height)")
+        return newSize
+    }
+    
+    override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
+        // Only adjust scroll for user, "proposed" seems to be garbage?
+        return collectionView!.contentOffset
     }
 
     override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
         if newBounds == collectionView?.bounds { return false }
+//        print("did scroll")
         return true
     }
     
     override func invalidateLayout() {
-        print("invalidated")
+//        print("invalidated")
         super.invalidateLayout()
     }
     
     override func prepare() {
         super.prepare()
-        print("prepare")
-        
+//        print("prepare - isStacked: \(isStacked)")
+
         attributesList = calculateList(stacked: isStacked)
     }
     
