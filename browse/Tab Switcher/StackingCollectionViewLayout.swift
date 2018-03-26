@@ -104,9 +104,13 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
         
         if whenStacked {
             newCenter.y -= distFromTop * 0.95 * pct
-            attributes.transform = .identity
+            attributes.transform = .identity //CGAffineTransform(scale: s)
         } else {
-            if indexPath != selectedIndex {
+            if indexPath == selectedIndex {
+                attributes.isHidden = true
+            }
+            else {
+                attributes.isHidden = false
                 let endCenter = calculateItem(for: selectedIndex, whenStacked: true).center
                 let endDistFromTop = endCenter.y - scrollPos - cardSize.height / 2
                 newCenter.y = endCenter.y - (cardSize.height * (scale) + 12) * distFromFront - endDistFromTop

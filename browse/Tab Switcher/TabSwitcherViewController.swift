@@ -242,8 +242,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     func setThumbPosition(cardOffset: CGPoint = .zero, offsetForContainer: Bool = false, isSwitcherMode: Bool = false, isToParent: Bool = false) {
         spreadLayout.offset = cardOffset
         spreadLayout.invalidateLayout()
-        currentThumb?.isHidden = true
-    }    
+    }
     
     func springCards(toStacked: Bool, at velocity: CGPoint = .zero) {
         if !toStacked {
