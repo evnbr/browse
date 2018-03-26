@@ -24,7 +24,10 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
     private var isStacked: Bool = true
     var offset: CGPoint = .zero
     var scale: CGFloat = 1
+    
     var selectedIndex = IndexPath(item: 0, section: 0)
+    var parentIndexPath: IndexPath? = nil
+    var parentHidden: Bool = false
     
     var attributesList = [ UICollectionViewLayoutAttributes ]()
     
@@ -114,6 +117,11 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
                 let endCenter = calculateItem(for: selectedIndex, whenStacked: true).center
                 let endDistFromTop = endCenter.y - scrollPos - cardSize.height / 2
                 newCenter.y = endCenter.y - (cardSize.height * (scale) + 12) * distFromFront - endDistFromTop
+            }
+            
+            if parentHidden && indexPath == parentIndexPath {
+                print("hiding parent")
+                attributes.isHidden = true
             }
             
             attributes.transform = CGAffineTransform(scale: scale)

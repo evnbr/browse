@@ -304,28 +304,32 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             dismissingPoint.y -= dismissPointY * 0.5 // to account for initial resisitance
             let parallax : CGFloat = 0.5
             cardPositioner.setValue(of: PAGING, to: backFwdPoint)
-            mockPositioner.setValue(of: PAGING, to: CGPoint(
-                    x: view.center.x + adjustedX * parallax - view.bounds.width * parallax,
-                    y: backFwdPoint.y ))
+            mockAlpha.setValue(of: PAGING, to: adjustedX.progress(from: 0, to: 400).blend(from: 0.4, to: 0.1))
+            let backScale = adjustedX.progress(from: 0, to: 400).blend(from: 0.95, to: 1)
             if isToParent {
+                mockPositioner.setValue(of: PAGING, to: CGPoint(
+                    x: view.center.x + adjustedX * 0.2 - view.bounds.width * 0.2,
+                    y: view.center.y + 0.2 * min(0, -yGestureInfluence) ))
+                mockScaler.setValue(of: PAGING, to: yGestureInfluence.progress(from: 0, to: dismissPointY).clip().blend(from: backScale, to: 0.8))
                 mockAlpha.setValue(of: DISMISSING, to: thumbAlpha.reverse())
                 mockPositioner.setValue(of: DISMISSING, to: CGPoint(
-                    // TODO: keep x and y positions in sync with
-                    // how tabswitcher is calculating it
-                    x: view.center.x + (dismissingPoint.x - view.center.x) * 0.9,
-                    y: dismissingPoint.y - 160 * switcherRevealProgress ))
+                    x: dismissingPoint.x,
+                    y: dismissingPoint.y - dismissScale * view.bounds.height - 12 ))
             }
             else {
-//                mockPositioner.setValue(of: DISMISSING, to: dismissingPoint)
-                mockScaler.setValue(of: DISMISSING, to: 1)
-//                mockAlpha.setValue(of: DISMISSING, to: 1)
-                mockAlpha.setValue(of: DISMISSING, to: 1)
-                mockPositioner.setValue(of: DISMISSING, to: CGPoint(
-                    x: view.center.x - vc.cardView.bounds.width,
+                mockScaler.setValue(of: PAGING, to: backScale)
+                mockPositioner.setValue(of: PAGING, to: CGPoint(
+                    x: view.center.x + adjustedX * parallax - view.bounds.width * parallax,
                     y: backFwdPoint.y ))
+//                mockScaler.setValue(of: DISMISSING, to: 1)
+//                mockAlpha.setValue(of: DISMISSING, to: 1)
+//                mockPositioner.setValue(of: DISMISSING, to: CGPoint(
+//                    x: view.center.x - vc.cardView.bounds.width,
+//                    y: backFwdPoint.y ))
+                mockScaler.setValue(of: DISMISSING, to: dismissScale)
+                mockAlpha.setValue(of: DISMISSING, to: 0.7)
+                mockPositioner.setValue(of: DISMISSING, to: dismissingPoint)
             }
-            mockAlpha.setValue(of: PAGING, to: adjustedX.progress(from: 0, to: 400).blend(from: 0.4, to: 0.1))
-            mockScaler.setValue(of: PAGING, to: 1)
         }
         // overlay forward page from right
         else if direction == .right && vc.webView.canGoForward {
@@ -335,7 +339,9 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 y: backFwdPoint.y ))
             let isBackness = adjustedX.progress(from: 0, to: -400) * gesturePos.y.progress(from: 100, to: 160).clip().reverse()
             vc.overlay.alpha = isBackness.blend(from: 0, to: 0.4)
+            cardScaler.setValue(of: PAGING, to: adjustedX.progress(from: 0, to: -400).blend(from: 1, to: 0.95))
             mockAlpha.setValue(of: PAGING, to: 0)
+            mockScaler.setValue(of: PAGING, to: 1)
             mockScaler.setValue(of: DISMISSING, to: 1)
             mockPositioner.setValue(of: PAGING, to: CGPoint(
                 x: backFwdPoint.x + view.bounds.width,
