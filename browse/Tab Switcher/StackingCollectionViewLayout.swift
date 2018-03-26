@@ -24,6 +24,7 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
     private var isStacked: Bool = true
     var offset: CGPoint = .zero
     var scale: CGFloat = 1
+    var selectedIndex = IndexPath(item: 0, section: 0)
     
     var attributesList = [ UICollectionViewLayoutAttributes ]()
     
@@ -80,7 +81,7 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
         
         let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
         let i = indexPath.item
-        let distFromFront : CGFloat = CGFloat(itemCount - i - 1)
+        let distFromFront : CGFloat = CGFloat(selectedIndex.item - i)
         
         var newCenter = CGPoint(
             x: collectionView!.center.x,
@@ -105,8 +106,8 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
             newCenter.y -= distFromTop * 0.95 * pct
             attributes.transform = .identity
         } else {
-            if indexPath.item != itemCount - 1 {
-                let endCenter = calculateItem(for: IndexPath(item: itemCount - 1, section: 0), whenStacked: true).center
+            if indexPath != selectedIndex {
+                let endCenter = calculateItem(for: selectedIndex, whenStacked: true).center
                 let endDistFromTop = endCenter.y - scrollPos - cardSize.height / 2
                 newCenter.y = endCenter.y - (cardSize.height * (scale) + 12) * distFromFront - endDistFromTop
             }

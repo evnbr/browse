@@ -270,6 +270,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         browserVC.transitioningDelegate = self
         
         self.browserVC.setTab(tab)
+        spreadLayout.selectedIndex = currentIndexPath!
         
         present(browserVC, animated: animated, completion: {
             if let thumb = self.thumb(forTab: tab) {
@@ -382,6 +383,7 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
             for operation: BlockOperation in self.blockOperations { operation.start() }
         }, completion: { finished in
             self.blockOperations.removeAll(keepingCapacity: false)
+            self.spreadLayout.selectedIndex = self.currentIndexPath!
         })
     }
 
