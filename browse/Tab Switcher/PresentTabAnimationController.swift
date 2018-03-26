@@ -48,7 +48,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
 
         // TODO: This is not necessarily the correct thumb.
         // When swapping between tabs it gets mixed up.
-        homeVC.setThumbsVisible()
+//        homeVC.setThumbsVisible()
         
         if isExpanding {
             browserVC.resetSizes(withKeyboard: browserVC.isBlank)
@@ -71,7 +71,16 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             let attr = homeVC.stackedLayout.layoutAttributesForItem(at: ip)!
             let selectedThumbCenter = attr.center
             thumbOverlayAlpha = 1 - attr.alpha
-            thumbCenter = containerView.convert(selectedThumbCenter, from: cv)
+            if isExpanding {
+                // start from current center
+                thumbCenter = containerView.convert(selectedThumbCenter, from: cv)
+            }
+            else {
+                // !!assume the layout has been reset to the bottom
+                thumbCenter = CGPoint(
+                    x: containerView.center.x,
+                    y: containerView.center.y + attr.bounds.height * 0.7 )
+            }
             thumbScale = attr.transform.xScale
         }
         else {
@@ -141,9 +150,9 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
             
 //            homeVC.setThumbPosition(isSwitcherMode: self.isDismissing)
-            homeVC.setThumbsVisible()
+//            homeVC.setThumbsVisible()
             homeVC.visibleCells.forEach { $0.refresh() }
-//            homeVC.scrollToBottom()
+            homeVC.scrollToBottom()
 //            homeVC.collectionView?.reloadData() // TODO: touch targets dont work without this
         }
         

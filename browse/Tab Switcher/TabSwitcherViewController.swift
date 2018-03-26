@@ -251,6 +251,11 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
             spreadLayout.scale = 1
         }
         
+        stackedLayout.selectedHidden = true
+        spreadLayout.selectedHidden = true
+        stackedLayout.invalidateLayout()
+        spreadLayout.invalidateLayout()
+
         let tLayout = collectionView?.startInteractiveTransition(to: toStacked ? stackedLayout : spreadLayout)
         let spring = SpringSwitch {
             tLayout?.transitionProgress = $0
@@ -259,6 +264,12 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         spring.setState(.start)
         spring.springState(.end) { (_, _) in
             print("finish spring cards")
+            if toStacked {
+                self.stackedLayout.selectedHidden = false
+                self.spreadLayout.selectedHidden = false
+                self.stackedLayout.invalidateLayout()
+                self.spreadLayout.invalidateLayout()
+            }
             self.collectionView?.finishInteractiveTransition()
             completion?()
         }
@@ -277,7 +288,6 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
             }
         }
         saveContext()
-        scrollToBottom()
     }
     
     func showTab(_ tab: Tab, animated: Bool = true, completion: (() -> Void)? = nil) {
@@ -285,8 +295,9 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         browserVC.transitioningDelegate = self
         
         self.browserVC.setTab(tab)
-        spreadLayout.selectedIndex = currentIndexPath!
-        
+        spreadLayout.selectedIndexPath = currentIndexPath!
+        stackedLayout.selectedIndexPath = currentIndexPath!
+
         present(browserVC, animated: animated, completion: {
             if let thumb = self.thumb(forTab: tab) {
                 thumb.unSelect(animated: false)
@@ -299,6 +310,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     
     func scrollToBottom() {
         if let cv = self.collectionView, cv.isScrollableY {
+            print("scroll to bottom (\(cv.maxScrollY))")
             cv.contentOffset.y = cv.maxScrollY
         }
     }
@@ -399,8 +411,10 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
         }, completion: { finished in
             self.blockOperations.removeAll(keepingCapacity: false)
             if let ip = self.currentIndexPath {
-                self.spreadLayout.selectedIndex = ip
+                self.spreadLayout.selectedIndexPath = ip
+                self.stackedLayout.selectedIndexPath = ip
             }
+            self.scrollToBottom() // TODO this might be overkill
         })
     }
 
@@ -452,11 +466,11 @@ extension TabSwitcherViewController {
     }
 }
 
-extension TabSwitcherViewController {
-    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        print("didScroll: \(scrollView.contentOffset.y)")
-    }
-}
+//extension TabSwitcherViewController {
+//    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+//        print("didScroll: \(scrollView.contentOffset.y)")
+//    }
+//}
 
 // MARK: - UICollectionViewDelegateFlowLayout
 extension TabSwitcherViewController : UICollectionViewDelegateFlowLayout {

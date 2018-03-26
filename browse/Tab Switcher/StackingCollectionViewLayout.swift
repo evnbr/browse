@@ -18,6 +18,7 @@ let itemHeight : CGFloat = THUMB_H
 class StackingTransition: UICollectionViewTransitionLayout {
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
         // Only adjust scroll for user, "proposed" seems to be garbage?
+//        print("current: \(collectionView!.contentOffset.y), proposed: \(proposedContentOffset.y)")
         return collectionView!.contentOffset
     }
 }
@@ -28,7 +29,8 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
     var offset: CGPoint = .zero
     var scale: CGFloat = 1
     
-    var selectedIndex = IndexPath(item: 0, section: 0)
+    var selectedIndexPath = IndexPath(item: 0, section: 0)
+    var selectedHidden: Bool = false
     var parentIndexPath: IndexPath? = nil
     var parentHidden: Bool = false
     
@@ -53,6 +55,7 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
     
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
         // Only adjust scroll for user, "proposed" seems to be garbage?
+//        print("current: \(collectionView!.contentOffset.y), proposed: \(proposedContentOffset.y)")
         return collectionView!.contentOffset
     }
 
@@ -95,7 +98,7 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
         
         let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
         let i = indexPath.item
-        let distFromFront : CGFloat = CGFloat(selectedIndex.item - i)
+        let distFromFront : CGFloat = CGFloat(selectedIndexPath.item - i)
         
         var newCenter = CGPoint(
             x: collectionView!.center.x,
@@ -116,28 +119,26 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
 //        let s = (pct * pct * 0.1).reverse()
 //            attributes.transform = CGAffineTransform(scaleX: s, y: s)
         
+        attributes.isHidden = false
         if whenStacked {
             newCenter.y -= distFromTop * 0.95 * pct
             attributes.transform = .identity //CGAffineTransform(scale: s)
         } else {
-            if indexPath == selectedIndex {
-                attributes.isHidden = true
-            }
-            else {
-                attributes.isHidden = false
-                let endCenter = calculateItem(for: selectedIndex, whenStacked: true).center
+            if indexPath != selectedIndexPath {
+                let endCenter = calculateItem(for: selectedIndexPath, whenStacked: true).center
                 let endDistFromTop = endCenter.y - scrollPos - cardSize.height / 2
                 newCenter.y = endCenter.y - (cardSize.height * (scale) + 12) * distFromFront - endDistFromTop
-            }
-            
-            if parentHidden && indexPath == parentIndexPath {
-                print("hiding parent")
-                attributes.isHidden = true
             }
             
             attributes.transform = CGAffineTransform(scale: scale)
             newCenter.x -= offset.x
             newCenter.y -= offset.y
+            if parentHidden && indexPath == parentIndexPath {
+                attributes.isHidden = true
+            }
+        }
+        if selectedHidden && indexPath == selectedIndexPath {
+            attributes.isHidden = true
         }
         
         if i < itemCount - 1 {
