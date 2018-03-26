@@ -246,10 +246,22 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     
     func springCards(toStacked: Bool, at velocity: CGPoint = .zero) {
         if !toStacked {
+            spreadLayout.offset = .zero
             spreadLayout.scale = 1
         }
-        collectionView?.setCollectionViewLayout(toStacked ? stackedLayout : spreadLayout, animated: true)
+        
+        let tLayout = collectionView?.startInteractiveTransition(to: toStacked ? stackedLayout : spreadLayout)
+        let spring = SpringSwitch {
+            tLayout?.transitionProgress = $0
+            tLayout?.invalidateLayout()
+        }
+        spring.setState(.start)
+        spring.springState(.end) { (_, _) in
+            self.collectionView?.finishInteractiveTransition()
+        }
     }
+    
+    
     
     func moveTabToEnd(_ tab: Tab) {
         tab.sortIndex = Int16(tabCount - 1)
@@ -382,7 +394,9 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
             for operation: BlockOperation in self.blockOperations { operation.start() }
         }, completion: { finished in
             self.blockOperations.removeAll(keepingCapacity: false)
-            self.spreadLayout.selectedIndex = self.currentIndexPath!
+            if let ip = self.currentIndexPath {
+                self.spreadLayout.selectedIndex = ip
+            }
         })
     }
 

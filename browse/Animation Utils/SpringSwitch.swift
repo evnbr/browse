@@ -53,7 +53,7 @@ class SpringSwitch : NSObject {
     
     // External
     @discardableResult
-    func springState(_ newState : SpringTransitionState) -> POPSpringAnimation? {
+    func springState(_ newState : SpringTransitionState, completion: SpringCompletionBlock? = nil) -> POPSpringAnimation? {
         let newVal : CGFloat = newState.rawValue
         guard newVal != progress else {
             updateBlock(progress)
@@ -62,6 +62,7 @@ class SpringSwitch : NSObject {
         
         if let anim = self.pop_animation(forKey: kProgressAnimation) as? POPSpringAnimation {
             anim.toValue = newVal
+            if let c = completion { anim.completionBlock = c }
             return anim
         }
         else if let anim = POPSpringAnimation(propertyNamed: kProgressProperty) {
@@ -69,6 +70,7 @@ class SpringSwitch : NSObject {
             anim.property = progressPropery
             anim.springBounciness = 1
             anim.springSpeed = 5
+            if let c = completion { anim.completionBlock = c }
             self.pop_add(anim, forKey: kProgressAnimation)
             return anim
         }

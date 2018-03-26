@@ -14,9 +14,9 @@ let kSpringCenterX = "springCenterX"
 let kSpringScale = "springScale"
 let kSpringBounds = "springBounds"
 let kSpringFrame = "springFrame"
-let kSpringContentOffset = "springContentOffset"
-let kSpringConstant = "springConstant"
 
+
+typealias SpringCompletionBlock = (POPAnimation?, Bool) -> Void
 extension UIView {
     
     var isPopAnimating : Bool {
@@ -29,7 +29,7 @@ extension UIView {
         to newCenter: CGPoint,
         at velocity: CGPoint = .zero,
         after delay: CFTimeInterval = 0,
-        then completion: @escaping (POPAnimation?, Bool) -> Void = {_,_ in } ) -> POPSpringAnimation? {
+        then completion: @escaping SpringCompletionBlock = {_,_ in } ) -> POPSpringAnimation? {
         
         if let anim = self.pop_animation(forKey: kSpringCenter) as? POPSpringAnimation {
             anim.toValue = newCenter
@@ -50,7 +50,7 @@ extension UIView {
     func springBounds(
         to newBounds: CGRect,
         at velocity: CGRect = .zero,
-        then completion: @escaping (POPAnimation?, Bool) -> Void = {_,_ in } ) {
+        then completion: @escaping SpringCompletionBlock = {_,_ in } ) {
         
         if let anim = self.pop_animation(forKey: kSpringBounds) as? POPSpringAnimation {
             anim.toValue = newBounds
@@ -109,6 +109,7 @@ extension UIView {
     }
 }
 
+let kSpringContentOffset = "springContentOffset"
 extension UIScrollView {
     func springBottomInset(
         to newBottomInset: CGFloat) {
@@ -130,6 +131,7 @@ extension UIScrollView {
     }
 }
 
+let kSpringConstant = "springConstant"
 extension NSLayoutConstraint {
     var isPopAnimating : Bool {
         let anims = self.pop_animationKeys()
