@@ -160,7 +160,9 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
 
     
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-        return attributesList
+        return attributesList.filter { attrs -> Bool in
+            return rect.intersects(attrs.frame) && attrs.alpha > 0 && !attrs.isHidden
+        }
     }
     
     override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
