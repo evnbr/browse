@@ -7,10 +7,11 @@
 //
 
 import UIKit
+typealias ToolbarButtonAction = () -> Void
 
 class ToolbarTouchView: UIView {
 
-    var action: () -> Void
+    var action: ToolbarButtonAction?
     var tapColor : UIColor = .lightTouch
     
     override var intrinsicContentSize: CGSize {
@@ -23,7 +24,7 @@ class ToolbarTouchView: UIView {
     }
     
     
-    init(frame: CGRect, onTap: @escaping () -> Void) {
+    init(frame: CGRect, onTap: ToolbarButtonAction? ) {
         action = onTap
 
         super.init(frame: frame)
@@ -45,7 +46,7 @@ class ToolbarTouchView: UIView {
     }
     
     @objc func doAction() {
-        action()
+        action?()
         deSelect()
     }
     

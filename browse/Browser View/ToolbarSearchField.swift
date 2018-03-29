@@ -1,5 +1,5 @@
 //
-//  LocationBar.swift
+//  ToolbarSearchField.swift
 //  browse
 //
 //  Created by Evan Brooks on 5/23/17.
@@ -8,19 +8,13 @@
 
 import UIKit
 
-enum LocationBarAlignment {
-    case left
-    case centered
-}
-
-class LocationBar: ToolbarTouchView {
+class ToolbarSearchField: ToolbarTouchView {
     
     var label = UILabel()
     var lock : UIImageView!
     var magnify : UIImageView!
     var labelHolder : UIView!
     
-    var alignment : LocationBarAlignment = .centered
     var centerConstraint : NSLayoutConstraint!
     
     private var shouldShowLock : Bool = false
@@ -75,7 +69,7 @@ class LocationBar: ToolbarTouchView {
         return CGSize(width: 180.0, height: Const.shared.buttonHeight)
     }
     
-    init(onTap: @escaping () -> Void) {
+    init(onTap: ToolbarButtonAction? = nil) {
         super.init(frame: CGRect(x: 0, y: 0, width: 180, height: Const.shared.buttonHeight), onTap: onTap)
         
         let lockImage = UIImage(named: "lock")!.withRenderingMode(.alwaysTemplate)

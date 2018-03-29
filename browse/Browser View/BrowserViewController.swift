@@ -23,7 +23,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     var topConstraint : NSLayoutConstraint!
     var accessoryHeightConstraint : NSLayoutConstraint!
-    var toolbarHeightConstraint : NSLayoutConstraint!
     var aspectConstraint : NSLayoutConstraint!
     var statusHeightConstraint : NSLayoutConstraint!
 
@@ -33,7 +32,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     var statusBar: ColorStatusBarView!
     
-    var toolbar: ProgressToolbar!
+    var toolbar: BrowserToolbarView!
     var toolbarPlaceholder = UIView()
     var accessoryView: GradientColorChangeView!
     
@@ -41,12 +40,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var cardView: UIView!
     var contentView: UIView!
     var overlay: UIView!
-    
-    var backButton: ToolbarIconButton!
-    var stopButton: ToolbarIconButton!
-    var forwardButton: ToolbarIconButton!
-    var tabButton: ToolbarIconButton!
-    var locationBar: LocationBar!
+    var gradientOverlay: UIView!
     
     var overflowController: UIAlertController!
         
@@ -68,7 +62,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     var isShowingToolbar : Bool {
-        return toolbarHeightConstraint.constant > 0
+        return toolbar.heightConstraint.constant > 0
     }
     
     var displayTitle : String {
@@ -219,6 +213,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         overlay.backgroundColor = UIColor.black
         overlay.alpha = 0
         
+        gradientOverlay = GradientView(frame: view.bounds)
+        gradientOverlay.alpha = 0
+
+        
         view.addSubview(cardView)
         cardView.addSubview(shadowView)
         cardView.addSubview(contentView)
@@ -235,6 +233,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         snap.contentMode = .scaleAspectFill
         snap.translatesAutoresizingMaskIntoConstraints = false
+        snap.alpha = 0.5
         snap.frame.size = CGSize(
             width: cardView.bounds.width,
             height: cardView.bounds.height - Const.statusHeight - Const.toolbarHeight
@@ -248,6 +247,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         contentView.addSubview(overlay)
         constrain4(contentView, overlay)
+//        contentView.addSubview(gradientOverlay)
+//        constrain4(contentView, gradientOverlay)
 
         constrainTop3(statusBar, contentView)
         statusHeightConstraint = statusBar.heightAnchor.constraint(equalToConstant: Const.statusHeight)
@@ -277,7 +278,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         gestureController = BrowserGestureController(for: self)
         
         let searchSwipe = UIPanGestureRecognizer(target: self, action: #selector(showSearchGesture(_:)))
-        locationBar.addGestureRecognizer(searchSwipe)
+        toolbar.searchField.addGestureRecognizer(searchSwipe)
 
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
@@ -306,7 +307,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     func hideToolbar(animated : Bool = true) {
         if !webView.scrollView.isScrollableY { return }
         if webView.isLoading { return }
-        if toolbarHeightConstraint.constant == 0 { return }
+        if toolbar.heightConstraint.constant == 0 { return }
         
         UIView.animate(
             withDuration: 0.2,
@@ -314,12 +315,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             options: .curveEaseInOut,
             animations: {
                 self.webView.scrollView.scrollIndicatorInsets.bottom = -Const.toolbarHeight
-                self.locationBar.alpha = 0
-                self.backButton.alpha = 0
-                self.tabButton.alpha = 0
+                self.toolbar.contentsAlpha = 0
             }
         )
-        toolbarHeightConstraint.springConstant(to: 0)
+        toolbar.heightConstraint.springConstant(to: 0)
         webView.scrollView.springBottomInset(to: -Const.toolbarHeight)
 
     }
@@ -327,9 +326,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         showToolbar(adjustScroll: true)
     }
     func showToolbar(animated: Bool = true, adjustScroll: Bool = false) {
-        if toolbarHeightConstraint.constant == Const.toolbarHeight { return }
+        if toolbar.heightConstraint.constant == Const.toolbarHeight { return }
         
-        let dist = Const.toolbarHeight - toolbarHeightConstraint.constant
+        let dist = Const.toolbarHeight - toolbar.heightConstraint.constant
 
         if (animated) {
             UIView.animate(
@@ -338,12 +337,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 options: [.curveEaseInOut, .allowAnimatedContent],
                 animations: {
                     self.webView.scrollView.scrollIndicatorInsets.bottom = 0
-                    self.locationBar.alpha = 1
-                    self.backButton.alpha = 1
-                    self.tabButton.alpha = 1
+                    self.toolbar.contentsAlpha = 1
             })
             
-            toolbarHeightConstraint.springConstant(to: Const.toolbarHeight)
+            toolbar.heightConstraint.springConstant(to: Const.toolbarHeight)
             webView.scrollView.springBottomInset(to: 0)
             if adjustScroll {
                 let scroll = webView.scrollView
@@ -353,55 +350,20 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             }
         }
         else {
-            toolbarHeightConstraint.constant = Const.toolbarHeight
+            toolbar.heightConstraint.constant = Const.toolbarHeight
             webView.scrollView.contentInset.bottom = 0
             webView.scrollView.scrollIndicatorInsets.bottom = 0
-            locationBar.alpha = 1
-            backButton.alpha = 1
-            tabButton.alpha = 1
+            toolbar.contentsAlpha = 1
         }
     }
 
-    func setUpToolbar() -> ProgressToolbar {
+    func setUpToolbar() -> BrowserToolbarView {
+        let toolbar = BrowserToolbarView(frame: CGRect(x: 0, y: 0, width: cardView.frame.width, height: Const.toolbarHeight))
         
-        let toolbar = ProgressToolbar(frame: CGRect(
-            x: 0,
-            y: 0,
-            width: cardView.frame.width,
-            height: Const.toolbarHeight
-        ))
-        toolbar.translatesAutoresizingMaskIntoConstraints = false
-        toolbarHeightConstraint = toolbar.heightAnchor.constraint(equalToConstant: Const.toolbarHeight)
-        toolbarHeightConstraint.isActive = true
-        
-        locationBar = LocationBar(
-            onTap: { self.displayFullSearch(animated: true) })
-        backButton = ToolbarIconButton(
-            icon: UIImage(named: "back"),
-            onTap: {
-                if self.webView.canGoBack {
-                    self.webView.goBack()
-                }
-                else if let parent = self.currentTab?.parentTab {
-                    self.gestureController.swapTo(parentTab: parent)
-                }
-            })
-        forwardButton = ToolbarIconButton(
-            icon: UIImage(named: "fwd"),
-            onTap: { self.webView.goForward() })
-        tabButton = ToolbarIconButton(
-            icon: UIImage(named: "tab"),
-            onTap: dismissSelf)
-        stopButton = ToolbarIconButton(
-            icon: UIImage(named: "stop"),
-            onTap: { self.webView.stopLoading() })
-        
-        locationBar.addSubview(stopButton)
-        stopButton.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
-        stopButton.frame.origin.x = locationBar.frame.width - stopButton.frame.width
-
-        toolbar.items = [backButton, locationBar, tabButton]
-        
+        toolbar.searchField.action = { self.displayFullSearch(animated: true) }
+        toolbar.backButton.action = goBack
+        toolbar.stopButton.action = { self.webView.stopLoading() }
+        toolbar.tabButton.action = dismissSelf
         toolbar.tintColor = .darkText
         return toolbar
     }
@@ -409,6 +371,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     func displayFullSearch(animated: Bool = true) {
         searchVC.setBackground(toolbar.lastColor)
         present(searchVC, animated: true, completion: nil)
+    }
+    
+    func goBack() {
+        if webView.canGoBack { webView.goBack() }
+        else if let parent = currentTab?.parentTab {
+            gestureController.swapTo(parentTab: parent)
+        }
     }
     
     func setupAccessoryView() -> GradientColorChangeView {
@@ -623,10 +592,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     func navigateTo(_ url: URL) {
         errorView?.removeFromSuperview()
-        if let btn = locationBar {
-            btn.text = url.displayHost
-            btn.progress = 0
-        }
+        toolbar.text = url.displayHost
+        toolbar.progress = 0
         // Does it feel faster if old page instantle disappears?
         hideUntilNavigationDone()
         snap.image = nil
@@ -688,28 +655,24 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     func updateLoadingState() {
         guard isViewLoaded else { return }
         
-        locationBar.text = self.displayTitle
+        toolbar.text = self.displayTitle
         statusBar.label.text = webView.title
         
         UIView.animate(withDuration: 0.25) {
-            self.backButton.isEnabled = self.webView.canGoBack || self.currentTab!.hasParent
-            
-            self.forwardButton.isEnabled = self.webView.canGoForward
-            self.forwardButton.tintColor = self.webView.canGoForward ? nil : .clear
-            self.forwardButton.scale = self.webView.canGoForward ? 1 : 0.6
-            
-            self.stopButton.isEnabled = self.webView.isLoading
-            self.stopButton.tintColor = self.webView.isLoading ? nil : .clear
-            self.stopButton.scale = self.webView.isLoading ? 1 : 0.6
+            self.toolbar.backButton.isEnabled = self.webView.canGoBack || self.currentTab!.hasParent
+                        
+            self.toolbar.stopButton.isEnabled = self.webView.isLoading
+            self.toolbar.stopButton.tintColor = self.webView.isLoading ? nil : .clear
+            self.toolbar.stopButton.scale = self.webView.isLoading ? 1 : 0.6
         }
         
         if self.webView.isLoading {
             showToolbar()
         }
         
-        locationBar.isLoading = webView.isLoading
-        locationBar.isSecure = webView.hasOnlySecureContent
-        locationBar.isSearch = isSearching || isBlank
+        toolbar.isLoading = webView.isLoading
+        toolbar.isSecure = webView.hasOnlySecureContent
+        toolbar.isSearch = isSearching || isBlank
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = webView.isLoading
         
@@ -725,8 +688,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "estimatedProgress" {
-            toolbar.progress = Float(webView.estimatedProgress)
-            locationBar.progress = CGFloat(webView.estimatedProgress)
+            toolbar.progress = CGFloat(webView.estimatedProgress)
         }
         updateLoadingState()
     }
@@ -769,7 +731,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     }
     
     var bottomSamplePosition : CGFloat {
-        return cardView.bounds.height - Const.statusHeight - toolbarHeightConstraint.constant
+        return cardView.bounds.height - Const.statusHeight - toolbar.heightConstraint.constant
     }
     
     @objc func keyboardWillShow(notification: NSNotification) {

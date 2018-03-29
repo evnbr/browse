@@ -196,16 +196,14 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             
             let pct = toolbarH / Const.toolbarHeight
             
-            vc.toolbarHeightConstraint.constant = toolbarH
+            vc.toolbar.heightConstraint.constant = toolbarH
             
             let inset = -Const.toolbarHeight + toolbarH
             scrollView.contentInset.bottom = inset
             scrollView.scrollIndicatorInsets.bottom = inset
 
             let alpha = pct * 3 - 2
-            vc.locationBar.alpha = alpha
-            vc.backButton.alpha = alpha
-            vc.tabButton.alpha = alpha
+            vc.toolbar.contentsAlpha = alpha
         }
     }
     
@@ -443,7 +441,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         else if adjustedX < -backPointX && isHorizontal {
             if vc.webView.canGoForward {
                 print("Could go forward to one of the following")
-                let items = vc.currentTab?.currentItem?.forwardItems?.allObjects.map({ item in
+                let _ = vc.currentTab?.currentItem?.forwardItems?.allObjects.map({ item in
                     if let item = item as? HistoryItem {
                         print("- \(item.title ?? "No Title")")
                     }
@@ -807,7 +805,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
         
         if adjustedY > 0 {
-            vc.toolbarHeightConstraint.constant = max(0, Const.toolbarHeight)
+            vc.toolbar.heightConstraint.constant = max(0, Const.toolbarHeight)
         }
         
         let revealProgress = abs(adjustedY) / 200
