@@ -256,14 +256,15 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         stackedLayout.invalidateLayout()
         spreadLayout.invalidateLayout()
 
-        let tLayout = collectionView?.startInteractiveTransition(to: toStacked ? stackedLayout : spreadLayout)
+        let tLayout = collectionView?.startInteractiveTransition(to: toStacked ? stackedLayout : spreadLayout) { _, _ in
+            completion?()
+        }
         let spring = SpringSwitch {
             tLayout?.transitionProgress = $0
             tLayout?.invalidateLayout()
         }
         spring.setState(.start)
         spring.springState(.end) { (_, _) in
-            print("finish spring cards")
             if toStacked {
                 self.stackedLayout.selectedHidden = false
                 self.spreadLayout.selectedHidden = false
@@ -271,7 +272,6 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
                 self.spreadLayout.invalidateLayout()
             }
             self.collectionView?.finishInteractiveTransition()
-            completion?()
         }
     }
     
@@ -310,8 +310,8 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     
     func scrollToBottom() {
         if let cv = self.collectionView, cv.isScrollableY {
-            print("scroll to bottom (\(cv.maxScrollY))")
-            cv.contentOffset.y = cv.maxScrollY
+//            print("scroll to bottom (\(cv.maxScrollY))")
+            cv.contentOffset.y = cv.maxScrollYWithInset
         }
     }
     
@@ -471,7 +471,7 @@ extension TabSwitcherViewController {
 //        print("didScroll: \(scrollView.contentOffset.y)")
 //    }
 //}
-
+//
 // MARK: - UICollectionViewDelegateFlowLayout
 extension TabSwitcherViewController : UICollectionViewDelegateFlowLayout {
 

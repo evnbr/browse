@@ -10,6 +10,7 @@ import UIKit
 
 let itemSpacing : CGFloat = 160
 let itemHeight : CGFloat = THUMB_H
+let startY : CGFloat = 240
 
 // TODO: drive this progress
 // with POP as described in
@@ -48,7 +49,7 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
     override var collectionViewContentSize: CGSize {
         let newSize = CGSize(
             width: collectionView!.bounds.width,
-            height: CGFloat(collectionView!.numberOfItems(inSection: 0)) * itemSpacing + (itemHeight - itemSpacing) + 240)
+            height: startY + CGFloat(collectionView!.numberOfItems(inSection: 0)) * itemSpacing + (itemHeight - itemSpacing))
 //        print("ScrollPos: \(collectionView!.contentOffset.y)   H: \(newSize.height)")
         return newSize
     }
@@ -79,9 +80,16 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
     
     private func calculateList(stacked: Bool) -> [UICollectionViewLayoutAttributes] {
         let count = collectionView!.numberOfItems(inSection: 0)
+        let baseCenter = collectionView!.center
+        let scrollY = collectionView!.contentOffset.y
         let attributesList = (0..<count).map { i -> UICollectionViewLayoutAttributes in
             let indexPath = IndexPath(item: i, section: 0)
-            return calculateItem(for: indexPath, whenStacked: stacked)
+            return calculateItem(
+                for: indexPath,
+                whenStacked: stacked,
+                scrollY: scrollY,
+                baseCenter: baseCenter,
+                totalItems: itemCount)
         }
         return attributesList
     }
@@ -90,19 +98,17 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
         return collectionView!.numberOfItems(inSection: 0)
     }
         
-    private func calculateItem(for indexPath: IndexPath, whenStacked: Bool) -> UICollectionViewLayoutAttributes {
+    func calculateItem(for indexPath: IndexPath, whenStacked: Bool, scrollY: CGFloat, baseCenter: CGPoint, totalItems: Int) -> UICollectionViewLayoutAttributes {
         let topScrollPos = Const.statusHeight + 12 //60
-        let scrollPos = collectionView!.contentOffset.y
-        
         let cardSize = UIScreen.main.bounds.size
-        
+
         let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
         let i = indexPath.item
         let distFromFront : CGFloat = CGFloat(selectedIndexPath.item - i)
         
         var newCenter = CGPoint(
-            x: collectionView!.center.x,
-            y: 240.0 + collectionView!.center.y + CGFloat(i) * itemSpacing
+            x: baseCenter.x,
+            y: startY + baseCenter.y + CGFloat(i) * itemSpacing
         )
         
         attributes.bounds.size = cardSize
@@ -113,20 +119,20 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
             attributes.bounds.size.height *= pct
         }
         
-        let distFromTop = newCenter.y - (attributes.bounds.height / 2) - scrollPos - topScrollPos
+        let distFromTop = newCenter.y - (attributes.bounds.height / 2) - scrollY - topScrollPos
         
         let pct = distFromTop.progress(from: -400, to: 600).reverse()
-//        let s = (pct * pct * 0.1).reverse()
+        let s = (pct * pct * 0.1).reverse()
 //            attributes.transform = CGAffineTransform(scaleX: s, y: s)
         
         attributes.isHidden = false
         if whenStacked {
             newCenter.y -= distFromTop * 0.95 * pct
-            attributes.transform = .identity //CGAffineTransform(scale: s)
+            attributes.transform = CGAffineTransform(scale: s)
         } else {
             if indexPath != selectedIndexPath {
-                let endCenter = calculateItem(for: selectedIndexPath, whenStacked: true).center
-                let endDistFromTop = endCenter.y - scrollPos - cardSize.height / 2
+                let endCenter = calculateItem(for: selectedIndexPath, whenStacked: true, scrollY: scrollY, baseCenter: baseCenter, totalItems: totalItems).center
+                let endDistFromTop = endCenter.y - scrollY - cardSize.height / 2
                 newCenter.y = endCenter.y - (cardSize.height * (scale) + 12) * distFromFront - endDistFromTop
             }
             
@@ -141,7 +147,7 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
             attributes.isHidden = true
         }
         
-        if i < itemCount - 1 {
+        if i < totalItems - 1 {
             attributes.alpha = 1 - ( pct * pct * pct )
             // attributes.transform = CGAffineTransform(scale: s)
         }
