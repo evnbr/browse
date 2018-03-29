@@ -166,6 +166,8 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
     }
     
     override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        guard indexPath.count > 0, // sometimes this method sent nil paths - why?
+            indexPath.row < attributesList.count else { return nil }
         return attributesList[indexPath.row]
     }
 }
