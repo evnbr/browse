@@ -51,14 +51,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     // MARK: - Derived properties
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        if gestureController.isInteractiveDismiss && (cardView.frame.origin.y > 10) {
-            return .lightContent
-        }
-        return statusBar.lastColor.isLight ? .lightContent : .default
+        return statusBar.backgroundColor.isLight ? .lightContent : .default
     }
     
     override var prefersStatusBarHidden: Bool {
-        return false
+        return gestureController.isInteractiveDismiss
     }
     
     var isShowingToolbar : Bool {

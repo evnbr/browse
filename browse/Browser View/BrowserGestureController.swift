@@ -367,11 +367,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let newState = (isVerticalDismiss || (cantPage && isHorizontalDismiss)) ? DISMISSING : PAGING
         dismissSwitch.springState(newState)
 
-        if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle {
-            UIView.animate(withDuration: 0.2, animations: {
-                self.vc.setNeedsStatusBarAppearanceUpdate()
-            })
-        }
+        updateStatusBar()
     }
     
     func endGesture() {
@@ -835,13 +831,16 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             cardView.radius = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
         }
         
-        
-        if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle {
+        updateStatusBar()
+    }
+    
+    func updateStatusBar() {
+        if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle
+            || vc.prefersStatusBarHidden != UIApplication.shared.isStatusBarHidden {
             UIView.animate(withDuration: 0.2, animations: {
                 self.vc.setNeedsStatusBarAppearanceUpdate()
             })
         }
-        
     }
     
     

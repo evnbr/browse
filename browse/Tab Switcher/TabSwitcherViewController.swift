@@ -36,7 +36,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         return .lightContent
     }
     override var prefersStatusBarHidden: Bool {
-        return false
+        return browserVC.prefersStatusBarHidden
     }
     
     var tabCount : Int {
