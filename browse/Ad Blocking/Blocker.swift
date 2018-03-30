@@ -48,15 +48,18 @@ class Blocker: NSObject {
     func findList(_ fileName : String, completion: @escaping (WKContentRuleList?) -> ()) {
         WKContentRuleListStore.default().getAvailableContentRuleListIdentifiers { (identifiers) in
             if identifiers != nil && identifiers!.contains(fileName) {
-//                print("existing rules found")
                 WKContentRuleListStore.default().lookUpContentRuleList(forIdentifier: fileName, completionHandler: { (list, error) in
                     if let list : WKContentRuleList = list {
-//                        print("existing rules fetched")
                         completion(list)
                     } else {
                         print("existing rules failed to be fetched")
-                        if (error != nil) { print(error as Any) }
-                        completion(nil)
+                        if let e = error { print(e) }
+                        if let e = error as? WKError, e.code == WKError.contentRuleListStoreVersionMismatch {
+                            self.compileList(fileName, completion: completion)
+                        }
+                        else {
+                            completion(nil)
+                        }
                     }
                 })
             } else {
@@ -78,7 +81,7 @@ class Blocker: NSObject {
                 completion(list)
             } else {
                 print("rules failed to be compiled")
-                if (error != nil) { print(error as Any) }
+                if let e = error { print(e) }
                 completion(nil)
             }
         }
