@@ -675,13 +675,13 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
         
         // Swap colors
-        let statusColor = vc.statusBar.lastColor
-        let toolbarColor = vc.toolbar.lastColor
-        vc.statusBar.setBackground(to: mockCardView.statusBar.lastColor ?? .white)
-        vc.toolbar.setBackground(to: mockCardView.toolbarView.backgroundColor ?? .white)
+        let statusColor = vc.statusBar.backgroundColor
+        let toolbarColor = vc.toolbar.backgroundColor
+        vc.statusBar.backgroundColor = mockCardView.statusBar.backgroundColor
+        vc.toolbar.backgroundColor = mockCardView.toolbarView.backgroundColor
         vc.statusBar.backgroundView.alpha = 1
         vc.toolbar.backgroundView.alpha = 1
-        mockCardView.statusBar.setBackground(to: statusColor)
+        mockCardView.statusBar.backgroundColor = statusColor
         mockCardView.toolbarView.backgroundColor = toolbarColor
 
         

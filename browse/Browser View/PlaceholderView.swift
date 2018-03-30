@@ -33,7 +33,7 @@ class PlaceholderView: UIView {
         addSubview(contentView)
         
         statusBar = ColorStatusBarView()
-        statusBar.setBackground(to: .red)
+        statusBar.backgroundColor = .red
         contentView.addSubview(statusBar, constraints: [
             statusBar.leftAnchor.constraint(equalTo: contentView.leftAnchor),
             statusBar.rightAnchor.constraint(equalTo: contentView.rightAnchor),
@@ -42,7 +42,7 @@ class PlaceholderView: UIView {
         ])
         
         toolbarView = BrowserToolbarView(frame: bounds)
-        toolbarView.setBackground(to: .red)
+        toolbarView.backgroundColor = .red
         toolbarView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(toolbarView, constraints: [
             toolbarView.leftAnchor.constraint(equalTo: contentView.leftAnchor),
@@ -74,8 +74,8 @@ class PlaceholderView: UIView {
     
     func setPage(_ page: HistoryItem) {
         setSnapshot(page.snapshot)
-        if let color = page.topColor { statusBar.setBackground(to: color) }
-        if let color = page.bottomColor { toolbarView.setBackground(to: color) }
+        if let color = page.topColor { statusBar.backgroundColor = color }
+        if let color = page.bottomColor { toolbarView.backgroundColor = color }
         statusBar.label.text = page.title
         toolbarView.text = page.url?.displayHost
     }

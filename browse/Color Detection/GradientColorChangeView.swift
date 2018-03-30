@@ -24,7 +24,15 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
 
     var backgroundView: UIView!
     
-    var lastColor: UIColor = UIColor.clear
+    private var lastColor: UIColor = UIColor.clear
+    
+    override var backgroundColor: UIColor! {
+        get { return lastColor }
+        set {
+            if let c = newValue { setBackground(to: c) }
+            else { lastColor = .clear }
+        }
+    }
     
     var isLight : Bool {
         return lastColor.isLight
@@ -103,7 +111,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         return true
     }
     
-    func setBackground(to newColor: UIColor) {
+    private func setBackground(to newColor: UIColor) {
         self.backgroundView.backgroundColor = newColor
         self.tintColor = newColor.isLight ? .white : .darkText
         lastColor = newColor

@@ -97,7 +97,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         contentView.addSubview(label)
         
         toolbarView = BrowserToolbarView(frame: bounds)
-        toolbarView.setBackground(to: .red)
+        toolbarView.backgroundColor = .red
         toolbarView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(toolbarView, constraints: [
             toolbarView.leftAnchor.constraint(equalTo: contentView.leftAnchor),
@@ -144,7 +144,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
             label.textColor = color.isLight ? .white : .darkText
         }
         if let color = item.bottomColor {
-            toolbarView.setBackground(to: color)
+            toolbarView.backgroundColor = color
         }
         if let title = item.title, title != "" { label.text = "\(title)" }
         if let url = item.url { toolbarView.text = url.displayHost }

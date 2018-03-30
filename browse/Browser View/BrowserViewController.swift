@@ -141,16 +141,16 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
         
         if let newTop = newTab.currentItem?.topColor {
-            statusBar.setBackground(to: newTop)
+            statusBar.backgroundColor = newTop
         }
         else {
-            statusBar.setBackground(to: .white)
+            statusBar.backgroundColor = .white
         }
         if let newBottom = newTab.currentItem?.bottomColor {
-            toolbar.setBackground(to: newBottom)
+            toolbar.backgroundColor = newBottom
         }
         else {
-            toolbar.setBackground(to: .white)
+            toolbar.backgroundColor = .white
         }
         
         webView.navigationDelegate = self
@@ -287,7 +287,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     @objc func showSearchGesture(_ gesture: UIPanGestureRecognizer) {
         if gesture.state == .began {
             searchVC.displaySearchTransition.showKeyboard = false
-            searchVC.setBackground(toolbar.lastColor)
+            searchVC.setBackground(toolbar.backgroundColor)
             present(searchVC, animated: true) {
                 self.searchVC.displaySearchTransition.showKeyboard = true
             }
@@ -369,7 +369,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     func displayFullSearch(animated: Bool = true) {
-        searchVC.setBackground(toolbar.lastColor)
+        searchVC.setBackground(toolbar.backgroundColor)
         present(searchVC, animated: true, completion: nil)
     }
     
@@ -597,8 +597,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         // Does it feel faster if old page instantle disappears?
         hideUntilNavigationDone()
         snap.image = nil
-        toolbar.setBackground(to: .white)
-        statusBar.setBackground(to: .white)
+        toolbar.backgroundColor = .white
+        statusBar.backgroundColor = .white
         
         webView.load(URLRequest(url: url))
     }
@@ -628,7 +628,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     func displayError(text: String) {
         if errorView == nil { errorView = makeError() }
         
-        errorView.backgroundColor = toolbar.lastColor
+        errorView.backgroundColor = toolbar.backgroundColor
         let errorLabel = errorView.subviews.first as! UILabel
         errorLabel.text = text
         errorLabel.textColor = toolbar.tintColor
