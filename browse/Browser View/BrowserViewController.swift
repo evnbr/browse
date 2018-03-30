@@ -660,10 +660,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         UIView.animate(withDuration: 0.25) {
             self.toolbar.backButton.isEnabled = self.webView.canGoBack || self.currentTab!.hasParent
-                        
-            self.toolbar.stopButton.isEnabled = self.webView.isLoading
-            self.toolbar.stopButton.tintColor = self.webView.isLoading ? nil : .clear
-            self.toolbar.stopButton.scale = self.webView.isLoading ? 1 : 0.6
         }
         
         if self.webView.isLoading {

@@ -9,18 +9,9 @@
 import UIKit
 
 class PlaceholderView: UIView {
-
-    /*
-    // Only override draw() if you perform custom drawing.
-    // An empty implementation adversely affects performance during animation.
-    override func draw(_ rect: CGRect) {
-        // Drawing code
-    }
-    */
-    
     var contentView: UIView!
     var statusBar: ColorStatusBarView!
-    var toolbarView: UIView!
+    var toolbarView: BrowserToolbarView!
     var overlay: UIView!
     var imageView: UIImageView!
     var aspectConstraint : NSLayoutConstraint!
@@ -50,11 +41,14 @@ class PlaceholderView: UIView {
             statusBar.heightAnchor.constraint(equalToConstant: Const.statusHeight)
         ])
         
-        toolbarView = UIView(frame: CGRect(x: 0, y: bounds.height - Const.toolbarHeight, width: bounds.width, height: Const.toolbarHeight))
-        toolbarView.backgroundColor = .red
-        toolbarView.autoresizingMask = [.flexibleWidth, .flexibleTopMargin]
-        contentView.addSubview(toolbarView)
-
+        toolbarView = BrowserToolbarView(frame: bounds)
+        toolbarView.setBackground(to: .red)
+        toolbarView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(toolbarView, constraints: [
+            toolbarView.leftAnchor.constraint(equalTo: contentView.leftAnchor),
+            toolbarView.rightAnchor.constraint(equalTo: contentView.rightAnchor),
+            toolbarView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+        ])
         
         imageView = UIImageView(frame: bounds)
         imageView.contentMode = .scaleAspectFill
@@ -81,8 +75,9 @@ class PlaceholderView: UIView {
     func setPage(_ page: HistoryItem) {
         setSnapshot(page.snapshot)
         if let color = page.topColor { statusBar.setBackground(to: color) }
+        if let color = page.bottomColor { toolbarView.setBackground(to: color) }
         statusBar.label.text = page.title
-        toolbarView.backgroundColor = page.bottomColor
+        toolbarView.text = page.url?.displayHost
     }
     
     func setSnapshot(_ image : UIImage?) {

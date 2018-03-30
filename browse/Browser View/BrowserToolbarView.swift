@@ -47,7 +47,21 @@ class BrowserToolbarView: ColorToolbarView {
     
     var isLoading: Bool {
         get { return searchField.isLoading }
-        set { searchField.isLoading = newValue }
+        set {
+            searchField.isLoading = newValue
+            isStopVisible = newValue
+        }
+    }
+    
+    private var isStopVisible: Bool {
+        get { return self.stopButton.isEnabled }
+        set {
+            UIView.animate(withDuration: 0.25) {
+                self.stopButton.isEnabled = newValue
+                self.stopButton.tintColor = newValue ? nil : .clear
+                self.stopButton.scale = newValue ? 1 : 0.6
+            }
+        }
     }
 
     
@@ -102,6 +116,10 @@ class BrowserToolbarView: ColorToolbarView {
         stopButton.frame.origin.x = searchField.frame.width - stopButton.frame.width
         
         items = [backButton, searchField, tabButton]
+        
+        // Initial values
+        isLoading = false
+        progress = 1
     }
         
     override func tintColorDidChange() {

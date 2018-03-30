@@ -22,7 +22,8 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     var gradientOverlay : GradientView!
     var browserTab : Tab!
     var closeTabCallback : CloseTabCallback!
-    
+    var toolbarView: BrowserToolbarView!
+
     var snapTopOffsetConstraint : NSLayoutConstraint!
     var snapAspectConstraint : NSLayoutConstraint!
     
@@ -95,15 +96,23 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         label.alpha = 1
         contentView.addSubview(label)
         
-        overlay = UIView(frame: bounds)
-        overlay.bounds.size.height += 20 // ????
-        overlay.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
+        toolbarView = BrowserToolbarView(frame: bounds)
+        toolbarView.setBackground(to: .red)
+        toolbarView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(toolbarView, constraints: [
+            toolbarView.leftAnchor.constraint(equalTo: contentView.leftAnchor),
+            toolbarView.rightAnchor.constraint(equalTo: contentView.rightAnchor),
+            toolbarView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+        ])
+        
+        overlay = UIView(frame: bounds.insetBy(dx: -60, dy: -60) )
+        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         overlay.backgroundColor = UIColor.black
         overlay.alpha = 0
         contentView.addSubview(overlay)
 
         gradientOverlay = GradientView(frame: bounds)
-        gradientOverlay.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
+        gradientOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 //        contentView.addSubview(gradientOverlay)
 
         shadowView = UIView(frame: bounds)
@@ -116,7 +125,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         
         insertSubview(shadowView, belowSubview: contentView)
         
-        contentView.backgroundColor = .white
+        contentView.backgroundColor = .black
         contentView.radius = Const.shared.thumbRadius
         contentView.clipsToBounds = true
     }
@@ -127,19 +136,18 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
     func setTab(_ newTab : Tab) {
         browserTab = newTab
+        guard let item = browserTab.currentItem else { return }
         
-        if let img : UIImage = browserTab.currentItem?.snapshot {
-            setSnapshot(img)
-        }
-
-        if let color : UIColor = browserTab.currentItem?.topColor {
+        if let img = item.snapshot { setSnapshot(img) }
+        if let color = item.topColor {
             contentView.backgroundColor = color
             label.textColor = color.isLight ? .white : .darkText
         }
-
-        if let title : String = browserTab.currentItem?.title, title != "" {
-            label.text = "\(title)"
+        if let color = item.bottomColor {
+            toolbarView.setBackground(to: color)
         }
+        if let title = item.title, title != "" { label.text = "\(title)" }
+        if let url = item.url { toolbarView.text = url.displayHost }
     }
     
     func refresh() {
@@ -249,7 +257,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
                     self.overlay.backgroundColor = .black
                 }
             }
-            
         }
     }
 
