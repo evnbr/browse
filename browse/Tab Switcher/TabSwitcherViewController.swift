@@ -231,8 +231,8 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     }
     
     func setParentHidden(_ parentTab : Tab, hidden newValue: Bool) {
-        spreadLayout.parentIndexPath = self.fetchedResultsController.indexPath(forObject: parentTab)
-        spreadLayout.parentHidden = newValue
+//        spreadLayout.parentIndexPath = self.fetchedResultsController.indexPath(forObject: parentTab)
+//        spreadLayout.parentHidden = newValue
     }
     
     func setThumbScale(_ scale: CGFloat) {

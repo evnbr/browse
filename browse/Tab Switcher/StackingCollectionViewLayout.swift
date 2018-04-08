@@ -99,7 +99,7 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
     }
         
     func calculateItem(for indexPath: IndexPath, whenStacked: Bool, scrollY: CGFloat, baseCenter: CGPoint, totalItems: Int) -> UICollectionViewLayoutAttributes {
-        let topScrollPos = Const.statusHeight + 12 //60
+        let topScrollPos = Const.statusHeight + 60
         let cardSize = UIScreen.main.bounds.size
 
         let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
@@ -121,12 +121,15 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
         
         let distFromTop = newCenter.y - (attributes.bounds.height / 2) - scrollY - topScrollPos
         
-        let pct = distFromTop.progress(from: -400, to: 600).reverse()
-        let s = (pct * pct * 0.1).reverse()
+        let pct = distFromTop.progress(-400, 600).reverse()
+        let s = (pct * pct * 0.2).reverse()
 //            attributes.transform = CGAffineTransform(scaleX: s, y: s)
+        
+        let extraH = cardSize.height * (1 - s)
         
         attributes.isHidden = false
         if whenStacked {
+            newCenter.y -= extraH * 0.5
             newCenter.y -= distFromTop * 0.95 * pct
             attributes.transform = CGAffineTransform(scale: s)
         } else {

@@ -31,7 +31,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
     override var bounds: CGRect {
         didSet {
-            overlay?.frame = contentView.bounds
             gradientOverlay?.frame = contentView.bounds
         }
     }
@@ -83,12 +82,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         snapAspectConstraint = snapView.heightAnchor.constraint(equalTo: snapView.widthAnchor, multiplier: 1, constant: 0)
         snapAspectConstraint.isActive = true
 
-        label = UILabel(frame: CGRect(
-            x: 24,
-            y: 12,
-            width: frame.width - 48,
-            height: 24
-        ))
+        label = UILabel(frame: CGRect(x: 24, y: 12, width: frame.width - 48, height: 24))
         label.text = "Blank"
         label.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
         label.font = Const.shared.thumbTitle
@@ -106,10 +100,11 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         ])
         
         overlay = UIView(frame: bounds.insetBy(dx: -60, dy: -60) )
-        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         overlay.backgroundColor = UIColor.black
         overlay.alpha = 0
         contentView.addSubview(overlay)
+//        constrain4(contentView, overlay)
+        overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 
         gradientOverlay = GradientView(frame: bounds)
         gradientOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -271,7 +266,6 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
         super.apply(layoutAttributes)
         alpha = 1
         overlay.alpha = 1 - layoutAttributes.alpha
-        overlay.bounds = layoutAttributes.bounds
         layer.zPosition = CGFloat(layoutAttributes.zIndex)
     }
 }

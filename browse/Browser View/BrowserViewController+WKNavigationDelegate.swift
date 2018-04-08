@@ -18,6 +18,10 @@ extension BrowserViewController: WKNavigationDelegate {
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         updateLoadingState()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.updateSnapshot()
+        }
     }
     
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {

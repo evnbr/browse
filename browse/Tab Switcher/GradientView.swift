@@ -36,7 +36,7 @@ class GradientView: UIView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        gradientLayer.colors = [ UIColor.black.withAlphaComponent(0).cgColor, UIColor.black.cgColor ]
+        gradientLayer.colors = [ UIColor.black.withAlphaComponent(0).cgColor, UIColor.black.withAlphaComponent(0.4).cgColor ]
         gradientLayer.locations = [ 0.0, 1.0 ]
         resizeGradient()
         layer.addSublayer(gradientLayer)

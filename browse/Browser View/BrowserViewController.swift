@@ -55,7 +55,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     override var prefersStatusBarHidden: Bool {
-        return gestureController.isInteractiveDismiss
+        return gestureController.isDismissing
     }
     
     var isShowingToolbar : Bool {
@@ -230,7 +230,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         snap.contentMode = .scaleAspectFill
         snap.translatesAutoresizingMaskIntoConstraints = false
-        snap.alpha = 0.5
+//        snap.alpha = 0.5
         snap.frame.size = CGSize(
             width: cardView.bounds.width,
             height: cardView.bounds.height - Const.statusHeight - Const.toolbarHeight
@@ -713,7 +713,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
         return (
             isViewLoaded
                 && view.window != nil
-                && !gestureController.isInteractiveDismiss
+                && !gestureController.isDismissing
                 && UIApplication.shared.applicationState == .active
                 && webView != nil
                 && !hiddenUntilNavigationDone

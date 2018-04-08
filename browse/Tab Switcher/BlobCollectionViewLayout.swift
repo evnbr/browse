@@ -81,7 +81,7 @@ class BlobCollectionViewLayout: UICollectionViewFlowLayout {
         }
         let pctFromCenter = centerYs.map { y -> CGFloat in
             let distFromCenter = y - scrollPos - cv.center.y
-            let pct = distFromCenter.progress(from: 0, to: 600)
+            let pct = distFromCenter.progress(0, 600)
             return (pct * abs(pct) * 1.2).limit(min: -1, max: 1) * 0.95
         }
         let heights = pctFromCenter.map { pct -> CGFloat in

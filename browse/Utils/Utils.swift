@@ -40,7 +40,7 @@ extension CGFloat {
         return Swift.max(min, Swift.min(max, self))
     }
 
-    func progress(from: CGFloat, to: CGFloat) -> CGFloat {
+    func progress(_ from: CGFloat, _ to: CGFloat) -> CGFloat {
         let total = from - to
         let amt = from - self
         return amt / total;

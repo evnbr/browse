@@ -87,7 +87,7 @@ class SearchViewController: UIViewController {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.tintColor = .darkText
         contentView.clipsToBounds = true
-        contentView.radius = 12
+        contentView.radius = Const.shared.cardRadius
         view.addSubview(contentView)
         
         backgroundView = PlainBlurView(frame: contentView.bounds)
@@ -296,7 +296,7 @@ class SearchViewController: UIViewController {
     }
 }
     
-extension SearchViewController : UITextViewDelegate {
+extension SearchViewController: UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
         updateTextViewSize()
         updateSuggestion(for: textView.text)
@@ -312,7 +312,7 @@ extension SearchViewController : UITextViewDelegate {
         let suggestionsForText = textView.text
         TypeaheadProvider.shared.suggestions(for: textView.text, maxCount: 4) { arr in
             // If text has changed since return, don't bother
-            guard self.textView.text == suggestionsForText else { return }
+            if self.textView.text != suggestionsForText { return }
             
             self.suggestions = arr.reversed()
             self.renderSuggestions()
@@ -341,7 +341,9 @@ extension SearchViewController : UITextViewDelegate {
             suggestionHeightConstraint.constant = suggestionH
         }
 
-        contextAreaHeightConstraint.springConstant(to: contextAreaHeight)
+        let anim = contextAreaHeightConstraint.springConstant(to: contextAreaHeight)
+        anim?.springBounciness = 2
+        anim?.springSpeed = 12
         suggestionTable.reloadData()
         suggestionTable.layoutIfNeeded()
     }
@@ -460,8 +462,8 @@ extension SearchViewController : UIGestureRecognizerDelegate {
             else {
                 if dist.y < keyboardHeight {
                     kbHeightConstraint.constant = keyboardHeight - dist.y
-                    let progress = dist.y.progress(from: 0, to: keyboardHeight).clip()
-                    let margin = progress.blend(from: 0, to: SPACE_FOR_INDICATOR)
+                    let progress = dist.y.progress(0, keyboardHeight).clip()
+                    let margin = progress.blend(0, SPACE_FOR_INDICATOR)
                     toolbarBottomMargin.constant = margin
                     contextAreaHeightConstraint.constant = contextAreaHeight
                 }
@@ -469,8 +471,8 @@ extension SearchViewController : UIGestureRecognizerDelegate {
                     kbHeightConstraint.constant = 0
                     contextAreaHeightConstraint.constant = contextAreaHeight - elasticLimit(dist.y - keyboardHeight)
                 }
-                suggestionTable.alpha = dist.y.progress(from: keyboardHeight - 40, to: keyboardHeight + 100).clip().reverse()
-                pageActionView.alpha = dist.y.progress(from: keyboardHeight - 40, to: keyboardHeight + 60).clip().reverse()
+                suggestionTable.alpha = dist.y.progress(keyboardHeight - 40, keyboardHeight + 100).clip().reverse()
+                pageActionView.alpha = dist.y.progress(keyboardHeight - 40, keyboardHeight + 60).clip().reverse()
             }
         }
         else if gesture.state == .ended || gesture.state == .cancelled {

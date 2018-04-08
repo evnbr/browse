@@ -28,12 +28,11 @@ class ToolbarSearchField: ToolbarTouchView {
                 label.text = "Where to?"
                 progress = 0
             }
-            else {
-                if label.text != newValue {
-                    label.text = newValue
-                }
+            else if label.text != newValue {
+                label.text = newValue
             }
             label.sizeToFit()
+            labelHolder.mask?.frame = labelHolder.bounds // TODO set this in a normal place
         }
     }
     
@@ -99,18 +98,16 @@ class ToolbarSearchField: ToolbarTouchView {
         stackView.addArrangedSubview(label)
         stackView.translatesAutoresizingMaskIntoConstraints = false
         
-        labelHolder.addSubview(stackView)
-        labelHolder.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-        labelHolder.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
-
-        labelHolder.centerYAnchor.constraint(equalTo: stackView.centerYAnchor).isActive = true
-        labelHolder.centerXAnchor.constraint(equalTo: stackView.centerXAnchor).isActive = true
-
-        labelHolder.widthAnchor.constraint(equalTo: stackView.widthAnchor).isActive = true
-        labelHolder.heightAnchor.constraint(equalTo: heightAnchor).isActive = true
-
-        labelHolder.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
-        stackView.centerXAnchor.constraint(equalTo: labelHolder.centerXAnchor).isActive = true
+        labelHolder.addSubview(stackView, constraints: [
+            labelHolder.centerYAnchor.constraint(equalTo: centerYAnchor),
+            labelHolder.centerXAnchor.constraint(equalTo: centerXAnchor),
+            labelHolder.centerYAnchor.constraint(equalTo: stackView.centerYAnchor),
+            labelHolder.centerXAnchor.constraint(equalTo: stackView.centerXAnchor),
+            labelHolder.widthAnchor.constraint(equalTo: stackView.widthAnchor),
+            labelHolder.heightAnchor.constraint(equalTo: heightAnchor),
+            labelHolder.centerXAnchor.constraint(equalTo: centerXAnchor),
+            labelHolder.centerXAnchor.constraint(equalTo: stackView.centerXAnchor)
+        ])
         
         let maskLayer = CAGradientLayer()
         maskLayer.frame = labelHolder.frame
@@ -138,7 +135,6 @@ class ToolbarSearchField: ToolbarTouchView {
                 UIView.animate(withDuration: 0.2) {
                     grad.locations = [val, val2]
                 }
-                grad.frame = labelHolder.bounds // TODO set this in a normal place
             }
 
         }
