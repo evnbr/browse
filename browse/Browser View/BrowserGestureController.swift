@@ -186,6 +186,12 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             scrollView.setScrollSilently(x: 0)
         }
         
+        // if evaluating horizontal overscroll before we've triggered a dismiss,
+        // hide anything revealed by shifting mask
+        if !scrollView.isScrollableX && isDismissingPossible {
+            vc.cardView.mask?.center.x = vc.cardView.center.x + scrollView.contentOffset.x
+        }
+        
         // Cancel scroll, assume gesture will handle
         if isDismissing && direction == .top {
             scrollView.setScrollSilently(CGPoint(x: startScroll.x, y: 0))
@@ -300,7 +306,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
         let verticalProgress = gesturePos.y.progress(0, 200).clip()
         
-        let sign : CGFloat = adjustedX > 0 ? 1 : -1 //direction == .left ? 1 : -1
+//        let sign : CGFloat = adjustedX > 0 ? 1 : -1 //direction == .left ? 1 : -1
+        let sign : CGFloat = direction == .leftToRight ? 1 : -1
         let hProg = elasticLimit(abs(adjustedX)) / view.bounds.width //* sign
         let dismissScale = (1 - hProg * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier)//.clip()
         let hintScale = yGestureInfluence.progress(0, 160).clip().blend(1, 0.7)
@@ -555,11 +562,11 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let scroll = scrollView.contentOffset
         if scrollView.isZooming || scrollView.isZoomBouncing { return }
         
+        let gestureVel = gesture.velocity(in: view)
         let gesturePos = gesture.translation(in: view)
         let isHorizontal = abs(gesturePos.y) < abs(gesturePos.x)
+        let hasHorizontalVel = abs(gestureVel.x) > 500
         
-        vc.cardView.mask?.center.x += gesturePos.x // hide any weird overscroll
-
         // Consider starting vertical dismiss
         if scrollView.isScrollableY && scroll.y <= 0 && gesturePos.y > 0 {
             // Body scrollable, cancel at scrollPos 0
@@ -571,7 +578,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
             
         // Consider horizontal dismiss
-        else if scrollView.isScrollableX && isHorizontal {
+        else if scrollView.isScrollableX && isHorizontal && hasHorizontalVel {
             // Body hScrollable
             if scroll.x <= 0 && gesturePos.x > 0 {
                 startGesture(gesture, direction: .leftToRight)
@@ -580,7 +587,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 startGesture(gesture, direction: .rightToLeft)
             }
         }
-        else if !scrollView.isScrollableX && isHorizontal {
+        else if !scrollView.isScrollableX && isHorizontal && hasHorizontalVel {
             // Inner div is hscrollable, trigger at scrollPos -1
             if scroll.x < 0 && gesturePos.x > 0 {
                 startGesture(gesture, direction: .leftToRight)
@@ -592,7 +599,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         // Definitely cancel
         else if abs(gesturePos.x) > 10 {
-            isDismissingPossible = false
+            dismissingEndedPossible()
         }
     }
     
