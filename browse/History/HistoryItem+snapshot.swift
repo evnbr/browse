@@ -7,7 +7,7 @@
 //
 
 // Extend codegen'd HistoryItem model to simplify snapshots
-extension HistoryItem {
+extension Visit {
     var snapshot: UIImage? {
         get { return HistoryManager.shared.snapshot(for: self) }
         set {

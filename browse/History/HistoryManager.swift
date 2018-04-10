@@ -14,7 +14,7 @@ class HistoryManager: NSObject {
     static let shared = HistoryManager()
     
     private var snapshotCache: [ UUID : UIImage ] = [:]
-    private var historyPageMap: [ WKBackForwardListItem : HistoryItem ] = [:]
+    private var historyPageMap: [ WKBackForwardListItem : Visit ] = [:]
 
     lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "HistoryModel")
@@ -26,7 +26,7 @@ class HistoryManager: NSObject {
         return container
     }()
     
-    func page(from item: WKBackForwardListItem) -> HistoryItem? {
+    func page(from item: WKBackForwardListItem) -> Visit? {
         return historyPageMap[item]
     }
     
@@ -57,21 +57,21 @@ class HistoryManager: NSObject {
     }
     
     // Convert wkwebview history item
-    func addPage(from item: WKBackForwardListItem, parent: HistoryItem?) -> HistoryItem? {
+    func addPage(from item: WKBackForwardListItem, parent: Visit?) -> Visit? {
         return addPage(parent: parent, url: item.url, title: item.title)
     }
     
     // Convert and save history item
-    func addPage(parent: HistoryItem?, url: URL, title: String?) -> HistoryItem? {
+    func addPage(parent: Visit?, url: URL, title: String?) -> Visit? {
         let context = persistentContainer.viewContext
         
-        let historyItem = HistoryItem(context: context)
-        historyItem.firstVisit = Date()
-        historyItem.uuid = UUID()
-        historyItem.url = url
-        historyItem.title = title ?? "Untitled"
-        historyItem.backItem = parent
-        return historyItem
+        let visit = Visit(context: context)
+        visit.firstVisit = Date()
+        visit.uuid = UUID()
+        visit.url = url
+        visit.title = title ?? "Untitled"
+        visit.backItem = parent
+        return visit
     }
     
     func saveContext() {
@@ -89,7 +89,7 @@ class HistoryManager: NSObject {
 
 // Convenience to get HistoryItem from webview
 extension WKBackForwardListItem {
-    var model : HistoryItem? {
+    var model : Visit? {
         return HistoryManager.shared.page(from: self)
     }
 }
@@ -99,7 +99,7 @@ extension HistoryManager {
     private func fetchItemsContaining(_ str: String, completion: @escaping ([HistorySearchResult]?) -> () ) {
         guard str.count > 0 else { return }
         persistentContainer.performBackgroundTask { ctx in
-            let request = NSFetchRequest<NSFetchRequestResult>(entityName: "HistoryItem")
+            let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Visit")
             
             // todo: doesn't handle spaces
             var predicates : [NSPredicate] = []
@@ -153,13 +153,13 @@ struct HistorySearchResult {
 
 // Deal with snapshots
 extension HistoryManager {
-    func snapshot(for item: HistoryItem) -> UIImage? {
+    func snapshot(for item: Visit) -> UIImage? {
         guard let id = item.uuid else { return nil }
         if let cached = snapshotCache[id] { return cached }
         return loadSnapshotFromFile(id)
     }
     
-    func setSnapshot(_ image: UIImage, for item: HistoryItem) {
+    func setSnapshot(_ image: UIImage, for item: Visit) {
         guard let uuid = item.uuid else { return }
         snapshotCache[uuid] = image
         writeSnapshotToFile(image, id: uuid)

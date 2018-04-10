@@ -75,9 +75,9 @@ class TypeaheadProvider: NSObject {
             DispatchQueue.main.async { completion(suggestions) }
         }
         
-        HistoryManager.shared.findItemsMatching(text) { historyItems in
+        HistoryManager.shared.findItemsMatching(text) { visits in
             isHistoryLoaded = true
-            if let results = historyItems {
+            if let results = visits {
                 historySuggestions = results.map { item in
                     let score = self.splitMatchingScore(for: item, query: text)
                     
@@ -87,7 +87,6 @@ class TypeaheadProvider: NSObject {
                         suggestion = TypeaheadSuggestion(title: q, detail: nil, url: item.url)
                     }
                     else {
-//                        suggestion = TypeaheadSuggestion(title: item.url.cleanString, detail: item.title, url: item.url)
                         suggestion = TypeaheadSuggestion(title: item.title, detail: item.url.cleanString, url: item.url)
                     }
 
