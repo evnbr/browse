@@ -14,7 +14,7 @@ class HistoryManager: NSObject {
     static let shared = HistoryManager()
     
     private var snapshotCache: [ UUID : UIImage ] = [:]
-    private var historyPageMap: [ WKBackForwardListItem : Visit ] = [:]
+    private var historyVisitMap: [ WKBackForwardListItem : Visit ] = [:]
 
     lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "HistoryModel")
@@ -26,43 +26,80 @@ class HistoryManager: NSObject {
         return container
     }()
     
-    func page(from item: WKBackForwardListItem) -> Visit? {
-        return historyPageMap[item]
+    func visit(from item: WKBackForwardListItem) -> Visit? {
+        return historyVisitMap[item]
+    }
+    
+    func existingSite(for url: URL) -> Site? {
+        let ctx = persistentContainer.viewContext
+        let request = NSFetchRequest<Site>(entityName: "Site")
+        request.predicate = NSPredicate(format: "url == %@", url.absoluteString)
+        do {
+            let results = try ctx.fetch(request)
+            return results.first
+        } catch let error{
+            print(error)
+            return nil
+        }
     }
     
     func sync(tab: Tab, with list: WKBackForwardList) {
         guard let currentWKItem = list.currentItem else { return }
-        if let cachedItem = page(from: currentWKItem) {
+        
+        if let prevVisit = visit(from: currentWKItem) {
             // Update title and url
             if let title = currentWKItem.title, title != "" {
-                cachedItem.title = title
+                prevVisit.title = title
             }
-            cachedItem.url = currentWKItem.url
-            tab.currentItem = cachedItem
+            prevVisit.url = currentWKItem.url
+            tab.currentVisit = prevVisit
         }
         else {
             // Create a new entry
-            let newItem = addPage(from: currentWKItem, parent: nil)
+            let newVisit = addVisit(from: currentWKItem, parent: nil)
             if let backWKItem = list.backItem,
-                let backItem = page(from: backWKItem),
-                backItem == tab.currentItem {
+                let backItem = visit(from: backWKItem),
+                backItem == tab.currentVisit {
                 // We went forward, link these pages together
-                newItem?.backItem = tab.currentItem
-                tab.currentItem?.addToForwardItems(newItem!)
+                newVisit?.backItem = tab.currentVisit
+                tab.currentVisit?.addToForwardItems(newVisit!)
             }
-            historyPageMap[currentWKItem] = newItem
-            tab.currentItem = newItem
+            historyVisitMap[currentWKItem] = newVisit
+            tab.currentVisit = newVisit
         }
+        
+        var site: Site? = nil
+        if let currentSite = tab.currentVisit?.site, currentSite.url == currentWKItem.url {
+            site = currentSite
+        }
+        else if let existingSite = existingSite(for: currentWKItem.url) {
+            site = existingSite
+        }
+        else if let newSite = addSite(url: currentWKItem.url, title: currentWKItem.title) {
+            site = newSite
+        }
+        
+        if let visit = tab.currentVisit, let site = site {
+            visit.site = site
+            if let title = currentWKItem.title, title != "" {
+                site.title = title
+            }
+            site.addToVisits(visit)
+            if let count = site.visits?.count {
+                site.visitCount = Int32(count)
+            }
+        }
+        
         saveContext()
     }
     
     // Convert wkwebview history item
-    func addPage(from item: WKBackForwardListItem, parent: Visit?) -> Visit? {
-        return addPage(parent: parent, url: item.url, title: item.title)
+    func addVisit(from item: WKBackForwardListItem, parent: Visit?) -> Visit? {
+        return addVisit(parent: parent, url: item.url, title: item.title)
     }
     
     // Convert and save history item
-    func addPage(parent: Visit?, url: URL, title: String?) -> Visit? {
+    func addVisit(parent: Visit?, url: URL, title: String?) -> Visit? {
         let context = persistentContainer.viewContext
         
         let visit = Visit(context: context)
@@ -71,11 +108,22 @@ class HistoryManager: NSObject {
         visit.url = url
         visit.title = title ?? "Untitled"
         visit.backItem = parent
+        
         return visit
+    }
+    func addSite(url: URL, title: String?) -> Site? {
+        let context = persistentContainer.viewContext
+
+        let site = Site(context: context)
+        site.title = title
+        site.url = url
+        
+        return site
     }
     
     func saveContext() {
         let context = persistentContainer.viewContext
+        context.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump // dedupe sites
         if context.hasChanges {
             do {
                 try context.save()
@@ -87,19 +135,19 @@ class HistoryManager: NSObject {
     }
 }
 
-// Convenience to get HistoryItem from webview
+// Convenience to get Visit from webview
 extension WKBackForwardListItem {
-    var model : Visit? {
-        return HistoryManager.shared.page(from: self)
+    var visit : Visit? {
+        return HistoryManager.shared.visit(from: self)
     }
 }
 
-// Fetch
+// Typeahead fetching
 extension HistoryManager {
     private func fetchItemsContaining(_ str: String, completion: @escaping ([HistorySearchResult]?) -> () ) {
         guard str.count > 0 else { return }
         persistentContainer.performBackgroundTask { ctx in
-            let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Visit")
+            let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Site")
             
             // todo: doesn't handle spaces
             var predicates : [NSPredicate] = []
@@ -112,25 +160,27 @@ extension HistoryManager {
                 ]))
             }
             request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
-            request.sortDescriptors = [ NSSortDescriptor(key: "firstVisit", ascending: true) ]
+            request.sortDescriptors = [ NSSortDescriptor(key: "visitCount", ascending: false) ]
             
             // Distinct on URL or Title else full of dupes
-            request.propertiesToFetch = ["url", "title"]
+            request.propertiesToFetch = ["url", "title", "visitCount"]
             request.returnsDistinctResults = true
             request.resultType = .dictionaryResultType
 
             // Should be enough to filter more carefully later
             request.returnsObjectsAsFaults = false
-            request.fetchBatchSize = 20
-            request.fetchLimit = 20
+            request.fetchBatchSize = 12
+            request.fetchLimit = 12
             do {
                 let results = try ctx.fetch(request)
                 var cleanResults : [ HistorySearchResult ] = []
                 for result in results {
                     if let dict = result as? NSDictionary,
-                        let title = dict["title"] as? String,
-                        let url = dict["url"] as? URL {
-                        cleanResults.append(HistorySearchResult(title: title, url: url))
+                       let title = dict["title"] as? String,
+                       let count = dict["visitCount"] as? Int,
+                       let url = dict["url"] as? URL {
+                        cleanResults.append(HistorySearchResult(
+                            title: title, url: url, visitCount: count))
                     }
                 }
                 completion(cleanResults)
@@ -149,6 +199,7 @@ extension HistoryManager {
 struct HistorySearchResult {
     let title: String
     let url: URL
+    let visitCount: Int
 }
 
 // Deal with snapshots

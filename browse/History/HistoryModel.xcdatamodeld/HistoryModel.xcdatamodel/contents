@@ -3,13 +3,19 @@
     <entity name="Site" representedClassName="Site" syncable="YES" codeGenerationType="class">
         <attribute name="title" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="url" optional="YES" attributeType="URI" syncable="YES"/>
+        <attribute name="visitCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
         <relationship name="visits" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Visit" inverseName="site" inverseEntity="Visit" syncable="YES"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="url"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
     <entity name="Tab" representedClassName="Tab" syncable="YES" codeGenerationType="class">
         <attribute name="createdBy" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="sortIndex" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
         <relationship name="childTabs" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Tab" inverseName="parentTab" inverseEntity="Tab" syncable="YES"/>
-        <relationship name="currentItem" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Visit" inverseName="tab" inverseEntity="Visit" syncable="YES"/>
+        <relationship name="currentVisit" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Visit" inverseName="tab" inverseEntity="Visit" syncable="YES"/>
         <relationship name="parentTab" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Tab" inverseName="childTabs" inverseEntity="Tab" syncable="YES"/>
     </entity>
     <entity name="Visit" representedClassName="Visit" syncable="YES" codeGenerationType="class">
@@ -22,11 +28,11 @@
         <relationship name="backItem" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Visit" inverseName="forwardItems" inverseEntity="Visit" syncable="YES"/>
         <relationship name="forwardItems" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Visit" inverseName="backItem" inverseEntity="Visit" syncable="YES"/>
         <relationship name="site" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Site" inverseName="visits" inverseEntity="Site" syncable="YES"/>
-        <relationship name="tab" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Tab" inverseName="currentItem" inverseEntity="Tab" syncable="YES"/>
+        <relationship name="tab" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Tab" inverseName="currentVisit" inverseEntity="Tab" syncable="YES"/>
     </entity>
     <elements>
         <element name="Visit" positionX="-63" positionY="-18" width="135" height="195"/>
-        <element name="Tab" positionX="-234" positionY="-18" width="128" height="118"/>
-        <element name="Site" positionX="-135" positionY="63" width="128" height="90"/>
+        <element name="Tab" positionX="-234" positionY="-18" width="128" height="120"/>
+        <element name="Site" positionX="-135" positionY="63" width="128" height="105"/>
     </elements>
 </model>

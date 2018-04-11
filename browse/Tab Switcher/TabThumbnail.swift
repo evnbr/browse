@@ -131,7 +131,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     
     func setTab(_ newTab : Tab) {
         browserTab = newTab
-        guard let item = browserTab.currentItem else { return }
+        guard let item = browserTab.currentVisit else { return }
         
         if let img = item.snapshot { setSnapshot(img) }
         if let color = item.topColor {

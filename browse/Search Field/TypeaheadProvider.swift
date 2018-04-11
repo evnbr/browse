@@ -141,6 +141,9 @@ extension TypeaheadProvider {
     func matchingScore(for item: HistorySearchResult, query: String) -> Int {
         if query == "" { return 0 }
         var score : Float = 0
+        // repeat visits worth 100 each
+        if item.visitCount > 1 {  score += Float((item.visitCount - 1) * 100) }
+        // more points for matching more text
         score += Float(matchingScore(for: item.title, query: query))
         score += Float(matchingScore(for: item.url, query: query))
         return Int(score)

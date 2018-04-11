@@ -130,20 +130,20 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         currentTab = newTab
         webView = webViewManager.webViewFor(newTab)
         
-        if let img = newTab.currentItem?.snapshot {
+        if let img = newTab.currentVisit?.snapshot {
             snap.image = img
         }
         else {
             snap.image = nil
         }
         
-        if let newTop = newTab.currentItem?.topColor {
+        if let newTop = newTab.currentVisit?.topColor {
             statusBar.backgroundColor = newTop
         }
         else {
             statusBar.backgroundColor = .white
         }
-        if let newBottom = newTab.currentItem?.bottomColor {
+        if let newBottom = newTab.currentVisit?.bottomColor {
             toolbar.backgroundColor = newBottom
         }
         else {
@@ -174,7 +174,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         updateLoadingState()
         
-        if let startLocation = currentTab?.currentItem?.url, self.isBlank {
+        if let startLocation = currentTab?.currentVisit?.url, self.isBlank {
             navigateTo(startLocation)
         }
     }
@@ -744,7 +744,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
 
     
     func topColorChange(_ newColor: UIColor) {
-        currentTab?.currentItem?.topColor = newColor // this is a hack
+        currentTab?.currentVisit?.topColor = newColor // this is a hack
         
         webView.evaluateFixedNav() { (isFixed) in
             let sv = self.webView.scrollView
@@ -772,7 +772,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     }
     
     func bottomColorChange(_ newColor: UIColor) {
-        currentTab?.currentItem?.bottomColor = newColor
+        currentTab?.currentVisit?.bottomColor = newColor
         
         let newAlpha : CGFloat = webView.scrollView.isScrollableY ? 0.8 : 1
         if newAlpha != self.toolbar.backgroundView.alpha {

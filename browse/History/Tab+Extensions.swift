@@ -15,7 +15,7 @@ extension Tab {
     
     func updateSnapshot(from webView: WKWebView, completionHandler: @escaping (UIImage) -> Void = { _ in }) {
         let wasShowingIndicators = webView.scrollView.showsVerticalScrollIndicator
-        let item = currentItem
+        let item = currentVisit
         webView.scrollView.showsVerticalScrollIndicator = false
         webView.takeSnapshot(with: nil) { (image, error) in
             if wasShowingIndicators {
