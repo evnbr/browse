@@ -194,7 +194,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         let shadowView = UIView(frame: view.bounds)
         shadowView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        shadowView.layer.shadowRadius = shadowRadius
+        shadowView.layer.shadowRadius = Const.shared.shadowRadius
         shadowView.layer.shadowOpacity = shadowAlpha
         shadowView.layer.shouldRasterize = true
         let path = UIBezierPath(roundedRect: view.bounds, cornerRadius: Const.shared.thumbRadius)

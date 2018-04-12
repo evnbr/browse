@@ -23,7 +23,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     let sectionInsets = UIEdgeInsets(top: 120.0, left: THUMB_INSET, bottom: 8.0, right: THUMB_INSET)
     let itemsPerRow : CGFloat = 2
     
-    let thumbAnimationController = PresentTabAnimationController()
+    let thumbAnimationController = StackAnimatedTransitioning()
     let stackedLayout = StackingCollectionViewLayout(isStacked: true)
     let spreadLayout = StackingCollectionViewLayout(isStacked: false)
 
@@ -85,6 +85,10 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         if #available(iOS 11.0, *) {
             collectionView?.contentInsetAdjustmentBehavior = .never
         }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.scrollToBottom()
+        }
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -137,12 +141,11 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         }
     }
     
-    
     func thumb(forTab tab: Tab) -> TabThumbnail? {
         return collectionView?.visibleCells.first(where: { (cell) -> Bool in
             let thumb = cell as! TabThumbnail
             return thumb.browserTab == tab
-        }) as! TabThumbnail!
+        }) as! TabThumbnail?
     }
     
     var currentIndexPath : IndexPath? {
@@ -310,7 +313,6 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     
     func scrollToBottom() {
         if let cv = self.collectionView, cv.isScrollableY {
-//            print("scroll to bottom (\(cv.maxScrollY))")
             cv.contentOffset.y = cv.maxScrollYWithInset
         }
     }
@@ -356,19 +358,15 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
         
         let fetchRequest: NSFetchRequest<Tab> = Tab.fetchRequest()
         fetchRequest.fetchBatchSize = 20
-        
-        // Edit the sort key as appropriate.
         fetchRequest.sortDescriptors = [ NSSortDescriptor(key: "sortIndex", ascending: true) ]
         
-        // Edit the section name key path and cache name if appropriate.
-        // nil for section name key path means "no sections".
-        let aFetchedResultsController = NSFetchedResultsController(
+        let frc = NSFetchedResultsController(
             fetchRequest: fetchRequest,
             managedObjectContext: HistoryManager.shared.persistentContainer.viewContext,
             sectionNameKeyPath: nil,
             cacheName: "OpenTabs")
-        aFetchedResultsController.delegate = self
-        _fetchedResultsController = aFetchedResultsController
+        frc.delegate = self
+        _fetchedResultsController = frc
         
         do {
             try _fetchedResultsController!.performFetch()

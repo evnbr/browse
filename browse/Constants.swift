@@ -31,7 +31,7 @@ class Const: NSObject {
 
     var cardRadius: CGFloat
     
-    var shadowRadius: CGFloat = 8
+    var shadowRadius: CGFloat = 32
     var shadowOpacity: Float = 0.4
     var buttonHeight: CGFloat = 40
 

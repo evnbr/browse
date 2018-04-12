@@ -1,5 +1,5 @@
 //
-//  PresentTabAnimationController.swift
+//  StackAnimatedTransitioning.swift
 //  browse
 //
 //  Created by Evan Brooks on 5/31/17.
@@ -22,7 +22,7 @@ extension UIScrollView {
     }
 }
 
-class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitioning {
+class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitioning {
     
     var direction : CustomAnimationDirection!
     var isExpanding  : Bool { return direction == .present }
@@ -138,10 +138,12 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
                 browserVC.webView.scrollView.showsVerticalScrollIndicator = true
             }
             
-            homeVC.visibleCells.forEach { $0.refresh() }
+            homeVC.visibleCells.forEach {
+                $0.refresh()
+                $0.reset()
+            }
             homeVC.scrollToBottom()
 //            homeVC.collectionView?.reloadData() // TODO: touch targets dont work without this
-            
             
             snapFab?.removeFromSuperview()
             homeVC.fab.isHidden = self.isExpanding
@@ -177,7 +179,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
         centerAnim?.springBounciness = 2
         
         if isExpanding {
-            homeVC.spreadLayout.offset.y = -(thumbCenter.y - thumbBounds.height / 2 )
+            homeVC.spreadLayout.offset.y = 0//-(thumbCenter.y - thumbBounds.height / 2 )
         }
         homeVC.springCards(toStacked: isDismissing, at: velocity) {
             popCardsDone = true
@@ -221,7 +223,7 @@ class PresentTabAnimationController: NSObject, UIViewControllerAnimatedTransitio
             browserVC.gradientOverlay.alpha = self.isExpanding ? 0 : 1
             browserVC.contentView.radius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
             mask.radius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
-            homeNav.view.alpha = self.isExpanding ? 0.7 : 1
+            homeNav.view.alpha = self.isExpanding ? 0.4 : 1
             
             homeVC.setNeedsStatusBarAppearanceUpdate()
                 

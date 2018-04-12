@@ -10,7 +10,6 @@ import UIKit
 
 typealias CloseTabCallback = (UICollectionViewCell) -> Void
 
-let shadowRadius : CGFloat = 32
 let shadowAlpha : Float = 0.2
 
 class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
@@ -112,7 +111,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
 
         shadowView = UIView(frame: bounds)
         shadowView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        shadowView.layer.shadowRadius = shadowRadius
+        shadowView.layer.shadowRadius = Const.shared.shadowRadius
         shadowView.layer.shadowOpacity = shadowAlpha
         shadowView.layer.shouldRasterize = true
         let path = UIBezierPath(roundedRect: bounds, cornerRadius: Const.shared.thumbRadius)
@@ -190,7 +189,7 @@ class TabThumbnail: UICollectionViewCell, UIGestureRecognizerDelegate {
     func reset() {
         self.contentView.transform = .identity
         self.shadowView.scale = 1
-        self.shadowView.layer.shadowRadius = shadowRadius
+        self.shadowView.layer.shadowRadius = Const.shared.shadowRadius
         self.shadowView.layer.shadowOpacity = shadowAlpha
     }
     

@@ -164,7 +164,7 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
     
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         return attributesList.filter { attrs -> Bool in
-            return rect.intersects(attrs.frame) && attrs.alpha > 0 && !attrs.isHidden
+            return rect.intersects(attrs.frame.insetBy(dx: -40, dy: -40)) && attrs.alpha > 0 && !attrs.isHidden
         }
     }
     

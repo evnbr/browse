@@ -34,15 +34,23 @@ class TypeaheadCell: UITableViewCell {
         
         detailTextLabel?.font = .systemFont(ofSize: 14)
         detailTextLabel?.numberOfLines = 1
+        
+//        let backer = UIView(frame: contentView.bounds)
+//        backer.backgroundColor = .white
+//        backer.radius = Const.shared.cardRadius
+//        backer.layer.shadowRadius = 12
+//        backer.layer.shadowOpacity = 0.2
+//        backer.frame.size.height = 200
+//        backer.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
+        contentView.clipsToBounds = true
+        clipsToBounds = true
+//        contentView.insertSubview(backer, at: 0)
     }
     
     func configure(title: String, detail: String?, highlight: String) {
         let titleOverlaps = title.allNSRanges(of: highlight, split: true)
         let attributedTitle = NSMutableAttributedString(string: title)
-//        titleOverlaps.forEach { attributedTitle.addAttributes([.font : UIFont.systemFont(ofSize: 18, weight: .semibold)], range: $0) }
         titleOverlaps.forEach { attributedTitle.addAttributes([.foregroundColor : tintColor.withAlphaComponent(0.5)], range: $0) }
-//        titleOverlaps.forEach { attributedTitle.addAttributes([ .underlineStyle : NSUnderlineStyle.styleSingle.rawValue ], range: $0) }
-//        titleOverlaps.forEach { attributedTitle.addAttributes([ .underlineColor : tintColor.withAlphaComponent(0.2) ], range: $0) }
         textLabel?.attributedText = attributedTitle
         
         if let detail = detail {
@@ -66,7 +74,6 @@ class TypeaheadCell: UITableViewCell {
         detailTextLabel?.textColor = tintColor //.withAlphaComponent(0.7)
         selectedBackgroundView?.backgroundColor = tintColor.isLight ? .darkTouch : .lightTouch
     }
-
 }
 
 // based on https://stackoverflow.com/questions/40413218/swift-find-all-occurrences-of-a-substring
