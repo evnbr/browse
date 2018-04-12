@@ -14,122 +14,169 @@ class HistoryManager: NSObject {
     static let shared = HistoryManager()
     
     private var snapshotCache: [ UUID : UIImage ] = [:]
-    private var historyVisitMap: [ WKBackForwardListItem : Visit ] = [:]
+    private var historyIDMap: [ WKBackForwardListItem : NSManagedObjectID ] = [:]
 
     lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "HistoryModel")
         container.loadPersistentStores { (storeDescription, error) in
             if let error = error as NSError? {
-                print("Unresolved error \(error), \(error.userInfo)")
+                print("Unresolved error loading stores: \(error), \(error.userInfo)")
             }
         }
         return container
     }()
     
-    func visit(from item: WKBackForwardListItem) -> Visit? {
-        return historyVisitMap[item]
+    override init() {
+        super.init()
+        NotificationCenter.default.addObserver(self,
+            selector: #selector(mergeChangeIntoMainContext(notif:)),
+            name: .NSManagedObjectContextDidSave,
+            object: nil)
     }
     
-    func existingSite(for url: URL) -> Site? {
-        let ctx = persistentContainer.viewContext
-        let request = NSFetchRequest<Site>(entityName: "Site")
-        request.predicate = NSPredicate(format: "url == %@", url.absoluteString)
+    @objc func mergeChangeIntoMainContext(notif: Notification) {
+        persistentContainer.viewContext.mergeChanges(fromContextDidSave: notif)
+    }
+    
+    func existingVisit(from item: WKBackForwardListItem, in context: NSManagedObjectContext) -> Visit? {
+        guard let id = historyIDMap[item] else { return nil }
         do {
-            let results = try ctx.fetch(request)
-            return results.first
-        } catch let error{
+            return try context.existingObject(with: id) as? Visit
+        }
+        catch let error {
             print(error)
             return nil
         }
     }
     
-    func sync(tab: Tab, with list: WKBackForwardList) {
-        guard let currentWKItem = list.currentItem else { return }
+    func existingSite(for url: URL, in context: NSManagedObjectContext) -> Site? {
+        let request = NSFetchRequest<Site>(entityName: "Site")
+        request.predicate = NSPredicate(format: "url == %@", url.absoluteString)
+        do {
+            let results = try context.fetch(request)
+            return results.first
+        } catch let error {
+            print(error)
+            return nil
+        }
+    }
+    
+    var isSyncing = false
+    func sync(tab mainThreadTab: Tab, with list: WKBackForwardList) {
+        if isSyncing { return }
+        guard let wkItem = list.currentItem else { return }
         
-        if let prevVisit = visit(from: currentWKItem) {
-            // Update title and url
-            if let title = currentWKItem.title, title != "" {
-                prevVisit.title = title
-            }
-            prevVisit.url = currentWKItem.url
-            tab.currentVisit = prevVisit
+        if mainThreadTab.currentVisit?.objectID == historyIDMap[wkItem]
+        && mainThreadTab.currentVisit?.url == wkItem.url
+        && mainThreadTab.currentVisit?.title == wkItem.title {
+            // unchanged, don't need to hit core data
+            return
         }
-        else {
-            // Create a new entry
-            let newVisit = addVisit(from: currentWKItem, parent: nil)
-            if let backWKItem = list.backItem,
-                let backItem = visit(from: backWKItem),
-                backItem == tab.currentVisit {
-                // We went forward, link these pages together
-                newVisit?.backItem = tab.currentVisit
-                tab.currentVisit?.addToForwardItems(newVisit!)
+
+        persistentContainer.performBackgroundTask { ctx in
+            guard let tab = try? ctx.existingObject(with: mainThreadTab.objectID) as! Tab else { return }
+            self.isSyncing = true
+
+            if let prevVisit = self.existingVisit(from: wkItem, in: ctx) {
+                // Move to this context, update title and url
+                // print("update visit")
+                if let title = wkItem.title, title != "" {
+                    prevVisit.title = title
+                }
+                prevVisit.url = wkItem.url
+                
+                tab.currentVisit?.isCurrentVisitOf = nil
+                tab.currentVisit = prevVisit
+                prevVisit.isCurrentVisitOf = tab
             }
-            historyVisitMap[currentWKItem] = newVisit
-            tab.currentVisit = newVisit
-        }
+            else {
+                // Create a new entry
+                // print("new visit")
+                let newVisit = self.addVisit(from: wkItem, parent: nil, in: ctx)!
+                
+                if let backWKItem = list.backItem,
+                    let backVisit = self.existingVisit(from: backWKItem, in: ctx),
+                    backVisit == tab.currentVisit {
+                    // We went forward, link these pages together
+                    newVisit.backItem = tab.currentVisit
+                    tab.currentVisit?.addToForwardItems(newVisit)
+                }
+                tab.currentVisit?.isCurrentVisitOf = nil
+                tab.currentVisit = newVisit
+                newVisit.isCurrentVisitOf = tab
+            }
+
+            var site: Site? = nil
+            if let currentSite = tab.currentVisit?.site, currentSite.url == wkItem.url {
+                site = currentSite
+            }
+            else if let existingSite = self.existingSite(for: wkItem.url, in: ctx) {
+                site = existingSite
+            }
+            else if let newSite = self.addSite(url: wkItem.url, title: wkItem.title, in: ctx) {
+                site = newSite
+            }
+            else {
+                fatalError("couldn't create a new site")
+            }
         
-        var site: Site? = nil
-        if let currentSite = tab.currentVisit?.site, currentSite.url == currentWKItem.url {
-            site = currentSite
-        }
-        else if let existingSite = existingSite(for: currentWKItem.url) {
-            site = existingSite
-        }
-        else if let newSite = addSite(url: currentWKItem.url, title: currentWKItem.title) {
-            site = newSite
-        }
-        
-        if let visit = tab.currentVisit, let site = site {
-            visit.site = site
-            if let title = currentWKItem.title, title != "" {
-                site.title = title
+            if let visit = tab.currentVisit, let site = site {
+                if let title = wkItem.title, title != "" {
+                    site.title = title
+                }
+                if visit.site !== site {
+                    let oldSite = visit.site
+                    oldSite?.removeFromVisits(visit)
+                    visit.site = site
+                    site.addToVisits(visit)
+                }
+                if let count = site.visits?.count {
+                    site.visitCount = Int32(count)
+                }
             }
-            site.addToVisits(visit)
-            if let count = site.visits?.count {
-                site.visitCount = Int32(count)
+            if tab.currentVisit!.uuid == nil {
+                // sanity check
+                fatalError("current visit not valid")
             }
+            
+            self.save(context: ctx)
+            self.historyIDMap[wkItem] = tab.currentVisit!.objectID // id is temp until saved
+            self.isSyncing = false
         }
-        
-        saveContext()
     }
     
     // Convert wkwebview history item
-    func addVisit(from item: WKBackForwardListItem, parent: Visit?) -> Visit? {
-        return addVisit(parent: parent, url: item.url, title: item.title)
+    func addVisit(from item: WKBackForwardListItem, parent: Visit?, in context: NSManagedObjectContext) -> Visit? {
+        return addVisit(parent: parent, url: item.url, title: item.title, in: context)
     }
     
     // Convert and save history item
-    func addVisit(parent: Visit?, url: URL, title: String?) -> Visit? {
-        let context = persistentContainer.viewContext
-        
+    func addVisit(parent: Visit?, url: URL, title: String?, in context: NSManagedObjectContext) -> Visit? {
         let visit = Visit(context: context)
-        visit.firstVisit = Date()
+        visit.date = Date()
         visit.uuid = UUID()
         visit.url = url
-        visit.title = title ?? "Untitled"
+        visit.title = title ?? url.host ?? url.absoluteString
         visit.backItem = parent
-        
         return visit
     }
-    func addSite(url: URL, title: String?) -> Site? {
-        let context = persistentContainer.viewContext
-
+    
+    func addSite(url: URL, title: String?, in context: NSManagedObjectContext) -> Site? {
         let site = Site(context: context)
-        site.title = title
+        site.title = title ?? url.host ?? url.absoluteString
         site.url = url
-        
         return site
     }
     
-    func saveContext() {
-        let context = persistentContainer.viewContext
-        context.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump // dedupe sites
+    func save(context: NSManagedObjectContext) {
+        context.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
         if context.hasChanges {
             do {
                 try context.save()
             } catch {
                 let nserror = error as NSError
-                print("Unresolved error \(nserror), \(nserror.userInfo)")
+                print("Unresolved error saving: \(nserror.localizedDescription)")
+                print("\(nserror.userInfo)")
             }
         }
     }
@@ -138,7 +185,9 @@ class HistoryManager: NSObject {
 // Convenience to get Visit from webview
 extension WKBackForwardListItem {
     var visit : Visit? {
-        return HistoryManager.shared.visit(from: self)
+        let ctx = HistoryManager.shared.persistentContainer.viewContext
+        let existVisit = HistoryManager.shared.existingVisit(from: self, in: ctx)
+        return existVisit
     }
 }
 
@@ -204,14 +253,16 @@ struct HistorySearchResult {
 
 // Deal with snapshots
 extension HistoryManager {
-    func snapshot(for item: Visit) -> UIImage? {
-        guard let id = item.uuid else { return nil }
+    func snapshot(for id: UUID) -> UIImage? {
         if let cached = snapshotCache[id] { return cached }
         return loadSnapshotFromFile(id)
     }
     
     func setSnapshot(_ image: UIImage, for item: Visit) {
-        guard let uuid = item.uuid else { return }
+        guard let uuid = item.uuid else {
+            print("set item has no uuid: \(item)")
+            return
+        }
         snapshotCache[uuid] = image
         writeSnapshotToFile(image, id: uuid)
     }

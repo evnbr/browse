@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		2DCBCAE350BA34FBF1FAAC0B /* Pods_browseUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59786C71254C3E45B35E124B /* Pods_browseUITests.framework */; };
 		A907DBA8205C9C5C009554C9 /* Blend.swift in Sources */ = {isa = PBXBuildFile; fileRef = A907DBA7205C9C5C009554C9 /* Blend.swift */; };
-		A907DBAA205CFAB4009554C9 /* HistoryItem+snapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A907DBA9205CFAB4009554C9 /* HistoryItem+snapshot.swift */; };
+		A907DBAA205CFAB4009554C9 /* Visit+snapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A907DBA9205CFAB4009554C9 /* Visit+snapshot.swift */; };
 		A907DBAC205DB055009554C9 /* Tab+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A907DBAB205DB055009554C9 /* Tab+Extensions.swift */; };
 		A907DBAE205DB7A6009554C9 /* WebViewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A907DBAD205DB7A6009554C9 /* WebViewManager.swift */; };
 		A908920A1ED547C500A5E9BA /* ToolbarSearchField.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90892091ED547C500A5E9BA /* ToolbarSearchField.swift */; };
@@ -22,7 +22,7 @@
 		A92095861ED9E242009497A2 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095851ED9E241009497A2 /* SettingsViewController.swift */; };
 		A92095881ED9E3C0009497A2 /* SettingsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095871ED9E3C0009497A2 /* SettingsTableViewCell.swift */; };
 		A920958A1EDA6526009497A2 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095891EDA6526009497A2 /* Settings.swift */; };
-		A920958F1EDF4AB8009497A2 /* PresentTabAnimationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A920958E1EDF4AB8009497A2 /* PresentTabAnimationController.swift */; };
+		A920958F1EDF4AB8009497A2 /* StackAnimatedTransitioning.swift in Sources */ = {isa = PBXBuildFile; fileRef = A920958E1EDF4AB8009497A2 /* StackAnimatedTransitioning.swift */; };
 		A92095911EE34CDC009497A2 /* TabSwitcherViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095901EE34CDC009497A2 /* TabSwitcherViewController.swift */; };
 		A92095931EE36483009497A2 /* TabThumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095921EE36483009497A2 /* TabThumbnail.swift */; };
 		A92095951EE3E0DA009497A2 /* ToolbarTouchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095941EE3E0DA009497A2 /* ToolbarTouchView.swift */; };
@@ -103,7 +103,7 @@
 		9F545EFABCF9F87A9BBE6214 /* Pods-browseTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-browseTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-browseTests/Pods-browseTests.debug.xcconfig"; sourceTree = "<group>"; };
 		A7CBD4E92318735B3DA34E02 /* Pods_browse.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_browse.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A907DBA7205C9C5C009554C9 /* Blend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Blend.swift; sourceTree = "<group>"; };
-		A907DBA9205CFAB4009554C9 /* HistoryItem+snapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HistoryItem+snapshot.swift"; sourceTree = "<group>"; };
+		A907DBA9205CFAB4009554C9 /* Visit+snapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Visit+snapshot.swift"; sourceTree = "<group>"; };
 		A907DBAB205DB055009554C9 /* Tab+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tab+Extensions.swift"; sourceTree = "<group>"; };
 		A907DBAD205DB7A6009554C9 /* WebViewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewManager.swift; sourceTree = "<group>"; };
 		A90892091ED547C500A5E9BA /* ToolbarSearchField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToolbarSearchField.swift; sourceTree = "<group>"; };
@@ -116,7 +116,7 @@
 		A92095851ED9E241009497A2 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		A92095871ED9E3C0009497A2 /* SettingsTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsTableViewCell.swift; sourceTree = "<group>"; };
 		A92095891EDA6526009497A2 /* Settings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
-		A920958E1EDF4AB8009497A2 /* PresentTabAnimationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PresentTabAnimationController.swift; sourceTree = "<group>"; };
+		A920958E1EDF4AB8009497A2 /* StackAnimatedTransitioning.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StackAnimatedTransitioning.swift; sourceTree = "<group>"; };
 		A92095901EE34CDC009497A2 /* TabSwitcherViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TabSwitcherViewController.swift; sourceTree = "<group>"; };
 		A92095921EE36483009497A2 /* TabThumbnail.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TabThumbnail.swift; sourceTree = "<group>"; };
 		A92095941EE3E0DA009497A2 /* ToolbarTouchView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToolbarTouchView.swift; sourceTree = "<group>"; };
@@ -254,7 +254,7 @@
 				A9A88DE82015C64F007FC6C0 /* GradientView.swift */,
 				A9E422801F86B4FD0028B4CA /* StackingCollectionViewLayout.swift */,
 				A9667E93205339B500295E76 /* BlobCollectionViewLayout.swift */,
-				A920958E1EDF4AB8009497A2 /* PresentTabAnimationController.swift */,
+				A920958E1EDF4AB8009497A2 /* StackAnimatedTransitioning.swift */,
 			);
 			path = "Tab Switcher";
 			sourceTree = "<group>";
@@ -335,7 +335,7 @@
 			children = (
 				A96A42F41F917F9C00C0F3E2 /* HistoryViewController.swift */,
 				A95DFFBE205B6A8F00D540DD /* HistoryManager.swift */,
-				A907DBA9205CFAB4009554C9 /* HistoryItem+snapshot.swift */,
+				A907DBA9205CFAB4009554C9 /* Visit+snapshot.swift */,
 				A907DBAB205DB055009554C9 /* Tab+Extensions.swift */,
 				A95DFF7C205B2FB700D540DD /* HistoryModel.xcdatamodeld */,
 			);
@@ -501,7 +501,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0820;
-				LastUpgradeCheck = 0900;
+				LastUpgradeCheck = 0930;
 				ORGANIZATIONNAME = "Evan Brooks";
 				TargetAttributes = {
 					A97CB06B1EC53DCC005DDBD1 = {
@@ -755,7 +755,7 @@
 				A97CB0701EC53DCD005DDBD1 /* AppDelegate.swift in Sources */,
 				A97BF8311EF3B5B900B9ECB4 /* BrowserViewController+WKUIDelegate.swift in Sources */,
 				A907DBAE205DB7A6009554C9 /* WebViewManager.swift in Sources */,
-				A907DBAA205CFAB4009554C9 /* HistoryItem+snapshot.swift in Sources */,
+				A907DBAA205CFAB4009554C9 /* Visit+snapshot.swift in Sources */,
 				A969D4A51F1321EC008A7BC6 /* Constants.swift in Sources */,
 				A92095911EE34CDC009497A2 /* TabSwitcherViewController.swift in Sources */,
 				A92095841ED90E7B009497A2 /* Blocker.swift in Sources */,
@@ -767,7 +767,7 @@
 				A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */,
 				A9A88DE92015C64F007FC6C0 /* GradientView.swift in Sources */,
 				A92095881ED9E3C0009497A2 /* SettingsTableViewCell.swift in Sources */,
-				A920958F1EDF4AB8009497A2 /* PresentTabAnimationController.swift in Sources */,
+				A920958F1EDF4AB8009497A2 /* StackAnimatedTransitioning.swift in Sources */,
 				A9F9D7C02050B8BA000BA8A3 /* DuckSearchProvider.swift in Sources */,
 				A95DFF7E205B2FB700D540DD /* HistoryModel.xcdatamodeld in Sources */,
 				A907DBAC205DB055009554C9 /* Tab+Extensions.swift in Sources */,
@@ -851,6 +851,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -858,6 +859,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -907,6 +909,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -914,6 +917,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
