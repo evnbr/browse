@@ -25,7 +25,9 @@ class SearchViewController: UIViewController {
     var pageActionView: PageActionView!
     
     var keyboardSnapshot: UIImage?
-    
+    var lastKeyboardSize: CGSize?
+    var lastKeyboardColor: UIColor?
+
     var isTransitioning = false
 
     var displaySearchTransition = SearchTransitionController()
@@ -260,6 +262,7 @@ class SearchViewController: UIViewController {
     func focusTextView() {
         textView.becomeFirstResponder()
         textView.selectAll(nil) // if not nil, will show actions
+        keyboardPlaceholder.isHidden = true
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -463,8 +466,8 @@ extension SearchViewController : UIGestureRecognizerDelegate {
                 if dist.y < keyboardHeight {
                     kbHeightConstraint.constant = keyboardHeight - dist.y
                     let progress = dist.y.progress(0, keyboardHeight).clip()
-                    let margin = progress.blend(0, SPACE_FOR_INDICATOR)
-                    toolbarBottomMargin.constant = margin
+//                    let margin = progress.blend(0, SPACE_FOR_INDICATOR)
+//                    toolbarBottomMargin.constant = margin
                     contextAreaHeightConstraint.constant = contextAreaHeight
                 }
                 else {
@@ -512,6 +515,7 @@ extension SearchViewController : UIGestureRecognizerDelegate {
     }
     
     func showFakeKeyboard() {
+        updateKeyboardSnapshot()
         keyboardPlaceholder.isHidden = false
         keyboardPlaceholder.image = keyboardSnapshot
         UIView.setAnimationsEnabled(false)
@@ -536,16 +540,22 @@ extension SearchViewController : UIGestureRecognizerDelegate {
     @objc func updateKeyboardSnapshot() {
         if !textView.isFirstResponder
             || kbHeightConstraint.constant != keyboardHeight { return }
-        keyboardSnapshot = takeKeyboardSnapshot()
+        
+        let screen = UIScreen.main.bounds.size
+        let kbSize = CGSize(width: screen.width, height: keyboardHeight)
+        let bg = backgroundView.overlayColor
+        if bg != lastKeyboardColor || kbSize != lastKeyboardSize {
+            keyboardSnapshot = takeKeyboardSnapshot(size: kbSize)
+            lastKeyboardSize = kbSize
+            lastKeyboardColor = bg
+        }
     }
     
-    func takeKeyboardSnapshot() -> UIImage? {
-        let size = UIScreen.main.bounds.size
-        let kbSize = CGSize(width: size.width, height: keyboardHeight)
-        
-        UIGraphicsBeginImageContextWithOptions(kbSize, false, 0)
+    func takeKeyboardSnapshot(size: CGSize) -> UIImage? {
+        let screen = UIScreen.main.bounds.size
+        UIGraphicsBeginImageContextWithOptions(size, false, 0)
         let ctx = UIGraphicsGetCurrentContext()
-        ctx?.translateBy(x: 0, y: -(size.height - keyboardHeight))
+        ctx?.translateBy(x: 0, y: -(screen.height - keyboardHeight))
         
         for window in UIApplication.shared.windows {
             if (window.screen == UIScreen.main) {

@@ -81,7 +81,7 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             ? typeaheadVC.keyboardHeight : 0
         typeaheadVC.contextAreaHeightConstraint.springConstant(to: isExpanding
             ? typeaheadVC.contextAreaHeight : 0)
-        typeaheadVC.toolbarBottomMargin.springConstant(to: isExpanding && showKeyboard
+        typeaheadVC.toolbarBottomMargin.springConstant(to: isExpanding
             ? 0 : (isAnimatingFromToolbar ? SPACE_FOR_INDICATOR : -48))
         typeaheadVC.textHeightConstraint.springConstant(to: isExpanding
             ? typeaheadVC.textHeight : 40)
