@@ -35,7 +35,10 @@ class HistoryManager: NSObject {
     }
     
     @objc func mergeChangeIntoMainContext(notif: Notification) {
-        persistentContainer.viewContext.mergeChanges(fromContextDidSave: notif)
+        // this wasn't running on main thread before and may have been crashing
+        DispatchQueue.main.async {
+            self.persistentContainer.viewContext.mergeChanges(fromContextDidSave: notif)
+        }
     }
     
     func existingVisit(from item: WKBackForwardListItem, in context: NSManagedObjectContext) -> Visit? {
@@ -74,7 +77,10 @@ class HistoryManager: NSObject {
         }
 
         persistentContainer.performBackgroundTask { ctx in
-            guard let tab = try? ctx.existingObject(with: mainThreadTab.objectID) as! Tab else { return }
+            guard let tab = try? ctx.existingObject(with: mainThreadTab.objectID) as! Tab else {
+                print("tab doesn't exist on bg context")
+                return
+            }
             self.isSyncing = true
 
             if let prevVisit = self.existingVisit(from: wkItem, in: ctx) {
