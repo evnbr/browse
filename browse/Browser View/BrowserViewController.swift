@@ -18,7 +18,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     let webViewManager = WebViewManager()
     
     var webView: WKWebView!
-    var snap: UIImageView = UIImageView()
+    var snapshotView: UIImageView = UIImageView()
     var currentTab: Tab?
     
     var topConstraint : NSLayoutConstraint!
@@ -94,11 +94,25 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
     }
     
-    var hiddenUntilNavigationDone = false
     
-    func hideUntilNavigationDone() {
+    var navigationToHide : WKNavigation? = nil// = false
+    func hideUntilNavigationDone(navigation: WKNavigation? ) {
         isSnapshotMode = true
-        hiddenUntilNavigationDone = true
+        if let nav = navigation {
+            // nav delegate will track and alert when done
+            navigationToHide = nav
+        }
+        else {
+            // probably a javascript navigation, nav delegate can't track
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                self.finishHiddenNavigation()
+            }
+        }
+    }
+    
+    func finishHiddenNavigation() {
+        self.navigationToHide = nil //false
+        self.isSnapshotMode = false
     }
     
     
@@ -131,10 +145,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         webView = webViewManager.webViewFor(newTab)
         
         if let img = newTab.currentVisit?.snapshot {
-            snap.image = img
+            snapshotView.image = img
         }
         else {
-            snap.image = nil
+            snapshotView.image = nil
         }
         
         if let newTop = newTab.currentVisit?.topColor {
@@ -155,7 +169,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         webView.scrollView.delegate = gestureController
         webView.scrollView.isScrollEnabled = true
                 
-        contentView.insertSubview(webView, belowSubview: snap)
+        contentView.insertSubview(webView, belowSubview: snapshotView)
         topConstraint = webView.topAnchor.constraint(equalTo: statusBar.bottomAnchor)
         topConstraint.isActive = true
         
@@ -228,15 +242,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         contentView.addSubview(toolbarPlaceholder)
         
-        snap.contentMode = .scaleAspectFill
-        snap.translatesAutoresizingMaskIntoConstraints = false
-//        snap.alpha = 0.5
-        snap.frame.size = CGSize(
+        snapshotView.contentMode = .scaleAspectFill
+        snapshotView.translatesAutoresizingMaskIntoConstraints = false
+        snapshotView.frame.size = CGSize(
             width: cardView.bounds.width,
             height: cardView.bounds.height - Const.statusHeight - Const.toolbarHeight
         )
         
-        contentView.addSubview(snap)
+        contentView.addSubview(snapshotView)
         contentView.addSubview(toolbar)
         contentView.addSubview(statusBar)
         contentView.bringSubview(toFront: statusBar)
@@ -250,15 +263,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         constrainTop3(statusBar, contentView)
         statusHeightConstraint = statusBar.heightAnchor.constraint(equalToConstant: Const.statusHeight)
         
-        snap.isHidden = true
-        aspectConstraint = snap.heightAnchor.constraint(equalTo: snap.widthAnchor, multiplier: 1)
+        snapshotView.isHidden = true
+        aspectConstraint = snapshotView.heightAnchor.constraint(equalTo: snapshotView.widthAnchor, multiplier: 1)
         
         NSLayoutConstraint.activate([
             statusHeightConstraint,
             aspectConstraint,
-            snap.topAnchor.constraint(equalTo: statusBar.bottomAnchor),
-            snap.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            snap.widthAnchor.constraint(equalTo: contentView.widthAnchor),
+            snapshotView.topAnchor.constraint(equalTo: statusBar.bottomAnchor),
+            snapshotView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            snapshotView.widthAnchor.constraint(equalTo: contentView.widthAnchor),
             toolbar.centerXAnchor.constraint(equalTo: cardView.centerXAnchor),
             toolbar.widthAnchor.constraint(equalTo: cardView.widthAnchor),
             toolbar.bottomAnchor.constraint(equalTo: toolbarPlaceholder.bottomAnchor),
@@ -414,15 +427,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     var isSnapshotMode : Bool {
         get {
-            return !snap.isHidden
+            return !snapshotView.isHidden
         }
         set {
             if newValue {
-                snap.isHidden = false
+                snapshotView.isHidden = false
                 webView.isHidden = true
             } else {
                 webView.isHidden = false
-                snap.isHidden = true
+                snapshotView.isHidden = true
             }
         }
     }
@@ -441,12 +454,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     func setSnapshot(_ image : UIImage?) {
         guard let image = image else { return }
-        snap.image = image
+        snapshotView.image = image
         
         let newAspect = image.size.height / image.size.width
         if newAspect != aspectConstraint.multiplier {
-            snap.removeConstraint(aspectConstraint)
-            aspectConstraint = snap.heightAnchor.constraint(equalTo: snap.widthAnchor, multiplier: newAspect, constant: 0)
+            snapshotView.removeConstraint(aspectConstraint)
+            aspectConstraint = snapshotView.heightAnchor.constraint(equalTo: snapshotView.widthAnchor, multiplier: newAspect, constant: 0)
             aspectConstraint.isActive = true
         }
     }
@@ -592,12 +605,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         toolbar.text = url.displayHost
         toolbar.progress = 0
         // Does it feel faster if old page instantle disappears?
-        hideUntilNavigationDone()
-        snap.image = nil
+        
+        let nav = webView.load(URLRequest(url: url))
+        hideUntilNavigationDone(navigation: nav)
+        snapshotView.image = nil
         toolbar.backgroundColor = .white
         statusBar.backgroundColor = .white
-        
-        webView.load(URLRequest(url: url))
     }
     
     @objc func hideError() {
@@ -651,6 +664,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     func updateLoadingState() {
         guard isViewLoaded else { return }
+        assert(webView != nil, "nil webview")
         
         toolbar.text = self.displayTitle
         statusBar.label.text = webView.title
@@ -669,12 +683,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = webView.isLoading
         
-        if hiddenUntilNavigationDone && webView.estimatedProgress > 0.7 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                self.hiddenUntilNavigationDone = false
-                self.isSnapshotMode = false
-            }
-        }
+//        if hiddenUntilNavigationDone != nil && webView.estimatedProgress > 0.7 {
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+//                self.hiddenUntilNavigationDone = nil //false
+//                self.isSnapshotMode = false
+//            }
+//        }
         
         HistoryManager.shared.sync(tab: currentTab!, with: webView.backForwardList)
     }
@@ -716,7 +730,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
                 && !gestureController.isDismissing
                 && UIApplication.shared.applicationState == .active
                 && webView != nil
-                && !hiddenUntilNavigationDone
+                && !isSnapshotMode //!hiddenUntilNavigationDone
                 && !(webView.scrollView.contentOffset.y < 0)
 //                && abs(cardView.frame.origin.y) < 1.0
 //                && abs(cardView.frame.origin.x) < 1.0

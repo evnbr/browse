@@ -19,6 +19,17 @@ extension BrowserViewController: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         updateLoadingState()
         
+        if navigation == navigationToHide {
+            // wait a sec... just because the first navigation is done,
+            // doesnt mean the first paint is done
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.finishHiddenNavigation()
+            }
+        }
+        else if navigationToHide != nil {
+            print("might be stuck hidden")
+        }
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             self.updateSnapshot()
         }

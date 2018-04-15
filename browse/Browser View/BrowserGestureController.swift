@@ -462,16 +462,16 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         else if adjustedX > backPointX && isHorizontal{
             if vc.webView.canGoBack
             && mockCardView.frame.origin.x + mockCardView.frame.width > backPointX {
-                vc.webView.goBack()
+                let nav = vc.webView.goBack()
+                vc.hideUntilNavigationDone(navigation: nav)
                 animateCommit(action: .goBack, velocity: vel)
-                vc.hideUntilNavigationDone()
             }
             else if canGoBackToParent
             && adjustedX > backPointX {
                 if let parentTab = vc.currentTab?.parentTab {
                     vc.updateSnapshot {
                         let vc = self.vc!
-                        self.mockCardView.imageView.image = vc.currentTab?.currentItem?.snapshot
+                        self.mockCardView.imageView.image = vc.currentTab?.currentVisit?.snapshot
                         vc.setTab(parentTab)
                         self.animateCommit(action: .goToParent)
                         vc.home.moveTabToEnd(parentTab)
@@ -486,14 +486,14 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         else if adjustedX < -backPointX && isHorizontal {
             if vc.webView.canGoForward {
                 print("Could go forward to one of the following")
-                let _ = vc.currentTab?.currentItem?.forwardItems?.allObjects.map({ item in
-                    if let item = item as? HistoryItem {
+                let _ = vc.currentTab?.currentVisit?.forwardItems?.allObjects.map { item in
+                    if let item = item as? Visit {
                         print("- \(item.title ?? "No Title")")
                     }
-                })
-                vc.webView.goForward()
+                }
+                let nav = vc.webView.goForward()
+                vc.hideUntilNavigationDone(navigation: nav)
                 animateCommit(action: .goForward, velocity: vel)
-                vc.hideUntilNavigationDone()
             }
             else {
 //                commitDismiss(velocity: vel)
@@ -536,7 +536,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
     func setupBackGesture() {
         resetMockCardView()
-        guard let backItem = vc.webView.backForwardList.backItem?.model else { return }
+        guard let backItem = vc.webView.backForwardList.backItem?.visit else { return }
         mockCardView.setPage(backItem)
         view.addSubview(mockCardView)
         view.bringSubview(toFront: cardView)
@@ -544,14 +544,14 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     
     func setupForwardGesture() {
         resetMockCardView()
-        guard let fwdItem = vc.webView.backForwardList.forwardItem?.model else { return }
+        guard let fwdItem = vc.webView.backForwardList.forwardItem?.visit else { return }
         mockCardView.setPage(fwdItem)
         view.addSubview(mockCardView)
     }
     
     func setupBackToParentGesture() {
         guard let parent = vc.currentTab?.parentTab,
-            let parentPage = parent.currentItem else { return }
+            let parentPage = parent.currentVisit else { return }
         view.insertSubview(mockCardView, belowSubview: cardView)
         mockCardView.setPage(parentPage)
         vc.home.setParentHidden(parent, hidden: true)
@@ -721,7 +721,9 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         // Swap image
         vc.setSnapshot(mockCardView.imageView.image)
         if action != .goToParent {
-            mockCardView.imageView.image = vc.currentTab?.currentItem?.snapshot
+            if let currentSnap = vc.currentTab?.currentVisit?.snapshot {
+                mockCardView.setSnapshot(currentSnap)
+            }
         }
         
         // Swap colors
@@ -734,6 +736,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         mockCardView.statusBar.backgroundColor = statusColor
         mockCardView.toolbarView.backgroundColor = toolbarColor
 
+        // Make sure toolbar is expanded
+        vc.showToolbar(animated: false, adjustScroll: false)
         
         // Swap pos
         let cardCenter = cardView.center
@@ -794,7 +798,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             self.mockCardView.removeFromSuperview()
             self.mockCardView.imageView.image = nil
         }
-        mockCardView.springScale(to: 1)
+        mockCardView.springScale(to: action == .goForward ? backItemScale : 1)
         cardView.springScale(to: 1)
         
         UIView.animate(withDuration: 0.3) {
