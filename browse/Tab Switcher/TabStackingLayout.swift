@@ -1,5 +1,5 @@
 //
-//  StackingCollectionViewLayout.swift
+//  TabStackingLayout.swift
 //  browse
 //
 //  Created by Evan Brooks on 10/5/17.
@@ -24,7 +24,7 @@ class StackingTransition: UICollectionViewTransitionLayout {
     }
 }
 
-class StackingCollectionViewLayout: UICollectionViewFlowLayout {
+class TabStackingLayout: UICollectionViewFlowLayout {
     
     private var isStacked: Bool = true
     var offset: CGPoint = .zero
@@ -50,13 +50,16 @@ class StackingCollectionViewLayout: UICollectionViewFlowLayout {
         let newSize = CGSize(
             width: collectionView!.bounds.width,
             height: startY + CGFloat(collectionView!.numberOfItems(inSection: 0)) * itemSpacing + (itemHeight - itemSpacing))
-//        print("ScrollPos: \(collectionView!.contentOffset.y)   H: \(newSize.height)")
         return newSize
     }
     
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
         // Only adjust scroll for user, "proposed" seems to be garbage?
-//        print("current: \(collectionView!.contentOffset.y), proposed: \(proposedContentOffset.y)")
+        if let cv = collectionView, collectionViewContentSize.height <= cv.bounds.size.height {
+//            print("contentsize too small")
+//            return proposedContentOffset
+        }
+        
         return collectionView!.contentOffset
     }
 

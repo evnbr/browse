@@ -43,6 +43,8 @@ class PlaceholderView: UIView {
         
         toolbarView = BrowserToolbarView(frame: bounds)
         toolbarView.backgroundColor = .red
+        toolbarView.backButton.isHidden = true
+        toolbarView.tabButton.isHidden = true
         toolbarView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(toolbarView, constraints: [
             toolbarView.leftAnchor.constraint(equalTo: contentView.leftAnchor),

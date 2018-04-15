@@ -24,8 +24,8 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     let itemsPerRow : CGFloat = 2
     
     let thumbAnimationController = StackAnimatedTransitioning()
-    let stackedLayout = StackingCollectionViewLayout(isStacked: true)
-    let spreadLayout = StackingCollectionViewLayout(isStacked: false)
+    let stackedLayout = TabStackingLayout(isStacked: true)
+    let spreadLayout = TabStackingLayout(isStacked: false)
 
     var isFirstLoad = true
     
@@ -49,6 +49,9 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         browserVC = BrowserViewController(home: self)
         
         view.clipsToBounds = false
+        navigationController?.navigationBar.barStyle = .blackTranslucent
+        navigationController?.navigationBar.tintColor = .white
+        
         collectionView?.clipsToBounds = false
         collectionView?.collectionViewLayout = stackedLayout
         collectionView?.delaysContentTouches = false
@@ -56,12 +59,13 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         collectionView?.scrollIndicatorInsets.top = Const.statusHeight
         collectionView?.indicatorStyle = .white
         collectionView?.showsVerticalScrollIndicator = false
-        collectionView?.register(TabThumbnail.self, forCellWithReuseIdentifier: reuseIdentifier)
+        collectionView?.register(DismissableTabCell.self, forCellWithReuseIdentifier: reuseIdentifier)
         collectionView?.backgroundColor = .black
 
-        title = ""
+        title = "Tabs"
         view.backgroundColor = .black
-        
+        let historyButton = UIBarButtonItem(title: "History", style: .plain, target: self, action: #selector(showHistory) )
+        navigationItem.rightBarButtonItem = historyButton
         
         fab = FloatButton(
             frame: CGRect(x: 0, y: 0, width: 64, height: 64),
@@ -89,6 +93,13 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             self.scrollToBottom()
         }
+    }
+    
+    @objc func showHistory() {
+        print("show history")
+        let historyVC = HistoryTreeViewController()
+        print("hvc initiated")
+        present(historyVC, animated: true, completion: nil)
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -145,11 +156,11 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         }
     }
     
-    func thumb(forTab tab: Tab) -> TabThumbnail? {
+    func thumb(forTab tab: Tab) -> DismissableTabCell? {
         return collectionView?.visibleCells.first(where: { (cell) -> Bool in
-            let thumb = cell as! TabThumbnail
+            let thumb = cell as! DismissableTabCell
             return thumb.browserTab == tab
-        }) as! TabThumbnail?
+        }) as! DismissableTabCell?
     }
     
     var currentIndexPath : IndexPath? {
@@ -157,17 +168,17 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         return fetchedResultsController.indexPath(forObject: tab)
     }
     
-    var currentThumb : TabThumbnail? {
+    var currentThumb : DismissableTabCell? {
         guard let tab = browserVC.currentTab else { return nil }
         return thumb(forTab: tab)
     }
 
-    var visibleCells: [TabThumbnail] {
+    var visibleCells: [DismissableTabCell] {
         guard let cv = collectionView else { return [] }
-        return cv.visibleCells as! [TabThumbnail]
+        return cv.visibleCells as! [DismissableTabCell]
     }
     
-    var visibleCellsAbove: [TabThumbnail] {
+    var visibleCellsAbove: [DismissableTabCell] {
         guard let cv = collectionView else { return [] }
         guard let selIndexPath = currentIndexPath else { return [] }
 
@@ -176,7 +187,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
             return index < selIndexPath.item
         }
     }
-    var visibleCellsBelow: [TabThumbnail] {
+    var visibleCellsBelow: [DismissableTabCell] {
         guard let cv = collectionView else { return [] }
         guard let selIndexPath = currentIndexPath else { return [] }
 
@@ -295,7 +306,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     
     
     override func viewDidAppear(_ animated: Bool) {
-        navigationController?.isNavigationBarHidden = true
+        navigationController?.isNavigationBarHidden = false
         fabSnapshot = fab.snapshotView(afterScreenUpdates: false)
         
         isFirstLoad = false
@@ -410,7 +421,7 @@ extension TabSwitcherViewController {
     }
     
     func configureThumbnail(_ cell: UICollectionViewCell, withTab tab: Tab) {
-        if let thumb = cell as? TabThumbnail {
+        if let thumb = cell as? DismissableTabCell {
             thumb.setTab(tab)
             thumb.closeTabCallback = closeTab
         }
@@ -435,12 +446,6 @@ extension TabSwitcherViewController {
     }
 }
 
-//extension TabSwitcherViewController {
-//    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//        print("didScroll: \(scrollView.contentOffset.y)")
-//    }
-//}
-//
 // MARK: - UICollectionViewDelegateFlowLayout
 extension TabSwitcherViewController : UICollectionViewDelegateFlowLayout {
 
