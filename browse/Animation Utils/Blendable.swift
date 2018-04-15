@@ -23,20 +23,20 @@ extension CGFloat : Blendable {
     public static var initialValue: CGFloat { return 0 }
 
     public static func blend(from start: CGFloat, to end: CGFloat, by progress: CGFloat) -> CGFloat {
-        return progress.blend(start, end)
+        return progress.lerp(start, end)
     }
 }
 
 // Blend directly on progress
 extension CGFloat {
-    func blend(_ start: CGFloat, _ end: CGFloat) -> CGFloat {
+    func lerp(_ start: CGFloat, _ end: CGFloat) -> CGFloat {
         return start + (end - start) * self;
     }
     
     func blend(_ start: CGPoint, _ end: CGPoint) -> CGPoint {
         return CGPoint(
-            x: self.blend(start.x, end.x),
-            y: self.blend(start.y, end.y)
+            x: self.lerp(start.x, end.x),
+            y: self.lerp(start.y, end.y)
         )
     }
 }

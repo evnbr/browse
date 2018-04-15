@@ -102,10 +102,14 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         }
     }
     
+    var isDisplayingFakeTab = false
     func showSearch() {
         let search = SearchViewController()
-        if tabCount < 1 { search.showingCancel = false }
+        search.isFakeTab = true
+//        if tabCount < 1 { search.showingCancel = false }
+        isDisplayingFakeTab = true
         present(search, animated: true, completion: nil)
+//        addTab()
     }
 
     func addTab(startingFrom url: URL? = nil, animated: Bool = true) {
@@ -192,39 +196,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         return cv.layoutAttributesForItem(at: ip)!.bounds
     }
     
-    func adjustedCenterSTACKEDFor(_ ip: IndexPath, cardOffset: CGPoint = .zero, switcherProgress: CGFloat, offsetByScroll: Bool = false, isSwitcherMode: Bool = false) -> CGPoint {
-        let cv = collectionView!
-        let count = fetchedResultsController.fetchedObjects?.count ?? 0
-        let currentIndex = currentIndexPath?.item ?? count
-        let attrs = cv.layoutAttributesForItem(at: ip)!
-        var center = attrs.center
-        if ip.item == currentIndex { return center }
-        
-        let switchingY = center.y
-        var collapsedY = center.y
-        
-        let distFromFront : CGFloat = CGFloat(count - ip.item - 1)
-        
-        collapsedY = cv.contentOffset.y + attrs.bounds.height / 2
-        if ip.item > currentIndex {
-            collapsedY += view.bounds.height + Const.statusHeight
-            if offsetByScroll {
-                collapsedY -= cv.contentOffset.y
-            }
-        }
-        else {
-            collapsedY -= cardOffset.y // track card
-            collapsedY -= 160 * switcherProgress * distFromFront // spread
-        }
-        
-        center.y = !isSwitcherMode ? collapsedY : switchingY
-        center.x = center.x - (cardOffset.x * (1 - distFromFront * 0.1))
-        
-        return center
-    }
-    
     func adjustedCenterFor(_ ip: IndexPath, offsetByScroll: Bool = false, isSwitcherMode: Bool = false) -> CGPoint {
-//        let cv = collectionView!
         return (isSwitcherMode ? stackedLayout : spreadLayout).layoutAttributesForItem(at: ip)!.center
     }
 
@@ -234,8 +206,8 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     }
     
     func setParentHidden(_ parentTab : Tab, hidden newValue: Bool) {
-//        spreadLayout.parentIndexPath = self.fetchedResultsController.indexPath(forObject: parentTab)
-//        spreadLayout.parentHidden = newValue
+        spreadLayout.parentIndexPath = self.fetchedResultsController.indexPath(forObject: parentTab)
+        spreadLayout.parentHidden = newValue
     }
     
     func setThumbScale(_ scale: CGFloat) {
@@ -347,7 +319,6 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         thumbAnimationController.direction = .dismiss
         return thumbAnimationController
     }
-
 }
 
 extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {

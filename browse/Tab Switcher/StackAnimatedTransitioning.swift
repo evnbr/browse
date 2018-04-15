@@ -22,6 +22,8 @@ extension UIScrollView {
     }
 }
 
+// TODO: Shouldn't change state permanently here.
+
 class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitioning {
     
     var direction : CustomAnimationDirection!
@@ -156,7 +158,11 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
                 browserVC.view.removeFromSuperview()
                 homeVC.visibleCells.forEach { $0.isHidden = false } // TODO: super janky, should wait for collectionview to update
             }
-
+            
+            // Cleanup so non-animated transitions arent weird
+            browserVC.cardView.scale = 1
+            browserVC.cardView.center = browserVC.view.center
+            
         }
         
         let isLandscape = browserVC.view.bounds.width > browserVC.view.bounds.height
