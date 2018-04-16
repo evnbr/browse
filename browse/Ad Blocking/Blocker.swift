@@ -10,36 +10,31 @@
 import UIKit
 import WebKit
 
-fileprivate let hostsFileName = "ultimateAdblockList"
-fileprivate let cssFileName = "ultimateAdblockListCSS"
-
 class Blocker: NSObject {
-    private var hostRules : WKContentRuleList?
-    private var cssRules : WKContentRuleList?
-
-    var isEnabled : Bool {
-        return Settings.shared.blockAds.isOn
-    }
+    
+    private var fileNames = [
+        "disconnect-advertising",
+        "disconnect-analytics",
+        "disconnect-content",
+        "disconnect-social",
+//        "ultimateAdblockList",
+        "ultimateAdblockListCSS",
+    ]
+    private var lists : [ WKContentRuleList ] = []
     
     private var listsAreReady: Bool {
-        return hostRules != nil && cssRules != nil
-    }
-    
-    private var loadedLists: [WKContentRuleList] {
-        guard let h = hostRules, let c = cssRules else { return [] }
-        return [ h, c ]
+        return lists.count == fileNames.count
     }
     
     func getRules(_ callback: @escaping ([WKContentRuleList]) -> ()) {
-        if listsAreReady { callback(loadedLists) }
-        else {
-            findList(hostsFileName, completion: { list in
-                self.hostRules = list
-                if self.listsAreReady { callback(self.loadedLists) }
-            })
-            findList(cssFileName, completion: { list in
-                self.cssRules = list
-                if self.listsAreReady { callback(self.loadedLists) }
+        if listsAreReady {
+            callback(lists)
+            return
+        }
+        for name in fileNames {
+            findList(name, completion: { list in
+                if let list = list { self.lists.append(list) }
+                if self.listsAreReady { callback(self.lists) }
             })
         }
     }
@@ -69,7 +64,7 @@ class Blocker: NSObject {
     }
     
     func compileList(_ fileName : String, completion: @escaping (WKContentRuleList?) -> ()) {
-        print("compiling rules...")
+        print("compiling rules '\(fileName)'")
         guard let path = Bundle.main.path(forResource: fileName, ofType: "json"),
             let data = try? String(contentsOfFile:path, encoding: String.Encoding.utf8) else {
                 print("rules file not found")
@@ -78,6 +73,7 @@ class Blocker: NSObject {
         }
         WKContentRuleListStore.default().compileContentRuleList(forIdentifier: fileName, encodedContentRuleList: data) { (list, error) in
             if let list : WKContentRuleList = list {
+                print("compiled '\(fileName)'")
                 completion(list)
             } else {
                 print("rules failed to be compiled")

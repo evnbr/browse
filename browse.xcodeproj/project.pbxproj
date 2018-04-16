@@ -57,6 +57,10 @@
 		A985F89B20831361007A726A /* HistoryTreeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A985F89A20831361007A726A /* HistoryTreeViewController.swift */; };
 		A985F89D20831FD5007A726A /* HistoryTreeLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A985F89C20831FD5007A726A /* HistoryTreeLayout.swift */; };
 		A985F89F2083FB6B007A726A /* VisitCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A985F89E2083FB6B007A726A /* VisitCell.swift */; };
+		A985F8A620843D8C007A726A /* disconnect-advertising.json in Resources */ = {isa = PBXBuildFile; fileRef = A985F8A220843D8B007A726A /* disconnect-advertising.json */; };
+		A985F8A720843D8C007A726A /* disconnect-analytics.json in Resources */ = {isa = PBXBuildFile; fileRef = A985F8A320843D8B007A726A /* disconnect-analytics.json */; };
+		A985F8A820843D8C007A726A /* disconnect-social.json in Resources */ = {isa = PBXBuildFile; fileRef = A985F8A420843D8C007A726A /* disconnect-social.json */; };
+		A985F8A920843D8C007A726A /* disconnect-content.json in Resources */ = {isa = PBXBuildFile; fileRef = A985F8A520843D8C007A726A /* disconnect-content.json */; };
 		A99328471F098E270045EBAA /* ToolbarTextButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99328461F098E270045EBAA /* ToolbarTextButton.swift */; };
 		A9A88DE92015C64F007FC6C0 /* GradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9A88DE82015C64F007FC6C0 /* GradientView.swift */; };
 		A9AA4A581FF72471001AB639 /* PlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9AA4A571FF72471001AB639 /* PlaceholderView.swift */; };
@@ -159,6 +163,10 @@
 		A985F89A20831361007A726A /* HistoryTreeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HistoryTreeViewController.swift; sourceTree = "<group>"; };
 		A985F89C20831FD5007A726A /* HistoryTreeLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HistoryTreeLayout.swift; sourceTree = "<group>"; };
 		A985F89E2083FB6B007A726A /* VisitCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitCell.swift; sourceTree = "<group>"; };
+		A985F8A220843D8B007A726A /* disconnect-advertising.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "disconnect-advertising.json"; sourceTree = "<group>"; };
+		A985F8A320843D8B007A726A /* disconnect-analytics.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "disconnect-analytics.json"; sourceTree = "<group>"; };
+		A985F8A420843D8C007A726A /* disconnect-social.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "disconnect-social.json"; sourceTree = "<group>"; };
+		A985F8A520843D8C007A726A /* disconnect-content.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "disconnect-content.json"; sourceTree = "<group>"; };
 		A99328461F098E270045EBAA /* ToolbarTextButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToolbarTextButton.swift; sourceTree = "<group>"; };
 		A9A88DE82015C64F007FC6C0 /* GradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientView.swift; sourceTree = "<group>"; };
 		A9AA4A571FF72471001AB639 /* PlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderView.swift; sourceTree = "<group>"; };
@@ -305,6 +313,10 @@
 			isa = PBXGroup;
 			children = (
 				A92095831ED90E7B009497A2 /* Blocker.swift */,
+				A985F8A220843D8B007A726A /* disconnect-advertising.json */,
+				A985F8A320843D8B007A726A /* disconnect-analytics.json */,
+				A985F8A520843D8C007A726A /* disconnect-content.json */,
+				A985F8A420843D8C007A726A /* disconnect-social.json */,
 				A91372061F777511002C160B /* ultimateAdblockList.json */,
 				A9404D0E20633E840004DD83 /* ultimateAdblockListCSS.json */,
 			);
@@ -552,11 +564,15 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A985F8A820843D8C007A726A /* disconnect-social.json in Resources */,
+				A985F8A720843D8C007A726A /* disconnect-analytics.json in Resources */,
 				A97CB0771EC53DCD005DDBD1 /* Assets.xcassets in Resources */,
+				A985F8A920843D8C007A726A /* disconnect-content.json in Resources */,
 				A91372071F777511002C160B /* ultimateAdblockList.json in Resources */,
 				A9D4B8C11F72F6D6006F0F18 /* Launch Screen.storyboard in Resources */,
 				A9404D0F20633E840004DD83 /* ultimateAdblockListCSS.json in Resources */,
 				A9F9D7BD20509F2D000BA8A3 /* Settings.bundle in Resources */,
+				A985F8A620843D8C007A726A /* disconnect-advertising.json in Resources */,
 				A97CB0751EC53DCD005DDBD1 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
