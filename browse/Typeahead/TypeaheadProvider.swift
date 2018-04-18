@@ -70,7 +70,12 @@ class TypeaheadProvider: NSObject {
         
         let maybeCompletion = {
             guard isHistoryLoaded && isSuggestionLoaded else { return }
-            let sorted = (searchSuggestions + historySuggestions).sorted { suggestionScore[$0]! > suggestionScore[$1]! }
+            let sorted = (searchSuggestions + historySuggestions).sorted {
+                if let scoreA = suggestionScore[$0], let scoreB = suggestionScore[$1] {
+                    return scoreA > scoreB
+                }
+                else { return false }
+            }
             let suggestions = Array(sorted[..<min(sorted.count, maxCount)])
             DispatchQueue.main.async { completion(suggestions) }
         }

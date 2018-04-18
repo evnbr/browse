@@ -109,12 +109,8 @@ class BrowserToolbarView: ColorToolbarView {
         searchField = ToolbarSearchField()
         backButton = ToolbarIconButton(icon: UIImage(named: "back"))
         tabButton = ToolbarIconButton(icon: UIImage(named: "tab"))
-        stopButton = ToolbarIconButton(icon: UIImage(named: "stop"))
-        
-        searchField.addSubview(stopButton)
-        stopButton.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
-        stopButton.frame.origin.x = searchField.frame.width - stopButton.frame.width
-        
+
+        stopButton = searchField.stopButton
         items = [backButton, searchField, tabButton]
         
         // Initial values

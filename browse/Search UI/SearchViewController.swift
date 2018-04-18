@@ -47,7 +47,8 @@ class SearchViewController: UIViewController {
     
     var suggestions : [TypeaheadSuggestion] = []
     
-    var defaultBackground: UIColor = .black
+    var isFakeTab = false
+    var defaultBackground: UIColor = .white //.black
     
     var browser : BrowserViewController? {
         return self.presentingViewController as? BrowserViewController
@@ -59,7 +60,7 @@ class SearchViewController: UIViewController {
         }
         else { return nil }
     }
-
+    
     init() {
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .custom
@@ -94,7 +95,7 @@ class SearchViewController: UIViewController {
         
         backgroundView = PlainBlurView(frame: contentView.bounds)
         backgroundView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        backgroundView.overlayAlpha = 0.8
+        backgroundView.overlayAlpha = isFakeTab ? 1 : 0.8
         contentView.addSubview(backgroundView)
 
         NSLayoutConstraint.activate([
@@ -121,7 +122,6 @@ class SearchViewController: UIViewController {
         suggestionTable.backgroundColor = .clear
         suggestionTable.backgroundView?.backgroundColor = .clear
 
-//        textView = SearchTextView()
         textView = UITextView()
         textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 48)
         textView.font = .systemFont(ofSize: 18)
@@ -162,12 +162,16 @@ class SearchViewController: UIViewController {
         suggestionHeightConstraint = suggestionTable.heightAnchor.constraint(equalToConstant: suggestionTable.rowHeight * 4)
         actionsHeight = pageActionView.heightAnchor.constraint(equalToConstant: 0)
         contentView.addSubview(suggestionTable, constraints: [
-            contextAreaHeightConstraint,
             suggestionHeightConstraint,
+            contextAreaHeightConstraint,
             suggestionTable.leftAnchor.constraint(equalTo: contentView.leftAnchor),
             suggestionTable.rightAnchor.constraint(equalTo: contentView.rightAnchor),
             suggestionTable.bottomAnchor.constraint(equalTo: textView.topAnchor, constant: -8),
         ])
+        if isFakeTab {
+            contextAreaHeight = UIScreen.main.bounds.size.height - keyboardHeight
+        }
+        
         contentView.addSubview(pageActionView, constraints: [
             actionsHeight,
             pageActionView.bottomAnchor.constraint(equalTo: textView.topAnchor),
@@ -178,12 +182,12 @@ class SearchViewController: UIViewController {
         textView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor).isActive = true
 
         if (showingCancel) {
-            contentView.addSubview(cancel, constraints: [
-                cancel.bottomAnchor.constraint(equalTo: textView.bottomAnchor, constant: -12),
-                cancel.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor),
-                cancel.widthAnchor.constraint(equalToConstant: cancel.bounds.width),
-                cancel.heightAnchor.constraint(equalToConstant: cancel.bounds.height),
-            ])
+//            contentView.addSubview(cancel, constraints: [
+//                cancel.bottomAnchor.constraint(equalTo: textView.bottomAnchor, constant: -12),
+//                cancel.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor),
+//                cancel.widthAnchor.constraint(equalToConstant: cancel.bounds.width),
+//                cancel.heightAnchor.constraint(equalToConstant: cancel.bounds.height),
+//            ])
         }
         
         kbHeightConstraint = keyboardPlaceholder.heightAnchor.constraint(equalToConstant: 0)
@@ -327,6 +331,11 @@ extension SearchViewController: UITextViewDelegate {
     }
     
     func renderSuggestions() {
+        if isFakeTab {
+            suggestionTable.reloadData()
+            suggestionTable.layoutIfNeeded()
+            return
+        }
         if shouldShowActions  {
             contextAreaHeight = 100
             actionsHeight.constant = contextAreaHeight
@@ -388,12 +397,14 @@ extension SearchViewController: UITextViewDelegate {
     func navigateTo(_ url: URL) {
         if let browser = self.browser {
             browser.navigateTo(url)
+            setBackground(.white) // since navigate insta-hides
             dismissSelf()
             return
         }
         if let switcher = self.switcher {
-            self.dismiss(animated: true, completion: {
-                switcher.addTab(startingFrom: url)
+            self.dismiss(animated: false, completion: {
+                switcher.isDisplayingFakeTab = false
+                switcher.addTab(startingFrom: url, animated: false)
             })
             return
         }
@@ -458,21 +469,24 @@ extension SearchViewController : UIGestureRecognizerDelegate {
             isTransitioning = true
         }
         else if gesture.state == .changed {
-            if dist.y < 0 {
+            if dist.y < 0 { 
                 kbHeightConstraint.constant = keyboardHeight
                 textHeightConstraint.constant = textHeight + 0.4 * elasticLimit(-dist.y)
             }
             else {
-                if dist.y < keyboardHeight {
-                    kbHeightConstraint.constant = keyboardHeight - dist.y
+                if dist.y < keyboardHeight - SPACE_FOR_INDICATOR {
+                    kbHeightConstraint.constant = max(keyboardHeight - dist.y, SPACE_FOR_INDICATOR)
                     let progress = dist.y.progress(0, keyboardHeight).clip()
 //                    let margin = progress.blend(0, SPACE_FOR_INDICATOR)
 //                    toolbarBottomMargin.constant = margin
                     contextAreaHeightConstraint.constant = contextAreaHeight
                 }
                 else {
-                    kbHeightConstraint.constant = 0
-                    contextAreaHeightConstraint.constant = contextAreaHeight - elasticLimit(dist.y - keyboardHeight)
+                    let amtBeyondKeyboard = max(0, dist.y - keyboardHeight)
+                    kbHeightConstraint.constant = SPACE_FOR_INDICATOR - amtBeyondKeyboard
+                    toolbarBottomMargin.constant = min(SPACE_FOR_INDICATOR, amtBeyondKeyboard)
+
+                    contextAreaHeightConstraint.constant = contextAreaHeight - elasticLimit(amtBeyondKeyboard)
                 }
                 suggestionTable.alpha = dist.y.progress(keyboardHeight - 40, keyboardHeight + 100).clip().reverse()
                 pageActionView.alpha = dist.y.progress(keyboardHeight - 40, keyboardHeight + 60).clip().reverse()

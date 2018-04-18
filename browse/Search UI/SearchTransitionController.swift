@@ -40,10 +40,10 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         browserVC?.toolbar.searchField.labelHolder.isHidden = true
         let toolbarSnap = browserVC?.toolbar.snapshotView(afterScreenUpdates: false) // TODO doesnt work if hidden
         if let tbar = toolbarSnap, let tc = browserVC?.toolbar.center {
-            containerView.addSubview(tbar)
-            browserVC?.toolbar.backButton.isHidden = true
-            browserVC?.toolbar.tabButton.isHidden = true
-            
+//            containerView.addSubview(tbar)
+            browserVC?.toolbar.backButton.alpha = 0
+            browserVC?.toolbar.tabButton.alpha = 0
+
             tbar.center = tc
             if isDismissing {
                 tbar.center.y -= typeaheadVC.kbHeightConstraint.constant
@@ -64,8 +64,7 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         endCenter.x -= titleHorizontalShift
         endCenter.y -= typeaheadVC.textHeightConstraint.constant - 70
         if isDismissing {
-            endCenter.y -= typeaheadVC.kbHeightConstraint.constant
-            endCenter.y -= typeaheadVC.toolbarBottomMargin.constant
+            endCenter.y -= max(typeaheadVC.kbHeightConstraint.constant, SPACE_FOR_INDICATOR)
         }
         else if showKeyboard {
             endCenter.y -= typeaheadVC.keyboardHeight
@@ -73,7 +72,6 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
 
         titleSnap?.center = isExpanding ? startCenter : endCenter
 
-        
         browserVC?.toolbar.backgroundView.alpha = 1
         typeaheadVC.scrim.alpha = isExpanding ? 0 : 1
         
@@ -119,8 +117,8 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         
         typeaheadVC.textView.mask?.frame.size = isExpanding ? maskStartSize : maskEndSize
 
-        switcherVC?.fab.scale = isExpanding ? 1 : 0.2
-        switcherVC?.fab.springScale(to: isExpanding ? 0.2 : 1)
+//        switcherVC?.fab.scale = isExpanding ? 1 : 0.2
+//        switcherVC?.fab.springScale(to: isExpanding ? 0.2 : 1)
         
         if showKeyboard && isExpanding {
             typeaheadVC.focusTextView()
@@ -133,8 +131,11 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             toolbarSnap?.removeFromSuperview()
             titleSnap?.removeFromSuperview()
             browserVC?.toolbar.searchField.labelHolder.isHidden = false
-            browserVC?.toolbar.backButton.isHidden = false
-            browserVC?.toolbar.tabButton.isHidden = false
+            
+            UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
+                browserVC?.toolbar.backButton.alpha = 1
+                browserVC?.toolbar.tabButton.alpha = 1
+            })
             browserVC?.toolbar.backgroundView.alpha = 1
             
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)

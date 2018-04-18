@@ -64,8 +64,8 @@
 		A99328471F098E270045EBAA /* ToolbarTextButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99328461F098E270045EBAA /* ToolbarTextButton.swift */; };
 		A9A88DE92015C64F007FC6C0 /* GradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9A88DE82015C64F007FC6C0 /* GradientView.swift */; };
 		A9AA4A581FF72471001AB639 /* PlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9AA4A571FF72471001AB639 /* PlaceholderView.swift */; };
-		A9B99797203791DB00841404 /* SearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B99796203791DB00841404 /* SearchViewController.swift */; };
-		A9B9979920380C8A00841404 /* SearchTransitionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B9979820380C8A00841404 /* SearchTransitionController.swift */; };
+		A9B62CCF2087FE0B003CAA54 /* SearchTransitionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B62CCD2087FE0B003CAA54 /* SearchTransitionController.swift */; };
+		A9B62CD02087FE0B003CAA54 /* SearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B62CCE2087FE0B003CAA54 /* SearchViewController.swift */; };
 		A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */; };
 		A9D4B8C11F72F6D6006F0F18 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */; };
 		A9DEAE3D1F16C15700CF66BA /* BrowserToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DEAE3C1F16C15700CF66BA /* BrowserToolbarView.swift */; };
@@ -170,8 +170,8 @@
 		A99328461F098E270045EBAA /* ToolbarTextButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToolbarTextButton.swift; sourceTree = "<group>"; };
 		A9A88DE82015C64F007FC6C0 /* GradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientView.swift; sourceTree = "<group>"; };
 		A9AA4A571FF72471001AB639 /* PlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderView.swift; sourceTree = "<group>"; };
-		A9B99796203791DB00841404 /* SearchViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SearchViewController.swift; path = "browse/Search Field/SearchViewController.swift"; sourceTree = SOURCE_ROOT; };
-		A9B9979820380C8A00841404 /* SearchTransitionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SearchTransitionController.swift; path = "browse/Search Field/SearchTransitionController.swift"; sourceTree = SOURCE_ROOT; };
+		A9B62CCD2087FE0B003CAA54 /* SearchTransitionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchTransitionController.swift; sourceTree = "<group>"; };
+		A9B62CCE2087FE0B003CAA54 /* SearchViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchViewController.swift; sourceTree = "<group>"; };
 		A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientColorChangeView.swift; sourceTree = "<group>"; };
 		A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		A9DEAE3C1F16C15700CF66BA /* BrowserToolbarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserToolbarView.swift; sourceTree = "<group>"; };
@@ -239,20 +239,15 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		A90F51231F71783B00221815 /* Search Field */ = {
+		A90F51231F71783B00221815 /* Typeahead */ = {
 			isa = PBXGroup;
 			children = (
-				A9B99796203791DB00841404 /* SearchViewController.swift */,
-				A9B9979820380C8A00841404 /* SearchTransitionController.swift */,
-				A925E3E720486A62005778A0 /* SearchTextView.swift */,
-				A966CA63204003FC00EB2771 /* TypeaheadCell.swift */,
-				A9F9D7BA204E0BAF000BA8A3 /* PageActionView.swift */,
 				A9447A2C2027F48000654572 /* TypeaheadProvider.swift */,
 				A9F9D7C32050B93A000BA8A3 /* SearchProvider.swift */,
 				A9F9D7BF2050B8BA000BA8A3 /* DuckSearchProvider.swift */,
 				A9F9D7C12050B8F3000BA8A3 /* GoogleSearchProvider.swift */,
 			);
-			path = "Search Field";
+			path = Typeahead;
 			sourceTree = "<group>";
 		};
 		A90F51241F71785E00221815 /* Tab Switcher */ = {
@@ -290,7 +285,6 @@
 				A9AA4A571FF72471001AB639 /* PlaceholderView.swift */,
 				A92C9C381EF5D66B00D8AAA3 /* BrowserViewController+WKNavigationDelegate.swift */,
 				A97BF8301EF3B5B900B9ECB4 /* BrowserViewController+WKUIDelegate.swift */,
-				A90892091ED547C500A5E9BA /* ToolbarSearchField.swift */,
 				A908F04B1ECD03B800A74241 /* ColorStatusBarView.swift */,
 			);
 			path = "Browser View";
@@ -391,7 +385,8 @@
 				A90F51241F71785E00221815 /* Tab Switcher */,
 				A96A42EF1F91637F00C0F3E2 /* History */,
 				A90F51261F7178C000221815 /* Browser View */,
-				A90F51231F71783B00221815 /* Search Field */,
+				A9B62CCC2087FD93003CAA54 /* Search UI */,
+				A90F51231F71783B00221815 /* Typeahead */,
 				A9F9D7BE2050AB1D000BA8A3 /* Bookmarks */,
 				A90F51251F71787800221815 /* Color Detection */,
 				A90F51281F7178FF00221815 /* UI */,
@@ -433,6 +428,19 @@
 				A9210D501F0148E600904A0B /* URL+DisplayHost.swift */,
 			);
 			path = Utils;
+			sourceTree = "<group>";
+		};
+		A9B62CCC2087FD93003CAA54 /* Search UI */ = {
+			isa = PBXGroup;
+			children = (
+				A9B62CCD2087FE0B003CAA54 /* SearchTransitionController.swift */,
+				A9B62CCE2087FE0B003CAA54 /* SearchViewController.swift */,
+				A925E3E720486A62005778A0 /* SearchTextView.swift */,
+				A966CA63204003FC00EB2771 /* TypeaheadCell.swift */,
+				A9F9D7BA204E0BAF000BA8A3 /* PageActionView.swift */,
+				A90892091ED547C500A5E9BA /* ToolbarSearchField.swift */,
+			);
+			path = "Search UI";
 			sourceTree = "<group>";
 		};
 		A9F9D7BE2050AB1D000BA8A3 /* Bookmarks */ = {
@@ -754,14 +762,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A9B9979920380C8A00841404 /* SearchTransitionController.swift in Sources */,
 				A9F9D7C6205117B2000BA8A3 /* BookmarkProvider.swift in Sources */,
 				A95DFF7B2058BEC600D540DD /* Blendable.swift in Sources */,
 				A92C9C3B1EF8B5E600D8AAA3 /* BrowserGestureController.swift in Sources */,
 				A90F51211F70C6CB00221815 /* UIImageColors.swift in Sources */,
 				A985F89F2083FB6B007A726A /* VisitCell.swift in Sources */,
 				A9E422811F86B4FD0028B4CA /* TabStackingLayout.swift in Sources */,
-				A9B99797203791DB00841404 /* SearchViewController.swift in Sources */,
+				A9B62CCF2087FE0B003CAA54 /* SearchTransitionController.swift in Sources */,
 				A98483281EEFCFE200E821AE /* ColorToolbarView.swift in Sources */,
 				A92095931EE36483009497A2 /* DismissableTabCell.swift in Sources */,
 				A92095951EE3E0DA009497A2 /* ToolbarTouchView.swift in Sources */,
@@ -783,6 +790,7 @@
 				A95DFFBF205B6A8F00D540DD /* HistoryManager.swift in Sources */,
 				A92C9C391EF5D66B00D8AAA3 /* BrowserViewController+WKNavigationDelegate.swift in Sources */,
 				A9EF36D51F4A6451005112E2 /* WKWebview+Toolbar.swift in Sources */,
+				A9B62CD02087FE0B003CAA54 /* SearchViewController.swift in Sources */,
 				A9DEAE3D1F16C15700CF66BA /* BrowserToolbarView.swift in Sources */,
 				A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */,
 				A9A88DE92015C64F007FC6C0 /* GradientView.swift in Sources */,

@@ -14,6 +14,7 @@ class ToolbarSearchField: ToolbarTouchView {
     var lock : UIImageView!
     var magnify : UIImageView!
     var labelHolder : UIView!
+    var stopButton: ToolbarIconButton!
     
     var centerConstraint : NSLayoutConstraint!
     
@@ -31,8 +32,11 @@ class ToolbarSearchField: ToolbarTouchView {
             else if label.text != newValue {
                 label.text = newValue
             }
-            label.sizeToFit()
-            labelHolder.mask?.frame = labelHolder.bounds // TODO set this in a normal place
+//            label.sizeToFit()
+            var size = label.sizeThatFits(labelHolder.bounds.size)
+            size.width = min(size.width, bounds.width - lock.bounds.width) // room for decorations
+            label.bounds.size = size
+            renderProgress()
         }
     }
     
@@ -87,33 +91,40 @@ class ToolbarSearchField: ToolbarTouchView {
 //        labelHolder.backgroundColor = .cyan
         addSubview(labelHolder)
         
-        let stackView = UIStackView()
-        stackView.axis = .horizontal
-        stackView.distribution = .fill
-        stackView.alignment = .center
-        stackView.spacing = 4.0
+        stopButton = ToolbarIconButton(icon: UIImage(named: "stop"))
+        addSubview(stopButton)
+        stopButton.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
+        stopButton.frame.origin.x = frame.width - stopButton.frame.width
+
+        let labelContent = UIStackView()
+        labelContent.axis = .horizontal
+        labelContent.distribution = .fill
+        labelContent.alignment = .center
+        labelContent.spacing = 4.0
         
-        stackView.addArrangedSubview(lock)
-        stackView.addArrangedSubview(magnify)
-        stackView.addArrangedSubview(label)
-        stackView.translatesAutoresizingMaskIntoConstraints = false
+        labelContent.addArrangedSubview(lock)
+        labelContent.addArrangedSubview(magnify)
+        labelContent.addArrangedSubview(label)
+        labelContent.translatesAutoresizingMaskIntoConstraints = false
         
-        labelHolder.addSubview(stackView, constraints: [
+        labelHolder.addSubview(labelContent, constraints: [
             labelHolder.centerYAnchor.constraint(equalTo: centerYAnchor),
             labelHolder.centerXAnchor.constraint(equalTo: centerXAnchor),
-            labelHolder.centerYAnchor.constraint(equalTo: stackView.centerYAnchor),
-            labelHolder.centerXAnchor.constraint(equalTo: stackView.centerXAnchor),
-            labelHolder.widthAnchor.constraint(equalTo: stackView.widthAnchor),
+            labelHolder.centerYAnchor.constraint(equalTo: labelContent.centerYAnchor),
+            labelHolder.centerXAnchor.constraint(equalTo: labelContent.centerXAnchor),
+            labelHolder.widthAnchor.constraint(equalTo: labelContent.widthAnchor),
+            //            labelContent.widthAnchor.constraint(lessThanOrEqualTo: labelHolder.widthAnchor),
+            labelHolder.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor),
             labelHolder.heightAnchor.constraint(equalTo: heightAnchor),
             labelHolder.centerXAnchor.constraint(equalTo: centerXAnchor),
-            labelHolder.centerXAnchor.constraint(equalTo: stackView.centerXAnchor)
+            labelHolder.centerXAnchor.constraint(equalTo: labelContent.centerXAnchor)
         ])
         
         let maskLayer = CAGradientLayer()
         maskLayer.frame = labelHolder.frame
         maskLayer.startPoint = CGPoint(x: 0, y: 0.5)
         maskLayer.endPoint = CGPoint(x: 1, y: 0.5)
-        maskLayer.locations = [0, 0.01]
+        maskLayer.locations = [0, 0.005]
         maskLayer.colors = [UIColor.blue.cgColor, UIColor.blue.withAlphaComponent(0.3).cgColor]
         labelHolder.layer.mask = maskLayer
         
@@ -122,21 +133,25 @@ class ToolbarSearchField: ToolbarTouchView {
         isLoading = false
     }
     
+    var _progress : CGFloat = 0
     var progress : CGFloat {
         get {
-            return label.alpha
+            return _progress
         }
         set {
-            let pct = newValue
-
-            if let grad = labelHolder.layer.mask as? CAGradientLayer {
-                let val = pct as NSNumber
-                let val2 = (pct + 0.005) as NSNumber
-                UIView.animate(withDuration: 0.2) {
-                    grad.locations = [val, val2]
-                }
+            _progress = newValue
+            renderProgress()
+        }
+    }
+    
+    func renderProgress() {
+        if let grad = labelHolder.layer.mask as? CAGradientLayer {
+            grad.frame = labelHolder.bounds
+            let val = _progress as NSNumber
+            let val2 = (_progress + 0.005) as NSNumber
+            UIView.animate(withDuration: 0.2) {
+                grad.locations = [val, val2]
             }
-
         }
     }
     
