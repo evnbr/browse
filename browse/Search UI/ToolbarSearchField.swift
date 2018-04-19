@@ -150,9 +150,9 @@ class ToolbarSearchField: ToolbarTouchView {
             grad.frame = labelHolder.bounds
             let val = _progress as NSNumber
             let val2 = (_progress + 0.005) as NSNumber
-            UIView.animate(withDuration: 0.2) {
-                grad.locations = [val, val2]
-            }
+            
+            if animated { UIView.animate(withDuration: 0.2) { grad.locations = [val, val2] } }
+            else { grad.locations = [val, val2] }
         }
     }
     
