@@ -41,6 +41,13 @@ class HistoryManager: NSObject {
         }
     }
     
+    func hasWKListItem(for visit: Visit) -> Bool {
+        let id = visit.objectID
+        return historyIDMap.contains(where: { (k, v) -> Bool in
+            return v == id
+        })
+    }
+    
     func existingVisit(from item: WKBackForwardListItem, in context: NSManagedObjectContext) -> Visit? {
         guard let id = historyIDMap[item] else { return nil }
         do {
@@ -200,27 +207,40 @@ extension WKBackForwardListItem {
 // Typeahead fetching
 extension HistoryManager {
     private func fetchItemsContaining(_ str: String, completion: @escaping ([HistorySearchResult]?) -> () ) {
-        guard str.count > 0 else { return }
+        guard str.count > 0 else {
+            completion(nil)
+            return
+        }
         persistentContainer.performBackgroundTask { ctx in
-            let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Site")
+            let request = NSFetchRequest<Site>(entityName: "Site")
             
             // todo: doesn't handle spaces
             var predicates : [NSPredicate] = []
             for word in str.split(separator: " ") {
-                if word.count < 2 { continue }
-                predicates.append(NSCompoundPredicate(orPredicateWithSubpredicates: [
-                    NSPredicate(format: "url CONTAINS[cd] %@", ".\(word)"), // www.WOrd.com
-                    NSPredicate(format: "url CONTAINS[cd] %@", "/\(word)"), // prot://WOrd.com
-                    NSPredicate(format: "title CONTAINS[cd] %@", " \(word)"), // The WOrd
-                ]))
+                if word.count < 2 {
+                    predicates.append(NSCompoundPredicate(orPredicateWithSubpredicates: [
+                        NSPredicate(format: "url CONTAINS[cd] %@", ".\(word)*."), // www.WOrd.com
+                        NSPredicate(format: "url CONTAINS[cd] %@", "//\(word)"), // prot://WOrd.com
+                        NSPredicate(format: "title BEGINSWITH[cd] %@", "\(word)"), // WOrd
+                    ]))
+                }
+                else {
+                    predicates.append(NSCompoundPredicate(orPredicateWithSubpredicates: [
+                        NSPredicate(format: "url CONTAINS[cd] %@", ".\(word)"), // www.WOrd.com
+                        NSPredicate(format: "url CONTAINS[cd] %@", "/\(word)"), // prot://WOrd.com
+                        NSPredicate(format: "title CONTAINS[cd] %@", " \(word)"), // The_WOrd
+                    ]))
+                }
+            }
+            if predicates.count < 1 {
+                completion(nil)
+                return
             }
             request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
             request.sortDescriptors = [ NSSortDescriptor(key: "visitCount", ascending: false) ]
             
-            // Distinct on URL or Title else full of dupes
             request.propertiesToFetch = ["url", "title", "visitCount"]
             request.returnsDistinctResults = true
-            request.resultType = .dictionaryResultType
 
             // Should be enough to filter more carefully later
             request.returnsObjectsAsFaults = false
@@ -230,12 +250,12 @@ extension HistoryManager {
                 let results = try ctx.fetch(request)
                 var cleanResults : [ HistorySearchResult ] = []
                 for result in results {
-                    if let dict = result as? NSDictionary,
-                       let title = dict["title"] as? String,
-                       let count = dict["visitCount"] as? Int,
-                       let url = dict["url"] as? URL {
+                    if let title = result.title, let url = result.url {
                         cleanResults.append(HistorySearchResult(
-                            title: title, url: url, visitCount: count))
+                            title: title,
+                            url: url,
+                            visitCount: Int(result.visitCount)
+                        ))
                     }
                 }
                 completion(cleanResults)
