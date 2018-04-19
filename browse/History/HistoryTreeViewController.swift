@@ -9,10 +9,117 @@
 import UIKit
 import CoreData
 
-class HistoryTreeViewController: UICollectionViewController, UIViewControllerTransitioningDelegate {
+protocol TreeDataSource {
+    var treeMaker: TreeMaker { get }
+}
 
-    var _fetchedResultsController: NSFetchedResultsController<Visit>? = nil
+struct TreePosition {
+    let x: Int
+    let y: Int
+    
+    var point: CGPoint {
+        return CGPoint(x: x, y: y)
+    }
+}
+
+class TreeMaker : NSObject {
+    private let initialMaxDepth = 1
+    private let viewContext = HistoryManager.shared.persistentContainer.viewContext
+    
+    private var layout: HistoryTreeLayout
+    private var nodeIDs: [IndexPath : NSManagedObjectID] = [:]
+    private var cellPositions: [NSManagedObjectID : TreePosition] = [:]
+    
+    var nodeCount: Int {
+        return nodeIDs.count
+    }
+    
+    var gridSize : CGSize = .zero
+    
+    init(layout: HistoryTreeLayout) {
+        self.layout = layout
+        super.init()
+    }
+    
+    func object(at ip: IndexPath) -> Visit? {
+        guard let id = nodeIDs[ip] else { return nil }
+        do {
+            return try viewContext.existingObject(with: id) as? Visit
+        }
+        catch {
+            print("Can't find visit on main thread: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
+    func position(for ip: IndexPath) -> TreePosition? {
+        guard let id = nodeIDs[ip] else { return nil }
+        return cellPositions[id]
+    }
+    
+    func addVisit(_ visit: Visit, at position: TreePosition) {
+        let ip = IndexPath(item: nodeCount, section: 0)
+        nodeIDs[ip] = visit.objectID
+        cellPositions[visit.objectID] = position
+    }
+    
+    func setTabs(_ mainThreadTabs: [Tab]) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let ctx = HistoryManager.shared.persistentContainer.newBackgroundContext()
+            var tabs: [Tab] = []
+            for tab in mainThreadTabs {
+                do {
+                    let bgTab = try ctx.existingObject(with: tab.objectID) as! Tab
+                    tabs.append(bgTab)
+                } catch {
+                    print("Can't find tab on bg thread: \(error.localizedDescription)")
+                }
+            }
+            let currentVisits: [Visit] = tabs.map { $0.currentVisit! }
+            let currentRoots: [Visit] = currentVisits.map { visit in
+                var root = visit
+                var depth = 0
+                while let backItem = root.backItem, depth < self.initialMaxDepth {
+                    root = backItem
+                    depth += 1
+                }
+                return root
+            }
+            
+            var maxY: Int = 0
+            for root in currentRoots {
+                let branchY = maxY
+                let pos = TreePosition(x: 0, y: branchY)
+                self.addVisit(root, at: pos)
+                
+                if let children = root.forwardItems?.allObjects as? [Visit] {
+                    var childY = branchY
+                    for child in children {
+                        let pos = TreePosition(x: 1, y: childY)
+                        self.addVisit(child, at: pos)
+                        childY += 1
+                    }
+                    if children.count > 1 {
+                        maxY += children.count - 1
+                    }
+                } else {
+                    maxY += 1
+                }
+            }
+            self.gridSize = CGSize(width: 2, height: maxY + 1)
+            
+            DispatchQueue.main.async {
+                self.layout.invalidateLayout()
+            }
+        }
+    }
+}
+
+class HistoryTreeViewController: UICollectionViewController, UIViewControllerTransitioningDelegate, TreeDataSource {
+
+//    var _fetchedResultsController: NSFetchedResultsController<Visit>? = nil
     var blockOperations: [BlockOperation] = []
+    let treeMaker: TreeMaker
 
     let reuseIdentifier = "TreeCell"
     
@@ -22,6 +129,7 @@ class HistoryTreeViewController: UICollectionViewController, UIViewControllerTra
     
     init() {
         let layout = HistoryTreeLayout()
+        treeMaker = TreeMaker(layout: layout)
         super.init(collectionViewLayout: layout)
     }
     
@@ -50,12 +158,7 @@ class HistoryTreeViewController: UICollectionViewController, UIViewControllerTra
             right: 0
         )
         
-        collectionView?.contentInsetAdjustmentBehavior = .never
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            guard let cv = self.collectionView else { return }
-            cv.contentOffset.x = cv.maxScrollX
-        }
+        collectionView?.contentInsetAdjustmentBehavior = .never        
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -69,79 +172,9 @@ class HistoryTreeViewController: UICollectionViewController, UIViewControllerTra
         }
     }
     
-    func saveContext() {
-        let context = self.fetchedResultsController.managedObjectContext
-        do {
-            try context.save()
-        } catch {
-            let nserror = error as NSError
-            print("Unresolved error \(nserror), \(nserror.userInfo)")
-        }
-    }
-    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-    }
-}
-
-extension HistoryTreeViewController: NSFetchedResultsControllerDelegate {
-    // MARK: - Fetched results controller
-    
-    var fetchedResultsController: NSFetchedResultsController<Visit> {
-        if let existing = _fetchedResultsController { return existing }
-        
-        let fetchRequest: NSFetchRequest<Visit> = Visit.fetchRequest()
-        fetchRequest.fetchBatchSize = 20
-        fetchRequest.sortDescriptors = [ NSSortDescriptor(key: "date", ascending: true) ]
-        
-        let frc = NSFetchedResultsController(
-            fetchRequest: fetchRequest,
-            managedObjectContext: HistoryManager.shared.persistentContainer.viewContext,
-            sectionNameKeyPath: nil,
-            cacheName: "AllVisits")
-        frc.delegate = self
-        _fetchedResultsController = frc
-        
-        do {
-            try _fetchedResultsController!.performFetch()
-        } catch {
-            let nserror = error as NSError
-            print("Unresolved error \(nserror), \(nserror.userInfo)")
-        }
-        return _fetchedResultsController!
-    }
-
-    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-        switch type {
-        case .insert:
-            blockOperations.append(BlockOperation { [weak self] in
-                self?.collectionView!.insertItems(at: [newIndexPath!])
-            })
-        case .delete:
-            blockOperations.append(BlockOperation { [weak self] in
-                self?.collectionView!.deleteItems(at: [indexPath!])
-            })
-        case .update:
-            blockOperations.append(BlockOperation { [weak self] in
-                guard let cv = self?.collectionView, let ip = indexPath, let cell = cv.cellForItem(at: ip) else { return }
-                self?.configureCell(cell, with: anObject as! Visit)
-            })
-        case .move:
-            blockOperations.append(BlockOperation { [weak self] in
-                guard let cv = self?.collectionView, let ip = indexPath, let cell = cv.cellForItem(at: ip) else { return }
-                self?.configureCell(cell, with: anObject as! Visit)
-                cv.moveItem(at: ip, to: newIndexPath!)
-            })
-        }
-    }
-    
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        collectionView!.performBatchUpdates({
-            for operation: BlockOperation in self.blockOperations { operation.start() }
-        }, completion: { finished in
-            self.blockOperations.removeAll(keepingCapacity: false)
-        })
     }
 }
 
@@ -149,8 +182,7 @@ extension HistoryTreeViewController: NSFetchedResultsControllerDelegate {
 extension HistoryTreeViewController {
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        let sectionInfo = fetchedResultsController.sections![section]
-        return sectionInfo.numberOfObjects
+        return treeMaker.nodeCount
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -158,9 +190,9 @@ extension HistoryTreeViewController {
             withReuseIdentifier: reuseIdentifier,
             for: indexPath)
         // Configure the cells
-        
-        let visit = fetchedResultsController.object(at: indexPath)
-        configureCell(cell, with: visit)
+        if let visit = treeMaker.object(at: indexPath) {
+            configureCell(cell, with: visit)
+        }
         
         return cell
     }
@@ -179,4 +211,3 @@ extension HistoryTreeViewController {
         self.dismiss(animated: true, completion: nil)
     }
 }
-

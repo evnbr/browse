@@ -96,9 +96,9 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     }
     
     @objc func showHistory() {
-        print("show history")
+        guard let tabs = fetchedResultsController.fetchedObjects else { return }
         let historyVC = HistoryTreeViewController()
-        print("hvc initiated")
+        historyVC.treeMaker.setTabs(tabs)
         present(historyVC, animated: true, completion: nil)
     }
     
