@@ -17,6 +17,7 @@ protocol WebviewColorSamplerDelegate {
     var shouldUpdateSample : Bool { get }
     var bottomSamplePosition : CGFloat { get }
     
+    func didTakeSample()
     func topColorChange(_ newColor : UIColor)
     func bottomColorChange(_ newColor : UIColor)
     func cancelColorChange()
@@ -54,14 +55,15 @@ class WebviewColorSampler : NSObject {
     }
     
     @objc func updateColors() {
-        
         guard delegate.shouldUpdateSample else { return }
+        
+        delegate.didTakeSample()
         
         let now = CACurrentMediaTime()
         guard ( now - lastSampledColorsTime > MIN_TIME_BETWEEN_UPDATES )  else { return }
         lastSampledColorsTime = now
         
-        let sampleH : CGFloat = 12
+        let sampleH : CGFloat = 6
         let sampleW : CGFloat = delegate.sampledWebView.bounds.width
         
         let bottomConfig = WKSnapshotConfiguration()

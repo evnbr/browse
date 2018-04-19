@@ -67,11 +67,17 @@ class WebViewManager: NSObject {
     }
 }
 
+struct FixedNavResult {
+    let top: Bool
+    let bottom: Bool
+}
 extension WKWebView {
-    func evaluateFixedNav(_ completionHandler: @escaping (Bool) -> Void) {
+    func evaluateFixedNav(_ completionHandler: @escaping (FixedNavResult) -> Void) {
         evaluateJavaScript("window.\(checkFixedFuncName)()") { (result, error) in
-            if let isFixed : Bool = result as? Bool {
-                completionHandler(isFixed)
+            if let dict = result as? Dictionary<String, Bool>,
+                let top = dict["top"],
+                let bottom = dict["bottom"] {
+                completionHandler(FixedNavResult(top: top, bottom: bottom))
             }
         }
     }
@@ -89,6 +95,11 @@ fileprivate let checkFixedFunc = """
             }
             return false;
         };
-        window.\(checkFixedFuncName) = () => isFixed(document.elementFromPoint(1,1));
+        window.\(checkFixedFuncName) = () => {
+            return {
+                top: isFixed(document.elementFromPoint(1,1)),
+                bottom: isFixed(document.elementFromPoint(1,window.innerHeight - 1))
+            }
+        };
     })();
 """

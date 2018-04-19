@@ -755,27 +755,36 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
         // Hack to prevent accessory of showing up at bottom
         accessoryHeightConstraint?.constant = 0
     }
-
     
-    func topColorChange(_ newColor: UIColor) {
-        currentTab?.currentVisit?.topColor = newColor // this is a hack
-        
+    func didTakeSample() {
+        checkFixedNav()
+    }
+
+    func checkFixedNav() {
         webView.evaluateFixedNav() { (isFixed) in
             let sv = self.webView.scrollView
             
-            let transparentStatusBar = (
-                sv.isScrollableY
+            let transparentStatusBar = sv.isScrollableY
                 && sv.contentOffset.y > Const.statusHeight
-                && !isFixed
-            )
-            let newAlpha : CGFloat = transparentStatusBar ? 0.8 : 1
-            if newAlpha != self.statusBar.backgroundView.alpha {
+                && !isFixed.top
+            let transparentToolbar = sv.isScrollableY
+                && !isFixed.bottom
+                && sv.contentOffset.y < sv.maxScrollY - Const.toolbarHeight
+            let newStatusAlpha : CGFloat = transparentStatusBar ? 0.8 : 1
+            let newToolbarAlpha : CGFloat = transparentToolbar ? 0.8 : 1
+
+            if newStatusAlpha != self.statusBar.backgroundView.alpha
+                || newToolbarAlpha != self.toolbar.backgroundView.alpha {
                 UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
-                    self.statusBar.backgroundView.alpha = newAlpha
+                    self.statusBar.backgroundView.alpha = newStatusAlpha
+                    self.toolbar.backgroundView.alpha = newToolbarAlpha
                 })
             }
-//            self.statusBar.isHidden = transparentStatusBar
         }
+    }
+    
+    func topColorChange(_ newColor: UIColor) {
+        currentTab?.currentVisit?.topColor = newColor
         
         if shouldUpdateSample {
             statusBar.animateGradient(toColor: newColor, direction: .fromBottom)
@@ -788,17 +797,12 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     func bottomColorChange(_ newColor: UIColor) {
         currentTab?.currentVisit?.bottomColor = newColor
         
-        let newAlpha : CGFloat = webView.scrollView.isScrollableY ? 0.8 : 1
-        if newAlpha != self.toolbar.backgroundView.alpha {
-            UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
-                self.toolbar.backgroundView.alpha = newAlpha
-            })
-        }
-
         if shouldUpdateSample {
             toolbar.animateGradient(toColor: newColor, direction: .fromTop)
         }
     }
+    
+    
     
     func cancelColorChange() {
         statusBar.cancelColorChange()
