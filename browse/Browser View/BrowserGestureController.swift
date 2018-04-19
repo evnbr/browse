@@ -168,13 +168,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     var scrollDelta : CGFloat = 0
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
-        // If navigated to page that is not scrollable
-        if scrollView.contentOffset.y == 0
-        && !scrollView.isScrollableY
-        && !vc.isShowingToolbar {
-            vc.showToolbar(animated: false)
-        }
-        
         // Cancel Y, assume gesture will handle
         if scrollView.isScrollableY && scrollView.isOverScrolledTop {
             if !scrollView.isDecelerating {
@@ -229,6 +222,13 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     }
     
     func updateToolbar(_ scrollView: UIScrollView) {
+        
+        // Navigated to page that is not scrollable
+        if scrollView.contentOffset.y == 0 && !scrollView.isScrollableY && !vc.isShowingToolbar {
+            vc.showToolbar(animated: false)
+            return
+        }
+
         scrollDelta = scrollView.contentOffset.y - prevScrollY
         prevScrollY = scrollView.contentOffset.y
         
@@ -315,7 +315,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
 //        let sign : CGFloat = adjustedX > 0 ? 1 : -1 //direction == .left ? 1 : -1
         let sign : CGFloat = direction == .leftToRight ? 1 : -1
-        let hProg = elasticLimit(abs(adjustedX)) / view.bounds.width //* sign
+        let hProg = (elasticLimit(adjustedX) / view.bounds.width * sign).clip()
         let dismissScale = (1 - hProg * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier)//.clip()
         let hintScale = yGestureInfluence.progress(0, 160).clip().lerp(1, 0.7)
         let backScale = adjustedX.progress(0, 400).lerp(backItemScale, 1)
@@ -441,10 +441,14 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     func endGesture() {
         isDismissing = false
         tearDownBackToParentGesture()
+        dismissingEndedPossible()
     }
 
     func verticalEnd(_ gesture: UIPanGestureRecognizer) {
-        if !isDismissing { return }
+        if !isDismissing {
+            endGesture()
+            return
+        }
         endGesture()
         
         let gesturePos = gesture.translation(in: view)
@@ -467,7 +471,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     }
     
     func horizontalEnd(_ gesture: UIPanGestureRecognizer) {
-        if !isDismissing { return }
+        if !isDismissing {
+            endGesture()
+            return
+        }
         endGesture()
 
         let gesturePos = gesture.translation(in: view)
@@ -541,6 +548,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
         else if gesture.state == .changed { horizontalChange(gesture) }
         else if gesture.state == .ended { horizontalEnd(gesture) }
+        else if gesture.state == .cancelled { horizontalEnd(gesture) }
     }
     
     @objc
@@ -552,6 +560,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
         else if gesture.state == .changed { horizontalChange(gesture) }
         else if gesture.state == .ended { horizontalEnd(gesture) }
+        else if gesture.state == .cancelled { horizontalEnd(gesture) }
     }
 
     func setupBackGesture() {
@@ -590,6 +599,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     }
     
     func considerStarting(gesture: UIPanGestureRecognizer) {
+        if isDismissing {
+            fatalError("consider starting when previous dismissal hasnt ended")
+        }
+        
         let scrollView = vc.webView.scrollView
         let scroll = scrollView.contentOffset
         if scrollView.isZooming || scrollView.isZoomBouncing { return }
@@ -981,7 +994,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 considerStarting(gesture: gesture)
             }
         }
-        else if gesture.state == .ended {
+        else if gesture.state == .ended || gesture.state == .cancelled {
             if isDismissing {
                 if direction == .top { verticalEnd(gesture) }
                 else { horizontalEnd(gesture) }
