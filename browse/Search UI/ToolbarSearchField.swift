@@ -36,7 +36,7 @@ class ToolbarSearchField: ToolbarTouchView {
             var size = label.sizeThatFits(labelHolder.bounds.size)
             size.width = min(size.width, bounds.width - lock.bounds.width) // room for decorations
             label.bounds.size = size
-            renderProgress()
+            renderProgress(animated: false)
         }
     }
     
@@ -139,12 +139,13 @@ class ToolbarSearchField: ToolbarTouchView {
             return _progress
         }
         set {
+            let oldValue = _progress
             _progress = newValue
-            renderProgress()
+            renderProgress(animated: oldValue < newValue)
         }
     }
     
-    func renderProgress() {
+    func renderProgress(animated: Bool) {
         if let grad = labelHolder.layer.mask as? CAGradientLayer {
             grad.frame = labelHolder.bounds
             let val = _progress as NSNumber
