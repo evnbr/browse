@@ -683,14 +683,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = webView.isLoading
         
-//        if hiddenUntilNavigationDone != nil && webView.estimatedProgress > 0.7 {
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-//                self.hiddenUntilNavigationDone = nil //false
-//                self.isSnapshotMode = false
-//            }
-//        }
-        
-        HistoryManager.shared.sync(tab: currentTab!, with: webView.backForwardList)
+        HistoryManager.shared.sync(
+            tab: currentTab!,
+            with: webView.backForwardList
+        )
     }
         
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {

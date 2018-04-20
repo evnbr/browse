@@ -90,30 +90,36 @@ class HistoryManager: NSObject {
             }
             self.isSyncing = true
 
-            if let prevVisit = self.existingVisit(from: wkItem, in: ctx) {
+            if let existingVisit = self.existingVisit(from: wkItem, in: ctx) {
                 // Move to this context, update title and url
                 // print("update visit")
                 if let title = wkItem.title, title != "" {
-                    prevVisit.title = title
+                    existingVisit.title = title
                 }
-                prevVisit.url = wkItem.url
+                existingVisit.url = wkItem.url
                 
                 tab.currentVisit?.isCurrentVisitOf = nil
-                tab.currentVisit = prevVisit
-                prevVisit.isCurrentVisitOf = tab
+                tab.currentVisit = existingVisit
+                existingVisit.isCurrentVisitOf = tab
             }
             else {
                 // Create a new entry
-                // print("new visit")
-                let newVisit = self.addVisit(from: wkItem, parent: nil, in: ctx)!
+                let newVisit = self.addVisit(from: wkItem, in: ctx)!
                 
-                if let backWKItem = list.backItem,
+                if list.backItem == nil && wkItem.url == tab.currentVisit?.url {
+                    // Restore session
+                    let original = tab.currentVisit
+                    newVisit.backItem = original
+                    original?.addToForwardItems(newVisit)
+                }
+                else if let backWKItem = list.backItem,
                     let backVisit = self.existingVisit(from: backWKItem, in: ctx),
                     backVisit == tab.currentVisit {
                     // We went forward, link these pages together
                     newVisit.backItem = tab.currentVisit
                     tab.currentVisit?.addToForwardItems(newVisit)
                 }
+                
                 tab.currentVisit?.isCurrentVisitOf = nil
                 tab.currentVisit = newVisit
                 newVisit.isCurrentVisitOf = tab
@@ -159,18 +165,17 @@ class HistoryManager: NSObject {
     }
     
     // Convert wkwebview history item
-    func addVisit(from item: WKBackForwardListItem, parent: Visit?, in context: NSManagedObjectContext) -> Visit? {
-        return addVisit(parent: parent, url: item.url, title: item.title, in: context)
+    func addVisit(from item: WKBackForwardListItem, in context: NSManagedObjectContext) -> Visit? {
+        return addVisit(url: item.url, title: item.title, in: context)
     }
     
     // Convert and save history item
-    func addVisit(parent: Visit?, url: URL, title: String?, in context: NSManagedObjectContext) -> Visit? {
+    func addVisit(url: URL, title: String?, in context: NSManagedObjectContext) -> Visit? {
         let visit = Visit(context: context)
         visit.date = Date()
         visit.uuid = UUID()
         visit.url = url
         visit.title = title ?? url.host ?? url.absoluteString
-        visit.backItem = parent
         return visit
     }
     
@@ -179,6 +184,10 @@ class HistoryManager: NSObject {
         site.title = title ?? url.host ?? url.absoluteString
         site.url = url
         return site
+    }
+    
+    func saveViewContext() {
+        save(context: persistentContainer.viewContext)
     }
     
     func save(context: NSManagedObjectContext) {
