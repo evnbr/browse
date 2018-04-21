@@ -66,6 +66,7 @@
 		A9AA4A581FF72471001AB639 /* PlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9AA4A571FF72471001AB639 /* PlaceholderView.swift */; };
 		A9B62CCF2087FE0B003CAA54 /* SearchTransitionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B62CCD2087FE0B003CAA54 /* SearchTransitionController.swift */; };
 		A9B62CD02087FE0B003CAA54 /* SearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B62CCE2087FE0B003CAA54 /* SearchViewController.swift */; };
+		A9B62CD2208AA54B003CAA54 /* TreeMaker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B62CD1208AA54B003CAA54 /* TreeMaker.swift */; };
 		A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */; };
 		A9D4B8C11F72F6D6006F0F18 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */; };
 		A9DEAE3D1F16C15700CF66BA /* BrowserToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DEAE3C1F16C15700CF66BA /* BrowserToolbarView.swift */; };
@@ -172,6 +173,7 @@
 		A9AA4A571FF72471001AB639 /* PlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderView.swift; sourceTree = "<group>"; };
 		A9B62CCD2087FE0B003CAA54 /* SearchTransitionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchTransitionController.swift; sourceTree = "<group>"; };
 		A9B62CCE2087FE0B003CAA54 /* SearchViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchViewController.swift; sourceTree = "<group>"; };
+		A9B62CD1208AA54B003CAA54 /* TreeMaker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreeMaker.swift; sourceTree = "<group>"; };
 		A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientColorChangeView.swift; sourceTree = "<group>"; };
 		A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		A9DEAE3C1F16C15700CF66BA /* BrowserToolbarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserToolbarView.swift; sourceTree = "<group>"; };
@@ -343,6 +345,7 @@
 			children = (
 				A985F89E2083FB6B007A726A /* VisitCell.swift */,
 				A985F89A20831361007A726A /* HistoryTreeViewController.swift */,
+				A9B62CD1208AA54B003CAA54 /* TreeMaker.swift */,
 				A985F89C20831FD5007A726A /* HistoryTreeLayout.swift */,
 				A95DFFBE205B6A8F00D540DD /* HistoryManager.swift */,
 				A907DBA9205CFAB4009554C9 /* Visit+snapshot.swift */,
@@ -772,6 +775,7 @@
 				A98483281EEFCFE200E821AE /* ColorToolbarView.swift in Sources */,
 				A92095931EE36483009497A2 /* DismissableTabCell.swift in Sources */,
 				A92095951EE3E0DA009497A2 /* ToolbarTouchView.swift in Sources */,
+				A9B62CD2208AA54B003CAA54 /* TreeMaker.swift in Sources */,
 				A925E3E820486A62005778A0 /* SearchTextView.swift in Sources */,
 				A985F89B20831361007A726A /* HistoryTreeViewController.swift in Sources */,
 				A92095971EE3E2AF009497A2 /* ToolbarIconButton.swift in Sources */,

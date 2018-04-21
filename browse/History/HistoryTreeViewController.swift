@@ -13,108 +13,6 @@ protocol TreeDataSource {
     var treeMaker: TreeMaker { get }
 }
 
-struct TreePosition {
-    let x: Int
-    let y: Int
-    
-    var point: CGPoint {
-        return CGPoint(x: x, y: y)
-    }
-}
-
-class TreeMaker : NSObject {
-    private let initialMaxDepth = 1
-    private let viewContext = HistoryManager.shared.persistentContainer.viewContext
-    
-    private var layout: HistoryTreeLayout
-    private var nodeIDs: [IndexPath : NSManagedObjectID] = [:]
-    private var cellPositions: [NSManagedObjectID : TreePosition] = [:]
-    
-    var nodeCount: Int {
-        return nodeIDs.count
-    }
-    
-    var gridSize : CGSize = .zero
-    
-    init(layout: HistoryTreeLayout) {
-        self.layout = layout
-        super.init()
-    }
-    
-    func object(at ip: IndexPath) -> Visit? {
-        guard let id = nodeIDs[ip] else { return nil }
-        do {
-            return try viewContext.existingObject(with: id) as? Visit
-        }
-        catch {
-            print("Can't find visit on main thread: \(error.localizedDescription)")
-            return nil
-        }
-    }
-    
-    func position(for ip: IndexPath) -> TreePosition? {
-        guard let id = nodeIDs[ip] else { return nil }
-        return cellPositions[id]
-    }
-    
-    func addVisit(_ visit: Visit, at position: TreePosition) {
-        let ip = IndexPath(item: nodeCount, section: 0)
-        nodeIDs[ip] = visit.objectID
-        cellPositions[visit.objectID] = position
-    }
-    
-    func setTabs(_ mainThreadTabs: [Tab]) {
-        DispatchQueue.global(qos: .userInitiated).async {
-            let ctx = HistoryManager.shared.persistentContainer.newBackgroundContext()
-            var tabs: [Tab] = []
-            for tab in mainThreadTabs {
-                do {
-                    let bgTab = try ctx.existingObject(with: tab.objectID) as! Tab
-                    tabs.append(bgTab)
-                } catch {
-                    print("Can't find tab on bg thread: \(error.localizedDescription)")
-                }
-            }
-            let currentVisits: [Visit] = tabs.map { $0.currentVisit! }
-            let currentRoots: [Visit] = currentVisits.map { visit in
-                var root = visit
-                var depth = 0
-                while let backItem = root.backItem, depth < self.initialMaxDepth {
-                    root = backItem
-                    depth += 1
-                }
-                return root
-            }
-            
-            var maxY: Int = 0
-            for root in currentRoots {
-                let branchY = maxY
-                let pos = TreePosition(x: 0, y: branchY)
-                self.addVisit(root, at: pos)
-                
-                if let children = root.forwardItems?.allObjects as? [Visit] {
-                    var childY = branchY
-                    for child in children {
-                        let pos = TreePosition(x: 1, y: childY)
-                        self.addVisit(child, at: pos)
-                        childY += 1
-                    }
-                    if children.count > 1 {
-                        maxY += children.count - 1
-                    }
-                } else {
-                    maxY += 1
-                }
-            }
-            self.gridSize = CGSize(width: 2, height: maxY + 1)
-            
-            DispatchQueue.main.async {
-                self.layout.invalidateLayout()
-            }
-        }
-    }
-}
-
 class HistoryTreeViewController: UICollectionViewController, UIViewControllerTransitioningDelegate, TreeDataSource {
 
 //    var _fetchedResultsController: NSFetchedResultsController<Visit>? = nil
@@ -147,7 +45,6 @@ class HistoryTreeViewController: UICollectionViewController, UIViewControllerTra
         collectionView?.delaysContentTouches = false
         collectionView?.scrollIndicatorInsets.top = Const.statusHeight
         collectionView?.indicatorStyle = .white
-        collectionView?.showsVerticalScrollIndicator = false
         collectionView?.register(VisitCell.self, forCellWithReuseIdentifier: reuseIdentifier)
         collectionView?.backgroundColor = .black
         
