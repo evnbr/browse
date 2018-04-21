@@ -350,7 +350,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
         cardScaler.setValue(of: PAGING, to: hintScale)
         let hintX = yGestureInfluence.progress(0, 160).clip().lerp(0, 90)
-        let parallax : CGFloat = 0.3
 
         // reveal back page from left
         if (direction == .leftToRight && vc.webView.canGoBack) || isToParent {
@@ -384,7 +383,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 cardPositioner.setValue(of: PAGING, to: backFwdPoint)
                 mockScaler.setValue(of: PAGING, to: backScale * hintScale )
                 mockPositioner.setValue(of: PAGING, to: CGPoint(
-                    x: view.center.x + adjustedX * parallax - view.bounds.width * parallax * hintScale + hintX,
+                    x: view.center.x + adjustedX * parallaxAmount - view.bounds.width * parallaxAmount * hintScale + hintX,
                     y: backFwdPoint.y ))
                 mockPositioner.setValue(of: DISMISSING, to: dismissingPoint)
                 mockAlpha.setValue(of: DISMISSING, to: 0.7)
@@ -395,7 +394,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         else if direction == .rightToLeft && vc.webView.canGoForward {
             dismissingPoint.y -= dismissPointY * 0.5 // to account for initial resisitance
             cardPositioner.setValue(of: PAGING, to: CGPoint(
-                x: view.center.x + adjustedX * parallax + hintX * 0.5,
+                x: view.center.x + adjustedX * parallaxAmount + hintX * 0.5,
                 y: backFwdPoint.y ))
             let isBackness = adjustedX.progress(0, -400) * gesturePos.y.progress(100, 160).clip().reverse()
             vc.overlay.alpha = isBackness.lerp(0, 0.4)
@@ -827,7 +826,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             mockPositioner.end.y = view.center.y + view.bounds.height
         }
         else if action == .goForward {
-            mockPositioner.end.x -= mockShift / 2
+            mockPositioner.end.x -= mockShift * parallaxAmount
         }
 
         // dont use velocity for this part, since it
@@ -862,6 +861,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             self.vc.overlay.alpha = 0
         }
     }
+    let parallaxAmount : CGFloat = 0.3
 
     func reset(velocity: CGPoint) {
         dismissSwitch.cancel()
@@ -892,7 +892,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             mockScale = 1
         }
         else {
-            mockCenter.x -= mockShift / 2 // back
+            mockCenter.x -= mockShift * parallaxAmount // back
         }
         
         /* don't use velocity for this */
