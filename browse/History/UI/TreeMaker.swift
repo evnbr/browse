@@ -22,7 +22,7 @@ class TreeMaker : NSObject {
     private let initialMaxDepth = 10
     private let viewContext = HistoryManager.shared.persistentContainer.viewContext
     
-    private var layout: HistoryTreeLayout
+    private var layout: TreeMakerLayout
     private var nodeIDs: [IndexPath : NSManagedObjectID] = [:]
     private var cellPositions: [NSManagedObjectID : TreePosition] = [:]
     
@@ -32,13 +32,16 @@ class TreeMaker : NSObject {
     
     var gridSize : CGSize = .zero
     
-    init(layout: HistoryTreeLayout) {
+    init(layout: TreeMakerLayout) {
         self.layout = layout
         super.init()
     }
     
     func object(at ip: IndexPath) -> Visit? {
-        guard let id = nodeIDs[ip] else { return nil }
+        guard let id = nodeIDs[ip] else {
+            print("Unknown Indexpath: \(ip)")
+            return nil
+        }
         do {
             return try viewContext.existingObject(with: id) as? Visit
         }

@@ -53,7 +53,7 @@ class VisitCell: UICollectionViewCell {
             toolbarView.leftAnchor.constraint(equalTo: contentView.leftAnchor),
             toolbarView.rightAnchor.constraint(equalTo: contentView.rightAnchor),
             toolbarView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
-            ])
+        ])
         
         overlay = UIView(frame: bounds.insetBy(dx: -60, dy: -60) )
         overlay.backgroundColor = UIColor.black
@@ -142,6 +142,7 @@ class VisitCell: UICollectionViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
+        reset()
         snapView.image = nil
         contentView.backgroundColor = .white
         label.text = "Blank"

@@ -1,5 +1,5 @@
 //
-//  HistoryTreeLayout.swift
+//  TreeMakerLayout.swift
 //  browse
 //
 //  Created by Evan Brooks on 04/14/18.
@@ -9,9 +9,9 @@
 import UIKit
 
 
-class HistoryTreeLayout: UICollectionViewFlowLayout {
+class TreeMakerLayout: UICollectionViewLayout {
     var attributesList = [ UICollectionViewLayoutAttributes ]()
-    var spacing = CGPoint(x: 130, y: 240)
+    var spacing = CGPoint(x: 130, y: 220)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -53,7 +53,7 @@ class HistoryTreeLayout: UICollectionViewFlowLayout {
     
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         return attributesList.filter { attrs -> Bool in
-            return rect.intersects(attrs.frame.insetBy(dx: -40, dy: -40)) && attrs.alpha > 0 && !attrs.isHidden
+            return rect.intersects(attrs.frame.insetBy(dx: -40, dy: -40))
         }
     }
     

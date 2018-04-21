@@ -26,7 +26,7 @@ class HistoryTreeViewController: UICollectionViewController, UIViewControllerTra
     }
     
     init() {
-        let layout = HistoryTreeLayout()
+        let layout = TreeMakerLayout()
         treeMaker = TreeMaker(layout: layout)
         super.init(collectionViewLayout: layout)
     }
@@ -89,6 +89,9 @@ extension HistoryTreeViewController {
         // Configure the cells
         if let visit = treeMaker.object(at: indexPath) {
             configureCell(cell, with: visit)
+        }
+        else {
+            print("cant configure")
         }
         
         return cell

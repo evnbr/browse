@@ -87,10 +87,7 @@ class BookmarkProvider: NSObject {
 
     
     private func fetch(method: String, completion: @escaping (JSON?, Error?) -> () ) {
-        guard let authToken = authToken else {
-            print("Missing auth token")
-            return
-        }
+        guard let authToken = authToken else { return }
         
         let str = "https://api.pinboard.in/v1\(method)&auth_token=\(authToken)&format=json";
         guard let url = URL(string: str) else {
