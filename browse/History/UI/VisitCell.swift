@@ -98,31 +98,30 @@ class VisitCell: UICollectionViewCell {
         connecterWidth.isActive = true
         connectorHeight.isActive = true
         
-
-        connector.isHidden = true
     }
     
     func setConnector(size: CGSize) {
         guard size != .zero else { return }
-        connector.isHidden = false
-
+        let absSize = CGSize(width: abs(size.width), height: abs(size.height))
+        
         let connectorPath = UIBezierPath()
-        connectorPath.lineJoinStyle = .round
         if size.height > 0 {
             connectorPath.move(to: CGPoint(x:0, y: 0))
             connectorPath.addLine(to: CGPoint(x: size.width, y: size.height))
+            connector.transform = .identity
         }
         else {
             connectorPath.move(to: CGPoint(x:0, y: 0))
-            connectorPath.addLine(to: CGPoint(x: size.width, y: 0))
+            connectorPath.addLine(to: CGPoint(x: size.width, y: absSize.height))
+            connector.transform = CGAffineTransform(scaleX: 1, y: -1).translatedBy(x: 0, y: -absSize.height)
         }
         
         connectorLayer.frame.origin = .zero
-        connectorLayer.frame.size = size
+        connectorLayer.frame.size = absSize
         connectorLayer.path = connectorPath.cgPath
 
-        connecterWidth.constant = abs(size.width)
-        connectorHeight.constant = abs(size.height)
+        connecterWidth.constant = absSize.width
+        connectorHeight.constant = absSize.height
         connector.layoutIfNeeded()
     }
     
@@ -190,10 +189,12 @@ class VisitCell: UICollectionViewCell {
         
         if let treeAttrs = layoutAttributes as? TreeConnectorAttributes,
             let connectorOffset = treeAttrs.connectorOffset {
+            connectorLayer.strokeColor = UIColor.white.cgColor
             setConnector(size: connectorOffset)
         }
         else {
-            connector.isHidden = true
+            connectorLayer.strokeColor = UIColor.red.cgColor
+            setConnector(size: CGSize(width: 10, height: 1))
         }
     }
     

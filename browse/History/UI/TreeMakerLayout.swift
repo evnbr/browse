@@ -69,7 +69,7 @@ class TreeMakerLayout: UICollectionViewLayout {
                 if let parentPt = treeMaker.parentPosition(for: indexPath)?.point {
                     let dX = pt.x - parentPt.x - 1
                     let dY = pt.y - parentPt.y
-                    let size = CGSize(width: (32 + dX * spacing.x) * 2, height: (dY * spacing.y) * 2)
+                    let size = CGSize(width: (40 + dX * spacing.x) * 2, height: (dY * spacing.y) * 2)
                     attributes.connectorOffset = size
                 }
             }
