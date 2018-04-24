@@ -302,10 +302,12 @@ extension HistoryManager {
         writeSnapshotToFile(image, id: uuid)
     }
     
-    func loadSnapshotFromFile(_ id: UUID) -> UIImage? {
+    func loadSnapshotFromFile(_ uuid: UUID) -> UIImage? {
         guard let dir = FileManager.defaultDirURL else { return nil }
-        return UIImage(contentsOfFile:
-            URL(fileURLWithPath: dir.absoluteString).appendingPathComponent("\(id.uuidString).png").path)
+        let image = UIImage(contentsOfFile:
+            URL(fileURLWithPath: dir.absoluteString).appendingPathComponent("\(uuid.uuidString).png").path)
+        snapshotCache[uuid] = image
+        return image
     }
     
     func writeSnapshotToFile(_ image: UIImage, id: UUID) {
