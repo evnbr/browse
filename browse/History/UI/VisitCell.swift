@@ -87,6 +87,7 @@ class VisitCell: UICollectionViewCell {
         
         connectorLayer.lineWidth = 4
         connectorLayer.strokeColor = UIColor.white.cgColor
+        connectorLayer.fillColor = nil
         connector.layer.addSublayer(connectorLayer)
 
         insertSubview(connector, belowSubview: contentView)
@@ -105,14 +106,18 @@ class VisitCell: UICollectionViewCell {
         let absSize = CGSize(width: abs(size.width), height: abs(size.height))
         
         let connectorPath = UIBezierPath()
+        connectorPath.move(to: CGPoint(x:0, y: 0))
+//        connectorPath.addLine(to: CGPoint(x: size.width, y: absSize.height))
+        connectorPath.addCurve(
+            to: CGPoint(x: size.width, y: absSize.height),
+            controlPoint1: CGPoint(x: size.width * 0.7, y: 0),
+            controlPoint2: CGPoint(x: size.width * 0.3, y: absSize.height)
+        )
+
         if size.height > 0 {
-            connectorPath.move(to: CGPoint(x:0, y: 0))
-            connectorPath.addLine(to: CGPoint(x: size.width, y: size.height))
             connector.transform = .identity
         }
         else {
-            connectorPath.move(to: CGPoint(x:0, y: 0))
-            connectorPath.addLine(to: CGPoint(x: size.width, y: absSize.height))
             connector.transform = CGAffineTransform(scaleX: 1, y: -1).translatedBy(x: 0, y: -absSize.height)
         }
         

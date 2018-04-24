@@ -97,7 +97,14 @@ class TreeMaker : NSObject {
         guard let ad = a.date, let bd = b.date else { return false }
         return ad > bd
     }
-    
+    private func hasChildrenFirst(_ a: Visit, _ b: Visit) -> Bool {
+        guard let ad = a.date, let bd = b.date else { return false }
+        let ac = a.forwardItems?.count ?? 0
+        let bc = b.forwardItems?.count ?? 0
+        if ac == bc { return ad > bd }
+        return ac > bc
+    }
+
     private func traverseTrees(from roots: [Visit]) {
         var currentDepth: Int = 0
         var maxDepth: Int = 0
@@ -121,7 +128,7 @@ class TreeMaker : NSObject {
             if let children = node.forwardItems?.allObjects as? [Visit] {
                 currentDepth += 1
                 if currentDepth > maxDepth { maxDepth = currentDepth }
-                for child in children.sorted(by: newToOld) {
+                for child in children.sorted(by: hasChildrenFirst) {
                     traverse(child)
                 }
                 currentDepth -= 1
