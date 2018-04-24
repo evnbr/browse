@@ -81,6 +81,7 @@ class HistoryTreeViewController: UICollectionViewController, UIViewControllerTra
 extension HistoryTreeViewController {
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        print("tree with \(treeMaker.nodeCount) nodes")
         return treeMaker.nodeCount
     }
     
@@ -91,9 +92,6 @@ extension HistoryTreeViewController {
         // Configure the cells
         if let visit = treeMaker.object(at: indexPath) {
             configureCell(cell, with: visit)
-        }
-        else {
-            print("cant configure")
         }
         
         return cell
@@ -110,6 +108,11 @@ extension HistoryTreeViewController {
         if let cell = collectionView.cellForItem(at: indexPath) as? VisitCell {
             cell.unSelect()
         }
-        self.dismiss(animated: true, completion: nil)
+        if let selectedTab = treeMaker.object(at: indexPath)?.isCurrentVisitOf,
+            let browser = presentingViewController as? BrowserViewController,
+            browser.currentTab !== selectedTab {
+            browser.setTab(selectedTab)
+        }
+        self.dismiss(animated: false, completion: nil)
     }
 }

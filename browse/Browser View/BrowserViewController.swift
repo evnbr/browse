@@ -187,6 +187,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         webView.addInputAccessory(toolbar: accessoryView)
         
         updateLoadingState()
+        showToolbar(animated: true)
         
         if let startLocation = currentTab?.currentVisit?.url, self.isBlank {
             navigateTo(startLocation)
@@ -376,6 +377,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         toolbar.tabButton.action = dismissSelf
         toolbar.tintColor = .darkText
         return toolbar
+    }
+    
+    func displayHistory() {
+        guard let switcher = (presentingViewController as? UINavigationController)?.topViewController as? TabSwitcherViewController,
+            let tabs =  switcher.fetchedResultsController.fetchedObjects else { return }
+        let historyVC = HistoryTreeViewController()
+        historyVC.treeMaker.setTabs(tabs, selectedTab: currentTab ?? tabs.first)
+        present(historyVC, animated: false, completion: nil)
     }
     
     func displayFullSearch(animated: Bool = true) {

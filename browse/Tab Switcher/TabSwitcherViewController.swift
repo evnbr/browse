@@ -62,10 +62,10 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         collectionView?.register(DismissableTabCell.self, forCellWithReuseIdentifier: reuseIdentifier)
         collectionView?.backgroundColor = .black
 
-        title = "Tabs"
-        view.backgroundColor = .black
-        let historyButton = UIBarButtonItem(title: "History", style: .plain, target: self, action: #selector(showHistory) )
-        navigationItem.rightBarButtonItem = historyButton
+//        title = "Tabs"
+//        view.backgroundColor = .black
+//        let historyButton = UIBarButtonItem(title: "History", style: .plain, target: self, action: #selector(showHistory) )
+//        navigationItem.rightBarButtonItem = historyButton
         
         fab = FloatButton(
             frame: CGRect(x: 0, y: 0, width: 64, height: 64),
@@ -95,12 +95,12 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         }
     }
     
-    @objc func showHistory() {
-        guard let tabs = fetchedResultsController.fetchedObjects else { return }
-        let historyVC = HistoryTreeViewController()
-        historyVC.treeMaker.setTabs(tabs, selectedTab: browserVC.currentTab ?? tabs.first)
-        present(historyVC, animated: true, completion: nil)
-    }
+//    @objc func showHistory() {
+//        guard let tabs = fetchedResultsController.fetchedObjects else { return }
+//        let historyVC = HistoryTreeViewController()
+//        historyVC.treeMaker.setTabs(tabs, selectedTab: browserVC.currentTab ?? tabs.first)
+//        present(historyVC, animated: true, completion: nil)
+//    }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
@@ -151,7 +151,9 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     func closeTab(fromCell cell: UICollectionViewCell) {
         if let indexPath = collectionView?.indexPath(for: cell) {
             let context = fetchedResultsController.managedObjectContext
-            context.delete(fetchedResultsController.object(at: indexPath))
+            let tab = fetchedResultsController.object(at: indexPath)
+            browserVC?.webViewManager.removeWebViewFor(tab)
+            context.delete(tab)
             saveContext()
         }
     }
@@ -304,9 +306,8 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
         visibleCells.forEach { $0.refresh() }
     }
     
-    
     override func viewDidAppear(_ animated: Bool) {
-        navigationController?.isNavigationBarHidden = false
+        navigationController?.isNavigationBarHidden = true
         fabSnapshot = fab.snapshotView(afterScreenUpdates: false)
         
         isFirstLoad = false
