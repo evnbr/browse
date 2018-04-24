@@ -136,7 +136,7 @@ class TreeMaker : NSObject {
         }
         roots.sorted(by: oldToNew).forEach { traverse($0) }
         
-        self._gridSize = CGSize(width: maxDepth, height: maxY)
+        self._gridSize = CGSize(width: maxDepth, height: maxY + 1)
         self._nodeCount = nodeIDs.count
     }
     
@@ -168,7 +168,7 @@ class TreeMaker : NSObject {
         self._nodeCount = nodeIDs.count
     }
     
-    func setTabs(_ mainThreadTabs: [Tab]) {
+    func setTabs(_ mainThreadTabs: [Tab], selectedTab: Tab?) {
         DispatchQueue.global(qos: .userInitiated).async {
             let context = HistoryManager.shared.persistentContainer.newBackgroundContext()
             let tabs = self.moveThread(tabs: mainThreadTabs, to: context)
@@ -184,8 +184,23 @@ class TreeMaker : NSObject {
             }
             
             self.traverseTrees(from: currentRoots)
-            DispatchQueue.main.async {
-                self.layout.collectionView?.reloadData()
+            self.applyLayout(selectedTab: selectedTab)
+        }
+    }
+    
+    private func applyLayout(selectedTab: Tab?) {
+
+        DispatchQueue.main.async {
+            self.layout.collectionView?.reloadData()
+            if let sel = selectedTab {
+                let startID = sel.currentVisit!.objectID
+                let startIndexPath = self.nodeIDs.first(where: { (ip, id) -> Bool in
+                    return id == startID
+                })!.key
+                self.layout.collectionView?.scrollToItem(
+                    at: startIndexPath,
+                    at: [ .centeredVertically, .centeredHorizontally ],
+                    animated: false)
             }
         }
     }

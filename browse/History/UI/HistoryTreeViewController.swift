@@ -45,6 +45,8 @@ class HistoryTreeViewController: UICollectionViewController, UIViewControllerTra
         collectionView?.delaysContentTouches = false
         collectionView?.scrollIndicatorInsets.top = Const.statusHeight
         collectionView?.indicatorStyle = .white
+        collectionView?.showsVerticalScrollIndicator = false
+        collectionView?.showsHorizontalScrollIndicator = false
         collectionView?.register(VisitCell.self, forCellWithReuseIdentifier: reuseIdentifier)
         collectionView?.backgroundColor = .black
         

@@ -31,7 +31,7 @@ class TreeConnectorAttributes: UICollectionViewLayoutAttributes {
 
 class TreeMakerLayout: UICollectionViewLayout {
     var attributesList = [ TreeConnectorAttributes ]()
-    var spacing = CGPoint(x: 160, y: 240)
+    var spacing = CGPoint(x: 180, y: 240)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -69,7 +69,7 @@ class TreeMakerLayout: UICollectionViewLayout {
                 if let parentPt = treeMaker.parentPosition(for: indexPath)?.point {
                     let dX = pt.x - parentPt.x - 1
                     let dY = pt.y - parentPt.y
-                    let size = CGSize(width: (40 + dX * spacing.x) * 2, height: (dY * spacing.y) * 2)
+                    let size = CGSize(width: (60 + dX * spacing.x) * 2, height: (dY * spacing.y) * 2)
                     attributes.connectorOffset = size
                 }
             }
