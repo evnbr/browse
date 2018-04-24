@@ -15,10 +15,15 @@ class VisitCell: UICollectionViewCell {
     var closeTabCallback : CloseTabCallback!
     var toolbarView: BrowserToolbarView!
     var snapView : UIImageView!
+    
+    var connector: UIView!
+    let connectorLayer = CAShapeLayer()
 
     var snapTopOffsetConstraint : NSLayoutConstraint!
     var snapAspectConstraint : NSLayoutConstraint!
-    
+    var connecterWidth: NSLayoutConstraint!
+    var connectorHeight: NSLayoutConstraint!
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         
@@ -72,9 +77,53 @@ class VisitCell: UICollectionViewCell {
         
         insertSubview(shadowView, belowSubview: contentView)
         
-        contentView.backgroundColor = .black
+        contentView.backgroundColor = .white
         contentView.radius = Const.shared.thumbRadius
         contentView.clipsToBounds = true
+        
+        
+        connector = UIView()
+        connector.translatesAutoresizingMaskIntoConstraints = false
+        
+        connectorLayer.lineWidth = 4
+        connectorLayer.strokeColor = UIColor.white.cgColor
+        connector.layer.addSublayer(connectorLayer)
+
+        insertSubview(connector, belowSubview: contentView)
+        connector.rightAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
+        connector.bottomAnchor.constraint(equalTo: contentView.centerYAnchor, constant: 4).isActive = true
+        
+        connecterWidth = connector.widthAnchor.constraint(equalToConstant: 20)
+        connectorHeight = connector.heightAnchor.constraint(equalToConstant: 20)
+        connecterWidth.isActive = true
+        connectorHeight.isActive = true
+        
+
+        connector.isHidden = true
+    }
+    
+    func setConnector(size: CGSize) {
+        guard size != .zero else { return }
+        connector.isHidden = false
+
+        let connectorPath = UIBezierPath()
+        connectorPath.lineJoinStyle = .round
+        if size.height > 0 {
+            connectorPath.move(to: CGPoint(x:0, y: 0))
+            connectorPath.addLine(to: CGPoint(x: size.width, y: size.height))
+        }
+        else {
+            connectorPath.move(to: CGPoint(x:0, y: 0))
+            connectorPath.addLine(to: CGPoint(x: size.width, y: 0))
+        }
+        
+        connectorLayer.frame.origin = .zero
+        connectorLayer.frame.size = size
+        connectorLayer.path = connectorPath.cgPath
+
+        connecterWidth.constant = abs(size.width)
+        connectorHeight.constant = abs(size.height)
+        connector.layoutIfNeeded()
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -138,6 +187,14 @@ class VisitCell: UICollectionViewCell {
         alpha = 1
         overlay.alpha = 1 - layoutAttributes.alpha
         layer.zPosition = CGFloat(layoutAttributes.zIndex)
+        
+        if let treeAttrs = layoutAttributes as? TreeConnectorAttributes,
+            let connectorOffset = treeAttrs.connectorOffset {
+            setConnector(size: connectorOffset)
+        }
+        else {
+            connector.isHidden = true
+        }
     }
     
     override func prepareForReuse() {

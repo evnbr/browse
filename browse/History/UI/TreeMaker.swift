@@ -9,7 +9,7 @@
 import UIKit
 import CoreData
 
-struct TreePosition {
+struct TreePosition: Hashable {
     let x: Int
     let y: Int
     
@@ -24,14 +24,19 @@ class TreeMaker : NSObject {
     
     private var layout: TreeMakerLayout
     private var nodeIDs: [IndexPath : NSManagedObjectID] = [:]
+    private var parentIDs: [IndexPath : NSManagedObjectID] = [:]
     private var cellPositions: [NSManagedObjectID : TreePosition] = [:]
     
+    var _nodeCount: Int = 0
+    var _gridSize: CGSize = .zero
+    
     var nodeCount: Int {
-        return nodeIDs.count
+        return _nodeCount
     }
-    
-    var gridSize : CGSize = .zero
-    
+    var gridSize: CGSize {
+        return _gridSize
+    }
+
     init(layout: TreeMakerLayout) {
         self.layout = layout
         super.init()
@@ -56,10 +61,19 @@ class TreeMaker : NSObject {
         return cellPositions[id]
     }
     
+    func parentPosition(for ip: IndexPath) -> TreePosition? {
+        guard let parentID = parentIDs[ip] else { return nil }
+        return cellPositions[parentID]
+    }
+    
     func addVisit(_ visit: Visit, at position: TreePosition) {
-        let ip = IndexPath(item: nodeCount, section: 0)
+        let ip = IndexPath(item: nodeIDs.count, section: 0)
         nodeIDs[ip] = visit.objectID
         cellPositions[visit.objectID] = position
+        
+        if let backVisit = visit.backItem {
+            parentIDs[ip] = backVisit.objectID
+        }
     }
     
     private func moveThread(tabs originalTabs: [Tab], to ctx: NSManagedObjectContext) -> [Tab] {
@@ -75,12 +89,51 @@ class TreeMaker : NSObject {
         return tabs
     }
     
-    private func dateSorter(_ a: Visit, _ b: Visit) -> Bool {
+    private func oldToNew(_ a: Visit, _ b: Visit) -> Bool {
         guard let ad = a.date, let bd = b.date else { return false }
         return ad < bd
     }
+    private func newToOld(_ a: Visit, _ b: Visit) -> Bool {
+        guard let ad = a.date, let bd = b.date else { return false }
+        return ad > bd
+    }
     
     private func traverseTrees(from roots: [Visit]) {
+        var currentDepth: Int = 0
+        var maxDepth: Int = 0
+        var maxY: Int = 0
+        
+        var usedPositions = Set<TreePosition>()
+        func availablePos(for potentialPos: TreePosition) -> TreePosition {
+            var pos = potentialPos
+            while usedPositions.contains(pos) {
+                pos = TreePosition(x: potentialPos.x, y: pos.y + 1)
+            }
+            return pos
+        }
+        
+        func traverse(_ node: Visit) {
+            let pos = availablePos(for: TreePosition(x: currentDepth, y: 0))
+            if pos.y > maxY { maxY = pos.y }
+            usedPositions.insert(pos)
+            self.addVisit(node, at: pos)
+            
+            if let children = node.forwardItems?.allObjects as? [Visit] {
+                currentDepth += 1
+                if currentDepth > maxDepth { maxDepth = currentDepth }
+                for child in children.sorted(by: newToOld) {
+                    traverse(child)
+                }
+                currentDepth -= 1
+            }
+        }
+        roots.sorted(by: oldToNew).forEach { traverse($0) }
+        
+        self._gridSize = CGSize(width: maxDepth, height: maxY)
+        self._nodeCount = nodeIDs.count
+    }
+    
+    private func traverseTreesABSOLUTE(from roots: [Visit]) {
         var currentY: Int = 0
         var currentDepth: Int = 0
         var maxDepth: Int = 0
@@ -93,7 +146,7 @@ class TreeMaker : NSObject {
             if let children = node.forwardItems?.allObjects as? [Visit] {
                 currentDepth += 1
                 if currentDepth > maxDepth { maxDepth = currentDepth }
-                for child in children.sorted(by: dateSorter) {
+                for child in children.sorted(by: newToOld) {
                     traverse(child)
                 }
                 currentDepth -= 1
@@ -102,9 +155,10 @@ class TreeMaker : NSObject {
                 currentY += 1
             }
         }
+        roots.sorted(by: oldToNew).forEach { traverse($0) }
         
-        roots.sorted(by: dateSorter).forEach { traverse($0) }
-        self.gridSize = CGSize(width: maxDepth, height: currentY)
+        self._gridSize = CGSize(width: maxDepth, height: currentY)
+        self._nodeCount = nodeIDs.count
     }
     
     func setTabs(_ mainThreadTabs: [Tab]) {
@@ -124,7 +178,7 @@ class TreeMaker : NSObject {
             
             self.traverseTrees(from: currentRoots)
             DispatchQueue.main.async {
-                self.layout.invalidateLayout()
+                self.layout.collectionView?.reloadData()
             }
         }
     }

@@ -8,10 +8,30 @@
 
 import UIKit
 
+class TreeConnectorAttributes: UICollectionViewLayoutAttributes {
+    var connectorOffset: CGSize? = nil
+    
+    override func copy(with zone: NSZone?) -> Any {
+        let copy = super.copy(with: zone) as! TreeConnectorAttributes
+        copy.connectorOffset = self.connectorOffset
+        return copy
+    }
+    
+    override func isEqual(_ object: Any?) -> Bool {
+        if let rhs = object as? TreeConnectorAttributes {
+            if connectorOffset != rhs.connectorOffset {
+                return false
+            }
+            return super.isEqual(object)
+        } else {
+            return false
+        }
+    }
+}
 
 class TreeMakerLayout: UICollectionViewLayout {
-    var attributesList = [ UICollectionViewLayoutAttributes ]()
-    var spacing = CGPoint(x: 130, y: 220)
+    var attributesList = [ TreeConnectorAttributes ]()
+    var spacing = CGPoint(x: 160, y: 240)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -37,16 +57,23 @@ class TreeMakerLayout: UICollectionViewLayout {
 
         let count = cv.numberOfItems(inSection: 0)
         
-        attributesList = (0..<count).map { i -> UICollectionViewLayoutAttributes in
+        attributesList = (0..<count).map { i -> TreeConnectorAttributes in
             let indexPath = IndexPath(item: i, section: 0)
-            let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
+            let attributes = TreeConnectorAttributes(forCellWith: indexPath)
             attributes.bounds = CGRect(x: 0, y: 0, width: 240, height: 420)
             attributes.transform = CGAffineTransform(scale: 0.5)
 
             if let pt = treeMaker.position(for: indexPath)?.point {
                 attributes.center = CGPoint(x: (0.5 + pt.x) * spacing.x, y: (0.5 + pt.y) * spacing.y)
+                
+                if let parentPt = treeMaker.parentPosition(for: indexPath)?.point {
+                    let dX = pt.x - parentPt.x - 1
+                    let dY = pt.y - parentPt.y
+                    let size = CGSize(width: (32 + dX * spacing.x) * 2, height: (dY * spacing.y) * 2)
+                    attributes.connectorOffset = size
+                }
             }
-            
+
             return attributes
         }
     }
