@@ -78,8 +78,12 @@ class SearchViewController: UIViewController {
         
         scrim = UIView(frame: view.bounds)
         scrim.backgroundColor = UIColor.black.withAlphaComponent(0.2)
-        scrim.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(scrim)
+        view.addSubview(scrim, constraints: [
+            scrim.topAnchor.constraint(equalTo: view.topAnchor),
+            scrim.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -Const.toolbarHeight),
+            scrim.leftAnchor.constraint(equalTo: view.leftAnchor),
+            scrim.rightAnchor.constraint(equalTo: view.rightAnchor),
+        ])
 
         if (showingCancel) {
             let tap = UITapGestureRecognizer(target: self, action: #selector(dismissSelf))

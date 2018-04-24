@@ -11,9 +11,10 @@ import UIKit
 class ToolbarSearchField: ToolbarTouchView {
     
     var label = UILabel()
-    var lock : UIImageView!
-    var magnify : UIImageView!
+    var lock: UIImageView!
+    var magnify: UIImageView!
     var labelHolder : UIView!
+    let maskLayer = CAGradientLayer()
     var stopButton: ToolbarIconButton!
     
     var centerConstraint : NSLayoutConstraint!
@@ -62,14 +63,20 @@ class ToolbarSearchField: ToolbarTouchView {
     
     var isLoading : Bool {
         get {
-            return false
+            return labelHolder.layer.mask == nil
         }
         set {
+            labelHolder.layer.mask = newValue ? maskLayer : nil
         }
     }
     
     override var intrinsicContentSize: CGSize {
         return CGSize(width: 180.0, height: Const.shared.buttonHeight)
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        renderProgress(animated: false)
     }
     
     init(onTap: ToolbarButtonAction? = nil) {
@@ -113,14 +120,12 @@ class ToolbarSearchField: ToolbarTouchView {
             labelHolder.centerYAnchor.constraint(equalTo: labelContent.centerYAnchor),
             labelHolder.centerXAnchor.constraint(equalTo: labelContent.centerXAnchor),
             labelHolder.widthAnchor.constraint(equalTo: labelContent.widthAnchor),
-            //            labelContent.widthAnchor.constraint(lessThanOrEqualTo: labelHolder.widthAnchor),
             labelHolder.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor),
             labelHolder.heightAnchor.constraint(equalTo: heightAnchor),
             labelHolder.centerXAnchor.constraint(equalTo: centerXAnchor),
             labelHolder.centerXAnchor.constraint(equalTo: labelContent.centerXAnchor)
         ])
         
-        let maskLayer = CAGradientLayer()
         maskLayer.frame = labelHolder.frame
         maskLayer.startPoint = CGPoint(x: 0, y: 0.5)
         maskLayer.endPoint = CGPoint(x: 1, y: 0.5)
@@ -146,14 +151,16 @@ class ToolbarSearchField: ToolbarTouchView {
     }
     
     func renderProgress(animated: Bool) {
-        if let grad = labelHolder.layer.mask as? CAGradientLayer {
-            grad.frame = labelHolder.bounds
-            let val = _progress as NSNumber
-            let val2 = (_progress + 0.005) as NSNumber
-            
-            if animated { UIView.animate(withDuration: 0.2) { grad.locations = [val, val2] } }
-            else { grad.locations = [val, val2] }
+        maskLayer.frame = labelHolder.bounds
+        let val = _progress as NSNumber
+        let val2 = (_progress + 0.005) as NSNumber
+        
+        if animated {
+            UIView.animate(withDuration: 0.2) {
+                self.maskLayer.locations = [val, val2]
+            }
         }
+        else { maskLayer.locations = [val, val2] }
     }
     
     required init?(coder aDecoder: NSCoder) {

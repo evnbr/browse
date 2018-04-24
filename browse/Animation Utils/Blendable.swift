@@ -15,7 +15,7 @@ extension CGPoint : Blendable {
     public static var initialValue: CGPoint { return .zero }
     
     public static func blend(from start: CGPoint, to end: CGPoint, by progress: CGFloat) -> CGPoint {
-        return progress.blend(start, end)
+        return progress.lerp(start, end)
     }
 }
 
@@ -33,7 +33,7 @@ extension CGFloat {
         return start + (end - start) * self;
     }
     
-    func blend(_ start: CGPoint, _ end: CGPoint) -> CGPoint {
+    func lerp(_ start: CGPoint, _ end: CGPoint) -> CGPoint {
         return CGPoint(
             x: self.lerp(start.x, end.x),
             y: self.lerp(start.y, end.y)

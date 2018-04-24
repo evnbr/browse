@@ -48,6 +48,10 @@ class WebViewManager: NSObject {
         }
     }
     
+    func removeWebViewFor(_ tab: Tab) {
+        webViewMap.removeValue(forKey: tab)
+    }
+    
     func addWebView(for tab: Tab, with config: WKWebViewConfiguration) -> WKWebView {
         let newWebView = createWebView(with: config)
         webViewMap[tab] = newWebView

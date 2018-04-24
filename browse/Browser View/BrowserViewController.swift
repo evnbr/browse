@@ -555,6 +555,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         if webView.url == nil { return }
         
         let onePass = OnePasswordExtension.shared()
+        
         onePass.createExtensionItem(
             forWebView: self.webView,
             completion: { (extensionItem, error) in
@@ -565,21 +566,17 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
                 self.onePasswordExtensionItem = extensionItem
                 
                 let activityItems : [Any] = [self, self.webView.url!]
-                
                 let avc = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
-                
                 avc.excludedActivityTypes = [ .addToReadingList ]
-                
                 avc.completionWithItemsHandler = { (type, completed, returned, error) in
-                    if onePass.isOnePasswordExtensionActivityType(type?.rawValue) {
-                        if (returned != nil && returned!.count > 0) {
-                            onePass.fillReturnedItems(returned, intoWebView: self.webView, completion: {(success, error) in
-                                if !success {
-                                    print("Failed to fill into webview: \(String(describing: error))")
-                                }
-                            })
+                    guard onePass.isOnePasswordExtensionActivityType(type?.rawValue)
+                        && returned != nil
+                        && returned!.count > 0 else { return }
+                    onePass.fillReturnedItems(returned, intoWebView: self.webView, completion: {(success, error) in
+                        if !success {
+                            print("Failed to fill into webview: \(String(describing: error))")
                         }
-                    }
+                    })
                 }
                 completion(avc)
         })
@@ -613,9 +610,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         errorView?.removeFromSuperview()
         toolbar.text = url.displayHost
         toolbar.progress = 0
-        // Does it feel faster if old page instantle disappears?
         
         let nav = webView.load(URLRequest(url: url))
+        
+        // Does it feel faster if old page instantle disappears?
         hideUntilNavigationDone(navigation: nav)
         snapshotView.image = nil
         toolbar.backgroundColor = .white
@@ -724,6 +722,7 @@ extension UIResponder {
 
 
 extension BrowserViewController : WebviewColorSamplerDelegate {
+    
     var sampledWebView : WKWebView {
         return webView
     }
