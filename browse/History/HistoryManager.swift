@@ -91,8 +91,7 @@ class HistoryManager: NSObject {
             self.isSyncing = true
 
             if let existingVisit = self.existingVisit(from: wkItem, in: ctx) {
-                // Move to this context, update title and url
-                // print("update visit")
+                // Update title, url, and children
                 if let title = wkItem.title, title != "" {
                     existingVisit.title = title
                 }
@@ -102,17 +101,16 @@ class HistoryManager: NSObject {
                 tab.currentVisit = existingVisit
                 existingVisit.isCurrentVisitOf = tab
             }
+            else if list.backItem == nil && wkItem.url == tab.currentVisit?.url {
+                // Restore session
+                // TODO: This is redundant
+                self.historyIDMap[wkItem] = tab.currentVisit?.objectID
+            }
             else {
                 // Create a new entry
                 let newVisit = self.addVisit(from: wkItem, in: ctx)!
                 
-                if list.backItem == nil && wkItem.url == tab.currentVisit?.url {
-                    // Restore session
-                    let original = tab.currentVisit
-                    newVisit.backItem = original
-                    original?.addToForwardItems(newVisit)
-                }
-                else if let backWKItem = list.backItem,
+                if let backWKItem = list.backItem,
                     let backVisit = self.existingVisit(from: backWKItem, in: ctx),
                     backVisit == tab.currentVisit {
                     // We went forward, link these pages together
@@ -207,6 +205,8 @@ class HistoryManager: NSObject {
 // Convenience to get Visit from webview
 extension WKBackForwardListItem {
     var visit : Visit? {
+        // TODO: This is an expensive operation
+        // to do on the main thread.
         let ctx = HistoryManager.shared.persistentContainer.viewContext
         let existVisit = HistoryManager.shared.existingVisit(from: self, in: ctx)
         return existVisit
@@ -299,6 +299,8 @@ extension HistoryManager {
             return
         }
         snapshotCache[uuid] = image
+        
+        // TODO: Only do this on save, otherwise wastefully overwriting all the time
         writeSnapshotToFile(image, id: uuid)
     }
     
