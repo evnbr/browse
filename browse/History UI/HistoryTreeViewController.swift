@@ -76,6 +76,13 @@ class HistoryTreeViewController: UICollectionViewController, TreeDataSource {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    func centerIndexPath(_ ip: IndexPath) {
+        collectionView!.scrollToItem(
+            at: ip,
+            at: [ .centeredVertically, .centeredHorizontally ],
+            animated: false)
+    }
 }
 
 extension HistoryTreeViewController: UIViewControllerTransitioningDelegate {
@@ -122,17 +129,8 @@ extension HistoryTreeViewController {
         }
         if let selectedTab = treeMaker.object(at: indexPath)?.isCurrentVisitOf,
             let browser = presentingViewController as? BrowserViewController {
-            
             browser.setTab(selectedTab)
-            
-            UIView.animate(withDuration: 0.2, animations: {
-                collectionView.scrollToItem(
-                    at: indexPath,
-                    at: [ .centeredVertically, .centeredHorizontally ],
-                    animated: false)
-            }) { _ in
-                self.dismiss(animated: true, completion: nil)
-            }
+            self.dismiss(animated: true, completion: nil)
         }
     }
 }

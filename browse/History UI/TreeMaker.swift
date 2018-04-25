@@ -42,6 +42,12 @@ class TreeMaker : NSObject {
         super.init()
     }
     
+    func indexPath(for visit: Visit) -> IndexPath? {
+        return nodeIDs.first(where: { (ip, id) -> Bool in
+            id == visit.objectID
+        })?.key
+    }
+    
     func object(at ip: IndexPath) -> Visit? {
         guard let id = nodeIDs[ip] else {
             print("Unknown Indexpath: \(ip)")
@@ -192,14 +198,7 @@ class TreeMaker : NSObject {
         DispatchQueue.main.async {
             self.layout.collectionView?.reloadData()
             if let sel = selectedTab {
-                let startID = sel.currentVisit!.objectID
-                let startIndexPath = self.nodeIDs.first(where: { (ip, id) -> Bool in
-                    return id == startID
-                })!.key
-                self.layout.collectionView?.scrollToItem(
-                    at: startIndexPath,
-                    at: [ .centeredVertically, .centeredHorizontally ],
-                    animated: false)
+                let startIndexPath = self.indexPath(for: sel.currentVisit!)!
             }
             else {
                 print("Couldn't scroll to item")

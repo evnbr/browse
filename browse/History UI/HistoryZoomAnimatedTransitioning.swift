@@ -36,19 +36,29 @@ class HistoryZoomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransi
         let treeStartScale: CGFloat = isZoomingOut ? 3 : 1
         let treeEndScale: CGFloat = isZoomingOut ? 1 : 3
 
-        let browserSnap = browserVC.view.snapshotView(afterScreenUpdates: false)
         containerView.addSubview(historyVC.view)
-        if let b = browserSnap { containerView.addSubview(b) }
+        containerView.addSubview(browserVC.view)
         
-        browserVC.view.isHidden = true
-        browserSnap?.scale = startScale
-        browserSnap?.springScale(to: endScale)
+        browserVC.contentView.radius = Const.shared.cardRadius
+        browserVC.view.scale = startScale
+        browserVC.view.springScale(to: endScale)
         
         historyVC.view.scale = treeStartScale
         historyVC.view.springScale(to: treeEndScale ) {_,_ in
-            browserVC.view.isHidden = false
-            browserSnap?.removeFromSuperview()
+            browserVC.contentView.radius = 0
+            browserVC.view.removeFromSuperview()
             transitionContext.completeTransition(true)
+        }
+        
+        if let ip = historyVC.treeMaker.indexPath(for: browserVC.currentTab!.currentVisit!) {
+            if isZoomingIn {
+                UIView.animate(withDuration: 0.2) {
+                    historyVC.centerIndexPath(ip)
+                }
+            }
+            else {
+                historyVC.centerIndexPath(ip)
+            }
         }
     }
 }
