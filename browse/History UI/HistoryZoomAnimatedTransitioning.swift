@@ -50,7 +50,14 @@ class HistoryZoomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransi
             transitionContext.completeTransition(true)
         }
         
-        if let ip = historyVC.treeMaker.indexPath(for: browserVC.currentTab!.currentVisit!) {
+        browserVC.view.alpha = isZoomingIn ? 0 : 1
+        historyVC.view.alpha = isZoomingIn ? 1 : 0
+        UIView.animate(withDuration: 0.2) {
+            browserVC.view.alpha = self.isZoomingIn ? 1 : 0
+            historyVC.view.alpha = self.isZoomingIn ? 0 : 1
+        }
+        
+        if let ip = historyVC.treeMaker.indexPath(for: browserVC.currentTab.currentVisit!) {
             if isZoomingIn {
                 UIView.animate(withDuration: 0.2) {
                     historyVC.centerIndexPath(ip)

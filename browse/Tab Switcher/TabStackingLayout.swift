@@ -157,6 +157,10 @@ class TabStackingLayout: UICollectionViewFlowLayout {
             attributes.alpha = 1 - ( pct * pct * pct )
             // attributes.transform = CGAffineTransform(scale: s)
         }
+        if i == totalItems - 1 {
+            attributes.alpha = 1
+            attributes.transform = .identity
+        }
         
         attributes.center = newCenter
         attributes.zIndex = i * 20
