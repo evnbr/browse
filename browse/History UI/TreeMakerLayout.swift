@@ -42,8 +42,8 @@ class TreeMakerLayout: UICollectionViewLayout {
 
         let size = treeMaker.gridSize
         return CGSize(
-            width: size.width * spacing.x,
-            height: size.height * spacing.y)
+            width:  size.width  * spacing.x + cv.bounds.width,
+            height: size.height * spacing.y + cv.bounds.height)
     }
     
     override init() {
@@ -56,6 +56,9 @@ class TreeMakerLayout: UICollectionViewLayout {
         guard let treeMaker = (cv.dataSource as? TreeDataSource)?.treeMaker else { return }
 
         let count = cv.numberOfItems(inSection: 0)
+        let margin = CGPoint(
+            x: cv.bounds.size.width * 0.5,
+            y: cv.bounds.size.height * 0.5)
         
         attributesList = (0..<count).map { i -> TreeConnectorAttributes in
             let indexPath = IndexPath(item: i, section: 0)
@@ -64,7 +67,9 @@ class TreeMakerLayout: UICollectionViewLayout {
             attributes.transform = CGAffineTransform(scale: 0.5)
 
             if let pt = treeMaker.position(for: indexPath)?.point {
-                attributes.center = CGPoint(x: (0.5 + pt.x) * spacing.x, y: (0.5 + pt.y) * spacing.y)
+                attributes.center = CGPoint(
+                    x: margin.x + pt.x * spacing.x,
+                    y: margin.y + pt.y * spacing.y)
                 
                 if let parentPt = treeMaker.parentPosition(for: indexPath)?.point {
                     let dX = pt.x - parentPt.x - 1

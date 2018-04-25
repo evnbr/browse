@@ -67,6 +67,7 @@
 		A9B62CCF2087FE0B003CAA54 /* SearchTransitionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B62CCD2087FE0B003CAA54 /* SearchTransitionController.swift */; };
 		A9B62CD02087FE0B003CAA54 /* SearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B62CCE2087FE0B003CAA54 /* SearchViewController.swift */; };
 		A9B62CD2208AA54B003CAA54 /* TreeMaker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B62CD1208AA54B003CAA54 /* TreeMaker.swift */; };
+		A9B62CD82091148E003CAA54 /* HistoryZoomAnimatedTransitioning.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B62CD72091148E003CAA54 /* HistoryZoomAnimatedTransitioning.swift */; };
 		A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */; };
 		A9D4B8C11F72F6D6006F0F18 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */; };
 		A9DEAE3D1F16C15700CF66BA /* BrowserToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DEAE3C1F16C15700CF66BA /* BrowserToolbarView.swift */; };
@@ -174,6 +175,7 @@
 		A9B62CCD2087FE0B003CAA54 /* SearchTransitionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchTransitionController.swift; sourceTree = "<group>"; };
 		A9B62CCE2087FE0B003CAA54 /* SearchViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchViewController.swift; sourceTree = "<group>"; };
 		A9B62CD1208AA54B003CAA54 /* TreeMaker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreeMaker.swift; sourceTree = "<group>"; };
+		A9B62CD72091148E003CAA54 /* HistoryZoomAnimatedTransitioning.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HistoryZoomAnimatedTransitioning.swift; sourceTree = "<group>"; };
 		A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientColorChangeView.swift; sourceTree = "<group>"; };
 		A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		A9DEAE3C1F16C15700CF66BA /* BrowserToolbarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserToolbarView.swift; sourceTree = "<group>"; };
@@ -347,7 +349,6 @@
 				A907DBA9205CFAB4009554C9 /* Visit+snapshot.swift */,
 				A907DBAB205DB055009554C9 /* Tab+Extensions.swift */,
 				A95DFF7C205B2FB700D540DD /* HistoryModel.xcdatamodeld */,
-				A9B62CD3208ABA4D003CAA54 /* UI */,
 			);
 			path = History;
 			sourceTree = "<group>";
@@ -383,6 +384,7 @@
 				A9667E9920575E4700295E76 /* Animation Utils */,
 				A9AA4A5B1FF76D27001AB639 /* Utils */,
 				A90F51241F71785E00221815 /* Tab Switcher */,
+				A9B62CD3208ABA4D003CAA54 /* History UI */,
 				A96A42EF1F91637F00C0F3E2 /* History */,
 				A90F51261F7178C000221815 /* Browser View */,
 				A9B62CCC2087FD93003CAA54 /* Search UI */,
@@ -443,15 +445,16 @@
 			path = "Search UI";
 			sourceTree = "<group>";
 		};
-		A9B62CD3208ABA4D003CAA54 /* UI */ = {
+		A9B62CD3208ABA4D003CAA54 /* History UI */ = {
 			isa = PBXGroup;
 			children = (
+				A9B62CD72091148E003CAA54 /* HistoryZoomAnimatedTransitioning.swift */,
 				A985F89A20831361007A726A /* HistoryTreeViewController.swift */,
 				A985F89E2083FB6B007A726A /* VisitCell.swift */,
 				A9B62CD1208AA54B003CAA54 /* TreeMaker.swift */,
 				A985F89C20831FD5007A726A /* TreeMakerLayout.swift */,
 			);
-			path = UI;
+			path = "History UI";
 			sourceTree = "<group>";
 		};
 		A9F9D7BE2050AB1D000BA8A3 /* Bookmarks */ = {
@@ -777,6 +780,7 @@
 				A95DFF7B2058BEC600D540DD /* Blendable.swift in Sources */,
 				A92C9C3B1EF8B5E600D8AAA3 /* BrowserGestureController.swift in Sources */,
 				A90F51211F70C6CB00221815 /* UIImageColors.swift in Sources */,
+				A9B62CD82091148E003CAA54 /* HistoryZoomAnimatedTransitioning.swift in Sources */,
 				A985F89F2083FB6B007A726A /* VisitCell.swift in Sources */,
 				A9E422811F86B4FD0028B4CA /* TabStackingLayout.swift in Sources */,
 				A9B62CCF2087FE0B003CAA54 /* SearchTransitionController.swift in Sources */,

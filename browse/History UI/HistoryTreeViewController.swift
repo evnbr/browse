@@ -13,12 +13,12 @@ protocol TreeDataSource {
     var treeMaker: TreeMaker { get }
 }
 
-class HistoryTreeViewController: UICollectionViewController, UIViewControllerTransitioningDelegate, TreeDataSource {
+class HistoryTreeViewController: UICollectionViewController, TreeDataSource {
 
 //    var _fetchedResultsController: NSFetchedResultsController<Visit>? = nil
     var blockOperations: [BlockOperation] = []
     let treeMaker: TreeMaker
-
+    let zoomTransition = HistoryZoomAnimatedTransitioning()
     let reuseIdentifier = "TreeCell"
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -29,6 +29,7 @@ class HistoryTreeViewController: UICollectionViewController, UIViewControllerTra
         let layout = TreeMakerLayout()
         treeMaker = TreeMaker(layout: layout)
         super.init(collectionViewLayout: layout)
+        transitioningDelegate = self
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -77,11 +78,22 @@ class HistoryTreeViewController: UICollectionViewController, UIViewControllerTra
     }
 }
 
+extension HistoryTreeViewController: UIViewControllerTransitioningDelegate {
+    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        zoomTransition.direction = .present
+        return zoomTransition
+    }
+    
+    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        zoomTransition.direction = .dismiss
+        return zoomTransition
+    }
+}
+
 // MARK: - UICollectionViewDataSource
 extension HistoryTreeViewController {
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        print("tree with \(treeMaker.nodeCount) nodes")
         return treeMaker.nodeCount
     }
     
@@ -109,10 +121,18 @@ extension HistoryTreeViewController {
             cell.unSelect()
         }
         if let selectedTab = treeMaker.object(at: indexPath)?.isCurrentVisitOf,
-            let browser = presentingViewController as? BrowserViewController,
-            browser.currentTab !== selectedTab {
+            let browser = presentingViewController as? BrowserViewController {
+            
             browser.setTab(selectedTab)
+            
+            UIView.animate(withDuration: 0.2, animations: {
+                collectionView.scrollToItem(
+                    at: indexPath,
+                    at: [ .centeredVertically, .centeredHorizontally ],
+                    animated: false)
+            }) { _ in
+                self.dismiss(animated: true, completion: nil)
+            }
         }
-        self.dismiss(animated: false, completion: nil)
     }
 }

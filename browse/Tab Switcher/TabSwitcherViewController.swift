@@ -10,7 +10,7 @@ import UIKit
 import WebKit
 import CoreData
 
-class TabSwitcherViewController: UICollectionViewController, UIViewControllerTransitioningDelegate {
+class TabSwitcherViewController: UICollectionViewController {
 
     var browserVC : BrowserViewController!
     var _fetchedResultsController: NSFetchedResultsController<Tab>? = nil
@@ -94,14 +94,7 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
             self.scrollToBottom()
         }
     }
-    
-//    @objc func showHistory() {
-//        guard let tabs = fetchedResultsController.fetchedObjects else { return }
-//        let historyVC = HistoryTreeViewController()
-//        historyVC.treeMaker.setTabs(tabs, selectedTab: browserVC.currentTab ?? tabs.first)
-//        present(historyVC, animated: true, completion: nil)
-//    }
-    
+        
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         updateCollectionViewLayout(with: size)
@@ -320,8 +313,9 @@ class TabSwitcherViewController: UICollectionViewController, UIViewControllerTra
     }
 
     
-    // MARK - Animation
-    
+}
+
+extension TabSwitcherViewController: UIViewControllerTransitioningDelegate {
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         thumbAnimationController.direction = .present
         return thumbAnimationController

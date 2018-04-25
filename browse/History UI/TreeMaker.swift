@@ -168,7 +168,7 @@ class TreeMaker : NSObject {
         self._nodeCount = nodeIDs.count
     }
     
-    func setTabs(_ mainThreadTabs: [Tab], selectedTab: Tab?) {
+    func loadTabs(_ mainThreadTabs: [Tab], selectedTab: Tab?, completion: (() -> ())?) {
         DispatchQueue.global(qos: .userInitiated).async {
             let context = HistoryManager.shared.persistentContainer.newBackgroundContext()
             let tabs = self.moveThread(tabs: mainThreadTabs, to: context)
@@ -184,12 +184,11 @@ class TreeMaker : NSObject {
             }
             
             self.traverseTrees(from: currentRoots)
-            self.applyLayout(selectedTab: selectedTab)
+            self.applyLayout(selectedTab: selectedTab, completion: completion)
         }
     }
     
-    private func applyLayout(selectedTab: Tab?) {
-
+    private func applyLayout(selectedTab: Tab?, completion: (() -> ())?) {
         DispatchQueue.main.async {
             self.layout.collectionView?.reloadData()
             if let sel = selectedTab {
@@ -201,6 +200,12 @@ class TreeMaker : NSObject {
                     at: startIndexPath,
                     at: [ .centeredVertically, .centeredHorizontally ],
                     animated: false)
+            }
+            else {
+                print("Couldn't scroll to item")
+            }
+            DispatchQueue.main.async {
+                completion?()
             }
         }
     }

@@ -374,7 +374,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         toolbar.searchField.action = { self.displayFullSearch(animated: true) }
         toolbar.backButton.action = goBack
         toolbar.stopButton.action = { self.webView.stopLoading() }
-        toolbar.tabButton.action = dismissSelf
+        toolbar.tabButton.action = displayHistory//dismissSelf
         toolbar.tintColor = .darkText
         return toolbar
     }
@@ -383,12 +383,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         guard let switcher = (presentingViewController as? UINavigationController)?.topViewController as? TabSwitcherViewController,
             let tabs =  switcher.fetchedResultsController.fetchedObjects else { return }
         let historyVC = HistoryTreeViewController()
-        historyVC.treeMaker.setTabs(tabs, selectedTab: currentTab ?? tabs.first)
-        present(historyVC, animated: false, completion: nil)
+        historyVC.loadViewIfNeeded() // to set up scrollpos
+        historyVC.treeMaker.loadTabs(tabs, selectedTab: currentTab!) {
+            self.present(historyVC, animated: true, completion: nil)
+        }
     }
     
     func displayFullSearch(animated: Bool = true) {
         searchVC.setBackground(toolbar.backgroundColor)
+        searchVC.modalPresentationStyle = .custom
         present(searchVC, animated: true, completion: nil)
     }
     

@@ -53,6 +53,7 @@ class VisitCell: UICollectionViewCell {
         toolbarView.backButton.isHidden = true
         toolbarView.tabButton.isHidden = true
         toolbarView.backgroundColor = .red
+        toolbarView.isUserInteractionEnabled = false
         toolbarView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(toolbarView, constraints: [
             toolbarView.leftAnchor.constraint(equalTo: contentView.leftAnchor),
@@ -208,6 +209,6 @@ class VisitCell: UICollectionViewCell {
         reset()
         snapView.image = nil
         contentView.backgroundColor = .white
-        label.text = "Blank"
+        label.text = ""
     }
 }
