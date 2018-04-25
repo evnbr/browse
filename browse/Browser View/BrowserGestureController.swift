@@ -90,7 +90,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     var feedbackGenerator : UISelectionFeedbackGenerator? = nil
     
     var canGoBackToParent : Bool {
-        return !vc.webView.canGoBack && vc.currentTab!.hasParent
+        return !vc.webView.canGoBack && vc.currentTab.hasParent
     }
     
     var switcherRevealProgress : CGFloat {
@@ -281,10 +281,13 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         else if scrollDelta < -1 { vc.showToolbar() }
         else if  dragAmount >  1 { vc.hideToolbar() }
         else if  dragAmount < -1 { vc.showToolbar() }
+        
+        if !decelerate {
+            vc.updateSnapshot()
+        }
     }
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        // TODO: Investigate whether this is too expensive, haven't seen problems yet
         vc.updateSnapshot()
     }
     
@@ -518,13 +521,12 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             }
             else if canGoBackToParent
             && adjustedX > backPointX {
-                if let parentTab = vc.currentTab?.parentTab {
+                if let parentTab = vc.currentTab.parentTab {
                     vc.updateSnapshot {
                         let vc = self.vc!
-                        self.mockCardView.imageView.image = vc.currentTab?.currentVisit?.snapshot
+                        self.mockCardView.imageView.image = vc.currentTab.currentVisit?.snapshot
                         vc.setTab(parentTab)
                         self.animateCommit(action: .goToParent)
-                        vc.home.moveTabToEnd(parentTab)
                     }
                 }
             }
@@ -536,7 +538,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         else if adjustedX < -backPointX && isHorizontal {
             if vc.webView.canGoForward {
                 print("Could go forward to one of the following")
-                let _ = vc.currentTab?.currentVisit?.forwardItems?.allObjects.map { item in
+                let _ = vc.currentTab.currentVisit?.forwardItems?.allObjects.map { item in
                     if let item = item as? Visit {
                         print("- \(item.title ?? "No Title")")
                     }
@@ -616,7 +618,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     }
     
     func setupBackToParentGesture() {
-        guard let parent = vc.currentTab?.parentTab,
+        guard let parent = vc.currentTab.parentTab,
             let parentPage = parent.currentVisit else { return }
         view.insertSubview(mockCardView, belowSubview: cardView)
         mockCardView.setPage(parentPage)
@@ -624,7 +626,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     }
     
     func tearDownBackToParentGesture() {
-        guard let parent = vc.currentTab?.parentTab else { return }
+        guard let parent = vc.currentTab.parentTab else { return }
         vc.home.setParentHidden(parent, hidden: false)
     }
     
@@ -701,7 +703,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         vc.webView.scrollView.showsVerticalScrollIndicator = false
         vc.webView.scrollView.cancelScroll()
         
-        vc.currentTab?.updateSnapshot(from: vc.webView)
+        vc.currentTab.updateSnapshot(from: vc.webView)
         vc.contentView.radius = Const.shared.cardRadius
         
         cancelGesturesInWebview()
@@ -723,7 +725,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         dismissVelocity = vel
         dismissSwitch.cancel()
-        if let parent = vc.currentTab?.parentTab {
+        if let parent = vc.currentTab.parentTab {
             vc.home.setParentHidden(parent, hidden: false)
         }
         
@@ -767,7 +769,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             }, completion: { done in
                 parentMock.removeFromSuperview()
                 vc.contentView.radius = 0
-                vc.home.moveTabToEnd(childTab)
             })
         }
     }
@@ -802,7 +803,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             }, completion: { done in
                 childMock.removeFromSuperview()
                 vc.isSnapshotMode = false // WHy?
-                vc.home.moveTabToEnd(parentTab)
             })
         }
     }
@@ -811,7 +811,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         // Swap image
         vc.setSnapshot(mockCardView.imageView.image)
         if action != .goToParent {
-            if let currentSnap = vc.currentTab?.currentVisit?.snapshot {
+            if let currentSnap = vc.currentTab.currentVisit?.snapshot {
                 mockCardView.setSnapshot(currentSnap)
             }
         }

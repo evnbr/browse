@@ -53,7 +53,7 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
 //        homeVC.setThumbsVisible()
         
         if isExpanding {
-            browserVC.resetSizes(withKeyboard: browserVC.isBlank)
+            browserVC.resetSizes()
             containerView.addSubview(browserVC.view)
         }
         else {

@@ -19,7 +19,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     var webView: WKWebView!
     var snapshotView: UIImageView = UIImageView()
-    var currentTab: Tab?
+    var currentTab: Tab
     
     var topConstraint : NSLayoutConstraint!
     var accessoryHeightConstraint : NSLayoutConstraint!
@@ -118,15 +118,25 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     // MARK: - Lifecycle
     
-    convenience init(home: TabSwitcherViewController) {
-        self.init()
+    init(home: TabSwitcherViewController, tab: Tab) {
+        self.currentTab = tab
         self.home = home
+        super.init(nibName: nil, bundle: nil)
+        setTab(tab)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
     
     
     func setTab(_ newTab: Tab) {
-        if newTab == currentTab { return }
-        
+        if view == nil {
+            fatalError("Can't set tab before view loaded")
+        }
+        if newTab == currentTab && webView != nil { return }
+        tabSwitcher?.moveTabToEnd(newTab)
+
         let oldWebView = webView
         
         oldWebView?.removeFromSuperview()
@@ -189,7 +199,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         updateLoadingState()
         showToolbar(animated: true)
         
-        if let startLocation = currentTab?.currentVisit?.url, self.isBlank {
+        if let startLocation = currentTab.currentVisit?.url, self.isBlank {
             navigateTo(startLocation)
         }
     }
@@ -379,13 +389,19 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         return toolbar
     }
     
+    var tabSwitcher: TabSwitcherViewController? {
+        return (presentingViewController as? UINavigationController)?.topViewController as? TabSwitcherViewController
+    }
+    
     func displayHistory() {
-        guard let switcher = (presentingViewController as? UINavigationController)?.topViewController as? TabSwitcherViewController,
+        guard let switcher = tabSwitcher,
             let tabs =  switcher.fetchedResultsController.fetchedObjects else { return }
         let historyVC = HistoryTreeViewController()
-        historyVC.loadViewIfNeeded() // to set up scrollpos
-        historyVC.treeMaker.loadTabs(tabs, selectedTab: currentTab!) {
-            self.present(historyVC, animated: true, completion: nil)
+        updateSnapshot {
+            historyVC.loadViewIfNeeded() // to set up scrollpos
+            historyVC.treeMaker.loadTabs(tabs, selectedTab: self.currentTab) {
+                self.present(historyVC, animated: true, completion: nil)
+            }
         }
     }
     
@@ -397,7 +413,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     func goBack() {
         if webView.canGoBack { webView.goBack() }
-        else if let parent = currentTab?.parentTab {
+        else if let parent = currentTab.parentTab {
             gestureController.swapTo(parentTab: parent)
         }
     }
@@ -458,7 +474,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             return
         }
         // Image snapshot
-        currentTab?.updateSnapshot(from: webView) { [weak self] img in
+        currentTab.updateSnapshot(from: webView) { [weak self] img in
             self?.setSnapshot(img)
             done()
         }
@@ -664,9 +680,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     
-    func resetSizes(withKeyboard : Bool = false) {
+    func resetSizes() {
         view.frame = UIScreen.main.bounds
-        webView.frame.origin.y = Const.statusHeight
+        webView?.frame.origin.y = Const.statusHeight
         cardView.transform = .identity
         cardView.bounds.size = cardViewDefaultFrame.size
         cardView.center = view.center        
@@ -680,7 +696,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         statusBar.label.text = webView.title
         
         UIView.animate(withDuration: 0.25) {
-            self.toolbar.backButton.isEnabled = self.webView.canGoBack || self.currentTab!.hasParent
+            self.toolbar.backButton.isEnabled = self.webView.canGoBack || self.currentTab.hasParent
         }
         
         if self.webView.isLoading {
@@ -694,7 +710,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         UIApplication.shared.isNetworkActivityIndicatorVisible = webView.isLoading
         
         HistoryManager.shared.sync(
-            tab: currentTab!,
+            tab: currentTab,
             with: webView.backForwardList
         )
     }
@@ -791,7 +807,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     }
     
     func topColorChange(_ newColor: UIColor) {
-        currentTab?.currentVisit?.topColor = newColor
+        currentTab.currentVisit?.topColor = newColor
         
         if shouldUpdateSample {
             statusBar.animateGradient(toColor: newColor, direction: .fromBottom)
@@ -802,7 +818,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     }
     
     func bottomColorChange(_ newColor: UIColor) {
-        currentTab?.currentVisit?.bottomColor = newColor
+        currentTab.currentVisit?.bottomColor = newColor
         
         if shouldUpdateSample {
             toolbar.animateGradient(toColor: newColor, direction: .fromTop)

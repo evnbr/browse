@@ -12,7 +12,6 @@ import CoreData
 
 class TabSwitcherViewController: UICollectionViewController {
 
-    var browserVC : BrowserViewController!
     var _fetchedResultsController: NSFetchedResultsController<Tab>? = nil
     var blockOperations: [BlockOperation] = []
 
@@ -27,16 +26,25 @@ class TabSwitcherViewController: UICollectionViewController {
     let stackedLayout = TabStackingLayout(isStacked: true)
     let spreadLayout = TabStackingLayout(isStacked: false)
 
-    var isFirstLoad = true
+    private var _browserVC : BrowserViewController?
+    func browser(for tab: Tab) -> BrowserViewController {
+        if let browser = _browserVC {
+            browser.setTab(tab)
+            return browser
+        }
+        let newBrowser = BrowserViewController(home: self, tab: tab)
+        _browserVC = newBrowser
+        return newBrowser
+    }
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        if browserVC?.view.window != nil && !browserVC.isBeingDismissed {
-            return browserVC.preferredStatusBarStyle
+        if let b = _browserVC, b.view.window != nil && !b.isBeingDismissed {
+            return b.preferredStatusBarStyle
         }
         return .lightContent
     }
     override var prefersStatusBarHidden: Bool {
-        return browserVC.prefersStatusBarHidden
+        return _browserVC?.prefersStatusBarHidden ??  false
     }
     
     var tabCount : Int {
@@ -45,8 +53,6 @@ class TabSwitcherViewController: UICollectionViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        browserVC = BrowserViewController(home: self)
         
         view.clipsToBounds = false
         navigationController?.navigationBar.barStyle = .blackTranslucent
@@ -61,11 +67,6 @@ class TabSwitcherViewController: UICollectionViewController {
         collectionView?.showsVerticalScrollIndicator = false
         collectionView?.register(DismissableTabCell.self, forCellWithReuseIdentifier: reuseIdentifier)
         collectionView?.backgroundColor = .black
-
-//        title = "Tabs"
-//        view.backgroundColor = .black
-//        let historyButton = UIBarButtonItem(title: "History", style: .plain, target: self, action: #selector(showHistory) )
-//        navigationItem.rightBarButtonItem = historyButton
         
         fab = FloatButton(
             frame: CGRect(x: 0, y: 0, width: 64, height: 64),
@@ -119,7 +120,10 @@ class TabSwitcherViewController: UICollectionViewController {
     func addTab(startingFrom url: URL? = nil, animated: Bool = true) {
         let newTab = createTab()
         showTab(newTab, animated: animated, completion: {
-            if let u = url { self.browserVC.navigateTo(u) }
+            if let startURL = url,
+                let browser = self._browserVC {
+                browser.navigateTo(startURL)
+            }
         })
     }
     
@@ -145,7 +149,7 @@ class TabSwitcherViewController: UICollectionViewController {
         if let indexPath = collectionView?.indexPath(for: cell) {
             let context = fetchedResultsController.managedObjectContext
             let tab = fetchedResultsController.object(at: indexPath)
-            browserVC?.webViewManager.removeWebViewFor(tab)
+            _browserVC?.webViewManager.removeWebViewFor(tab)
             context.delete(tab)
             saveContext()
         }
@@ -159,12 +163,12 @@ class TabSwitcherViewController: UICollectionViewController {
     }
     
     var currentIndexPath : IndexPath? {
-        guard let tab = browserVC.currentTab else { return nil }
+        guard let tab = _browserVC?.currentTab else { return nil }
         return fetchedResultsController.indexPath(forObject: tab)
     }
     
     var currentThumb : DismissableTabCell? {
-        guard let tab = browserVC.currentTab else { return nil }
+        guard let tab = _browserVC?.currentTab else { return nil }
         return thumb(forTab: tab)
     }
 
@@ -272,20 +276,20 @@ class TabSwitcherViewController: UICollectionViewController {
     }
     
     func showTab(_ tab: Tab, animated: Bool = true, completion: (() -> Void)? = nil) {
-        browserVC.modalPresentationStyle = .custom
-        browserVC.transitioningDelegate = self
+        let browser = self.browser(for: tab)
+        browser.modalPresentationStyle = .custom
+        browser.transitioningDelegate = self
         
-        self.browserVC.setTab(tab)
         spreadLayout.selectedIndexPath = currentIndexPath!
         stackedLayout.selectedIndexPath = currentIndexPath!
 
-        present(browserVC, animated: animated, completion: {
+        present(browser, animated: animated, completion: {
             if let thumb = self.thumb(forTab: tab) {
                 thumb.unSelect(animated: false)
                 thumb.setTab(tab)
             }
             self.moveTabToEnd(tab)
-            if let c = completion { c() }
+            completion?()
         })
     }
     
@@ -302,8 +306,6 @@ class TabSwitcherViewController: UICollectionViewController {
     override func viewDidAppear(_ animated: Bool) {
         navigationController?.isNavigationBarHidden = true
         fabSnapshot = fab.snapshotView(afterScreenUpdates: false)
-        
-        isFirstLoad = false
     }
     
     
