@@ -117,10 +117,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 //            self.vc.home.setThumbScale($0)
         }
         thumbScaler = Blend {
-            self.vc.home.setThumbScale($0)
+            self.vc.tabSwitcher.setThumbScale($0)
         }
         thumbPositioner = Blend {
-            self.vc.home.setThumbPosition(cardOffset: $0)
+            self.vc.tabSwitcher.setThumbPosition(cardOffset: $0)
         }
         
         dismissSwitch = SpringSwitch {
@@ -134,7 +134,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             self.vc.statusBar.label.alpha = $0.reverse().clip()
             self.mockCardView.statusBar.label.alpha = $0.reverse().clip()
             
-            self.vc.home.navigationController?.view.alpha = $0.reverse().clip().lerp(0.5, 1)
+            self.vc.tabSwitcher.navigationController?.view.alpha = $0.reverse().clip().lerp(0.5, 1)
         }
         
         let dismissPanner = UIPanGestureRecognizer()
@@ -321,7 +321,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let sign : CGFloat = direction == .leftToRight ? 1 : -1
         let hProg = (elasticLimit(adjustedX) / view.bounds.width * sign).clip()
         let dismissScale = (1 - hProg * cantGoBackScaleMultiplier - verticalProgress * vProgressScaleMultiplier)//.clip()
-        let hintScale = yGestureInfluence.progress(0, 160).clip().lerp(1, 0.7)
+        let hintScale = verticalProgress.lerp(1, dismissScale)
         let backScale = adjustedX.progress(0, 400).lerp(backItemScale, 1)
 
         let spaceW = cardView.bounds.width * ( 1 - dismissScale )
@@ -622,12 +622,12 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             let parentPage = parent.currentVisit else { return }
         view.insertSubview(mockCardView, belowSubview: cardView)
         mockCardView.setPage(parentPage)
-        vc.home.setParentHidden(parent, hidden: true)
+        vc.tabSwitcher.setParentHidden(parent, hidden: true)
     }
     
     func tearDownBackToParentGesture() {
         guard let parent = vc.currentTab.parentTab else { return }
-        vc.home.setParentHidden(parent, hidden: false)
+        vc.tabSwitcher.setParentHidden(parent, hidden: false)
     }
     
     func cancelGesturesInWebview() {
@@ -726,7 +726,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         dismissVelocity = vel
         dismissSwitch.cancel()
         if let parent = vc.currentTab.parentTab {
-            vc.home.setParentHidden(parent, hidden: false)
+            vc.tabSwitcher.setParentHidden(parent, hidden: false)
         }
         
         // hack to sync with collectionview update
@@ -880,7 +880,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             self.vc.contentView.radius = 0
 
             UIView.animate(withDuration: 0.2, animations: {
-                self.vc.home.setNeedsStatusBarAppearanceUpdate()
+                self.vc.tabSwitcher.setNeedsStatusBarAppearanceUpdate()
             })
             if action == .goToParent {
                 self.vc.isSnapshotMode = false
@@ -917,7 +917,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         // Move card back to center
         cardView.springCenter(to: view.center, at: velocity) {_,_ in
             UIView.animate(withDuration: 0.2, animations: {
-                self.vc.home.setNeedsStatusBarAppearanceUpdate()
+                self.vc.tabSwitcher.setNeedsStatusBarAppearanceUpdate()
             })
             self.vc.webView.scrollView.showsVerticalScrollIndicator = true
             self.vc.contentView.radius = 0
@@ -946,8 +946,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         mockCardView.springScale(to: 1)
         mockCardView.springScale(to: mockScale)
 
-        vc.home.springCards(toStacked: false, at: velocity)
-        vc.home.setThumbsVisible()
+        vc.tabSwitcher.springCards(toStacked: false, at: velocity)
+        vc.tabSwitcher.setThumbsVisible()
         
         UIView.animate(withDuration: 0.2) {
             self.vc.overlay.alpha = 0

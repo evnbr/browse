@@ -32,7 +32,7 @@ class TabSwitcherViewController: UICollectionViewController {
             browser.setTab(tab)
             return browser
         }
-        let newBrowser = BrowserViewController(home: self, tab: tab)
+        let newBrowser = BrowserViewController(tabSwitcher: self, tab: tab)
         _browserVC = newBrowser
         return newBrowser
     }

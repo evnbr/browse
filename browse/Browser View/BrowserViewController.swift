@@ -13,7 +13,7 @@ import pop
 
 class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIActivityItemSource {
     
-    var home: TabSwitcherViewController!
+    var tabSwitcher: TabSwitcherViewController
     
     let webViewManager = WebViewManager()
     
@@ -110,17 +110,16 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
     }
     
-    func finishHiddenNavigation() {
+    @objc func finishHiddenNavigation() {
         self.navigationToHide = nil //false
         self.isSnapshotMode = false
     }
     
-    
     // MARK: - Lifecycle
     
-    init(home: TabSwitcherViewController, tab: Tab) {
+    init(tabSwitcher: TabSwitcherViewController, tab: Tab) {
         self.currentTab = tab
-        self.home = home
+        self.tabSwitcher = tabSwitcher
         super.init(nibName: nil, bundle: nil)
         setTab(tab)
     }
@@ -135,7 +134,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             fatalError("Can't set tab before view loaded")
         }
         if newTab == currentTab && webView != nil { return }
-        tabSwitcher?.moveTabToEnd(newTab)
+        tabSwitcher.moveTabToEnd(newTab)
 
         let oldWebView = webView
         
@@ -259,6 +258,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             width: cardView.bounds.width,
             height: cardView.bounds.height - Const.statusHeight - Const.toolbarHeight
         )
+        let tapSnap = UITapGestureRecognizer(target: self, action: #selector(self.finishHiddenNavigation))
+        snapshotView.addGestureRecognizer(tapSnap)
         
         contentView.addSubview(snapshotView)
         contentView.addSubview(toolbar)
@@ -268,8 +269,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         contentView.addSubview(overlay)
         constrain4(contentView, overlay)
-//        contentView.addSubview(gradientOverlay)
-//        constrain4(contentView, gradientOverlay)
 
         constrainTop3(statusBar, contentView)
         statusHeightConstraint = statusBar.heightAnchor.constraint(equalToConstant: Const.statusHeight)
@@ -381,21 +380,16 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     func setUpToolbar() -> BrowserToolbarView {
         let toolbar = BrowserToolbarView(frame: CGRect(x: 0, y: 0, width: cardView.frame.width, height: Const.toolbarHeight))
         
-        toolbar.searchField.action = { self.displayFullSearch(animated: true) }
+        toolbar.searchField.action = displaySearch
         toolbar.backButton.action = goBack
-        toolbar.stopButton.action = { self.webView.stopLoading() }
-        toolbar.tabButton.action = displayHistory//dismissSelf
+        toolbar.stopButton.action = stop
+        toolbar.tabButton.action = displayHistory
         toolbar.tintColor = .darkText
         return toolbar
     }
     
-    var tabSwitcher: TabSwitcherViewController? {
-        return (presentingViewController as? UINavigationController)?.topViewController as? TabSwitcherViewController
-    }
-    
     func displayHistory() {
-        guard let switcher = tabSwitcher,
-            let tabs =  switcher.fetchedResultsController.fetchedObjects else { return }
+        guard let tabs = tabSwitcher.fetchedResultsController.fetchedObjects else { return }
         let historyVC = HistoryTreeViewController()
         updateSnapshot {
             historyVC.loadViewIfNeeded() // to set up scrollpos
@@ -405,10 +399,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
     }
     
-    func displayFullSearch(animated: Bool = true) {
+    func displaySearch() {
         searchVC.setBackground(toolbar.backgroundColor)
         searchVC.modalPresentationStyle = .custom
         present(searchVC, animated: true, completion: nil)
+    }
+    
+    func stop() {
+        webView.stopLoading()
+        finishHiddenNavigation()
     }
     
     func goBack() {
