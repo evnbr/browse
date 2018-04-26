@@ -31,7 +31,11 @@ class TreeConnectorAttributes: UICollectionViewLayoutAttributes {
 
 class TreeMakerLayout: UICollectionViewLayout {
     var attributesList = [ TreeConnectorAttributes ]()
-    var spacing = CGPoint(x: 180, y: 240)
+    
+    private let itemScale: CGFloat = 0.5
+    private let itemSize = CGSize(width: 120 * 2, height: 240 * 2)
+    private let itemSpacing = CGPoint(x: 160, y: 280)
+    
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -40,10 +44,10 @@ class TreeMakerLayout: UICollectionViewLayout {
         guard let cv = collectionView else { return .zero }
         guard let treeMaker = (cv.dataSource as? TreeDataSource)?.treeMaker else { return .zero }
 
-        let size = treeMaker.gridSize
+        let gridSize = treeMaker.gridSize
         return CGSize(
-            width:  size.width  * spacing.x + cv.bounds.width,
-            height: size.height * spacing.y + cv.bounds.height)
+            width:  gridSize.width  * itemSpacing.x + cv.bounds.width,
+            height: gridSize.height * itemSpacing.y + cv.bounds.height)
     }
     
     override init() {
@@ -63,18 +67,18 @@ class TreeMakerLayout: UICollectionViewLayout {
         attributesList = (0..<count).map { i -> TreeConnectorAttributes in
             let indexPath = IndexPath(item: i, section: 0)
             let attributes = TreeConnectorAttributes(forCellWith: indexPath)
-            attributes.bounds = CGRect(x: 0, y: 0, width: 240, height: 420)
-            attributes.transform = CGAffineTransform(scale: 0.5)
+            attributes.bounds = CGRect(origin: .zero, size: itemSize)
+            attributes.transform = CGAffineTransform(scale: itemScale)
 
             if let pt = treeMaker.position(for: indexPath)?.point {
                 attributes.center = CGPoint(
-                    x: margin.x + pt.x * spacing.x,
-                    y: margin.y + pt.y * spacing.y)
+                    x: margin.x + pt.x * itemSpacing.x,
+                    y: margin.y + pt.y * itemSpacing.y)
                 
                 if let parentPt = treeMaker.parentPosition(for: indexPath)?.point {
                     let dX = pt.x - parentPt.x - 1
                     let dY = pt.y - parentPt.y
-                    let size = CGSize(width: (60 + dX * spacing.x) * 2, height: (dY * spacing.y) * 2)
+                    let size = CGSize(width: (60 + dX * itemSpacing.x) * 2, height: (dY * itemSpacing.y) * 2)
                     attributes.connectorOffset = size
                 }
             }

@@ -30,42 +30,76 @@ class HistoryZoomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransi
         let historyVC = (isZoomingIn ? fromVC : toVC) as! HistoryTreeViewController
         let browserVC = (isZoomingIn ? toVC : fromVC) as! BrowserViewController
     
-        let startScale: CGFloat = isZoomingOut ? 1 : 0.3
-        let endScale: CGFloat = isZoomingOut ? 0.3 : 1
+        let pctScaleChange : CGFloat = 120 / browserVC.view.bounds.width
+        
+        let startScale: CGFloat = isZoomingOut ? 1 : pctScaleChange
+        let endScale: CGFloat = isZoomingOut ? pctScaleChange : 1
 
-        let treeStartScale: CGFloat = isZoomingOut ? 3 : 1
-        let treeEndScale: CGFloat = isZoomingOut ? 1 : 3
+        let treeStartScale: CGFloat = isZoomingOut ? 1 / pctScaleChange : 1
+        let treeEndScale: CGFloat = isZoomingOut ? 1 : 1 / pctScaleChange
 
         containerView.addSubview(historyVC.view)
         containerView.addSubview(browserVC.view)
         
-        browserVC.contentView.radius = Const.shared.cardRadius
-        browserVC.view.scale = startScale
-        browserVC.view.springScale(to: endScale)
+        let cv = historyVC.collectionView!
+        let currentIndexPath = historyVC.treeMaker.indexPath(for: browserVC.currentTab.currentVisit!)!
+        if !isZoomingIn {
+            historyVC.centerIndexPath(currentIndexPath)
+        }
         
-        historyVC.view.scale = treeStartScale
-        historyVC.view.springScale(to: treeEndScale ) {_,_ in
+        let expandedCenter = browserVC.view.center
+        var zoomedCenter = expandedCenter
+        var zoomEndOffset = cv.contentOffset
+        if let zoomedAttrs = cv.collectionViewLayout.layoutAttributesForItem(at: currentIndexPath) {
+            zoomedCenter = containerView.convert(zoomedAttrs.center, from: cv)
+            zoomedCenter.y += 20 // different size statusbar
+            
+            if isZoomingIn {
+                let shiftX = expandedCenter.x - zoomedCenter.x
+                let shiftY = expandedCenter.y - zoomedCenter.y
+                zoomEndOffset = CGPoint(
+                    x: cv.contentOffset.x - shiftX,
+                    y: cv.contentOffset.y - shiftY)
+            }
+
+        }
+        let startOffset = isZoomingIn ? cv.contentOffset : zoomEndOffset
+        let endOffset = isZoomingIn ? zoomEndOffset : cv.contentOffset
+
+        let browserScale = Blend(start: startScale, end: endScale) { browserVC.view.scale = $0 }
+        let historyScale = Blend(start: treeStartScale, end: treeEndScale) { historyVC.view.scale = $0 }
+        let browserCenter = Blend(
+            start: isZoomingOut ? expandedCenter : zoomedCenter,
+            end: isZoomingOut ? zoomedCenter : expandedCenter) {
+            browserVC.view.center = $0
+        }
+        let alpha = Blend<CGFloat>(start: isZoomingIn ? 0 : 1, end: isZoomingIn ? 1 : 0) {
+            browserVC.view.alpha = $0
+            historyVC.view.alpha = $0.reverse()
+        }
+        let offset = Blend(start: startOffset, end: endOffset) {
+            cv.contentOffset = $0
+        }
+        
+        let spring = SpringSwitch {
+            browserCenter.progress = $0
+            historyScale.progress = $0
+            browserScale.progress = $0
+            alpha.progress = $0
+            offset.progress = $0
+        }
+        
+        browserVC.contentView.radius = Const.shared.cardRadius
+        
+        spring.setState(.start)
+        let anim = spring.springState(.end) { (_, _) in
             browserVC.contentView.radius = 0
+            browserVC.view.center = expandedCenter
             browserVC.view.removeFromSuperview()
             transitionContext.completeTransition(true)
         }
-        
-        browserVC.view.alpha = isZoomingIn ? 0 : 1
-        historyVC.view.alpha = isZoomingIn ? 1 : 0
-        UIView.animate(withDuration: 0.2) {
-            browserVC.view.alpha = self.isZoomingIn ? 1 : 0
-            historyVC.view.alpha = self.isZoomingIn ? 0 : 1
-        }
-        
-        if let ip = historyVC.treeMaker.indexPath(for: browserVC.currentTab.currentVisit!) {
-            if isZoomingIn {
-                UIView.animate(withDuration: 0.2) {
-                    historyVC.centerIndexPath(ip)
-                }
-            }
-            else {
-                historyVC.centerIndexPath(ip)
-            }
-        }
+        anim?.springSpeed = 8
+        anim?.springBounciness = 2
+
     }
 }

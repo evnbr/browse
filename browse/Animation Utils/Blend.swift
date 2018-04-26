@@ -20,6 +20,12 @@ class Blend<T : Blendable>: NSObject {
         updateBlock = block
         super.init()
     }
+    
+    convenience init(start: T, end: T, update block: @escaping BlendUpdateBlock) {
+        self.init(update: block)
+        setValue(of: .start, to: start)
+        setValue(of: .end, to: end)
+    }
 
     func setValue(of: SpringTransitionState, to newValue: T) {
         if of == .start { start = newValue }

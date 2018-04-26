@@ -52,9 +52,9 @@ class HistoryTreeViewController: UICollectionViewController, TreeDataSource {
         collectionView?.backgroundColor = .black
         
         collectionView?.contentInset = UIEdgeInsets(
-            top: Const.statusHeight,
+            top: 0,// Const.statusHeight,
             left: 0,
-            bottom: Const.toolbarHeight,
+            bottom: 0, //Const.toolbarHeight,
             right: 0
         )
         

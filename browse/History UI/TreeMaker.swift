@@ -197,12 +197,7 @@ class TreeMaker : NSObject {
     private func applyLayout(selectedTab: Tab?, completion: (() -> ())?) {
         DispatchQueue.main.async {
             self.layout.collectionView?.reloadData()
-            if let sel = selectedTab {
-                let startIndexPath = self.indexPath(for: sel.currentVisit!)!
-            }
-            else {
-                print("Couldn't scroll to item")
-            }
+            self.layout.invalidateLayout()
             DispatchQueue.main.async {
                 completion?()
             }
