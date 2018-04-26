@@ -12,6 +12,7 @@
         <relationship name="childTabs" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Tab" inverseName="parentTab" inverseEntity="Tab" syncable="YES"/>
         <relationship name="currentVisit" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Visit" inverseName="isCurrentVisitOf" inverseEntity="Visit" syncable="YES"/>
         <relationship name="parentTab" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Tab" inverseName="childTabs" inverseEntity="Tab" syncable="YES"/>
+        <relationship name="visits" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Visit" inverseName="tab" inverseEntity="Visit" syncable="YES"/>
     </entity>
     <entity name="Visit" representedClassName="Visit" syncable="YES" codeGenerationType="class">
         <attribute name="bottomColor" optional="YES" attributeType="Transformable" customClassName="UIColor" syncable="YES"/>
@@ -24,10 +25,11 @@
         <relationship name="forwardItems" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Visit" inverseName="backItem" inverseEntity="Visit" syncable="YES"/>
         <relationship name="isCurrentVisitOf" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Tab" inverseName="currentVisit" inverseEntity="Tab" syncable="YES"/>
         <relationship name="site" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Site" inverseName="visits" inverseEntity="Site" syncable="YES"/>
+        <relationship name="tab" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Tab" inverseName="visits" inverseEntity="Tab" syncable="YES"/>
     </entity>
     <elements>
         <element name="Site" positionX="-135" positionY="63" width="128" height="105"/>
-        <element name="Tab" positionX="-234" positionY="-18" width="128" height="120"/>
-        <element name="Visit" positionX="-63" positionY="-18" width="135" height="195"/>
+        <element name="Tab" positionX="-234" positionY="-18" width="128" height="135"/>
+        <element name="Visit" positionX="-63" positionY="-18" width="135" height="210"/>
     </elements>
 </model>

@@ -119,7 +119,7 @@ extension HistoryTreeViewController {
     func configureCell(_ cell: UICollectionViewCell, with visit: Visit) {
         if let cell = cell as? VisitCell {
             cell.setVisit(visit)
-            cell.label.text = visit.date?.description
+//            cell.label.text = visit.date?.description
         }
     }
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -127,10 +127,22 @@ extension HistoryTreeViewController {
         if let cell = collectionView.cellForItem(at: indexPath) as? VisitCell {
             cell.unSelect()
         }
-        if let selectedTab = treeMaker.object(at: indexPath)?.isCurrentVisitOf,
+        if let visit = treeMaker.object(at: indexPath),
+            let tab = visit.tab,
+            let wkItem = HistoryManager.shared.wkListItem(for: visit),
             let browser = presentingViewController as? BrowserViewController {
-            browser.setTab(selectedTab)
-            self.dismiss(animated: true, completion: nil)
+            
+            if browser.webView.backForwardList.backList.contains(wkItem)
+                || browser.webView.backForwardList.forwardList.contains(wkItem) {
+            }
+            
+            browser.setTab(tab)
+            browser.setVisit(visit, wkItem: wkItem)
+            
+            zoomTransition.targetIndexPath = indexPath
+            self.dismiss(animated: true, completion: {
+                self.zoomTransition.targetIndexPath = nil
+            })
         }
     }
 }

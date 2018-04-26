@@ -605,7 +605,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     func setupBackGesture() {
         resetMockCardView()
         guard let backItem = vc.webView.backForwardList.backItem?.visit else { return }
-        mockCardView.setPage(backItem)
+        mockCardView.setVisit(backItem)
         view.addSubview(mockCardView)
         view.bringSubview(toFront: cardView)
     }
@@ -613,7 +613,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     func setupForwardGesture() {
         resetMockCardView()
         guard let fwdItem = vc.webView.backForwardList.forwardItem?.visit else { return }
-        mockCardView.setPage(fwdItem)
+        mockCardView.setVisit(fwdItem)
         view.addSubview(mockCardView)
     }
     
@@ -621,7 +621,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         guard let parent = vc.currentTab.parentTab,
             let parentPage = parent.currentVisit else { return }
         view.insertSubview(mockCardView, belowSubview: cardView)
-        mockCardView.setPage(parentPage)
+        mockCardView.setVisit(parentPage)
         vc.tabSwitcher.setParentHidden(parent, hidden: true)
     }
     

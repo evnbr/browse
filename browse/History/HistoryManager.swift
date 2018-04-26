@@ -48,6 +48,14 @@ class HistoryManager: NSObject {
         })
     }
     
+    func wkListItem(for visit: Visit) -> WKBackForwardListItem? {
+        let id = visit.objectID
+        return historyIDMap.first(where: { (k, v) -> Bool in
+            return v == id
+        })?.key
+    }
+
+    
     func existingVisit(from item: WKBackForwardListItem, in context: NSManagedObjectContext) -> Visit? {
         guard let id = historyIDMap[item] else { return nil }
         do {
@@ -120,7 +128,9 @@ class HistoryManager: NSObject {
                 
                 tab.currentVisit?.isCurrentVisitOf = nil
                 tab.currentVisit = newVisit
+                tab.addToVisits(newVisit)
                 newVisit.isCurrentVisitOf = tab
+                newVisit.tab = tab
             }
 
             var site: Site? = nil

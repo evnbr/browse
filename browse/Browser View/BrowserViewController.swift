@@ -104,10 +104,20 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
         else {
             // probably a javascript navigation, nav delegate can't track
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                 self.finishHiddenNavigation()
             }
         }
+    }
+    func setVisit(_ visit: Visit, wkItem: WKBackForwardListItem) {
+        setSnapshot(visit.snapshot)
+        if let color = visit.topColor { statusBar.backgroundColor = color }
+        if let color = visit.bottomColor { toolbar.backgroundColor = color }
+        statusBar.label.text = visit.title
+        toolbar.text = visit.url?.displayHost
+        
+        let nav = webView.go(to: wkItem)
+        hideUntilNavigationDone(navigation: nav)
     }
     
     @objc func finishHiddenNavigation() {
