@@ -72,7 +72,7 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             let cv = homeVC.collectionView {
             
 //            let attr = homeVC.stackedLayout.layoutAttributesForItem(at: ip)
-            let attr = homeVC.stackedLayout.calculateItem(
+            let attr = homeVC.cardStackLayout.calculateItem(
                 for: ip, whenStacked: true, scrollY: cv.contentOffset.y, baseCenter: cv.center, totalItems: cv.numberOfItems(inSection: 0))
             
             // must be after toVC is added
@@ -185,7 +185,7 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
         centerAnim?.springBounciness = 2
         
         if isExpanding {
-            homeVC.spreadLayout.offset.y = 0//-(thumbCenter.y - thumbBounds.height / 2 )
+            homeVC.cardStackLayout.offset.y = 0//-(thumbCenter.y - thumbBounds.height / 2 )
         }
         homeVC.springCards(toStacked: isDismissing, at: velocity) {
             popCardsDone = true

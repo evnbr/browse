@@ -16,17 +16,16 @@ let startY : CGFloat = 240
 // with POP as described in
 // http://www.nicnocquee.com/ios/2015/01/29/drive-uicollectionview-interactive-layout-transition-using-facebooks-pop.html
 
-class StackingTransition: UICollectionViewTransitionLayout {
-    override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
-        // Only adjust scroll for user, "proposed" seems to be garbage?
-//        print("current: \(collectionView!.contentOffset.y), proposed: \(proposedContentOffset.y)")
-        return collectionView!.contentOffset
-    }
-}
+//class StackingTransition: UICollectionViewTransitionLayout {
+//    override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
+//        // Only adjust scroll for user, "proposed" seems to be garbage?
+////        print("current: \(collectionView!.contentOffset.y), proposed: \(proposedContentOffset.y)")
+//        return collectionView!.contentOffset
+//    }
+//}
 
-class TabStackingLayout: UICollectionViewFlowLayout {
+class CardStackingLayout: UICollectionViewFlowLayout {
     
-    private var isStacked: Bool = true
     var offset: CGPoint = .zero
     var scale: CGFloat = 1
     
@@ -35,17 +34,12 @@ class TabStackingLayout: UICollectionViewFlowLayout {
     var parentIndexPath: IndexPath? = nil
     var parentHidden: Bool = false
     
-    var attributesList = [ UICollectionViewLayoutAttributes ]()
+    var stackedAttributes = [ UICollectionViewLayoutAttributes ]()
+    var expandedAttributes = [ UICollectionViewLayoutAttributes ]()
+    var blendedAttributes = [ UICollectionViewLayoutAttributes ]()
     
-    init(isStacked : Bool) {
-        super.init()
-        self.isStacked = isStacked
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
+    var expandedProgress: CGFloat = 0
+
     override var collectionViewContentSize: CGSize {
         let newSize = CGSize(
             width: collectionView!.bounds.width,
@@ -78,14 +72,31 @@ class TabStackingLayout: UICollectionViewFlowLayout {
         super.prepare()
 //        print("prepare - isStacked: \(isStacked)")
 
-        attributesList = calculateList(stacked: isStacked)
+        stackedAttributes = calculateList(stacked: true)
+        expandedAttributes = calculateList(stacked: false)
+        blendedAttributes = (0..<itemCount).map { i -> UICollectionViewLayoutAttributes in
+            let indexPath = IndexPath(item: i, section: 0)
+            let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
+            let a = stackedAttributes[i]
+            let b = expandedAttributes[i]
+            attributes.center = expandedProgress.lerp(a.center, b.center)
+            attributes.bounds = a.bounds
+            attributes.zIndex = a.zIndex
+            attributes.isHidden = a.isHidden
+            attributes.transform = CGAffineTransform(scale: expandedProgress.lerp(a.transform.xScale, b.transform.xScale))
+            return attributes
+        }
     }
     
+    private var itemCount: Int {
+        return collectionView!.numberOfItems(inSection: 0)
+    }
+
+    
     private func calculateList(stacked: Bool) -> [UICollectionViewLayoutAttributes] {
-        let count = collectionView!.numberOfItems(inSection: 0)
         let baseCenter = collectionView!.center
         let scrollY = collectionView!.contentOffset.y
-        let attributesList = (0..<count).map { i -> UICollectionViewLayoutAttributes in
+        let attributesList = (0..<itemCount).map { i -> UICollectionViewLayoutAttributes in
             let indexPath = IndexPath(item: i, section: 0)
             return calculateItem(
                 for: indexPath,
@@ -97,10 +108,6 @@ class TabStackingLayout: UICollectionViewFlowLayout {
         return attributesList
     }
     
-    private var itemCount: Int {
-        return collectionView!.numberOfItems(inSection: 0)
-    }
-        
     func calculateItem(for indexPath: IndexPath, whenStacked: Bool, scrollY: CGFloat, baseCenter: CGPoint, totalItems: Int) -> UICollectionViewLayoutAttributes {
         let topScrollPos = Const.statusHeight + 60
         let cardSize = UIScreen.main.bounds.size
@@ -170,14 +177,14 @@ class TabStackingLayout: UICollectionViewFlowLayout {
 
     
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-        return attributesList.filter { attrs -> Bool in
+        return blendedAttributes.filter { attrs -> Bool in
             return rect.intersects(attrs.frame.insetBy(dx: -40, dy: -40)) && attrs.alpha > 0 && !attrs.isHidden
         }
     }
     
     override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
         guard indexPath.count > 0, // sometimes this method sent nil paths - why?
-            indexPath.row < attributesList.count else { return nil }
-        return attributesList[indexPath.row]
+            indexPath.row < blendedAttributes.count else { return nil }
+        return blendedAttributes[indexPath.row]
     }
 }

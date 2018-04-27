@@ -23,8 +23,7 @@ class TabSwitcherViewController: UICollectionViewController {
     let itemsPerRow : CGFloat = 2
     
     let thumbAnimationController = StackAnimatedTransitioning()
-    let stackedLayout = TabStackingLayout(isStacked: true)
-    let spreadLayout = TabStackingLayout(isStacked: false)
+    let cardStackLayout = CardStackingLayout()
 
     private var _browserVC : BrowserViewController?
     func browser(for tab: Tab) -> BrowserViewController {
@@ -59,7 +58,7 @@ class TabSwitcherViewController: UICollectionViewController {
         navigationController?.navigationBar.tintColor = .white
         
         collectionView?.clipsToBounds = false
-        collectionView?.collectionViewLayout = stackedLayout
+        collectionView?.collectionViewLayout = cardStackLayout
         collectionView?.delaysContentTouches = false
         collectionView?.alwaysBounceVertical = true
         collectionView?.scrollIndicatorInsets.top = Const.statusHeight
@@ -206,58 +205,48 @@ class TabSwitcherViewController: UICollectionViewController {
         return cv.layoutAttributesForItem(at: ip)!.bounds
     }
     
-    func adjustedCenterFor(_ ip: IndexPath, offsetByScroll: Bool = false, isSwitcherMode: Bool = false) -> CGPoint {
-        return (isSwitcherMode ? stackedLayout : spreadLayout).layoutAttributesForItem(at: ip)!.center
-    }
-
-    
     func setThumbsVisible() {
         visibleCells.forEach { $0.isHidden = false }
     }
     
     func setParentHidden(_ parentTab : Tab, hidden newValue: Bool) {
-        spreadLayout.parentIndexPath = self.fetchedResultsController.indexPath(forObject: parentTab)
-        spreadLayout.parentHidden = newValue
+        cardStackLayout.parentIndexPath = self.fetchedResultsController.indexPath(forObject: parentTab)
+        cardStackLayout.parentHidden = newValue
     }
     
     func setThumbScale(_ scale: CGFloat) {
-        spreadLayout.scale = scale
-        spreadLayout.invalidateLayout()
+        cardStackLayout.scale = scale
+        cardStackLayout.invalidateLayout()
     }
     
     func setThumbPosition(cardOffset: CGPoint = .zero, offsetForContainer: Bool = false, isSwitcherMode: Bool = false, isToParent: Bool = false) {
-        spreadLayout.offset = cardOffset
-        spreadLayout.invalidateLayout()
+        cardStackLayout.offset = cardOffset
+        cardStackLayout.invalidateLayout()
     }
     
     func springCards(toStacked: Bool, at velocity: CGPoint = .zero, completion: (() -> ())? = nil) {
         if !toStacked {
-            spreadLayout.offset = .zero
-            spreadLayout.scale = 1
+            cardStackLayout.offset = .zero
+            cardStackLayout.scale = 1
         }
         
-        stackedLayout.selectedHidden = true
-        spreadLayout.selectedHidden = true
-        stackedLayout.invalidateLayout()
-        spreadLayout.invalidateLayout()
+        cardStackLayout.selectedHidden = true
+        cardStackLayout.invalidateLayout()
 
-        let tLayout = collectionView?.startInteractiveTransition(to: toStacked ? stackedLayout : spreadLayout) { _, _ in
+        let spring = SpringSwitch {
+            self.cardStackLayout.expandedProgress = $0
+            self.cardStackLayout.invalidateLayout()
+        }
+        spring.setState(toStacked ? .end : .start)
+        let anim = spring.springState(toStacked ? .start : .end) { (_, _) in
+            if toStacked {
+                self.cardStackLayout.selectedHidden = false
+                self.cardStackLayout.invalidateLayout()
+            }
             completion?()
         }
-        let spring = SpringSwitch {
-            tLayout?.transitionProgress = $0
-            tLayout?.invalidateLayout()
-        }
-        spring.setState(.start)
-        spring.springState(.end) { (_, _) in
-            if toStacked {
-                self.stackedLayout.selectedHidden = false
-                self.spreadLayout.selectedHidden = false
-                self.stackedLayout.invalidateLayout()
-                self.spreadLayout.invalidateLayout()
-            }
-            self.collectionView?.finishInteractiveTransition()
-        }
+        anim?.springSpeed = 9
+        anim?.springBounciness = 3
     }
     
     
@@ -280,8 +269,7 @@ class TabSwitcherViewController: UICollectionViewController {
         browser.modalPresentationStyle = .custom
         browser.transitioningDelegate = self
         
-        spreadLayout.selectedIndexPath = currentIndexPath!
-        stackedLayout.selectedIndexPath = currentIndexPath!
+        cardStackLayout.selectedIndexPath = currentIndexPath!
 
         present(browser, animated: animated, completion: {
             if let thumb = self.thumb(forTab: tab) {
@@ -388,8 +376,7 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
         }, completion: { finished in
             self.blockOperations.removeAll(keepingCapacity: false)
             if let ip = self.currentIndexPath {
-                self.spreadLayout.selectedIndexPath = ip
-                self.stackedLayout.selectedIndexPath = ip
+                self.cardStackLayout.selectedIndexPath = ip
             }
             self.scrollToBottom() // TODO this might be overkill
         })
@@ -436,10 +423,6 @@ extension TabSwitcherViewController {
             return CGSize(width: w, height: w / ratio )
         }
         return CGSize(width: view.frame.width - sectionInsets.left - sectionInsets.right, height: THUMB_H)
-    }
-    
-    override func collectionView(_ collectionView: UICollectionView, transitionLayoutForOldLayout fromLayout: UICollectionViewLayout, newLayout toLayout: UICollectionViewLayout) -> UICollectionViewTransitionLayout {
-        return StackingTransition(currentLayout: fromLayout, nextLayout: toLayout)
     }
 }
 

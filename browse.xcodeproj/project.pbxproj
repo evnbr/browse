@@ -71,7 +71,7 @@
 		A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */; };
 		A9D4B8C11F72F6D6006F0F18 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */; };
 		A9DEAE3D1F16C15700CF66BA /* BrowserToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DEAE3C1F16C15700CF66BA /* BrowserToolbarView.swift */; };
-		A9E422811F86B4FD0028B4CA /* TabStackingLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E422801F86B4FD0028B4CA /* TabStackingLayout.swift */; };
+		A9E422811F86B4FD0028B4CA /* CardStackingLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E422801F86B4FD0028B4CA /* CardStackingLayout.swift */; };
 		A9E4859D1EC8D7BE0021D155 /* WebviewColorSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E4859C1EC8D7BE0021D155 /* WebviewColorSampler.swift */; };
 		A9EF36D51F4A6451005112E2 /* WKWebview+Toolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9EF36D41F4A6451005112E2 /* WKWebview+Toolbar.swift */; };
 		A9F9D7BB204E0BAF000BA8A3 /* PageActionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F9D7BA204E0BAF000BA8A3 /* PageActionView.swift */; };
@@ -179,7 +179,7 @@
 		A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientColorChangeView.swift; sourceTree = "<group>"; };
 		A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		A9DEAE3C1F16C15700CF66BA /* BrowserToolbarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserToolbarView.swift; sourceTree = "<group>"; };
-		A9E422801F86B4FD0028B4CA /* TabStackingLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TabStackingLayout.swift; path = "browse/Tab Switcher/TabStackingLayout.swift"; sourceTree = SOURCE_ROOT; };
+		A9E422801F86B4FD0028B4CA /* CardStackingLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CardStackingLayout.swift; path = "browse/Tab Switcher/CardStackingLayout.swift"; sourceTree = SOURCE_ROOT; };
 		A9E4859C1EC8D7BE0021D155 /* WebviewColorSampler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebviewColorSampler.swift; sourceTree = "<group>"; };
 		A9EF36D41F4A6451005112E2 /* WKWebview+Toolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WKWebview+Toolbar.swift"; sourceTree = "<group>"; };
 		A9F9D7BA204E0BAF000BA8A3 /* PageActionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageActionView.swift; sourceTree = "<group>"; };
@@ -261,7 +261,7 @@
 				A92095901EE34CDC009497A2 /* TabSwitcherViewController.swift */,
 				A92095921EE36483009497A2 /* DismissableTabCell.swift */,
 				A9A88DE82015C64F007FC6C0 /* GradientView.swift */,
-				A9E422801F86B4FD0028B4CA /* TabStackingLayout.swift */,
+				A9E422801F86B4FD0028B4CA /* CardStackingLayout.swift */,
 				A9667E93205339B500295E76 /* BlobCollectionViewLayout.swift */,
 				A920958E1EDF4AB8009497A2 /* StackAnimatedTransitioning.swift */,
 			);
@@ -782,7 +782,7 @@
 				A90F51211F70C6CB00221815 /* UIImageColors.swift in Sources */,
 				A9B62CD82091148E003CAA54 /* HistoryZoomAnimatedTransitioning.swift in Sources */,
 				A985F89F2083FB6B007A726A /* VisitCell.swift in Sources */,
-				A9E422811F86B4FD0028B4CA /* TabStackingLayout.swift in Sources */,
+				A9E422811F86B4FD0028B4CA /* CardStackingLayout.swift in Sources */,
 				A9B62CCF2087FE0B003CAA54 /* SearchTransitionController.swift in Sources */,
 				A98483281EEFCFE200E821AE /* ColorToolbarView.swift in Sources */,
 				A92095931EE36483009497A2 /* DismissableTabCell.swift in Sources */,
