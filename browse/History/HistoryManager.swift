@@ -131,6 +131,12 @@ class HistoryManager: NSObject {
                 tab.addToVisits(newVisit)
                 newVisit.isCurrentVisitOf = tab
                 newVisit.tab = tab
+                
+                if let parentTabVisit = tab.parentTab?.currentVisit, list.backItem == nil {
+                    // Opened in new tab, create cross-tab link
+                    newVisit.backItem = parentTabVisit
+                    parentTabVisit.addToForwardItems(newVisit)
+                }
             }
 
             var site: Site? = nil

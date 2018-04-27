@@ -178,7 +178,13 @@ class TreeMaker : NSObject {
         DispatchQueue.global(qos: .userInitiated).async {
             let context = HistoryManager.shared.persistentContainer.newBackgroundContext()
             let tabs = self.moveThread(tabs: mainThreadTabs, to: context)
-            let currentVisits: [Visit] = tabs.map { $0.currentVisit! }
+            let rootTabs = tabs.filter({ tab -> Bool in
+                if let parent = tab.parentTab, tabs.contains(parent) {
+                    return false
+                }
+                return true
+            })
+            let currentVisits: [Visit] = rootTabs.map { $0.currentVisit! }
             let currentRoots: [Visit] = currentVisits.map { visit in
                 var root = visit
                 var backDepth = 0
