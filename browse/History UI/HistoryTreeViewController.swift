@@ -131,11 +131,7 @@ extension HistoryTreeViewController {
             let tab = visit.tab,
             let wkItem = HistoryManager.shared.wkListItem(for: visit),
             let browser = presentingViewController as? BrowserViewController {
-            
-            if browser.webView.backForwardList.backList.contains(wkItem)
-                || browser.webView.backForwardList.forwardList.contains(wkItem) {
-            }
-            
+                        
             browser.setTab(tab)
             browser.setVisit(visit, wkItem: wkItem)
             
