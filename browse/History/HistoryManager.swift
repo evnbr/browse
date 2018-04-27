@@ -330,7 +330,15 @@ extension HistoryManager {
     
     func writeSnapshotToFile(_ image: UIImage, id: UUID) {
         DispatchQueue.global(qos: .userInitiated).async {
-            guard let data = UIImagePNGRepresentation(image),
+            
+            let size = image.size.applying(CGAffineTransform(scale: 0.5))
+            UIGraphicsBeginImageContextWithOptions(size, true, 1)
+            image.draw(in: CGRect(origin: .zero, size: size))
+            let scaledImage = UIGraphicsGetImageFromCurrentImageContext()
+            UIGraphicsEndImageContext()
+            
+            guard let img = scaledImage,
+                let data = UIImagePNGRepresentation(img),
                 let dir = FileManager.defaultDirURL
                 else { return }
             do {
