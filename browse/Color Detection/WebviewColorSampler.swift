@@ -66,6 +66,12 @@ class WebviewColorSampler : NSObject {
         let sampleH : CGFloat = 6
         let sampleW : CGFloat = delegate.sampledWebView.bounds.width
         
+        let currentItem = delegate.sampledWebView.backForwardList.currentItem
+        
+        func didNavigateAfterSample() -> Bool {
+            return self.delegate.sampledWebView.backForwardList.currentItem !== currentItem
+        }
+        
         let bottomConfig = WKSnapshotConfiguration()
         bottomConfig.rect = CGRect(
             x: 0,
@@ -74,8 +80,10 @@ class WebviewColorSampler : NSObject {
             height: sampleH
         )
         delegate.sampledWebView.takeSnapshot(with: bottomConfig) { image, error in
+            if didNavigateAfterSample() { return }
 //            image?.getColors(scaleDownSize: bottomConfig.rect.size) { colors in
             image?.getColors() { colors in
+                if didNavigateAfterSample() { return }
                 self.bottom = colors.background
                 self.delegate.bottomColorChange(self.bottom)
             }
@@ -89,8 +97,10 @@ class WebviewColorSampler : NSObject {
             height: sampleH
         )
         delegate.sampledWebView.takeSnapshot(with: topConfig) { image, error in
+            if didNavigateAfterSample() { return }
 //            image?.getColors(scaleDownSize: topConfig.rect.size) { colors in
             image?.getColors() { colors in
+                if didNavigateAfterSample() { return }
                 self.top = colors.background
                 self.delegate.topColorChange(self.top)
             }

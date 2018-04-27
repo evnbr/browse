@@ -77,9 +77,11 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     }
     
     func cancelColorChange() {
-        gradientLayer.removeAllAnimations()
-        gradientLayer2.removeAllAnimations()
-        gradientLayer3.removeAllAnimations()
+        backgroundView.layer.sublayers?.forEach {
+            $0.removeFromSuperlayer()
+            $0.removeAllAnimations()
+        }
+        backgroundView.backgroundColor = lastColor
     }
     
     func getGradientLayer() -> CAGradientLayer? {
@@ -112,6 +114,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     }
     
     private func setBackground(to newColor: UIColor) {
+        cancelColorChange()
         self.backgroundView.backgroundColor = newColor
         self.tintColor = newColor.isLight ? .white : .darkText
         lastColor = newColor
@@ -175,7 +178,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         CATransaction.commit()
         
         UIView.animate(withDuration: 0.6, delay: 0, options: .curveEaseInOut, animations: {
-//            self.backgroundColor = toColor
+            self.backgroundColor = toColor
             self.tintColor = toColor.isLight ? .white : .darkText
         }, completion: nil)
         
