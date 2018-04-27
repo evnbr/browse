@@ -141,3 +141,10 @@ extension UIView {
     }
 }
 
+extension UICollectionViewLayoutAttributes {
+    var scale : CGFloat {
+        set { transform = CGAffineTransform(scale: newValue) }
+        get { return transform.xScale }
+    }
+}
+

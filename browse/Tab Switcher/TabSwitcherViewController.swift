@@ -245,7 +245,7 @@ class TabSwitcherViewController: UICollectionViewController {
             }
             completion?()
         }
-        anim?.springSpeed = 9
+        anim?.springSpeed = 7
         anim?.springBounciness = 3
     }
     
