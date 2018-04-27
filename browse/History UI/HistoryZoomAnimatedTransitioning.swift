@@ -16,7 +16,8 @@ class HistoryZoomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransi
     var direction: CustomAnimationDirection!
     var isZoomingOut: Bool { return direction == .present }
     var isZoomingIn: Bool { return direction == .dismiss }
-        
+    var targetIndexPath: IndexPath? = nil
+    
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         return 0.5
     }
@@ -42,7 +43,7 @@ class HistoryZoomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransi
         containerView.addSubview(browserVC.view)
         
         let cv = historyVC.collectionView!
-        let currentIndexPath = historyVC.treeMaker.indexPath(for: browserVC.currentTab.currentVisit!)!
+        let currentIndexPath = targetIndexPath ?? historyVC.treeMaker.indexPath(for: browserVC.currentTab.currentVisit!)!
         if !isZoomingIn {
             historyVC.centerIndexPath(currentIndexPath)
         }
@@ -74,8 +75,8 @@ class HistoryZoomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransi
             browserVC.view.center = $0
         }
         let alpha = Blend<CGFloat>(start: isZoomingIn ? 0 : 1, end: isZoomingIn ? 1 : 0) {
-            browserVC.view.alpha = $0
-            historyVC.view.alpha = $0.reverse()
+            browserVC.view.alpha = $0.progress(0, 0.3).clip()
+            historyVC.view.alpha = $0.reverse()//.progress(0, 0.3).clip()
         }
         let offset = Blend(start: startOffset, end: endOffset) {
             cv.contentOffset = $0
@@ -98,8 +99,8 @@ class HistoryZoomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransi
             browserVC.view.removeFromSuperview()
             transitionContext.completeTransition(true)
         }
-        anim?.springSpeed = 8
-        anim?.springBounciness = 2
+        anim?.springSpeed = 10
+        anim?.springBounciness = 3
 
     }
 }

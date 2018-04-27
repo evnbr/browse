@@ -131,14 +131,17 @@ extension HistoryTreeViewController {
             let tab = visit.tab,
             let wkItem = HistoryManager.shared.wkListItem(for: visit),
             let browser = presentingViewController as? BrowserViewController {
-                        
+            
             browser.setTab(tab)
             browser.setVisit(visit, wkItem: wkItem)
-            
-            zoomTransition.targetIndexPath = indexPath
-            self.dismiss(animated: true, completion: {
-                self.zoomTransition.targetIndexPath = nil
-            })
+            zoomIn(to: indexPath)
         }
+    }
+    
+    func zoomIn(to indexPath: IndexPath) {
+        zoomTransition.targetIndexPath = indexPath
+        self.dismiss(animated: true, completion: {
+            self.zoomTransition.targetIndexPath = nil
+        })
     }
 }
