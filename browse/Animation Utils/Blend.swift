@@ -40,9 +40,12 @@ class Blend<T : Blendable>: NSObject {
         }
     }
     
+    var currentValue: T {
+        return T.blend(from: start, to: end, by: _progress)
+    }
+    
     private func update() {
-        let newVal : T = T.blend(from: start, to: end, by: _progress)
-        updateBlock(newVal)
+        updateBlock(currentValue)
     }
 
 }

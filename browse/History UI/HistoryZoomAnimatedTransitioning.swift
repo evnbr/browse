@@ -31,12 +31,13 @@ class HistoryZoomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransi
         let historyVC = (isZoomingIn ? fromVC : toVC) as! HistoryTreeViewController
         let browserVC = (isZoomingIn ? toVC : fromVC) as! BrowserViewController
     
+        let browserCurrentScale = isZoomingOut ? browserVC.view.scale : 1
         let pctScaleChange : CGFloat = 120 / browserVC.view.bounds.width
         
-        let startScale: CGFloat = isZoomingOut ? 1 : pctScaleChange
+        let startScale: CGFloat = isZoomingOut ? browserCurrentScale : pctScaleChange
         let endScale: CGFloat = isZoomingOut ? pctScaleChange : 1
 
-        let treeStartScale: CGFloat = isZoomingOut ? 1 / pctScaleChange : 1
+        let treeStartScale: CGFloat = isZoomingOut ? 1 / pctScaleChange * browserCurrentScale : 1
         let treeEndScale: CGFloat = isZoomingOut ? 1 : 1 / pctScaleChange
 
         containerView.addSubview(historyVC.view)

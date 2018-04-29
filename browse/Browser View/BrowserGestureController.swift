@@ -163,8 +163,13 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         forwardDismissPan.cancelsTouchesInView = true
         forwardDismissPan.delaysTouchesBegan = false
         view.addGestureRecognizer(forwardDismissPan)
-    }
         
+        let pincher = UIPinchGestureRecognizer()
+        pincher.delegate = self
+        pincher.addTarget(self, action: #selector(pinch(gesture:)))
+        view.addGestureRecognizer(pincher)
+    }
+    
     func scrollViewDidScrollToTop(_ scrollView: UIScrollView) {
         vc.showToolbar()
     }
@@ -210,11 +215,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         updateToolbar(scrollView)
     }
     
-    func setScrollSilently(_ scrollView: UIScrollView, offset: CGPoint) {
-        let prevDelegate = scrollView.delegate;
-        scrollView.delegate = nil;
-        scrollView.contentOffset = offset;
-        scrollView.delegate = prevDelegate;
+    func scrollViewDidZoom(_ scrollView: UIScrollView) {
+        if isPinchDismissing {
+            scrollView.zoomScale = scrollView.minimumZoomScale
+        }
     }
     
     var shouldUpdateToolbar : Bool {
@@ -224,6 +228,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             && scrollView.isScrollableY
             && !scrollView.isOverScrolledTop
             && !vc.webView.isLoading
+            && !isPinchDismissing
+            && !isDismissing
     }
     
     func updateToolbar(_ scrollView: UIScrollView) {
@@ -541,12 +547,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
         else if adjustedX < -backPointX && isHorizontal {
             if vc.webView.canGoForward {
-                print("Could go forward to one of the following")
-                let _ = vc.currentTab.currentVisit?.forwardItems?.allObjects.map { item in
-                    if let item = item as? Visit {
-                        print("- \(item.title ?? "No Title")")
-                    }
-                }
                 let nav = vc.webView.goForward()
                 vc.hideUntilNavigationDone(navigation: nav)
                 animateCommit(action: .goForward, velocity: vel)
@@ -644,6 +644,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     func considerStarting(gesture: UIPanGestureRecognizer) {
         if isDismissing {
             fatalError("consider starting dismiss when previous dismissal hasn't ended")
+        }
+        if isPinchDismissing {
+            dismissingEndedPossible()
+            return
         }
         
         let scrollView = vc.webView.scrollView
@@ -1036,6 +1040,58 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         isDismissingPossible = true
         if GESTURE_DEBUG { vc.toolbar.text = "Possible" }
     }
+    
+    var isPinchDismissing = false
+    var pinchStartScale: CGFloat = 1
+    @objc func pinch(gesture: UIPinchGestureRecognizer) {
+        if gesture.state == .began {
+            considerPinchDismissing(gesture: gesture)
+        }
+        else if gesture.state == .changed {
+            updatePinchDismiss(gesture: gesture)
+        }
+        else if gesture.state == .ended || gesture.state == .cancelled {
+            endPinchGesture(gesture: gesture)
+        }
+    }
+    
+    func updatePinchDismiss(gesture: UIPinchGestureRecognizer) {
+        if isPinchDismissing {
+            let adjustedScale = 1 - (pinchStartScale - gesture.scale)
+            if adjustedScale > 1 { cancelPinchDismissing(gesture: gesture) }
+            else { vc.view.scale = 0.5 + adjustedScale * 0.5 }
+        }
+        else {
+            considerPinchDismissing(gesture: gesture)
+        }
+    }
+    func beginPinchDismissing(gesture: UIPinchGestureRecognizer) {
+        isPinchDismissing = true
+        pinchStartScale = gesture.scale
+        vc.contentView.radius = Const.shared.cardRadius
+    }
+    func endPinchGesture(gesture: UIPinchGestureRecognizer) {
+        if vc.view.scale < 0.8 {
+            commitPinchDismissing(gesture: gesture)
+        } else {
+            cancelPinchDismissing(gesture: gesture)
+        }
+    }
+    func commitPinchDismissing(gesture: UIPinchGestureRecognizer) {
+        isPinchDismissing = false
+        vc.displayHistory()
+    }
+    func cancelPinchDismissing(gesture: UIPinchGestureRecognizer) {
+        isPinchDismissing = false
+        vc.view.springScale(to: 1)
+    }
+    func considerPinchDismissing(gesture: UIPinchGestureRecognizer) {
+        let scrollView = vc.webView.scrollView
+        if scrollView.zoomScale < scrollView.minimumZoomScale {
+            beginPinchDismissing(gesture: gesture)
+        }
+    }
+
     
     @objc func anywherePan(gesture: UIPanGestureRecognizer) {
         if gesture.state == .began {
