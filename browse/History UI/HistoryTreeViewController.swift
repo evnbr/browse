@@ -133,8 +133,10 @@ extension HistoryTreeViewController {
             let browser = presentingViewController as? BrowserViewController {
             
             browser.setTab(tab)
-            browser.setVisit(visit, wkItem: wkItem)
-            zoomIn(to: indexPath)
+            if browser.canNavigateTo(wkItem: wkItem) {
+                browser.setVisit(visit, wkItem: wkItem)
+                zoomIn(to: indexPath)
+            }
         }
     }
     

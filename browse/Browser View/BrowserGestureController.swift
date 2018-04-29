@@ -90,7 +90,11 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     var feedbackGenerator : UISelectionFeedbackGenerator? = nil
     
     var canGoBackToParent : Bool {
-        return !vc.webView.canGoBack && vc.currentTab.hasParent
+        guard let backVisit = vc.currentTab.currentVisit?.backItem,
+            let backTab = backVisit.tab,
+            backTab !== vc.currentTab,
+            backTab.currentVisit == backVisit else { return false }
+        return true
     }
     
     var switcherRevealProgress : CGFloat {

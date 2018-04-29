@@ -112,7 +112,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     func setVisit(_ visit: Visit, wkItem: WKBackForwardListItem) {
         let list = webView.backForwardList
         if list.currentItem == wkItem { return }
-        guard list.backList.contains(wkItem) || list.forwardList.contains(wkItem) else { return }
         
         setSnapshot(visit.snapshot)
         if let color = visit.topColor { statusBar.backgroundColor = color }
@@ -122,6 +121,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         let nav = webView.go(to: wkItem)
         hideUntilNavigationDone(navigation: nav)
+    }
+    func canNavigateTo(wkItem: WKBackForwardListItem) -> Bool {
+        let list = webView.backForwardList
+        return list.currentItem == wkItem
+            || list.backList.contains(wkItem)
+            || list.forwardList.contains(wkItem)
     }
     
     @objc func finishHiddenNavigation() {
