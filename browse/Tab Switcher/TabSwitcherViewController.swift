@@ -146,10 +146,9 @@ class TabSwitcherViewController: UICollectionViewController {
     
     func closeTab(fromCell cell: UICollectionViewCell) {
         if let indexPath = collectionView?.indexPath(for: cell) {
-            let context = fetchedResultsController.managedObjectContext
             let tab = fetchedResultsController.object(at: indexPath)
+            tab.isClosed = true
             _browserVC?.webViewManager.removeWebViewFor(tab)
-            context.delete(tab)
             saveContext()
         }
     }
@@ -326,6 +325,7 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
         let fetchRequest: NSFetchRequest<Tab> = Tab.fetchRequest()
         fetchRequest.fetchBatchSize = 20
         fetchRequest.sortDescriptors = [ NSSortDescriptor(key: "sortIndex", ascending: true) ]
+        fetchRequest.predicate = NSPredicate(format: "isClosed == NO")
         
         let frc = NSFetchedResultsController(
             fetchRequest: fetchRequest,

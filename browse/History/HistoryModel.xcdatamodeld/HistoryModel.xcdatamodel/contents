@@ -8,6 +8,7 @@
     </entity>
     <entity name="Tab" representedClassName="Tab" syncable="YES" codeGenerationType="class">
         <attribute name="createdBy" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="isClosed" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES" syncable="YES"/>
         <attribute name="sortIndex" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
         <relationship name="childTabs" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Tab" inverseName="parentTab" inverseEntity="Tab" syncable="YES"/>
         <relationship name="currentVisit" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Visit" inverseName="isCurrentVisitOf" inverseEntity="Visit" syncable="YES"/>
@@ -29,7 +30,7 @@
     </entity>
     <elements>
         <element name="Site" positionX="-135" positionY="63" width="128" height="105"/>
-        <element name="Tab" positionX="-234" positionY="-18" width="128" height="135"/>
+        <element name="Tab" positionX="-234" positionY="-18" width="128" height="150"/>
         <element name="Visit" positionX="-63" positionY="-18" width="135" height="210"/>
     </elements>
 </model>
