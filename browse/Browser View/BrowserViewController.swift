@@ -760,11 +760,11 @@ extension UIResponder {
 
 extension BrowserViewController : WebviewColorSamplerDelegate {
     
-    var sampledWebView : WKWebView {
+    var sampledWebView: WKWebView {
         return webView
     }
     
-    var shouldUpdateSample : Bool {
+    var shouldUpdateSample: Bool {
         return (
             isViewLoaded
                 && view.window != nil
@@ -778,7 +778,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
         )
     }
     
-    var bottomSamplePosition : CGFloat {
+    var bottomSamplePosition: CGFloat {
         return cardView.bounds.height - Const.statusHeight - toolbar.heightConstraint.constant
     }
     

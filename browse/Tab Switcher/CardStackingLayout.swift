@@ -75,14 +75,12 @@ class CardStackingLayout: UICollectionViewFlowLayout {
         stackedAttributes = calculateList(stacked: true)
         expandedAttributes = calculateList(stacked: false)
         blendedAttributes = (0..<itemCount).map { i -> UICollectionViewLayoutAttributes in
-            let indexPath = IndexPath(item: i, section: 0)
-            //let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
-            
-            let attributes = stackedAttributes[i].copy(with: nil) as! UICollectionViewLayoutAttributes
+            let attrs = stackedAttributes[i].copy(with: nil) as! UICollectionViewLayoutAttributes
             let expandedAttrs = expandedAttributes[i]
-            attributes.center = expandedProgress.lerp(attributes.center, expandedAttrs.center)
-            attributes.scale = expandedProgress.lerp(attributes.scale, scale)
-            return attributes
+            attrs.center = expandedProgress.lerp(attrs.center, expandedAttrs.center)
+            attrs.scale = expandedProgress.lerp(attrs.scale, scale)
+            attrs.isHidden = attrs.isHidden || expandedAttrs.isHidden
+            return attrs
         }
     }
     

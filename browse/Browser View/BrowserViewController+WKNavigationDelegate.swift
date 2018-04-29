@@ -26,9 +26,6 @@ extension BrowserViewController: WKNavigationDelegate {
                 self.finishHiddenNavigation()
             }
         }
-        else if navigationToHide != nil {
-            print("might be stuck hidden")
-        }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             self.updateSnapshot()

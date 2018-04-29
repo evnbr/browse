@@ -174,11 +174,14 @@ class TreeMaker : NSObject {
         self._nodeCount = nodeIDs.count
     }
     
+    // TODO: Do our own fetchrequest here so we can
+    // also show closed tabs
     func loadTabs(_ mainThreadTabs: [Tab], selectedTab: Tab?, completion: (() -> ())?) {
         DispatchQueue.global(qos: .userInitiated).async {
             let context = HistoryManager.shared.persistentContainer.newBackgroundContext()
             let tabs = self.moveThread(tabs: mainThreadTabs, to: context)
             let rootTabs = tabs.filter({ tab -> Bool in
+                // child tabs belong inline
                 if let parent = tab.parentTab, tabs.contains(parent) {
                     return false
                 }

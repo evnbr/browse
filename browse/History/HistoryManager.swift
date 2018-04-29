@@ -68,7 +68,7 @@ class HistoryManager: NSObject {
     }
     
     func existingSite(for url: URL, in context: NSManagedObjectContext) -> Site? {
-        let request = NSFetchRequest<Site>(entityName: "Site")
+        let request: NSFetchRequest<Site> = Site.fetchRequest()
         request.predicate = NSPredicate(format: "url == %@", url.absoluteString)
         do {
             let results = try context.fetch(request)
@@ -237,7 +237,7 @@ extension HistoryManager {
             return
         }
         persistentContainer.performBackgroundTask { ctx in
-            let request = NSFetchRequest<Site>(entityName: "Site")
+            let request: NSFetchRequest<Site> = Site.fetchRequest()
             
             // todo: doesn't handle spaces
             var predicates : [NSPredicate] = []

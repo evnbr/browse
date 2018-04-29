@@ -18,7 +18,6 @@ extension BrowserViewController : WKUIDelegate {
             newTab.parentTab = currentTab
             let newWebView = webViewManager.addWebView(for: newTab, with: configuration)
             DispatchQueue.main.async {
-                // TODO: Why?
                 self.gestureController.swapTo(childTab: newTab)
             }
             return newWebView
@@ -52,7 +51,6 @@ extension BrowserViewController : WKUIDelegate {
         alertController.addAction(UIAlertAction(title: "OK", style: .default, handler: { (action) in
             completionHandler(true)
         }))
-        
         alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (action) in
             completionHandler(false)
         }))
@@ -84,5 +82,5 @@ extension BrowserViewController : WKUIDelegate {
         
         present(alertController, animated: true, completion: nil)
     }
-
+    
 }

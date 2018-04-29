@@ -160,7 +160,12 @@ class ToolbarSearchField: ToolbarTouchView {
                 self.maskLayer.locations = [val, val2]
             }
         }
-        else { maskLayer.locations = [val, val2] }
+        else {
+            CATransaction.begin()
+            CATransaction.disableActions()
+            maskLayer.locations = [val, val2]
+            CATransaction.commit()
+        }
     }
     
     required init?(coder aDecoder: NSCoder) {
