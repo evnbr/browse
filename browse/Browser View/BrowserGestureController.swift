@@ -120,7 +120,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             self.vc.tabSwitcher.setThumbScale($0)
         }
         thumbPositioner = Blend {
-            self.vc.tabSwitcher.setThumbPosition(cardOffset: $0)
+            self.vc.tabSwitcher.setCardOffset(to: $0)
         }
         
         dismissSwitch = SpringSwitch {
@@ -923,6 +923,14 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             self.vc.contentView.radius = 0
         }
         cardView.springScale(to: 1)
+        
+        
+        let blend = Blend(start: thumbPositioner.currentValue, end: .zero) {
+            self.vc.tabSwitcher.setCardOffset(to: $0)
+        }
+        let spring = SpringSwitch { blend.progress = $0 }
+        let anim = spring.springState(.end)
+        anim?.springSpeed = 12
 
         var mockCenter = self.view.center
         var mockScale = backItemScale
@@ -946,7 +954,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         mockCardView.springScale(to: 1)
         mockCardView.springScale(to: mockScale)
 
-        vc.tabSwitcher.springCards(toStacked: false, at: velocity)
         vc.tabSwitcher.setThumbsVisible()
         
         UIView.animate(withDuration: 0.2) {

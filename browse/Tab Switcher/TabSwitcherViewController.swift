@@ -219,8 +219,8 @@ class TabSwitcherViewController: UICollectionViewController {
         cardStackLayout.invalidateLayout()
     }
     
-    func setThumbPosition(cardOffset: CGPoint = .zero, offsetForContainer: Bool = false, isSwitcherMode: Bool = false, isToParent: Bool = false) {
-        cardStackLayout.offset = cardOffset
+    func setCardOffset(to offset: CGPoint = .zero) {
+        cardStackLayout.offset = offset
         cardStackLayout.invalidateLayout()
     }
     
