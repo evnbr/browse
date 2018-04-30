@@ -88,5 +88,46 @@ extension BrowserViewController: WKNavigationDelegate {
         
     func webView(_ webView: WKWebView, didReceiveServerRedirectForProvisionalNavigation navigation: WKNavigation!) {
     }
+    
+    func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        
+        if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodHTTPBasic {
+            let space = challenge.protectionSpace
+            
+            let ac = UIAlertController(
+                title: "Log in to \(space.host)",
+                message: "",
+                preferredStyle: .alert)
+
+            ac.addTextField { field in
+                field.keyboardAppearance = .light
+                field.placeholder = "username"
+                field.returnKeyType = .next
+            }
+            ac.addTextField { field in
+                field.keyboardAppearance = .light
+                field.isSecureTextEntry = true
+                field.placeholder = "password"
+                field.returnKeyType = .go
+            }
+            ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { action in
+                completionHandler(URLSession.AuthChallengeDisposition.performDefaultHandling, nil)
+            }))
+            ac.addAction(UIAlertAction(title: "Submit", style: .default, handler: { action in
+                if let userName = ac.textFields?.first?.text,
+                    let password = ac.textFields?.last?.text {
+                    print("u: \(userName), p: \(password)")
+                    let credential = URLCredential(user: userName, password: password, persistence: URLCredential.Persistence.forSession)
+                    challenge.sender?.use(credential, for: challenge)
+                    completionHandler(URLSession.AuthChallengeDisposition.useCredential, credential)
+                }
+            }))
+            present(ac, animated: true, completion: nil)
+            
+        }
+        else {
+            completionHandler(URLSession.AuthChallengeDisposition.performDefaultHandling, nil)
+        }
+    }
 
 }
