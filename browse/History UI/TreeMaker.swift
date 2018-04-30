@@ -19,7 +19,7 @@ struct TreePosition: Hashable {
 }
 
 class TreeMaker : NSObject {
-    private let initialMaxDepth = 10
+    private let initialMaxDepth = 5
     private let viewContext = HistoryManager.shared.persistentContainer.viewContext
     
     private var layout: TreeMakerLayout
@@ -131,6 +131,9 @@ class TreeMaker : NSObject {
             usedPositions.insert(pos)
             self.addVisit(node, at: pos)
             
+            if currentDepth > initialMaxDepth {
+                return
+            }
             if let children = node.forwardItems?.allObjects as? [Visit] {
                 currentDepth += 1
                 if currentDepth > maxDepth { maxDepth = currentDepth }
@@ -140,46 +143,60 @@ class TreeMaker : NSObject {
                 currentDepth -= 1
             }
         }
-        roots.sorted(by: oldToNew).forEach { traverse($0) }
+        roots.sorted(by: oldToNew).forEach {
+            traverse($0)
+        }
         
         self._gridSize = CGSize(width: maxDepth, height: maxY + 1)
         self._nodeCount = nodeIDs.count
     }
     
-    private func traverseTreesABSOLUTE(from roots: [Visit]) {
-        var currentY: Int = 0
-        var currentDepth: Int = 0
-        var maxDepth: Int = 0
-        
-        func traverse(_ node: Visit) {
-            let subtreeStartY = currentY
-            let pos = TreePosition(x: currentDepth, y: subtreeStartY)
-            self.addVisit(node, at: pos)
-            
-            if let children = node.forwardItems?.allObjects as? [Visit] {
-                currentDepth += 1
-                if currentDepth > maxDepth { maxDepth = currentDepth }
-                for child in children.sorted(by: newToOld) {
-                    traverse(child)
-                }
-                currentDepth -= 1
-            }
-            if subtreeStartY == currentY {
-                currentY += 1
-            }
+//    private func traverseTreesABSOLUTE(from roots: [Visit]) {
+//        var currentY: Int = 0
+//        var currentDepth: Int = 0
+//        var maxDepth: Int = 0
+//
+//        func traverse(_ node: Visit) {
+//            let subtreeStartY = currentY
+//            let pos = TreePosition(x: currentDepth, y: subtreeStartY)
+//            self.addVisit(node, at: pos)
+//
+//            if let children = node.forwardItems?.allObjects as? [Visit] {
+//                currentDepth += 1
+//                if currentDepth > maxDepth { maxDepth = currentDepth }
+//                for child in children.sorted(by: newToOld) {
+//                    traverse(child)
+//                }
+//                currentDepth -= 1
+//            }
+//            if subtreeStartY == currentY {
+//                currentY += 1
+//            }
+//        }
+//        roots.sorted(by: oldToNew).forEach { traverse($0) }
+//
+//        self._gridSize = CGSize(width: maxDepth, height: currentY)
+//        self._nodeCount = nodeIDs.count
+//    }
+    
+    func loadTabs() {
+        HistoryManager.shared.persistentContainer.performBackgroundTask { ctx in
         }
-        roots.sorted(by: oldToNew).forEach { traverse($0) }
-        
-        self._gridSize = CGSize(width: maxDepth, height: currentY)
-        self._nodeCount = nodeIDs.count
     }
     
     // TODO: Do our own fetchrequest here so we can
     // also show closed tabs
-    func loadTabs(_ mainThreadTabs: [Tab], selectedTab: Tab?, completion: (() -> ())?) {
-        DispatchQueue.global(qos: .userInitiated).async {
-            let context = HistoryManager.shared.persistentContainer.newBackgroundContext()
-            let tabs = self.moveThread(tabs: mainThreadTabs, to: context)
+    func loadTabs(selectedTab: Tab?, completion: (() -> ())?) {
+        HistoryManager.shared.persistentContainer.performBackgroundTask { ctx in
+            var tabs: [Tab]
+            let request: NSFetchRequest<Tab> = Tab.fetchRequest()
+            request.fetchBatchSize = 20
+            do {
+                tabs = try ctx.fetch(request)
+            } catch let error{
+                print(error)
+                return
+            }
             let rootTabs = tabs.filter({ tab -> Bool in
                 // child tabs belong inline
                 if let parent = tab.parentTab, tabs.contains(parent) {
@@ -187,6 +204,7 @@ class TreeMaker : NSObject {
                 }
                 return true
             })
+
             let currentVisits: [Visit] = rootTabs.map { $0.currentVisit! }
             let currentRoots: [Visit] = currentVisits.map { visit in
                 var root = visit

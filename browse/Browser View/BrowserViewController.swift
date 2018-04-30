@@ -408,11 +408,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     func displayHistory() {
-        guard let tabs = tabSwitcher.fetchedResultsController.fetchedObjects else { return }
         let historyVC = HistoryTreeViewController()
         updateSnapshot {
             historyVC.loadViewIfNeeded() // to set up scrollpos
-            historyVC.treeMaker.loadTabs(tabs, selectedTab: self.currentTab) {
+            historyVC.treeMaker.loadTabs(selectedTab: self.currentTab) {
                 self.present(historyVC, animated: true, completion: nil)
             }
         }
