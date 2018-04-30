@@ -83,7 +83,7 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             ? 0 : (isAnimatingFromToolbar ? SPACE_FOR_INDICATOR : -48))
         typeaheadVC.textHeightConstraint.springConstant(to: isExpanding
             ? typeaheadVC.textHeight : 40)
-
+        
         titleSnap?.scale = isExpanding ? 1 : 1.15
         titleSnap?.alpha = isExpanding ? 1 : 0
         toolbarSnap?.alpha = isExpanding ? 1 : -1
@@ -130,6 +130,7 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             }
             toolbarSnap?.removeFromSuperview()
             titleSnap?.removeFromSuperview()
+            
             browserVC?.toolbar.searchField.labelHolder.isHidden = false
             
             UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
@@ -164,7 +165,14 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
                 
                 typeaheadVC.textView.mask?.frame.size = self.isExpanding ? maskEndSize : maskStartSize
 
-                
+                if let b = browserVC {
+                    let baseCenter = b.view.center
+                    var shiftedCenter = baseCenter
+                    shiftedCenter.y -= typeaheadVC.keyboardHeight
+                    shiftedCenter.y -= typeaheadVC.browserExtraOffset
+                    b.cardView.center = self.isExpanding ? shiftedCenter : baseCenter
+                }
+
                 if self.isDismissing {
                     typeaheadVC.textView.resignFirstResponder()
                 }

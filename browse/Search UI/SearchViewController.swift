@@ -15,6 +15,8 @@ let SEARCHVIEW_MAX_H : CGFloat = 240.0
 
 class SearchViewController: UIViewController {
 
+    let browserExtraOffset: CGFloat = 70
+
     var contentView: UIView!
     var backgroundView: PlainBlurView!
     var scrim: UIView!
@@ -77,7 +79,7 @@ class SearchViewController: UIViewController {
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         
         scrim = UIView(frame: view.bounds)
-        scrim.backgroundColor = UIColor.black.withAlphaComponent(0.2)
+//        scrim.backgroundColor = UIColor.black.withAlphaComponent(0.2)
         view.addSubview(scrim, constraints: [
             scrim.topAnchor.constraint(equalTo: view.topAnchor),
             scrim.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -Const.toolbarHeight),
@@ -94,12 +96,12 @@ class SearchViewController: UIViewController {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.tintColor = .darkText
         contentView.clipsToBounds = true
-        contentView.radius = Const.shared.cardRadius
+//        contentView.radius = Const.shared.cardRadius
         view.addSubview(contentView)
         
         backgroundView = PlainBlurView(frame: contentView.bounds)
         backgroundView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        backgroundView.overlayAlpha = isFakeTab ? 1 : 0.8
+        backgroundView.overlayAlpha = 1//isFakeTab ? 1 : 0.8
         contentView.addSubview(backgroundView)
 
         NSLayoutConstraint.activate([
@@ -475,7 +477,12 @@ extension SearchViewController : UIGestureRecognizerDelegate {
         else if gesture.state == .changed {
             if dist.y < 0 { 
                 kbHeightConstraint.constant = keyboardHeight
-                textHeightConstraint.constant = textHeight + 0.4 * elasticLimit(-dist.y)
+                let elastic = 0.4 * elasticLimit(-dist.y)
+                textHeightConstraint.constant = textHeight + elastic
+                
+                if let b = browser {
+                    b.cardView.center.y = b.view.center.y - elastic - keyboardHeight - browserExtraOffset
+                }
             }
             else {
                 if dist.y < keyboardHeight - SPACE_FOR_INDICATOR {
@@ -494,6 +501,9 @@ extension SearchViewController : UIGestureRecognizerDelegate {
                 }
                 suggestionTable.alpha = dist.y.progress(keyboardHeight - 40, keyboardHeight + 100).clip().reverse()
                 pageActionView.alpha = dist.y.progress(keyboardHeight - 40, keyboardHeight + 60).clip().reverse()
+                if let b = browser {
+                    b.cardView.center.y = b.view.center.y + dist.y - keyboardHeight - browserExtraOffset
+                }
             }
         }
         else if gesture.state == .ended || gesture.state == .cancelled {
@@ -510,6 +520,11 @@ extension SearchViewController : UIGestureRecognizerDelegate {
                 kbHeightConstraint.springConstant(to: keyboardHeight) {_,_ in
                     if fromBelow { finish() }
                 }
+                
+                var shiftedCenter = browser!.view.center
+                shiftedCenter.y -= keyboardHeight
+                shiftedCenter.y -= browserExtraOffset
+                browser?.cardView.springCenter(to: shiftedCenter)
                 contextAreaHeightConstraint.springConstant(to: contextAreaHeight)
                 toolbarBottomMargin.springConstant(to: 0)
                 suggestionTable.alpha = 1
