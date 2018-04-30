@@ -9,8 +9,8 @@
 import UIKit
 
 enum GradientColorChangeDirection {
-    case fromTop
-    case fromBottom
+    case topToBottom
+    case bottomToTop
 }
 
 
@@ -20,7 +20,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     let gradientLayer2: CAGradientLayer = CAGradientLayer()
     let gradientLayer3: CAGradientLayer = CAGradientLayer()
     
-    let duration : CFTimeInterval = 1.5//0.3
+    let duration : CFTimeInterval = 1//0.3
 
     var backgroundView: UIView!
     
@@ -84,7 +84,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         backgroundView.backgroundColor = lastColor
     }
     
-    func getGradientLayer() -> CAGradientLayer? {
+    func getGradientLayer() -> CAGradientLayer {
         if gradientLayer.superlayer == nil {
             return gradientLayer
         }
@@ -121,36 +121,33 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     }
     
     @discardableResult
-    func animateGradient(toColor: UIColor, direction: GradientColorChangeDirection ) -> Bool {
+    func transitionBackground(to toColor: UIColor, from direction: GradientColorChangeDirection ) -> Bool {
         if toColor.isEqual(lastColor) { return false }
         
-        guard let gLayer : CAGradientLayer = getGradientLayer() else {
-            print("all grads in use")
-            return false
-        }
+        let gLayer = getGradientLayer()
         
         CATransaction.begin()
         CATransaction.setDisableActions(true)
 
         var endLoc: [NSNumber]
         var beginLoc: [NSNumber]
-        if direction == .fromTop {
+        if direction == .topToBottom {
             gLayer.colors = [
                 toColor.cgColor,
                 toColor.withAlphaComponent(0).cgColor
             ]
-            beginLoc = [-2, 0]
-            endLoc = [1, 3]
-//            beginLoc = [0, 0.05]
+//            beginLoc = [-2, 0]
+            endLoc = [1, 5]
+            beginLoc = [0, 0.05]
 //            endLoc = [1, 1.05]
         } else {
             gLayer.colors = [
                 toColor.withAlphaComponent(0).cgColor,
                 toColor.cgColor
             ]
-            beginLoc = [1, 3]
-            endLoc = [-2, 0]
-//            beginLoc = [0.95, 1]
+//            beginLoc = [1, 3]
+            endLoc = [-4, 0]
+            beginLoc = [0.95, 1]
 //            endLoc = [-0.05, 0]
         }
         gLayer.locations = beginLoc
@@ -174,11 +171,9 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         })
         gLayer.add(colorChangeAnimation, forKey: "gradientChange")
         backgroundView.layer.addSublayer(gLayer)
-
         CATransaction.commit()
         
         UIView.animate(withDuration: 0.6, delay: 0, options: .curveEaseInOut, animations: {
-            self.backgroundColor = toColor
             self.tintColor = toColor.isLight ? .white : .darkText
         }, completion: nil)
         

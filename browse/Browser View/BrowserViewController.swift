@@ -764,17 +764,13 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     }
     
     var shouldUpdateSample: Bool {
-        return (
-            isViewLoaded
-                && view.window != nil
-                && !gestureController.isDismissing
-                && UIApplication.shared.applicationState == .active
-                && webView != nil
-                && !isSnapshotMode //!hiddenUntilNavigationDone
-                && !(webView.scrollView.contentOffset.y < 0)
-//                && abs(cardView.frame.origin.y) < 1.0
-//                && abs(cardView.frame.origin.x) < 1.0
-        )
+        return isViewLoaded
+            && view.window != nil
+            && !gestureController.isDismissing
+            && UIApplication.shared.applicationState == .active
+            && webView != nil
+            && !isSnapshotMode
+            && !webView.scrollView.isOverScrolledTop
     }
     
     var bottomSamplePosition: CGFloat {
@@ -801,33 +797,35 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     }
 
     func checkFixedNav() {
-        webView.evaluateFixedNav() { (isFixed) in
-            let sv = self.webView.scrollView
-            
-            let transparentStatusBar = sv.isScrollableY
-                && sv.contentOffset.y > Const.statusHeight
-                && !isFixed.top
-            let transparentToolbar = sv.isScrollableY
-                && !isFixed.bottom
-                && sv.contentOffset.y < sv.maxScrollY - Const.toolbarHeight
-            let newStatusAlpha : CGFloat = transparentStatusBar ? 0.8 : 1
-            let newToolbarAlpha : CGFloat = transparentToolbar ? 0.8 : 1
-
-            if newStatusAlpha != self.statusBar.backgroundView.alpha
-                || newToolbarAlpha != self.toolbar.backgroundView.alpha {
-                UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
-                    self.statusBar.backgroundView.alpha = newStatusAlpha
-                    self.toolbar.backgroundView.alpha = newToolbarAlpha
-                })
-            }
-        }
+//        webView.evaluateFixedNav() { (isFixed) in
+//            let sv = self.webView.scrollView
+//
+//            let transparentStatusBar = sv.isScrollableY
+//                && sv.contentOffset.y > Const.statusHeight
+//                && !isFixed.top
+//            let transparentToolbar = sv.isScrollableY
+//                && !isFixed.bottom
+//                && sv.contentOffset.y < sv.maxScrollY - Const.toolbarHeight
+//            let newStatusAlpha : CGFloat = transparentStatusBar ? 0.8 : 1
+//            let newToolbarAlpha : CGFloat = transparentToolbar ? 0.8 : 1
+//
+//            if newStatusAlpha != self.statusBar.backgroundView.alpha
+//                || newToolbarAlpha != self.toolbar.backgroundView.alpha {
+//                UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
+//                    self.statusBar.backgroundView.alpha = newStatusAlpha
+//                    self.toolbar.backgroundView.alpha = newToolbarAlpha
+//                })
+//            }
+//        }
     }
     
     func topColorChange(_ newColor: UIColor) {
-        currentTab.currentVisit?.topColor = newColor
-        
-        if shouldUpdateSample {
-            statusBar.animateGradient(toColor: newColor, direction: .fromBottom)
+        if newColor != currentTab.currentVisit?.topColor {
+            currentTab.currentVisit?.topColor = newColor
+            return
+        }
+        else if shouldUpdateSample {
+            statusBar.transitionBackground(to: newColor, from: .bottomToTop)
             UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
                 self.setNeedsStatusBarAppearanceUpdate()
             })
@@ -835,10 +833,12 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
     }
     
     func bottomColorChange(_ newColor: UIColor) {
-        currentTab.currentVisit?.bottomColor = newColor
-        
-        if shouldUpdateSample {
-            toolbar.animateGradient(toColor: newColor, direction: .fromTop)
+        if newColor != currentTab.currentVisit?.bottomColor {
+            currentTab.currentVisit?.bottomColor = newColor
+            return
+        }
+        else if shouldUpdateSample {
+            toolbar.transitionBackground(to: newColor, from: .topToBottom)
         }
     }
     
