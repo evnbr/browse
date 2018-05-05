@@ -14,7 +14,7 @@ fileprivate enum SearchProviderName : String {
 }
 
 struct TypeaheadSuggestion: Hashable {
-    let title: String
+    let title: String?
     let detail: String?
     let url: URL?
     
@@ -114,7 +114,8 @@ class TypeaheadProvider: NSObject {
             else if let json = try? JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! NSArray {
                 searchSuggestions = self.provider.parseSuggestions(from: json, maxCount: maxCount).map({ str in
                     let score = self.splitMatchingScore(for: str, query: text)
-                    let suggestion = TypeaheadSuggestion(title: str, detail: nil, url: self.serpURLfor(str))
+//                    let suggestion = TypeaheadSuggestion(title: str, detail: nil, url: self.serpURLfor(str))
+                    let suggestion = TypeaheadSuggestion(title: nil, detail: str, url: self.serpURLfor(str))
                     suggestionScore[suggestion] = score
                     return suggestion
                 })

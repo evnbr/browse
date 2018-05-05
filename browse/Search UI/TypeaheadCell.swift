@@ -29,10 +29,10 @@ class TypeaheadCell: UITableViewCell {
         
         textLabel?.lineBreakMode = .byWordWrapping
         textLabel?.numberOfLines = 1
-        textLabel?.font = .systemFont(ofSize: 18)
+        textLabel?.font = .systemFont(ofSize: 14)
         layoutMargins = UIEdgeInsetsMake(12, 24, 12, 24)
         
-        detailTextLabel?.font = .systemFont(ofSize: 14)
+        detailTextLabel?.font = .systemFont(ofSize: 18)
         detailTextLabel?.numberOfLines = 1
         
 //        let backer = UIView(frame: contentView.bounds)
@@ -47,11 +47,13 @@ class TypeaheadCell: UITableViewCell {
 //        contentView.insertSubview(backer, at: 0)
     }
     
-    func configure(title: String, detail: String?, highlight: String) {
-        let titleOverlaps = title.allNSRanges(of: highlight, split: true)
-        let attributedTitle = NSMutableAttributedString(string: title)
-        titleOverlaps.forEach { attributedTitle.addAttributes([.foregroundColor : tintColor.withAlphaComponent(0.5)], range: $0) }
-        textLabel?.attributedText = attributedTitle
+    func configure(title: String?, detail: String?, highlight: String) {
+        if let title = title {
+            let titleOverlaps = title.allNSRanges(of: highlight, split: true)
+            let attributedTitle = NSMutableAttributedString(string: title)
+            titleOverlaps.forEach { attributedTitle.addAttributes([.foregroundColor : tintColor.withAlphaComponent(0.5)], range: $0) }
+            textLabel?.attributedText = attributedTitle
+        }
         
         if let detail = detail {
             let detailOverlaps = detail.allNSRanges(of: highlight, split: true)
@@ -66,6 +68,7 @@ class TypeaheadCell: UITableViewCell {
     }
     
     override func prepareForReuse() {
+        textLabel?.text = nil
         detailTextLabel?.text = nil
     }
     
