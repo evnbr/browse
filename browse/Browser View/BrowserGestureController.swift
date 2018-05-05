@@ -372,41 +372,42 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
         let pagingHint = yGestureInfluence.progress(0, 240).clip()
 
+        var cardPagingPoint: CGPoint
         // reveal back page from left
         if (direction == .leftToRight && vc.webView.canGoBack) || isToParent {
             dismissingPoint.y -= dismissPointY * 0.5 // to account for initial resisitance
             mockAlpha.setValue(of: PAGING, to: adjustedX.progress(0, 400).lerp(0.4, 0.1))
             
-
-            if isToParent && false {
-                cardPositioner.setValue(of: PAGING, to: CGPoint(
-                    x: dismissingPoint.x,
-                    y: backFwdPoint.y
-                ))
-                mockScaler.setValue(of: PAGING, to: 1 )
-                cardScaler.setValue(of: PAGING, to: dismissScale )
-
-//                mockPositioner.setValue(of: PAGING, to: CGPoint(
+//
+//            if isToParent && false {
+//                cardPositioner.setValue(of: PAGING, to: CGPoint(
 //                    x: dismissingPoint.x,
-//                    y: backFwdPoint.y - (view.bounds.height * (0.5 * dismissScale + 0.5)) - self.mockCardViewSpacer ))
-                let parentPagePoint = CGPoint(
-                    x: vc.view.center.x,
-                    y: backFwdPoint.y - (view.bounds.height * (0.5 * dismissScale + 0.5)) - self.mockCardViewSpacer )
-                let parentDismissPoint = CGPoint(
-                    x: dismissingPoint.x,
-                    y: dismissingPoint.y - dismissScale * view.bounds.height - self.mockCardViewSpacer )
-
-                mockPositioner.setValue(of: PAGING, to: parentPagePoint)
-                mockPositioner.setValue(of: DISMISSING, to: parentDismissPoint)
-                mockAlpha.setValue(of: PAGING, to: 0)
-                mockAlpha.setValue(of: DISMISSING, to: 0)
-            }
-            else {
+//                    y: backFwdPoint.y
+//                ))
+//                mockScaler.setValue(of: PAGING, to: 1 )
+//                cardScaler.setValue(of: PAGING, to: dismissScale )
+//
+////                mockPositioner.setValue(of: PAGING, to: CGPoint(
+////                    x: dismissingPoint.x,
+////                    y: backFwdPoint.y - (view.bounds.height * (0.5 * dismissScale + 0.5)) - self.mockCardViewSpacer ))
+//                let parentPagePoint = CGPoint(
+//                    x: vc.view.center.x,
+//                    y: backFwdPoint.y - (view.bounds.height * (0.5 * dismissScale + 0.5)) - self.mockCardViewSpacer )
+//                let parentDismissPoint = CGPoint(
+//                    x: dismissingPoint.x,
+//                    y: dismissingPoint.y - dismissScale * view.bounds.height - self.mockCardViewSpacer )
+//
+//                mockPositioner.setValue(of: PAGING, to: parentPagePoint)
+//                mockPositioner.setValue(of: DISMISSING, to: parentDismissPoint)
+//                mockAlpha.setValue(of: PAGING, to: 0)
+//                mockAlpha.setValue(of: DISMISSING, to: 0)
+//            }
+//            else {
                 let mockPagingPoint = CGPoint(
                     x: view.center.x + adjustedX * parallaxAmount - view.bounds.width * parallaxAmount * hintScale,
                     y: backFwdPoint.y )
                 let blendedPoint = pagingHint.lerp(mockPagingPoint, dismissingPoint)
-                let cardPagingPoint = CGPoint(x: backFwdPoint.x, y: blendedPoint.y)
+                cardPagingPoint = CGPoint(x: backFwdPoint.x, y: blendedPoint.y)
                 cardPositioner.setValue(of: PAGING, to: cardPagingPoint)
                 mockScaler.setValue(of: PAGING, to: backScale * hintScale )
                 
@@ -423,7 +424,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 }
 
                 mockPositioner.setValue(of: PAGING, to: blendedPoint)
-            }
+//            }
             mockScaler.setValue(of: DISMISSING, to: dismissScale * backItemScale)
         }
         // overlay forward page from right
@@ -433,7 +434,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             let pagingPoint = CGPoint(
                 x: view.center.x + adjustedX * parallaxAmount,
                 y: backFwdPoint.y )
-            cardPositioner.setValue(of: PAGING, to: pagingHint.lerp(pagingPoint, dismissingPoint))
+            cardPagingPoint = pagingHint.lerp(pagingPoint, dismissingPoint)
+            cardPositioner.setValue(of: PAGING, to: cardPagingPoint)
             
             let isBackness = adjustedX.progress(0, -400) * gesturePos.y.progress(100, 160).clip().reverse()
             vc.overlay.alpha = isBackness.lerp(0, 0.4)
@@ -447,14 +449,15 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             mockScaler.setValue(of: PAGING, to: 1)
             mockScaler.setValue(of: DISMISSING, to: 1)
             mockPositioner.setValue(of: PAGING, to: CGPoint(
-                x: view.center.x + adjustedX + view.bounds.width + hintX,
+                x: view.center.x + adjustedX + view.bounds.width, //+ hintX,
                 y: view.center.y ))
         }
         // rubber band
-        else if cantPage {
-            cardPositioner.setValue(of: PAGING, to: CGPoint(
+        else {
+            cardPagingPoint = CGPoint(
                 x: view.center.x + elasticLimit(adjustedX, constant: 100),
-                y: backFwdPoint.y ))
+                y: backFwdPoint.y )
+            cardPositioner.setValue(of: PAGING, to: cardPagingPoint)
         }
 
         cardPositioner.setValue(of: DISMISSING, to: dismissingPoint)
@@ -464,14 +467,14 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         ))
         if isToParent {
             thumbPositioner.setValue(of: PAGING, to: CGPoint(
-                x: 0,
+                x: backFwdPoint.x,
                 y: (view.center.y - backFwdPoint.y) - mockCardView.bounds.height * hintScale
             ))
         }
         else {
             thumbPositioner.setValue(of: PAGING, to: CGPoint(
-                x: 0,
-                y: view.center.y - backFwdPoint.y
+                x: view.center.x - cardPagingPoint.x,
+                y: view.center.y - cardPagingPoint.y
             ))
         }
 
