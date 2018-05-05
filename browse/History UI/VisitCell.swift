@@ -44,7 +44,7 @@ class VisitCell: UICollectionViewCell {
         label = UILabel(frame: CGRect(x: 24, y: 12, width: frame.width - 48, height: 24))
         label.text = "Blank"
         label.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
-        label.font = Const.shared.thumbTitle
+        label.font = Const.shared.thumbTitleFont
         label.textColor = .darkText
         label.alpha = 1
         contentView.addSubview(label)

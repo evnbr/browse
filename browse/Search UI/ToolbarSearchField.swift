@@ -89,7 +89,7 @@ class ToolbarSearchField: ToolbarTouchView {
         magnify = UIImageView(image: magnifyImage)
         
         label.text = "Where to?"
-        label.font = Const.shared.thumbTitle
+        label.font = Const.shared.thumbTitleFont
         label.adjustsFontSizeToFitWidth = false
         label.setContentHuggingPriority(UILayoutPriority(rawValue: 0), for: .horizontal)
 
@@ -131,7 +131,6 @@ class ToolbarSearchField: ToolbarTouchView {
         maskLayer.endPoint = CGPoint(x: 1, y: 0.5)
         maskLayer.locations = [0, 0.005]
         maskLayer.colors = [UIColor.blue.cgColor, UIColor.blue.withAlphaComponent(0.3).cgColor]
-        labelHolder.layer.mask = maskLayer
         
         isSecure = false
         isSearch = false
@@ -152,6 +151,7 @@ class ToolbarSearchField: ToolbarTouchView {
     
     func renderProgress(animated: Bool) {
         maskLayer.frame = labelHolder.bounds
+        
         let val = _progress as NSNumber
         let val2 = (_progress + 0.005) as NSNumber
         

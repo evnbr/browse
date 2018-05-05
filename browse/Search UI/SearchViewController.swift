@@ -12,10 +12,9 @@ import pop
 let typeaheadReuseID = "TypeaheadRow"
 let MAX_ROWS : Int = 4
 let SEARCHVIEW_MAX_H : CGFloat = 240.0
+let TEXTVIEW_PADDING = UIEdgeInsetsMake(16, 20, 32, 20 )
 
 class SearchViewController: UIViewController {
-
-    let browserExtraOffset: CGFloat = 70
 
     var contentView: UIView!
     var backgroundView: PlainBlurView!
@@ -24,6 +23,7 @@ class SearchViewController: UIViewController {
     var cancel: ToolbarTextButton!
     var suggestionTable: UITableView!
     var keyboardPlaceholder: UIImageView!
+    var dragHandle: UIView!
     var pageActionView: PageActionView!
     
     var keyboardSnapshot: UIImage?
@@ -46,6 +46,10 @@ class SearchViewController: UIViewController {
     var contextAreaHeight: CGFloat = 24
     var keyboardHeight : CGFloat = 250
     var showingCancel = true
+    
+    var browserOffset: CGFloat {
+        return keyboardHeight + textHeight + suggestionSpacer - 100
+    }
     
     var suggestions : [TypeaheadSuggestion] = []
     
@@ -130,7 +134,7 @@ class SearchViewController: UIViewController {
 
         textView = UITextView()
         textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 48)
-        textView.font = .systemFont(ofSize: 18)
+        textView.font = Const.shared.textFieldFont
         textView.text = ""
         textView.placeholder = "Where to?"
         textView.delegate = self
@@ -181,6 +185,7 @@ class SearchViewController: UIViewController {
         contentView.addSubview(pageActionView, constraints: [
             actionsHeight,
             pageActionView.bottomAnchor.constraint(equalTo: textView.topAnchor),
+//            pageActionView.topAnchor.constraint(equalTo: contentView.topAnchor ),
             pageActionView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor),
             pageActionView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor),
         ])
@@ -213,6 +218,15 @@ class SearchViewController: UIViewController {
             textView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor),
         ])
         
+        dragHandle = UIView(frame: .zero)
+        dragHandle.radius = 2
+        contentView.addSubview(dragHandle, constraints: [
+            dragHandle.heightAnchor.constraint(equalToConstant: 4),
+            dragHandle.widthAnchor.constraint(equalToConstant: 48),
+            dragHandle.bottomAnchor.constraint(equalTo: keyboardPlaceholder.topAnchor, constant: -8),
+            dragHandle.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
+        ])
+        
         NotificationCenter.default.addObserver(self,
             selector: #selector(updateKeyboardHeight),
             name: NSNotification.Name.UIKeyboardWillShow, object: nil)
@@ -236,6 +250,8 @@ class SearchViewController: UIViewController {
         view.tintColor = darkContent ? .darkText : .white
         contentView.tintColor = view.tintColor
         textView.textColor = view.tintColor
+        dragHandle.backgroundColor = view.tintColor.withAlphaComponent(0.2)
+
 //        textView.backgroundColor = darkContent ? UIColor.black.withAlphaComponent(0.1) : UIColor.white.withAlphaComponent(0.3)
         textView.placeholderColor = darkContent ? UIColor.black.withAlphaComponent(0.4) : UIColor.white.withAlphaComponent(0.4)
         textView.keyboardAppearance = darkContent ? .light : .dark
@@ -313,6 +329,7 @@ extension SearchViewController: UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
         updateTextViewSize()
         updateSuggestion(for: textView.text)
+        updateBrowserOffset()
     }
     
     func updateSuggestion(for text: String) {
@@ -343,7 +360,7 @@ extension SearchViewController: UITextViewDelegate {
             return
         }
         if shouldShowActions  {
-            contextAreaHeight = 100
+            contextAreaHeight = 0 // 100
             actionsHeight.constant = contextAreaHeight
             contextAreaHeightConstraint.constant = contextAreaHeight
         }
@@ -358,7 +375,9 @@ extension SearchViewController: UITextViewDelegate {
             contextAreaHeight = suggestionH + suggestionSpacer
             suggestionHeightConstraint.constant = suggestionH
         }
-
+        UIView.animate(withDuration: 0.2) {
+            self.scrim.backgroundColor = self.shouldShowActions ? .clear : UIColor.black.withAlphaComponent(0.2)
+        }
         let anim = contextAreaHeightConstraint.springConstant(to: contextAreaHeight)
         anim?.springBounciness = 2
         anim?.springSpeed = 12
@@ -369,13 +388,21 @@ extension SearchViewController: UITextViewDelegate {
     func updateTextViewSize() {
         let fixedWidth = textView.frame.size.width
 //        textView.textContainerInset = UIEdgeInsetsMake(10, 20, 22, showingCancel ? cancel.bounds.width : 0 )
-        textView.textContainerInset = UIEdgeInsetsMake(10, 20, 24, 20 )
+        textView.textContainerInset = TEXTVIEW_PADDING
         let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
         textView.isScrollEnabled = fullTextSize.height > SEARCHVIEW_MAX_H
         textHeight = max(20, min(fullTextSize.height, SEARCHVIEW_MAX_H))
         textHeightConstraint.constant = textHeight
         
         textView.mask?.frame.size.width = textView.bounds.width
+    }
+    
+    func updateBrowserOffset() {
+        if let b = browser {
+            var shiftedCenter = b.view.center
+            shiftedCenter.y -= browserOffset
+            b.cardView.center = shiftedCenter
+        }
     }
     
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
@@ -480,7 +507,7 @@ extension SearchViewController : UIGestureRecognizerDelegate {
                 textHeightConstraint.constant = textHeight + elastic
                 
                 if let b = browser {
-                    b.cardView.center.y = b.view.center.y - elastic - keyboardHeight - browserExtraOffset
+                    b.cardView.center.y = b.view.center.y - elastic - browserOffset
                 }
             }
             else {
@@ -490,19 +517,19 @@ extension SearchViewController : UIGestureRecognizerDelegate {
 //                    let margin = progress.blend(0, SPACE_FOR_INDICATOR)
 //                    toolbarBottomMargin.constant = margin
                     contextAreaHeightConstraint.constant = contextAreaHeight
+                    if let b = browser {
+                        b.cardView.center.y = b.view.center.y + dist.y - browserOffset
+                    }
                 }
                 else {
-                    let amtBeyondKeyboard = max(0, dist.y - keyboardHeight)
-                    kbHeightConstraint.constant = SPACE_FOR_INDICATOR - amtBeyondKeyboard
-                    toolbarBottomMargin.constant = min(SPACE_FOR_INDICATOR, amtBeyondKeyboard)
+                    let amtBeyondKeyboard = max(0, dist.y - keyboardHeight + SPACE_FOR_INDICATOR)
+//                    kbHeightConstraint.constant = SPACE_FOR_INDICATOR - amtBeyondKeyboard
+//                    toolbarBottomMargin.constant = min(SPACE_FOR_INDICATOR, amtBeyondKeyboard)
 
-                    contextAreaHeightConstraint.constant = contextAreaHeight - elasticLimit(amtBeyondKeyboard)
+//                    contextAreaHeightConstraint.constant = contextAreaHeight - elasticLimit(amtBeyondKeyboard)
                 }
-                suggestionTable.alpha = dist.y.progress(keyboardHeight - 40, keyboardHeight + 100).clip().reverse()
-                pageActionView.alpha = dist.y.progress(keyboardHeight - 40, keyboardHeight + 60).clip().reverse()
-                if let b = browser {
-                    b.cardView.center.y = b.view.center.y + dist.y - keyboardHeight - browserExtraOffset
-                }
+//                suggestionTable.alpha = dist.y.progress(keyboardHeight - 40, keyboardHeight + 100).clip().reverse()
+//                pageActionView.alpha = dist.y.progress(keyboardHeight - 40, keyboardHeight + 60).clip().reverse()
             }
         }
         else if gesture.state == .ended || gesture.state == .cancelled {
@@ -521,8 +548,7 @@ extension SearchViewController : UIGestureRecognizerDelegate {
                 }
                 
                 var shiftedCenter = browser!.view.center
-                shiftedCenter.y -= keyboardHeight
-                shiftedCenter.y -= browserExtraOffset
+                shiftedCenter.y -= browserOffset
                 browser?.cardView.springCenter(to: shiftedCenter)
                 contextAreaHeightConstraint.springConstant(to: contextAreaHeight)
                 toolbarBottomMargin.springConstant(to: 0)

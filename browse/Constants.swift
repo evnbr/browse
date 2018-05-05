@@ -26,14 +26,14 @@ class Const: NSObject {
     static var toolbarHeight : CGFloat { return shared.toolbarHeight }
 
     var thumbRadius: CGFloat
-//    var thumbTitle : UIFont = UIFont.systemFont(ofSize: 15.0, weight: .medium)
-    var thumbTitle : UIFont = UIFont.systemFont(ofSize: 14.0, weight: .medium)
+    let textFieldFont: UIFont = .systemFont(ofSize: 18)
+    var thumbTitleFont : UIFont = UIFont.systemFont(ofSize: 14.0, weight: .medium)
 
     var cardRadius: CGFloat
     
-    var shadowRadius: CGFloat = 32
-    var shadowOpacity: Float = 0.4
-    var buttonHeight: CGFloat = 40
+    let shadowRadius: CGFloat = 32
+    let shadowOpacity: Float = 0.4
+    let buttonHeight: CGFloat = 40
 
     override init() {
         let topInset = UIApplication.shared.keyWindow?.safeAreaInsets.top

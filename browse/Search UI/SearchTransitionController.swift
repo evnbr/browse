@@ -52,31 +52,40 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             }
         }
         
+        let shiftCompensateForURLPrefix: CGFloat = 40
+        let maskRoomForUrlPrefix: CGFloat = 100
+        let maskStartSize : CGSize = titleSnap?.bounds.size ?? .zero
+        let maskStartFrame = CGRect(origin: CGPoint(x: maskRoomForUrlPrefix, y: 0), size: maskStartSize)
+        let maskEndSize : CGSize = CGSize(width: typeaheadVC.textView.bounds.size.width, height: typeaheadVC.textHeight)
+        let maskEndFrame = CGRect(origin: .zero, size: maskEndSize)
+
+        
         if let title = titleSnap {
             containerView.addSubview(title)
         }
-        var startCenter = browserVC?.toolbar.center ?? .zero
-        startCenter.y -= 12
-        var endCenter = startCenter
+        var titleStartCenter = browserVC?.toolbar.center ?? .zero
+        titleStartCenter.y -= 12
+        var titleEndCenter = titleStartCenter
         
-        let titleHorizontalShift : CGFloat = isAnimatingFromToolbar ? (browserVC!.toolbar.bounds.width - (titleSnap?.bounds.width ?? 0) - 70) / 2 : 0
+        let titleHorizontalShift : CGFloat = isAnimatingFromToolbar ? (browserVC!.toolbar.bounds.width - (titleSnap?.bounds.width ?? 0) - 70) / 2 - shiftCompensateForURLPrefix: 0
         let cancelShiftH : CGFloat = 80
-        endCenter.x -= titleHorizontalShift
-        endCenter.y -= typeaheadVC.textHeightConstraint.constant - 70
+        titleEndCenter.x -= titleHorizontalShift //- roomForUrlPrefix
+        titleEndCenter.y -= typeaheadVC.textHeightConstraint.constant - 80//70
         if isDismissing {
-            endCenter.y -= max(typeaheadVC.kbHeightConstraint.constant, SPACE_FOR_INDICATOR)
+            titleEndCenter.y -= max(typeaheadVC.kbHeightConstraint.constant, SPACE_FOR_INDICATOR)
         }
         else if showKeyboard {
-            endCenter.y -= typeaheadVC.keyboardHeight
+            titleEndCenter.y -= typeaheadVC.keyboardHeight
         }
 
-        titleSnap?.center = isExpanding ? startCenter : endCenter
+        titleSnap?.center = isExpanding ? titleStartCenter : titleEndCenter
 
         browserVC?.toolbar.backgroundView.alpha = 1
         typeaheadVC.scrim.alpha = isExpanding ? 0 : 1
         
-        typeaheadVC.kbHeightConstraint.constant = isExpanding && showKeyboard
-            ? typeaheadVC.keyboardHeight : 0
+        typeaheadVC.kbHeightConstraint.constant = isExpanding
+            ? (showKeyboard ? typeaheadVC.keyboardHeight : SPACE_FOR_INDICATOR )
+            : 0
         typeaheadVC.contextAreaHeightConstraint.springConstant(to: isExpanding
             ? typeaheadVC.contextAreaHeight : 0)
         typeaheadVC.toolbarBottomMargin.springConstant(to: isExpanding
@@ -92,10 +101,10 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
 
 //        typeaheadVC.textView.scale = isExpanding ? 0.9 : 1
         typeaheadVC.textView.transform = CGAffineTransform(translationX: self.isExpanding ? titleHorizontalShift : 0, y: 0)
-        typeaheadVC.cancel.transform = CGAffineTransform(translationX: self.isExpanding ? cancelShiftH : 0, y: 0)
         if isDismissing { toolbarSnap?.center.x -= titleHorizontalShift * 0.5 }
         
         UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: {
+            typeaheadVC.dragHandle.alpha = self.isExpanding ? 1 : 0
             typeaheadVC.suggestionTable.alpha = self.isExpanding ? 1 : 0
             typeaheadVC.pageActionView.alpha = self.isExpanding ? 1 : 0
             toolbarSnap?.alpha = self.isExpanding ? 0 : 1
@@ -107,15 +116,11 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             typeaheadVC.scrim.alpha = self.isExpanding ? 1 : 0
             titleSnap?.alpha = self.isExpanding ? 0 : 1
         }
-        UIView.animate(withDuration: isExpanding ? 0.3 : 0.1, animations: {
+        UIView.animate(withDuration: isExpanding ? 0.3 : 0.2, animations: {
             typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
         })
         
-        let maskStartSize : CGSize = titleSnap?.bounds.size ?? .zero
-        let maskEndSize : CGSize = CGSize(width: typeaheadVC.textView.bounds.size.width, height: typeaheadVC.textHeight)
-        // TODO - disable mask at end since it won't be scrollable
-        
-        typeaheadVC.textView.mask?.frame.size = isExpanding ? maskStartSize : maskEndSize
+        typeaheadVC.textView.mask?.frame = isExpanding ? maskStartFrame : maskEndFrame
 
 //        switcherVC?.fab.scale = isExpanding ? 1 : 0.2
 //        switcherVC?.fab.springScale(to: isExpanding ? 0.2 : 1)
@@ -157,19 +162,21 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
                 typeaheadVC.cancel.alpha = self.isExpanding ? 1 : 0
                 typeaheadVC.pageActionView.alpha = self.isExpanding ? 1 : 0
 
-                titleSnap?.center = self.isExpanding ? endCenter : startCenter
+                titleSnap?.center = self.isExpanding ? titleEndCenter : titleStartCenter
                 
                 if self.isExpanding { toolbarSnap?.center.x -= titleHorizontalShift * 0.5 }
                 typeaheadVC.textView.transform = CGAffineTransform(translationX: self.isExpanding ? 0 : titleHorizontalShift, y: 0)
                 typeaheadVC.cancel.transform = CGAffineTransform(translationX: self.isExpanding ? 0 : cancelShiftH, y: 0)
                 
-                typeaheadVC.textView.mask?.frame.size = self.isExpanding ? maskEndSize : maskStartSize
+                typeaheadVC.textView.mask?.frame = self.isExpanding ? maskEndFrame : maskStartFrame
 
                 if let b = browserVC {
                     let baseCenter = b.view.center
                     var shiftedCenter = baseCenter
-                    shiftedCenter.y -= typeaheadVC.keyboardHeight
-                    shiftedCenter.y -= typeaheadVC.browserExtraOffset
+                    shiftedCenter.y -= typeaheadVC.browserOffset
+                    if completeEarly {
+                        shiftedCenter.y += typeaheadVC.keyboardHeight - SPACE_FOR_INDICATOR
+                    }
                     b.cardView.center = self.isExpanding ? shiftedCenter : baseCenter
                 }
 
