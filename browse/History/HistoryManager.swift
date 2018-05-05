@@ -70,6 +70,7 @@ class HistoryManager: NSObject {
     func existingSite(for url: URL, in context: NSManagedObjectContext) -> Site? {
         let request: NSFetchRequest<Site> = Site.fetchRequest()
         request.predicate = NSPredicate(format: "url == %@", url.absoluteString)
+        request.fetchLimit = 1
         do {
             let results = try context.fetch(request)
             return results.first
@@ -139,6 +140,7 @@ class HistoryManager: NSObject {
                 }
             }
 
+            // Add or create canonical site
             var site: Site? = nil
             if let currentSite = tab.currentVisit?.site, currentSite.url == wkItem.url {
                 site = currentSite
@@ -150,9 +152,10 @@ class HistoryManager: NSObject {
                 site = newSite
             }
             else {
-                fatalError("couldn't create a new site")
+                print("couldn't create a new site")
             }
         
+            // Update canonical site
             if let visit = tab.currentVisit, let site = site {
                 if let title = wkItem.title, title != "" {
                     site.title = title

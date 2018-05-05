@@ -153,7 +153,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             fatalError("Can't set tab before view loaded")
         }
         if newTab == currentTab && webView != nil { return }
-        tabSwitcher.moveTabToEnd(newTab)
 
         let oldWebView = webView
         
@@ -771,6 +770,7 @@ extension BrowserViewController : WebviewColorSamplerDelegate {
             && webView != nil
             && !isSnapshotMode
             && !webView.scrollView.isOverScrolledTop
+            && !webView.scrollView.isOverScrolledBottom
     }
     
     var bottomSamplePosition: CGFloat {

@@ -34,7 +34,7 @@ class TreeMakerLayout: UICollectionViewLayout {
     
     private let itemScale: CGFloat = 0.5
     private let itemSize = CGSize(width: 120 * 2, height: 240 * 2)
-    private let itemSpacing = CGPoint(x: 160, y: 280)
+    private let itemSpacing = CGPoint(x: 180, y: 280)
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")

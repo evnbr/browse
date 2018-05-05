@@ -26,7 +26,7 @@ class TabSwitcherViewController: UICollectionViewController {
     let cardStackLayout = CardStackingLayout()
 
     private var _browserVC : BrowserViewController?
-    func browser(for tab: Tab) -> BrowserViewController {
+    func setupBrowser(with tab: Tab) -> BrowserViewController {
         if let browser = _browserVC {
             browser.setTab(tab)
             return browser
@@ -188,7 +188,7 @@ class TabSwitcherViewController: UICollectionViewController {
         guard let cv = collectionView else { return [] }
         guard let selIndexPath = currentIndexPath else { return [] }
 
-        return visibleCells.filter{ cell in
+        return visibleCells.filter { cell in
             let index : Int = cv.indexPath(for: cell)!.item
             return index > selIndexPath.item
         }
@@ -251,6 +251,9 @@ class TabSwitcherViewController: UICollectionViewController {
     
     
     func moveTabToEnd(_ tab: Tab) {
+        if tab.sortIndex == tabCount - 1 {
+            return
+        }
         tab.sortIndex = Int16(tabCount - 1)
         let tabs = fetchedResultsController.fetchedObjects ?? []
         var i : Int16 = 0
@@ -264,7 +267,7 @@ class TabSwitcherViewController: UICollectionViewController {
     }
     
     func showTab(_ tab: Tab, animated: Bool = true, completion: (() -> Void)? = nil) {
-        let browser = self.browser(for: tab)
+        let browser = self.setupBrowser(with: tab)
         browser.modalPresentationStyle = .custom
         browser.transitioningDelegate = self
         

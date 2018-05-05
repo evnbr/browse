@@ -19,7 +19,7 @@ struct TreePosition: Hashable {
 }
 
 class TreeMaker : NSObject {
-    private let initialMaxDepth = 5
+    private let initialMaxDepth = 10
     private let viewContext = HistoryManager.shared.persistentContainer.viewContext
     
     private var layout: TreeMakerLayout
@@ -82,19 +82,16 @@ class TreeMaker : NSObject {
         }
     }
     
-    private func moveThread(tabs originalTabs: [Tab], to ctx: NSManagedObjectContext) -> [Tab] {
-        var tabs: [Tab] = []
-        for tab in originalTabs {
-            do {
-                let bgTab = try ctx.existingObject(with: tab.objectID) as! Tab
-                tabs.append(bgTab)
-            } catch {
-                print("Can't find tab on bg thread: \(error.localizedDescription)")
-            }
-        }
-        return tabs
+    private func openTabsFirst(_ a: Visit, _ b: Visit) -> Bool {
+        let aClosed = a.tab?.isClosed ?? true
+        let bClosed = b.tab?.isClosed ?? true
+        if aClosed && bClosed { return oldToNew(a, b) }
+        else if !aClosed && !bClosed { return oldToNew(a, b) }
+        else if aClosed { return false }
+        else if bClosed { return true }
+        return false
     }
-    
+
     private func oldToNew(_ a: Visit, _ b: Visit) -> Bool {
         guard let ad = a.date, let bd = b.date else { return false }
         return ad < bd
@@ -126,14 +123,19 @@ class TreeMaker : NSObject {
         }
         
         func traverse(_ node: Visit) {
-            let pos = availablePos(for: TreePosition(x: currentDepth, y: 0))
+            var currentY = 0
+            if let back = node.backItem,
+                let parentPos = cellPositions[back.objectID] {
+                currentY = parentPos.y
+            }
+            let pos = availablePos(for: TreePosition(x: currentDepth, y: currentY))
+            
+            
             if pos.y > maxY { maxY = pos.y }
             usedPositions.insert(pos)
             self.addVisit(node, at: pos)
             
-            if currentDepth > initialMaxDepth {
-                return
-            }
+//            if currentDepth > initialMaxDepth { return }
             if let children = node.forwardItems?.allObjects as? [Visit] {
                 currentDepth += 1
                 if currentDepth > maxDepth { maxDepth = currentDepth }
@@ -143,7 +145,7 @@ class TreeMaker : NSObject {
                 currentDepth -= 1
             }
         }
-        roots.sorted(by: oldToNew).forEach {
+        roots.sorted(by: openTabsFirst).forEach {
             traverse($0)
         }
         
@@ -151,33 +153,35 @@ class TreeMaker : NSObject {
         self._nodeCount = nodeIDs.count
     }
     
-//    private func traverseTreesABSOLUTE(from roots: [Visit]) {
-//        var currentY: Int = 0
-//        var currentDepth: Int = 0
-//        var maxDepth: Int = 0
-//
-//        func traverse(_ node: Visit) {
-//            let subtreeStartY = currentY
-//            let pos = TreePosition(x: currentDepth, y: subtreeStartY)
-//            self.addVisit(node, at: pos)
-//
-//            if let children = node.forwardItems?.allObjects as? [Visit] {
-//                currentDepth += 1
-//                if currentDepth > maxDepth { maxDepth = currentDepth }
-//                for child in children.sorted(by: newToOld) {
-//                    traverse(child)
-//                }
-//                currentDepth -= 1
-//            }
-//            if subtreeStartY == currentY {
-//                currentY += 1
-//            }
-//        }
-//        roots.sorted(by: oldToNew).forEach { traverse($0) }
-//
-//        self._gridSize = CGSize(width: maxDepth, height: currentY)
-//        self._nodeCount = nodeIDs.count
-//    }
+    private func traverseTreesAbsolute(from roots: [Visit]) {
+        var currentY: Int = 0
+        var currentDepth: Int = 0
+        var maxDepth: Int = 0
+
+        func traverse(_ node: Visit) {
+            let subtreeStartY = currentY
+            let pos = TreePosition(x: currentDepth, y: subtreeStartY)
+            self.addVisit(node, at: pos)
+
+            if let children = node.forwardItems?.allObjects as? [Visit] {
+                currentDepth += 1
+                if currentDepth > maxDepth { maxDepth = currentDepth }
+                for child in children.sorted(by: newToOld) {
+                    traverse(child)
+                }
+                currentDepth -= 1
+            }
+            if subtreeStartY == currentY {
+                currentY += 1
+            }
+        }
+        roots.sorted(by: openTabsFirst).forEach {
+            traverse($0)
+        }
+
+        self._gridSize = CGSize(width: maxDepth, height: currentY)
+        self._nodeCount = nodeIDs.count
+    }
     
     func loadTabs() {
         HistoryManager.shared.persistentContainer.performBackgroundTask { ctx in
@@ -190,6 +194,9 @@ class TreeMaker : NSObject {
         HistoryManager.shared.persistentContainer.performBackgroundTask { ctx in
             var tabs: [Tab]
             let request: NSFetchRequest<Tab> = Tab.fetchRequest()
+            request.sortDescriptors = [
+                NSSortDescriptor(key: "creationTime", ascending: false),
+            ]
             request.fetchBatchSize = 20
             do {
                 tabs = try ctx.fetch(request)

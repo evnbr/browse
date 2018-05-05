@@ -44,7 +44,8 @@ class HistoryZoomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransi
         containerView.addSubview(browserVC.view)
         
         let cv = historyVC.collectionView!
-        let currentIndexPath = targetIndexPath ?? historyVC.treeMaker.indexPath(for: browserVC.currentTab.currentVisit!)!
+        let currentVisit = browserVC.currentTab.currentVisit!
+        let currentIndexPath = targetIndexPath ?? historyVC.treeMaker.indexPath(for: currentVisit) ?? IndexPath(item: 0, section: 0)
         if !isZoomingIn {
             historyVC.centerIndexPath(currentIndexPath)
         }
