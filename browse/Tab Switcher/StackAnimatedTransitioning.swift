@@ -169,7 +169,6 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
         
         browserVC.statusHeightConstraint.springConstant(to: isExpanding ? statusHeight : THUMB_OFFSET_COLLAPSED )
         let scaleAnim = browserVC.cardView.springScale(to: isExpanding ? 1 : thumbScale)
-//        browserVC.cardView.springBounds(to: isExpanding ? expandedBounds : smallerBounds)
         let maskAnim = mask.springFrame(to: isExpanding ? expandedBounds : thumbBounds) { _, _ in
             popBoundsDone = true
             finishTransition()
@@ -182,9 +181,23 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
         }
         centerAnim?.springSpeed = 10
         centerAnim?.springBounciness = 2
-        
+        scaleAnim?.springSpeed = 5
+        scaleAnim?.springBounciness = 1
+
         centerAnim?.animationDidApplyBlock = { _ in
-            tabSwitcher.updateStackOffset(for: browserVC.cardView.center)
+            let cardCenter = browserVC.cardView.center
+            tabSwitcher.updateStackOffset(for: cardCenter)
+            
+            // TODO: animate scale alongside this transition
+            
+//            let view = browserVC.view!
+//            let translation = CGPoint(
+//                x: view.center.x - cardCenter.x,
+//                y: view.center.y - cardCenter.y
+//            )
+//            let scale = browserVC.gestureController.dismissScaleFor(translation: translation)
+//            tabSwitcher.setThumbScale(scale)
+//            browserVC.cardView.scale = scale
         }
         scaleAnim?.animationDidApplyBlock = { _ in
             tabSwitcher.setThumbScale(browserVC.cardView.scale)
