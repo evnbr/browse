@@ -129,6 +129,7 @@ class TabSwitcherViewController: UICollectionViewController {
     func createTab() -> Tab {
         let context = self.fetchedResultsController.managedObjectContext
         let newTab = Tab(context: context)
+        newTab.creationTime = Date()
         saveContext()
         return newTab
     }
@@ -214,20 +215,27 @@ class TabSwitcherViewController: UICollectionViewController {
     }
     
     func setThumbScale(_ scale: CGFloat) {
-        cardStackLayout.scale = scale
+        cardStackLayout.maxScale = scale
         cardStackLayout.invalidateLayout()
     }
     
-    func setCardOffset(to offset: CGPoint = .zero) {
+    private func setCardOffset(to offset: CGPoint = .zero) {
         cardStackLayout.offset = offset
         cardStackLayout.invalidateLayout()
     }
     
+    func updateStackOffset(for pos: CGPoint) {
+        setCardOffset(to: CGPoint(
+            x: view.center.x - pos.x,
+            y: view.center.y - pos.y
+        ))
+    }
+    
     func springCards(toStacked: Bool, at velocity: CGPoint = .zero, completion: (() -> ())? = nil) {
-        if !toStacked {
-            cardStackLayout.offset = .zero
-            cardStackLayout.scale = 1
-        }
+//        if !toStacked {
+//            cardStackLayout.offset = .zero
+//            cardStackLayout.scale = 1
+//        }
         
         cardStackLayout.selectedHidden = true
         cardStackLayout.invalidateLayout()

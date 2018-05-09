@@ -43,11 +43,10 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
         
         let homeNav = (isExpanding ? fromVC : toVC) as! UINavigationController
         let browserVC = (isExpanding ? toVC : fromVC) as! BrowserViewController
-        let homeVC = homeNav.topViewController as! TabSwitcherViewController
+        let tabSwitcher = homeNav.topViewController as! TabSwitcherViewController
         
-        let snapFab = homeVC.fabSnapshot
-        homeVC.fab.isHidden = true
-
+        let snapFab = tabSwitcher.fabSnapshot
+        tabSwitcher.fab.isHidden = true
         // TODO: This is not necessarily the correct thumb.
         // When swapping between tabs it gets mixed up.
 //        homeVC.setThumbsVisible()
@@ -68,27 +67,28 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
         var thumbScale : CGFloat = 1
         var thumbOverlayAlpha : CGFloat = 0
         
-        if let ip = homeVC.currentIndexPath,
-            let cv = homeVC.collectionView {
+        if let ip = tabSwitcher.currentIndexPath,
+            let cv = tabSwitcher.collectionView {
             
 //            let attr = homeVC.stackedLayout.layoutAttributesForItem(at: ip)
-            let attr = homeVC.cardStackLayout.calculateItem(
-                for: ip, whenStacked: true, scrollY: cv.contentOffset.y, baseCenter: cv.center, totalItems: cv.numberOfItems(inSection: 0))
+            let attr = tabSwitcher.cardStackLayout.calculateItem(
+                for: ip, whenStacked: true, scrollY: cv.contentOffset.y, baseCenter: cv.center, totalItems: cv.numberOfItems(inSection: 0), withOffset: false)
             
             // must be after toVC is added
             let selectedThumbCenter = attr.center
+
             thumbOverlayAlpha = 1 - attr.alpha
             thumbCenter = containerView.convert(selectedThumbCenter, from: cv)
             thumbScale = attr.transform.xScale
         }
         else {
             // If can't find end point for some reason, just animate to/from bottom
-            thumbCenter = CGPoint(x: homeVC.view.center.x, y: homeVC.view.center.y + (homeVC.view.bounds.height))
+            thumbCenter = CGPoint(x: tabSwitcher.view.center.x, y: tabSwitcher.view.center.y + (tabSwitcher.view.bounds.height))
         }
-        
+
         let expandedCenter = browserVC.cardView.center
         let expandedBounds = browserVC.cardView.bounds
-        let thumbBounds = homeVC.boundsForThumb(forTab: browserVC.currentTab) ?? CGRect(origin: .zero, size: expandedBounds.size)
+        let thumbBounds = tabSwitcher.boundsForThumb(forTab: browserVC.currentTab) ?? CGRect(origin: .zero, size: expandedBounds.size)
         
         let mask = UIView()
         mask.backgroundColor = .red
@@ -97,7 +97,7 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
 
         // Avoid adjusting height: TODO just mask instead
         thumbCenter.y += (expandedBounds.size.height - thumbBounds.size.height) / 2
-        
+
         var smallerBounds = thumbBounds
         smallerBounds.size.height = expandedBounds.size.height
         
@@ -110,7 +110,7 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             browserVC.cardView.scale = thumbScale
         }
         
-        homeVC.visibleCellsBelow.forEach {
+        tabSwitcher.visibleCellsBelow.forEach {
             guard let snap = $0.snapshotView(afterScreenUpdates: false) else { return }
             var center = containerView.convert($0.center, from: $0.superview!)
             snap.center = center
@@ -140,36 +140,35 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
                 browserVC.webView.scrollView.showsVerticalScrollIndicator = true
             }
             
-            homeVC.visibleCells.forEach {
+            tabSwitcher.visibleCells.forEach {
                 $0.refresh()
                 $0.reset()
             }
-            homeVC.scrollToBottom()
+            tabSwitcher.scrollToBottom()
 //            homeVC.collectionView?.reloadData() // TODO: touch targets dont work without this
             
             snapFab?.removeFromSuperview()
-            homeVC.fab.isHidden = self.isExpanding
-            homeVC.setNeedsStatusBarAppearanceUpdate()
+            tabSwitcher.fab.isHidden = self.isExpanding
+            tabSwitcher.setNeedsStatusBarAppearanceUpdate()
             
             browserVC.contentView.mask = nil
             browserVC.contentView.radius = 0
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
             if self.isDismissing {
                 browserVC.view.removeFromSuperview()
-                homeVC.visibleCells.forEach { $0.isHidden = false } // TODO: super janky, should wait for collectionview to update
+                tabSwitcher.visibleCells.forEach { $0.isHidden = false } // TODO: super janky, should wait for collectionview to update
             }
             
             // Cleanup so non-animated transitions arent weird
             browserVC.cardView.scale = 1
             browserVC.cardView.center = browserVC.view.center
-            
         }
         
         let isLandscape = browserVC.view.bounds.width > browserVC.view.bounds.height
         let statusHeight : CGFloat = isLandscape ? 0 : Const.statusHeight
         
         browserVC.statusHeightConstraint.springConstant(to: isExpanding ? statusHeight : THUMB_OFFSET_COLLAPSED )
-        browserVC.cardView.springScale(to: isExpanding ? 1 : thumbScale)
+        let scaleAnim = browserVC.cardView.springScale(to: isExpanding ? 1 : thumbScale)
 //        browserVC.cardView.springBounds(to: isExpanding ? expandedBounds : smallerBounds)
         let maskAnim = mask.springFrame(to: isExpanding ? expandedBounds : thumbBounds) { _, _ in
             popBoundsDone = true
@@ -184,10 +183,18 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
         centerAnim?.springSpeed = 10
         centerAnim?.springBounciness = 2
         
-        if isExpanding {
-            homeVC.cardStackLayout.offset.y = 0//-(thumbCenter.y - thumbBounds.height / 2 )
+        centerAnim?.animationDidApplyBlock = { _ in
+            tabSwitcher.updateStackOffset(for: browserVC.cardView.center)
         }
-        homeVC.springCards(toStacked: isDismissing, at: velocity) {
+        scaleAnim?.animationDidApplyBlock = { _ in
+            tabSwitcher.setThumbScale(browserVC.cardView.scale)
+        }
+
+        
+//        if isExpanding {
+//            tabSwitcher.cardStackLayout.offset.y = 0//-(thumbCenter.y - thumbBounds.height / 2 )
+//        }
+        tabSwitcher.springCards(toStacked: isDismissing, at: velocity) {
             popCardsDone = true
             finishTransition()
         }
@@ -195,7 +202,7 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
         if let fab = snapFab {
             containerView.addSubview(fab)
             fab.layer.zPosition = 99
-            let currFabCenter = homeVC.fab.center
+            let currFabCenter = tabSwitcher.fab.center
             var endFabCenter = currFabCenter
             endFabCenter.y += 120
             fab.center = isExpanding ? currFabCenter : endFabCenter
@@ -231,7 +238,7 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             mask.radius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
             homeNav.view.alpha = self.isExpanding ? 0.4 : 1
             
-            homeVC.setNeedsStatusBarAppearanceUpdate()
+            tabSwitcher.setNeedsStatusBarAppearanceUpdate()
                 
         }, completion: { finished in
             viewAnimFinished = true

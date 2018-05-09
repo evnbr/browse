@@ -87,7 +87,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     
     let dismissPointX : CGFloat = 150
     let backPointX : CGFloat = 120
-    let dismissPointY : CGFloat = 120
+    let dismissPointY : CGFloat = 200 //  120
 
     var feedbackGenerator : UISelectionFeedbackGenerator? = nil
     
@@ -127,7 +127,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             self.vc.tabSwitcher.setThumbScale($0)
         }
         thumbPositioner = Blend {
-            self.vc.tabSwitcher.setCardOffset(to: $0)
+            self.vc.tabSwitcher.updateStackOffset(for: $0)
         }
         
         dismissSwitch = SpringSwitch {
@@ -407,8 +407,9 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 let mockPagingPoint = CGPoint(
                     x: view.center.x + adjustedX * parallaxAmount - view.bounds.width * parallaxAmount * hintScale,
                     y: backFwdPoint.y )
-                let blendedPoint = pagingHint.lerp(mockPagingPoint, dismissingPoint)
-                cardPagingPoint = CGPoint(x: backFwdPoint.x, y: blendedPoint.y)
+                let mockBlendedPoint = pagingHint.lerp(mockPagingPoint, dismissingPoint)
+                let cardBlendedPoint = pagingHint.lerp(backFwdPoint, dismissingPoint)
+                cardPagingPoint = cardBlendedPoint //CGPoint(x: backFwdPoint.x, y: mockBlendedPoint.y)
                 cardPositioner.setValue(of: PAGING, to: cardPagingPoint)
                 mockScaler.setValue(of: PAGING, to: backScale * hintScale )
                 
@@ -424,7 +425,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                     mockAlpha.setValue(of: DISMISSING, to: 0.7)
                 }
 
-                mockPositioner.setValue(of: PAGING, to: blendedPoint)
+                mockPositioner.setValue(of: PAGING, to: mockBlendedPoint)
 //            }
             mockScaler.setValue(of: DISMISSING, to: dismissScale * backItemScale)
         }
@@ -462,10 +463,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
 
         cardPositioner.setValue(of: DISMISSING, to: dismissingPoint)
-        thumbPositioner.setValue(of: DISMISSING, to: CGPoint(
-            x: view.center.x - dismissingPoint.x,
-            y: view.center.y - dismissingPoint.y
-        ))
+        thumbPositioner.setValue(of: DISMISSING, to: dismissingPoint)
+        
         if isToParent {
             thumbPositioner.setValue(of: PAGING, to: CGPoint(
                 x: backFwdPoint.x,
@@ -473,10 +472,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             ))
         }
         else {
-            thumbPositioner.setValue(of: PAGING, to: CGPoint(
-                x: view.center.x - cardPagingPoint.x,
-                y: view.center.y - cardPagingPoint.y
-            ))
+            thumbPositioner.setValue(of: PAGING, to: cardPagingPoint)
         }
 
         
@@ -935,23 +931,22 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         hVel.y = 0
 
         // Move card back to center
-        cardView.springCenter(to: view.center, at: velocity) {_,_ in
+        let centerAnim = cardView.springCenter(to: view.center, at: velocity) {_,_ in
             UIView.animate(withDuration: 0.2, animations: {
                 self.vc.tabSwitcher.setNeedsStatusBarAppearanceUpdate()
             })
             self.vc.webView.scrollView.showsVerticalScrollIndicator = true
             self.vc.contentView.radius = 0
         }
-        cardView.springScale(to: 1)
-        
-        
-        let blend = Blend(start: thumbPositioner.currentValue, end: .zero) {
-            self.vc.tabSwitcher.setCardOffset(to: $0)
+        centerAnim?.animationDidApplyBlock = { _ in
+            self.vc.tabSwitcher.updateStackOffset(for: self.cardView.center)
         }
-        let spring = SpringSwitch { blend.progress = $0 }
-        let anim = spring.springState(.end)
-        anim?.springSpeed = 12
+        let scaleAnim = cardView.springScale(to: 1)
+        scaleAnim?.animationDidApplyBlock = { _ in
+            self.vc.tabSwitcher.setThumbScale(self.cardView.scale)
+        }
 
+        
         var mockCenter = self.view.center
         var mockScale = backItemScale
         let mockShift = mockCardView.bounds.width

@@ -27,7 +27,7 @@ let startY : CGFloat = 240
 class CardStackingLayout: UICollectionViewFlowLayout {
     
     var offset: CGPoint = .zero
-    var scale: CGFloat = 1
+    var maxScale: CGFloat = 1
     
     var selectedIndexPath = IndexPath(item: 0, section: 0)
     var selectedHidden: Bool = false
@@ -78,7 +78,7 @@ class CardStackingLayout: UICollectionViewFlowLayout {
             let attrs = stackedAttributes[i].copy(with: nil) as! UICollectionViewLayoutAttributes
             let expandedAttrs = expandedAttributes[i]
             attrs.center = expandedProgress.lerp(attrs.center, expandedAttrs.center)
-            attrs.scale = expandedProgress.lerp(attrs.scale, scale)
+            attrs.scale = expandedProgress.lerp(attrs.scale, maxScale)
             attrs.isHidden = attrs.isHidden || expandedAttrs.isHidden
             return attrs
         }
@@ -104,7 +104,7 @@ class CardStackingLayout: UICollectionViewFlowLayout {
         return attributesList
     }
     
-    func calculateItem(for indexPath: IndexPath, whenStacked: Bool, scrollY: CGFloat, baseCenter: CGPoint, totalItems: Int) -> UICollectionViewLayoutAttributes {
+    func calculateItem(for indexPath: IndexPath, whenStacked: Bool, scrollY: CGFloat, baseCenter: CGPoint, totalItems: Int, withOffset: Bool = true) -> UICollectionViewLayoutAttributes {
         let topScrollPos = Const.statusHeight + 60
         let cardSize = UIScreen.main.bounds.size
 
@@ -137,21 +137,24 @@ class CardStackingLayout: UICollectionViewFlowLayout {
         if whenStacked {
             newCenter.y -= extraH * 0.5
             newCenter.y -= distFromTop * 0.95 * pct
-            attributes.transform = CGAffineTransform(scale: s)
+            attributes.transform = CGAffineTransform(scale: s * maxScale)
         } else {
             if indexPath != selectedIndexPath {
-                let endCenter = calculateItem(for: selectedIndexPath, whenStacked: true, scrollY: scrollY, baseCenter: baseCenter, totalItems: totalItems).center
+                let endCenter = calculateItem(for: selectedIndexPath, whenStacked: true, scrollY: scrollY, baseCenter: baseCenter, totalItems: totalItems, withOffset: false).center
                 let endDistFromTop = endCenter.y - scrollY - cardSize.height / 2
-                newCenter.y = endCenter.y - (cardSize.height * (scale) + 12) * distFromFront - endDistFromTop
+                newCenter.y = endCenter.y - (cardSize.height * (maxScale) + 12) * distFromFront - endDistFromTop
             }
             
-            attributes.transform = CGAffineTransform(scale: scale)
-            newCenter.x -= offset.x
-            newCenter.y -= offset.y
+            attributes.transform = CGAffineTransform(scale: maxScale)
             if parentHidden && indexPath == parentIndexPath {
                 attributes.isHidden = true
             }
+            newCenter.y -= offset.y
         }
+        if withOffset {
+            newCenter.x -= offset.x
+        }
+
         if selectedHidden && indexPath == selectedIndexPath {
             attributes.isHidden = true
         }
