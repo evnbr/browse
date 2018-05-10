@@ -43,9 +43,25 @@ extension URL {
     }
 }
 
+fileprivate let potentialPrefixes = [
+    "http://www.",
+    "https://www.",
+    "http://",
+    "https://",
+]
+
 // TODO: Make more robust
 extension String {
     var isProbablyURL: Bool {
         return self.range(of:".") != nil && self.range(of:" ") == nil
     }
+    
+    var urlPrefix : String? {
+        for p in potentialPrefixes {
+            if self.hasPrefix(p) { return p };
+        }
+        return nil;
+    }
 }
+
+

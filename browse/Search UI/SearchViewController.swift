@@ -279,6 +279,7 @@ class SearchViewController: UIViewController {
                 self.pageActionView.isBookmarked = isBookmarked
             }
             updateTextViewSize()
+            updateHighlight(textView)
             updateSuggestion(for: textView.text)
         }
         
@@ -327,9 +328,27 @@ class SearchViewController: UIViewController {
     
 extension SearchViewController: UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
+        updateHighlight(textView);
         updateTextViewSize()
         updateSuggestion(for: textView.text)
         updateBrowserOffset()
+    }
+    
+    func updateHighlight(_ textView: UITextView) {
+        let txt = textView.text!
+        if txt.isProbablyURL, let url = URL(string: txt),
+            let highlightRange = txt.allNSRanges(of: url.displayHost).first {
+            let attrTxt = NSMutableAttributedString(string: txt, attributes: [
+                NSAttributedStringKey.foregroundColor: textView.textColor!.withAlphaComponent(0.5),
+                NSAttributedStringKey.font: textView.font!
+                ])
+            let highlight = [ NSAttributedStringKey.foregroundColor: textView.textColor! ]
+            attrTxt.addAttributes(highlight, range: highlightRange)
+            textView.attributedText = attrTxt
+        } else {
+            setBackground(backgroundView.overlayColor!)
+            textView.text = txt
+        }
     }
     
     func updateSuggestion(for text: String) {

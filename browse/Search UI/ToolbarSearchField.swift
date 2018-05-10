@@ -57,7 +57,7 @@ class ToolbarSearchField: ToolbarTouchView {
         }
         set {
             magnify.isHidden = !newValue
-            lock.isHidden = !shouldShowLock || isSearch
+//            lock.isHidden = !shouldShowLock || isSearch
         }
     }
     

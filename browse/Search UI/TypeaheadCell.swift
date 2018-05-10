@@ -80,7 +80,7 @@ class TypeaheadCell: UITableViewCell {
 }
 
 // based on https://stackoverflow.com/questions/40413218/swift-find-all-occurrences-of-a-substring
-fileprivate extension String {
+extension String {
     func allRanges(of text: String, split: Bool = false) -> [Range<String.Index>] {
         if split {
             // split query into words, find ranges of each word, and append ranges

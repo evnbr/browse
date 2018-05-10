@@ -38,24 +38,18 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         browserVC?.toolbar.backgroundView.alpha = 1
         let titleSnap = browserVC?.toolbar.searchField.labelHolder.snapshotView(afterScreenUpdates: false) // TODO doesnt work if hidden
         browserVC?.toolbar.searchField.labelHolder.isHidden = true
-        let toolbarSnap = browserVC?.toolbar.snapshotView(afterScreenUpdates: false) // TODO doesnt work if hidden
-        if let tbar = toolbarSnap, let tc = browserVC?.toolbar.center {
-//            containerView.addSubview(tbar)
-            browserVC?.toolbar.backButton.alpha = 0
-            browserVC?.toolbar.tabButton.alpha = 0
-
-            tbar.center = tc
-            if isDismissing {
-                tbar.center.y -= typeaheadVC.kbHeightConstraint.constant
-                tbar.center.y -= typeaheadVC.toolbarBottomMargin.constant
-//                tbar.center.y -= typeaheadVC.textHeightConstraint.constant - 60
-            }
-        }
         
-        let shiftCompensateForURLPrefix: CGFloat = 40
-        let maskRoomForUrlPrefix: CGFloat = 100
-        let maskStartSize : CGSize = titleSnap?.bounds.size ?? .zero
-        let maskStartFrame = CGRect(origin: CGPoint(x: maskRoomForUrlPrefix, y: 0), size: maskStartSize)
+        let prefix = typeaheadVC.textView.text.urlPrefix
+        let prefixSize = prefix?.boundingRect(
+            with: typeaheadVC.textView.bounds.size,
+            options: [.usesLineFragmentOrigin, .usesFontLeading],
+            attributes: [NSAttributedStringKey.font: typeaheadVC.textView.font!],
+            context: nil)
+        let shiftCompensateForURLPrefix: CGFloat = (prefixSize?.width ?? 0)
+
+        var maskStartSize : CGSize = titleSnap?.bounds.size ?? .zero
+        maskStartSize.height = 40
+        let maskStartFrame = CGRect(origin: CGPoint(x: shiftCompensateForURLPrefix, y: 0), size: maskStartSize)
         let maskEndSize : CGSize = CGSize(width: typeaheadVC.textView.bounds.size.width, height: typeaheadVC.textHeight)
         let maskEndFrame = CGRect(origin: .zero, size: maskEndSize)
 
@@ -67,8 +61,7 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         titleStartCenter.y -= 12
         var titleEndCenter = titleStartCenter
         
-        let titleHorizontalShift : CGFloat = isAnimatingFromToolbar ? (browserVC!.toolbar.bounds.width - (titleSnap?.bounds.width ?? 0) - 70) / 2 - shiftCompensateForURLPrefix: 0
-        let cancelShiftH : CGFloat = 80
+        let titleHorizontalShift : CGFloat = isAnimatingFromToolbar ? (browserVC!.toolbar.bounds.width - (titleSnap?.bounds.width ?? 0)) / 2 - 10 - shiftCompensateForURLPrefix: 0
         titleEndCenter.x -= titleHorizontalShift //- roomForUrlPrefix
         titleEndCenter.y -= typeaheadVC.textHeightConstraint.constant - 80//70
         if isDismissing {
@@ -88,42 +81,31 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             : 0
         typeaheadVC.contextAreaHeightConstraint.springConstant(to: isExpanding
             ? typeaheadVC.contextAreaHeight : 0)
-        typeaheadVC.toolbarBottomMargin.springConstant(to: isExpanding
-            ? 0 : (isAnimatingFromToolbar ? SPACE_FOR_INDICATOR : -48))
-        typeaheadVC.textHeightConstraint.springConstant(to: isExpanding
-            ? typeaheadVC.textHeight : 40)
         
-        titleSnap?.scale = isExpanding ? 1 : 1.15
+        let scaledUp: CGFloat = 18 / 14
+        let scaledDown: CGFloat = 14 / 18
+        
+        titleSnap?.scale = isExpanding ? 1 : scaledUp
         titleSnap?.alpha = isExpanding ? 1 : 0
-        toolbarSnap?.alpha = isExpanding ? 1 : -1
         typeaheadVC.textView.alpha = isExpanding ? 0 : 1
-        typeaheadVC.cancel.alpha = isExpanding ? -1 : 1
 
-//        typeaheadVC.textView.scale = isExpanding ? 0.9 : 1
-        typeaheadVC.textView.transform = CGAffineTransform(translationX: self.isExpanding ? titleHorizontalShift : 0, y: 0)
-        if isDismissing { toolbarSnap?.center.x -= titleHorizontalShift * 0.5 }
+        typeaheadVC.textView.transform = CGAffineTransform(scale: isExpanding ? scaledDown : 1).translatedBy(x: isExpanding ? titleHorizontalShift : 0, y: isExpanding ? -12 : 0)
         
         UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: {
             typeaheadVC.dragHandle.alpha = self.isExpanding ? 1 : 0
             typeaheadVC.suggestionTable.alpha = self.isExpanding ? 1 : 0
             typeaheadVC.pageActionView.alpha = self.isExpanding ? 1 : 0
-            toolbarSnap?.alpha = self.isExpanding ? 0 : 1
-
-            titleSnap?.scale = self.isExpanding ? 1.15 : 1
         })
 
-        UIView.animate(withDuration: 0.35) {
+        UIView.animate(withDuration: 0.2) {
             typeaheadVC.scrim.alpha = self.isExpanding ? 1 : 0
-            titleSnap?.alpha = self.isExpanding ? 0 : 1
+//            titleSnap?.alpha = self.isExpanding ? 0 : 1
         }
-        UIView.animate(withDuration: isExpanding ? 0.3 : 0.2, animations: {
-            typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
-        })
+//        UIView.animate(withDuration: isExpanding ? 0.3 : 0.2, animations: {
+//            typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
+//        })
         
         typeaheadVC.textView.mask?.frame = isExpanding ? maskStartFrame : maskEndFrame
-
-//        switcherVC?.fab.scale = isExpanding ? 1 : 0.2
-//        switcherVC?.fab.springScale(to: isExpanding ? 0.2 : 1)
         
         if showKeyboard && isExpanding {
             typeaheadVC.focusTextView()
@@ -133,7 +115,6 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             if self.isDismissing {
                 typeaheadVC.view.removeFromSuperview()
             }
-            toolbarSnap?.removeFromSuperview()
             titleSnap?.removeFromSuperview()
             
             browserVC?.toolbar.searchField.labelHolder.isHidden = false
@@ -147,6 +128,9 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
         }
         
+        typeaheadVC.toolbarBottomMargin.constant = isExpanding ? 0 : (isAnimatingFromToolbar ? SPACE_FOR_INDICATOR : -48)
+        typeaheadVC.textHeightConstraint.constant = isExpanding ? typeaheadVC.textHeight : 40
+        
         let completeEarly = !showKeyboard && isExpanding
         if completeEarly { completeTransition() }
         
@@ -159,15 +143,16 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             animations: {
                 typeaheadVC.view.layoutIfNeeded()
 //                typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
-                typeaheadVC.cancel.alpha = self.isExpanding ? 1 : 0
                 typeaheadVC.pageActionView.alpha = self.isExpanding ? 1 : 0
 
+                typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
+                titleSnap?.alpha = self.isExpanding ? 0 : 1
+                
+                titleSnap?.scale = self.isExpanding ? scaledUp : 1
                 titleSnap?.center = self.isExpanding ? titleEndCenter : titleStartCenter
                 
-                if self.isExpanding { toolbarSnap?.center.x -= titleHorizontalShift * 0.5 }
-                typeaheadVC.textView.transform = CGAffineTransform(translationX: self.isExpanding ? 0 : titleHorizontalShift, y: 0)
-                typeaheadVC.cancel.transform = CGAffineTransform(translationX: self.isExpanding ? 0 : cancelShiftH, y: 0)
-                
+                typeaheadVC.textView.transform = CGAffineTransform(scale: self.isExpanding ? 1 : scaledDown ).translatedBy(x: self.isExpanding ? 0 : titleHorizontalShift, y: self.isExpanding ? 0 : -16)
+
                 typeaheadVC.textView.mask?.frame = self.isExpanding ? maskEndFrame : maskStartFrame
 
                 if let b = browserVC {
@@ -184,13 +169,6 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
                     typeaheadVC.textView.resignFirstResponder()
                 }
                 
-                if let tbar = toolbarSnap, let tc = browserVC?.toolbar.center {
-                    tbar.center = tc
-                    if self.isExpanding && self.showKeyboard {
-                        tbar.center.y -= typeaheadVC.keyboardHeight - 24
-                    }
-                    tbar.alpha = self.isExpanding ? 0 : 1
-                }
         }, completion: { _ in
             if !completeEarly { completeTransition() }
         })

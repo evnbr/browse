@@ -60,6 +60,10 @@ extension CGAffineTransform {
     var xScale : CGFloat {
         return sqrt(a * a + c * c);
     }
+    
+    func scaledBy(_ newScale: CGFloat) -> CGAffineTransform {
+        return self.scaledBy(x: newScale, y: newScale)
+    }
 }
 
 // MARK: - Constraints
