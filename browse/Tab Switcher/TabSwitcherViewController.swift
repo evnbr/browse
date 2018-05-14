@@ -252,8 +252,8 @@ class TabSwitcherViewController: UICollectionViewController {
             }
             completion?()
         }
-        anim?.springSpeed = 7
-        anim?.springBounciness = 3
+        anim?.springSpeed = 6
+        anim?.springBounciness = 2
     }
     
     
@@ -291,9 +291,11 @@ class TabSwitcherViewController: UICollectionViewController {
         })
     }
     
-    func scrollToBottom() {
+    func scrollToBottom(animated: Bool = false) {
         if let cv = self.collectionView, cv.isScrollableY {
-            cv.contentOffset.y = cv.maxScrollYWithInset
+            cv.setContentOffset(
+                CGPoint(x: cv.contentOffset.x, y: cv.maxScrollYWithInset),
+                animated: animated)
         }
     }
     
@@ -389,7 +391,7 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
             if let ip = self.currentIndexPath {
                 self.cardStackLayout.selectedIndexPath = ip
             }
-            self.scrollToBottom() // TODO this might be overkill
+            self.scrollToBottom(animated: true) // TODO this might be overkill
         })
     }
 
