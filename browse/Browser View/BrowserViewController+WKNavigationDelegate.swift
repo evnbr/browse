@@ -116,7 +116,6 @@ extension BrowserViewController: WKNavigationDelegate {
             ac.addAction(UIAlertAction(title: "Submit", style: .default, handler: { action in
                 if let userName = ac.textFields?.first?.text,
                     let password = ac.textFields?.last?.text {
-                    print("u: \(userName), p: \(password)")
                     let credential = URLCredential(user: userName, password: password, persistence: URLCredential.Persistence.forSession)
                     challenge.sender?.use(credential, for: challenge)
                     completionHandler(URLSession.AuthChallengeDisposition.useCredential, credential)

@@ -140,7 +140,7 @@ class HistoryManager: NSObject {
                 }
             }
 
-            // Add or create canonical site
+            // Add or update canonical site
             var site: Site? = nil
             if let currentSite = tab.currentVisit?.site, currentSite.url == wkItem.url {
                 site = currentSite
@@ -169,10 +169,6 @@ class HistoryManager: NSObject {
                 if let count = site.visits?.count {
                     site.visitCount = Int32(count)
                 }
-            }
-            if tab.currentVisit!.uuid == nil {
-                // sanity check
-                fatalError("current visit not valid")
             }
             
             self.save(context: ctx)

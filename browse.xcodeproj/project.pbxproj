@@ -42,7 +42,6 @@
 		A95DFF7E205B2FB700D540DD /* HistoryModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7C205B2FB700D540DD /* HistoryModel.xcdatamodeld */; };
 		A95DFFBF205B6A8F00D540DD /* HistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFFBE205B6A8F00D540DD /* HistoryManager.swift */; };
 		A9667E922051F90400295E76 /* PinboardLoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E912051F90400295E76 /* PinboardLoginController.swift */; };
-		A9667E94205339B500295E76 /* BlobCollectionViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E93205339B500295E76 /* BlobCollectionViewLayout.swift */; };
 		A966CA64204003FC00EB2771 /* TypeaheadCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A966CA63204003FC00EB2771 /* TypeaheadCell.swift */; };
 		A969D4A51F1321EC008A7BC6 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A969D4A41F1321EC008A7BC6 /* Constants.swift */; };
 		A97BF8311EF3B5B900B9ECB4 /* BrowserViewController+WKUIDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A97BF8301EF3B5B900B9ECB4 /* BrowserViewController+WKUIDelegate.swift */; };
@@ -144,7 +143,6 @@
 		A95DFF7D205B2FB700D540DD /* HistoryModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = HistoryModel.xcdatamodel; sourceTree = "<group>"; };
 		A95DFFBE205B6A8F00D540DD /* HistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryManager.swift; sourceTree = "<group>"; };
 		A9667E912051F90400295E76 /* PinboardLoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinboardLoginController.swift; sourceTree = "<group>"; };
-		A9667E93205339B500295E76 /* BlobCollectionViewLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlobCollectionViewLayout.swift; sourceTree = "<group>"; };
 		A966CA63204003FC00EB2771 /* TypeaheadCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeaheadCell.swift; sourceTree = "<group>"; };
 		A969D4A41F1321EC008A7BC6 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		A97BF8301EF3B5B900B9ECB4 /* BrowserViewController+WKUIDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "BrowserViewController+WKUIDelegate.swift"; sourceTree = "<group>"; };
@@ -262,7 +260,6 @@
 				A92095921EE36483009497A2 /* DismissableTabCell.swift */,
 				A9A88DE82015C64F007FC6C0 /* GradientView.swift */,
 				A9E422801F86B4FD0028B4CA /* CardStackingLayout.swift */,
-				A9667E93205339B500295E76 /* BlobCollectionViewLayout.swift */,
 				A920958E1EDF4AB8009497A2 /* StackAnimatedTransitioning.swift */,
 			);
 			path = "Tab Switcher";
@@ -825,7 +822,6 @@
 				A985F89D20831FD5007A726A /* TreeMakerLayout.swift in Sources */,
 				A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */,
 				A92095861ED9E242009497A2 /* SettingsViewController.swift in Sources */,
-				A9667E94205339B500295E76 /* BlobCollectionViewLayout.swift in Sources */,
 				A95DFF7720575FDF00D540DD /* SpringSwitch.swift in Sources */,
 				A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */,
 				A9210D511F0148E600904A0B /* URL+DisplayHost.swift in Sources */,

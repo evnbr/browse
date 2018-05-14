@@ -109,6 +109,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             }
         }
     }
+    @objc func finishHiddenNavigation() {
+        self.navigationToHide = nil //false
+        self.isSnapshotMode = false
+    }
+
     func setVisit(_ visit: Visit, wkItem: WKBackForwardListItem) {
         let list = webView.backForwardList
         if list.currentItem == wkItem { return }
@@ -127,11 +132,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         return list.currentItem == wkItem
             || list.backList.contains(wkItem)
             || list.forwardList.contains(wkItem)
-    }
-    
-    @objc func finishHiddenNavigation() {
-        self.navigationToHide = nil //false
-        self.isSnapshotMode = false
     }
     
     // MARK: - Lifecycle
@@ -410,7 +410,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         let historyVC = HistoryTreeViewController()
         updateSnapshot {
             historyVC.loadViewIfNeeded() // to set up scrollpos
-            historyVC.treeMaker.loadTabs(selectedTab: self.currentTab) {
+            historyVC.treeMaker.loadTabs(selectedTabID: self.currentTab.objectID) {
                 self.present(historyVC, animated: true, completion: nil)
             }
         }
