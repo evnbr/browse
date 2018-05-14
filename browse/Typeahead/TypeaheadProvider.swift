@@ -89,7 +89,7 @@ class TypeaheadProvider: NSObject {
                     var suggestion : TypeaheadSuggestion
                     
                     if let q = item.url.searchQuery {
-                        suggestion = TypeaheadSuggestion(title: q, detail: nil, url: item.url)
+                        suggestion = TypeaheadSuggestion(title: item.title, detail: q, url: item.url)
                     }
                     else {
                         suggestion = TypeaheadSuggestion(title: item.title, detail: item.url.cleanString, url: item.url)

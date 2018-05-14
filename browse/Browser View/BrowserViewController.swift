@@ -62,7 +62,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         return toolbar.heightConstraint.constant > 0
     }
     
-    var displayTitle : String {
+    var displayLocation : String {
         guard let url = webView?.url else { return "" }
         if let q = url.searchQuery { return q }
         else { return displayURL }
@@ -82,7 +82,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var isSearching : Bool {
         get {
             guard let url = webView.url else { return false }
-            return url.absoluteString.contains("google") && url.absoluteString.contains("?q=")
+            return (url.absoluteString.contains("google") || url.absoluteString.contains("duck")) && url.absoluteString.contains("?q=")
         }
     }
     
@@ -708,7 +708,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         guard isViewLoaded else { return }
         assert(webView != nil, "nil webview")
         
-        toolbar.text = self.displayTitle
+        toolbar.text = self.displayLocation
         statusBar.label.text = webView.title
         
         UIView.animate(withDuration: 0.25) {

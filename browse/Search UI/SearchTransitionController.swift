@@ -8,6 +8,8 @@
 
 import UIKit
 
+let TEXT_TRANSLATION: CGFloat = -8
+
 class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitioning {
     
     var direction : CustomAnimationDirection!
@@ -39,6 +41,11 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         let titleSnap = browserVC?.toolbar.searchField.labelHolder.snapshotView(afterScreenUpdates: false) // TODO doesnt work if hidden
         browserVC?.toolbar.searchField.labelHolder.isHidden = true
         
+        let smallSize = Const.shared.thumbTitleFont.pointSize
+        let largeSize = Const.shared.textFieldFont.pointSize
+        let scaledUp: CGFloat = largeSize / smallSize
+        let scaledDown: CGFloat = smallSize / largeSize
+        
         let prefix = typeaheadVC.textView.text.urlPrefix
         let prefixSize = prefix?.boundingRect(
             with: typeaheadVC.textView.bounds.size,
@@ -48,8 +55,8 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         let shiftCompensateForURLPrefix: CGFloat = (prefixSize?.width ?? 0)
 
         var maskStartSize : CGSize = titleSnap?.bounds.size ?? .zero
-        maskStartSize.height = 40
-        let maskStartFrame = CGRect(origin: CGPoint(x: shiftCompensateForURLPrefix, y: 0), size: maskStartSize)
+        maskStartSize.height = 48
+        let maskStartFrame = CGRect(origin: CGPoint(x: shiftCompensateForURLPrefix + 24, y: 0), size: maskStartSize)
         let maskEndSize : CGSize = CGSize(width: typeaheadVC.textView.bounds.size.width, height: typeaheadVC.textHeight)
         let maskEndFrame = CGRect(origin: .zero, size: maskEndSize)
 
@@ -61,11 +68,14 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         titleStartCenter.y -= 12
         var titleEndCenter = titleStartCenter
         
-        let titleHorizontalShift : CGFloat = isAnimatingFromToolbar ? (browserVC!.toolbar.bounds.width - (titleSnap?.bounds.width ?? 0)) / 2 - 10 - shiftCompensateForURLPrefix: 0
-        titleEndCenter.x -= titleHorizontalShift //- roomForUrlPrefix
-        titleEndCenter.y -= typeaheadVC.textHeightConstraint.constant - 80//70
+        let hasLock = browserVC?.toolbar.isSecure ?? false
+        let toolbarWidth = browserVC?.toolbar.bounds.width ?? UIScreen.main.bounds.width
+        let roomForLock: CGFloat = hasLock ? 14 : 30
+        let titleHorizontalShift : CGFloat = (toolbarWidth - (titleSnap?.bounds.width ?? 0)) / 2 - roomForLock - shiftCompensateForURLPrefix
+        titleEndCenter.x -= titleHorizontalShift
+        titleEndCenter.y -= typeaheadVC.textHeightConstraint.constant - 86
         if isDismissing {
-            titleEndCenter.y -= max(typeaheadVC.kbHeightConstraint.constant, SPACE_FOR_INDICATOR)
+            titleEndCenter.y -= max(typeaheadVC.kbHeightConstraint.constant, 0)
         }
         else if showKeyboard {
             titleEndCenter.y -= typeaheadVC.keyboardHeight
@@ -77,33 +87,25 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         typeaheadVC.scrim.alpha = isExpanding ? 0 : 1
         
         typeaheadVC.kbHeightConstraint.constant = isExpanding
-            ? (showKeyboard ? typeaheadVC.keyboardHeight : SPACE_FOR_INDICATOR )
+            ? (showKeyboard ? typeaheadVC.keyboardHeight : 0 )
             : 0
         typeaheadVC.contextAreaHeightConstraint.springConstant(to: isExpanding
             ? typeaheadVC.contextAreaHeight : 0)
-        
-        let scaledUp: CGFloat = 18 / 14
-        let scaledDown: CGFloat = 14 / 18
         
         titleSnap?.scale = isExpanding ? 1 : scaledUp
         titleSnap?.alpha = isExpanding ? 1 : 0
         typeaheadVC.textView.alpha = isExpanding ? 0 : 1
 
-        typeaheadVC.textView.transform = CGAffineTransform(scale: isExpanding ? scaledDown : 1).translatedBy(x: isExpanding ? titleHorizontalShift : 0, y: isExpanding ? -12 : 0)
+        typeaheadVC.textView.transform = CGAffineTransform(scale: isExpanding ? scaledDown : 1).translatedBy(x: isExpanding ? titleHorizontalShift : 0, y: isExpanding ? TEXT_TRANSLATION : 0)
         
         UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: {
             typeaheadVC.dragHandle.alpha = self.isExpanding ? 1 : 0
             typeaheadVC.suggestionTable.alpha = self.isExpanding ? 1 : 0
-            typeaheadVC.pageActionView.alpha = self.isExpanding ? 1 : 0
         })
 
         UIView.animate(withDuration: 0.2) {
             typeaheadVC.scrim.alpha = self.isExpanding ? 1 : 0
-//            titleSnap?.alpha = self.isExpanding ? 0 : 1
         }
-//        UIView.animate(withDuration: isExpanding ? 0.3 : 0.2, animations: {
-//            typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
-//        })
         
         typeaheadVC.textView.mask?.frame = isExpanding ? maskStartFrame : maskEndFrame
         
@@ -111,28 +113,20 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             typeaheadVC.focusTextView()
         }
         
+        typeaheadVC.textHeightConstraint.constant = isExpanding ? typeaheadVC.textHeight : Const.toolbarHeight
+        
         func completeTransition() {
-            if self.isDismissing {
-                typeaheadVC.view.removeFromSuperview()
-            }
+            if self.isDismissing { typeaheadVC.view.removeFromSuperview() }
             titleSnap?.removeFromSuperview()
-            
             browserVC?.toolbar.searchField.labelHolder.isHidden = false
-            
-            UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
-                browserVC?.toolbar.backButton.alpha = 1
-                browserVC?.toolbar.tabButton.alpha = 1
-            })
             browserVC?.toolbar.backgroundView.alpha = 1
-            
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
         }
         
-        typeaheadVC.toolbarBottomMargin.constant = isExpanding ? 0 : (isAnimatingFromToolbar ? SPACE_FOR_INDICATOR : -48)
-        typeaheadVC.textHeightConstraint.constant = isExpanding ? typeaheadVC.textHeight : 40
-        
         let completeEarly = !showKeyboard && isExpanding
         if completeEarly { completeTransition() }
+        
+        typeaheadVC.iconProgress = isExpanding ? 1 : 0
         
         UIView.animate(
             withDuration: 0.5,
@@ -142,7 +136,6 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             options: [.curveLinear],
             animations: {
                 typeaheadVC.view.layoutIfNeeded()
-//                typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
                 typeaheadVC.pageActionView.alpha = self.isExpanding ? 1 : 0
 
                 typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
@@ -151,23 +144,11 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
                 titleSnap?.scale = self.isExpanding ? scaledUp : 1
                 titleSnap?.center = self.isExpanding ? titleEndCenter : titleStartCenter
                 
-                typeaheadVC.textView.transform = CGAffineTransform(scale: self.isExpanding ? 1 : scaledDown ).translatedBy(x: self.isExpanding ? 0 : titleHorizontalShift, y: self.isExpanding ? 0 : -16)
+                typeaheadVC.textView.transform = CGAffineTransform(scale: self.isExpanding ? 1 : scaledDown ).translatedBy(x: self.isExpanding ? 0 : titleHorizontalShift, y: self.isExpanding ? 0 : TEXT_TRANSLATION)
 
                 typeaheadVC.textView.mask?.frame = self.isExpanding ? maskEndFrame : maskStartFrame
 
-                if let b = browserVC {
-                    let baseCenter = b.view.center
-                    var shiftedCenter = baseCenter
-                    shiftedCenter.y -= typeaheadVC.browserOffset
-                    if completeEarly {
-                        shiftedCenter.y += typeaheadVC.keyboardHeight - SPACE_FOR_INDICATOR
-                    }
-                    b.cardView.center = self.isExpanding ? shiftedCenter : baseCenter
-                }
-
-                if self.isDismissing {
-                    typeaheadVC.textView.resignFirstResponder()
-                }
+                if self.isDismissing { typeaheadVC.textView.resignFirstResponder() }
                 
         }, completion: { _ in
             if !completeEarly { completeTransition() }
