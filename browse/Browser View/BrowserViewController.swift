@@ -398,10 +398,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     func setUpToolbar() -> BrowserToolbarView {
         let toolbar = BrowserToolbarView(frame: CGRect(x: 0, y: 0, width: cardView.frame.width, height: Const.toolbarHeight))
         
-        toolbar.searchField.action = displaySearch
-        toolbar.backButton.action = goBack
-        toolbar.stopButton.action = stop
-        toolbar.tabButton.action = displayHistory
+        toolbar.searchField.setAction(displaySearch)
+        toolbar.backButton.setAction(goBack)
+        toolbar.stopButton.setAction(stop)
+        toolbar.tabButton.setAction(displayHistory)
         toolbar.tintColor = .darkText
         return toolbar
     }

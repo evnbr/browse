@@ -11,8 +11,9 @@ typealias ToolbarButtonAction = () -> Void
 
 class ToolbarTouchView: UIView {
 
-    var action: ToolbarButtonAction?
-    var tapColor : UIColor = .lightTouch
+    private var action: ToolbarButtonAction?
+    private var tapColor: UIColor = .lightTouch
+    private var tap: UITapGestureRecognizer?
     
     override var intrinsicContentSize: CGSize {
         return frame.size
@@ -23,7 +24,6 @@ class ToolbarTouchView: UIView {
         radius = frame.height / 2
     }
     
-    
     init(frame: CGRect, onTap: ToolbarButtonAction? ) {
         action = onTap
 
@@ -31,23 +31,30 @@ class ToolbarTouchView: UIView {
         backgroundColor = .clear
         layer.masksToBounds = true
         radius = frame.height / 2
-        
-        let tap = UITapGestureRecognizer(target: self, action: #selector(doAction))
-        tap.numberOfTapsRequired = 1
-        tap.isEnabled = true
-        tap.cancelsTouchesInView = false
-        tap.delaysTouchesBegan = false
-        
-        addGestureRecognizer(tap)
     }
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    func setAction(_ action: @escaping ToolbarButtonAction) {
+        if tap == nil { setupTapGesture() }
+        self.action = action
+    }
+    
     @objc func doAction() {
         action?()
         deSelect()
+    }
+    
+    func setupTapGesture() {
+        let tap = UITapGestureRecognizer(target: self, action: #selector(doAction))
+        tap.numberOfTapsRequired = 1
+        tap.isEnabled = true
+        tap.cancelsTouchesInView = false
+        tap.delaysTouchesBegan = false
+        addGestureRecognizer(tap)
+        self.tap = tap
     }
     
     override func tintColorDidChange() {
