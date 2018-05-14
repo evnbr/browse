@@ -140,28 +140,33 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
                 browserVC.webView.scrollView.showsVerticalScrollIndicator = true
             }
             
-            tabSwitcher.visibleCells.forEach {
-                $0.refresh()
-                $0.reset()
+            browserVC.updateSnapshot {
+                tabSwitcher.visibleCells.forEach {
+                    $0.refresh()
+                    $0.reset()
+                }
+                tabSwitcher.scrollToBottom()
+                
+                snapFab?.removeFromSuperview()
+                tabSwitcher.fab.isHidden = self.isExpanding
+                tabSwitcher.setNeedsStatusBarAppearanceUpdate()
+                
+                browserVC.contentView.mask = nil
+                browserVC.contentView.radius = 0
+            
+                transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
+                if self.isDismissing {
+                    browserVC.view.removeFromSuperview()
+                    browserVC.gestureController.mockCardView.removeFromSuperview()
+                    browserVC.gestureController.mockCardView.imageView.image = nil
+                    tabSwitcher.visibleCells.forEach { $0.isHidden = false } // TODO: super janky, should wait for collectionview to update
+                }
+                
+                // Cleanup so non-animated transitions arent weird
+                browserVC.cardView.scale = 1
+                browserVC.cardView.center = browserVC.view.center
             }
-            tabSwitcher.scrollToBottom()
-//            homeVC.collectionView?.reloadData() // TODO: touch targets dont work without this
             
-            snapFab?.removeFromSuperview()
-            tabSwitcher.fab.isHidden = self.isExpanding
-            tabSwitcher.setNeedsStatusBarAppearanceUpdate()
-            
-            browserVC.contentView.mask = nil
-            browserVC.contentView.radius = 0
-            transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
-            if self.isDismissing {
-                browserVC.view.removeFromSuperview()
-                tabSwitcher.visibleCells.forEach { $0.isHidden = false } // TODO: super janky, should wait for collectionview to update
-            }
-            
-            // Cleanup so non-animated transitions arent weird
-            browserVC.cardView.scale = 1
-            browserVC.cardView.center = browserVC.view.center
         }
         
         let isLandscape = browserVC.view.bounds.width > browserVC.view.bounds.height
@@ -186,27 +191,16 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
 
         centerAnim?.animationDidApplyBlock = { _ in
             let cardCenter = browserVC.cardView.center
+            browserVC.gestureController.mockCardView.center.y = cardCenter.y
             tabSwitcher.updateStackOffset(for: cardCenter)
-            
-            // TODO: animate scale alongside this transition
-            
-//            let view = browserVC.view!
-//            let translation = CGPoint(
-//                x: view.center.x - cardCenter.x,
-//                y: view.center.y - cardCenter.y
-//            )
-//            let scale = browserVC.gestureController.dismissScaleFor(translation: translation)
-//            tabSwitcher.setThumbScale(scale)
-//            browserVC.cardView.scale = scale
         }
         scaleAnim?.animationDidApplyBlock = { _ in
-            tabSwitcher.setThumbScale(browserVC.cardView.scale)
+            let s = browserVC.cardView.scale
+            let gc = browserVC.gestureController!
+            gc.mockCardView.scale = s * gc.backItemScale
+            tabSwitcher.setThumbScale(s)
         }
 
-        
-//        if isExpanding {
-//            tabSwitcher.cardStackLayout.offset.y = 0//-(thumbCenter.y - thumbBounds.height / 2 )
-//        }
         tabSwitcher.springCards(toStacked: isDismissing, at: velocity) {
             popCardsDone = true
             finishTransition()
@@ -223,6 +217,7 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
         }
 
         browserVC.statusBar.frame.size.height = !isExpanding ? statusHeight : THUMB_OFFSET_COLLAPSED
+        browserVC.currentTab.currentVisit?.title = browserVC.webView.title
         browserVC.statusBar.label.text = browserVC.webView.title
         
         if isExpanding {
