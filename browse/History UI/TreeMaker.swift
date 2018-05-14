@@ -44,7 +44,7 @@ class TreeMaker : NSObject {
     
     func indexPath(for visit: Visit) -> IndexPath? {
         return nodeIDs.first(where: { (ip, id) -> Bool in
-            id == visit.objectID
+            return id == visit.objectID
         })?.key
     }
     
@@ -130,12 +130,10 @@ class TreeMaker : NSObject {
             }
             let pos = availablePos(for: TreePosition(x: currentDepth, y: currentY))
             
-            
             if pos.y > maxY { maxY = pos.y }
             usedPositions.insert(pos)
             self.addVisit(node, at: pos)
             
-//            if currentDepth > initialMaxDepth { return }
             if let children = node.forwardItems?.allObjects as? [Visit] {
                 currentDepth += 1
                 if currentDepth > maxDepth { maxDepth = currentDepth }
@@ -183,21 +181,15 @@ class TreeMaker : NSObject {
         self._nodeCount = nodeIDs.count
     }
     
-    func loadTabs() {
-        HistoryManager.shared.persistentContainer.performBackgroundTask { ctx in
-        }
-    }
-    
-    // TODO: Do our own fetchrequest here so we can
-    // also show closed tabs
-    func loadTabs(selectedTab: Tab?, completion: (() -> ())?) {
+    func loadTabs(selectedTabID: NSManagedObjectID?, completion: (() -> ())?) {
         HistoryManager.shared.persistentContainer.performBackgroundTask { ctx in
             var tabs: [Tab]
             let request: NSFetchRequest<Tab> = Tab.fetchRequest()
             request.sortDescriptors = [
-                NSSortDescriptor(key: "creationTime", ascending: false),
+                NSSortDescriptor(key: "creationTime", ascending: true),
             ]
-            request.fetchBatchSize = 20
+            request.predicate = NSPredicate(format: "isClosed == NO")
+//            request.fetchBatchSize = 20
             do {
                 tabs = try ctx.fetch(request)
             } catch let error{
@@ -206,17 +198,22 @@ class TreeMaker : NSObject {
             }
             let rootTabs = tabs.filter({ tab -> Bool in
                 // child tabs belong inline
-                if let parent = tab.parentTab, tabs.contains(parent) {
-                    return false
-                }
+                // TODO: cross-tab connections arent
+                // being created consistently, so dont filter these
+                // out just yet
+    
+//                if let parent = tab.parentTab, tabs.contains(parent) {
+//                    return false
+//                }
                 return true
             })
+            print("will render \(rootTabs.count) roots")
 
             let currentVisits: [Visit] = rootTabs.map { $0.currentVisit! }
             let currentRoots: [Visit] = currentVisits.map { visit in
                 var root = visit
                 var backDepth = 0
-                while let backItem = root.backItem, backDepth < self.initialMaxDepth {
+                while let backItem = root.backItem, backDepth < 10000 {//self.initialMaxDepth {
                     root = backItem
                     backDepth += 1
                 }
@@ -224,11 +221,11 @@ class TreeMaker : NSObject {
             }
             
             self.traverseTrees(from: currentRoots)
-            self.applyLayout(selectedTab: selectedTab, completion: completion)
+            self.applyLayout(completion: completion)
         }
     }
     
-    private func applyLayout(selectedTab: Tab?, completion: (() -> ())?) {
+    private func applyLayout(completion: (() -> ())?) {
         DispatchQueue.main.async {
             self.layout.collectionView?.reloadData()
             self.layout.invalidateLayout()
