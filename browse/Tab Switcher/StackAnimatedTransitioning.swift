@@ -189,15 +189,31 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
         scaleAnim?.springSpeed = 5
         scaleAnim?.springBounciness = 1
 
+        let mockMatchCard = browserVC.cardView.center.x > browserVC.view.center.x
+        
         centerAnim?.animationDidApplyBlock = { _ in
             let cardCenter = browserVC.cardView.center
-            browserVC.gestureController.mockCardView.center.y = cardCenter.y
+            if mockMatchCard {
+                browserVC.gestureController.mockCardView.center.y = cardCenter.y
+            }
             tabSwitcher.updateStackOffset(for: cardCenter)
         }
+        let startScale = browserVC.cardView.scale
+        let startX = browserVC.gestureController.mockCardView.center.x
         scaleAnim?.animationDidApplyBlock = { _ in
             let s = browserVC.cardView.scale
             let gc = browserVC.gestureController!
-            gc.mockCardView.scale = s * gc.backItemScale
+            
+            if self.isDismissing {
+                let pct = s.progress(startScale, 1)
+                var endX = browserVC.view.center.x + browserVC.cardView.bounds.width
+                if mockMatchCard {
+                    gc.mockCardView.scale = s * gc.backItemScale
+                    endX = browserVC.cardView.center.x
+                }
+                browserVC.gestureController.mockCardView.center.x = pct.lerp(startX, endX)
+            }
+
             tabSwitcher.setThumbScale(s)
         }
 

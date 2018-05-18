@@ -752,10 +752,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
         
         // hack to sync with collectionview update
-        DispatchQueue.main.async {
-            self.mockCardView.removeFromSuperview()
-            self.mockCardView.imageView.image = nil
-        }
+//        DispatchQueue.main.async {
+//            self.mockCardView.removeFromSuperview()
+//            self.mockCardView.imageView.image = nil
+//        }
         
         vc.dismiss(animated: true) {
             self.dismissVelocity = nil
