@@ -8,7 +8,15 @@
 
 import UIKit
 
-let TEXT_TRANSLATION: CGFloat = -8
+let textFieldExtraYShift: CGFloat = -4
+let maskExtraXShift: CGFloat = 24
+let extraXShift: CGFloat = -4
+
+let titleExtraYShift: CGFloat = -12
+let titleExtraYShiftEnd: CGFloat = 71
+let lockWidth: CGFloat = 19
+let searchWidth: CGFloat = 22
+let textFieldMargin: CGFloat = 40
 
 class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitioning {
     
@@ -52,11 +60,11 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             options: [.usesLineFragmentOrigin, .usesFontLeading],
             attributes: [NSAttributedStringKey.font: typeaheadVC.textView.font!],
             context: nil)
-        let shiftCompensateForURLPrefix: CGFloat = (prefixSize?.width ?? 0)
+        let prefixWidth: CGFloat = (prefixSize?.width ?? 0)
 
         var maskStartSize : CGSize = titleSnap?.bounds.size ?? .zero
         maskStartSize.height = 48
-        let maskStartFrame = CGRect(origin: CGPoint(x: shiftCompensateForURLPrefix + 24, y: 0), size: maskStartSize)
+        let maskStartFrame = CGRect(origin: CGPoint(x: prefixWidth + maskExtraXShift, y: 0), size: maskStartSize)
         let maskEndSize : CGSize = CGSize(width: typeaheadVC.textView.bounds.size.width, height: typeaheadVC.textHeight)
         let maskEndFrame = CGRect(origin: .zero, size: maskEndSize)
 
@@ -65,20 +73,24 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             containerView.addSubview(title)
         }
         var titleStartCenter = browserVC?.toolbar.center ?? .zero
-        titleStartCenter.y -= 12
         var titleEndCenter = titleStartCenter
+        titleStartCenter.y += titleExtraYShift
         
-        let hasLock = browserVC?.toolbar.isSecure ?? false
-        let toolbarWidth = browserVC?.toolbar.bounds.width ?? UIScreen.main.bounds.width
-        let roomForLock: CGFloat = hasLock ? 14 : 30
-        let titleHorizontalShift : CGFloat = (toolbarWidth - (titleSnap?.bounds.width ?? 0)) / 2 - roomForLock - shiftCompensateForURLPrefix
+        let hasSearch = browserVC?.toolbar.isSearch ?? false
+        let hasLock = (browserVC?.toolbar.isSecure ?? false) && !hasSearch
+        let titleWidth = (titleSnap?.bounds.width ?? 0) * scaledUp
+        let textFieldWidth = (browserVC?.toolbar.bounds.width ?? UIScreen.main.bounds.width) - textFieldMargin
+        let titleToTextDist = (textFieldWidth - titleWidth ) / 2
+        let roomForLockShift: CGFloat = (hasLock ? lockWidth : 0) + (hasSearch ? searchWidth : 0)
+        let titleHorizontalShift : CGFloat = titleToTextDist + roomForLockShift - prefixWidth + extraXShift
         titleEndCenter.x -= titleHorizontalShift
-        titleEndCenter.y -= typeaheadVC.textHeightConstraint.constant - 86
+        titleEndCenter.y -= typeaheadVC.textHeightConstraint.constant
+        titleEndCenter.y += titleExtraYShiftEnd
         if isDismissing {
             titleEndCenter.y -= max(typeaheadVC.kbHeightConstraint.constant, 0)
         }
         else if showKeyboard {
-            titleEndCenter.y -= typeaheadVC.keyboardHeight
+            titleEndCenter.y -= typeaheadVC.keyboard.height
         }
 
         titleSnap?.center = isExpanding ? titleStartCenter : titleEndCenter
@@ -87,7 +99,7 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         typeaheadVC.scrim.alpha = isExpanding ? 0 : 1
         
         typeaheadVC.kbHeightConstraint.constant = isExpanding
-            ? (showKeyboard ? typeaheadVC.keyboardHeight : 0 )
+            ? (showKeyboard ? typeaheadVC.keyboard.height : 0 )
             : 0
         typeaheadVC.contextAreaHeightConstraint.springConstant(to: isExpanding
             ? typeaheadVC.contextAreaHeight : 0)
@@ -96,16 +108,12 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         titleSnap?.alpha = isExpanding ? 1 : 0
         typeaheadVC.textView.alpha = isExpanding ? 0 : 1
 
-        typeaheadVC.textView.transform = CGAffineTransform(scale: isExpanding ? scaledDown : 1).translatedBy(x: isExpanding ? titleHorizontalShift : 0, y: isExpanding ? TEXT_TRANSLATION : 0)
+        typeaheadVC.textView.transform = CGAffineTransform(scale: isExpanding ? scaledDown : 1).translatedBy(x: isExpanding ? titleHorizontalShift : 0, y: isExpanding ? textFieldExtraYShift : 0)
         
         UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: {
             typeaheadVC.dragHandle.alpha = self.isExpanding ? 1 : 0
             typeaheadVC.suggestionTable.alpha = self.isExpanding ? 1 : 0
         })
-
-        UIView.animate(withDuration: 0.2) {
-            typeaheadVC.scrim.alpha = self.isExpanding ? 1 : 0
-        }
         
         typeaheadVC.textView.mask?.frame = isExpanding ? maskStartFrame : maskEndFrame
         
@@ -137,14 +145,14 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
             animations: {
                 typeaheadVC.view.layoutIfNeeded()
                 typeaheadVC.pageActionView.alpha = self.isExpanding ? 1 : 0
-
+                typeaheadVC.scrim.alpha = self.isExpanding ? 1 : 0
                 typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
                 titleSnap?.alpha = self.isExpanding ? 0 : 1
                 
                 titleSnap?.scale = self.isExpanding ? scaledUp : 1
                 titleSnap?.center = self.isExpanding ? titleEndCenter : titleStartCenter
                 
-                typeaheadVC.textView.transform = CGAffineTransform(scale: self.isExpanding ? 1 : scaledDown ).translatedBy(x: self.isExpanding ? 0 : titleHorizontalShift, y: self.isExpanding ? 0 : TEXT_TRANSLATION)
+                typeaheadVC.textView.transform = CGAffineTransform(scale: self.isExpanding ? 1 : scaledDown ).translatedBy(x: self.isExpanding ? 0 : titleHorizontalShift, y: self.isExpanding ? 0 : textFieldExtraYShift)
 
                 typeaheadVC.textView.mask?.frame = self.isExpanding ? maskEndFrame : maskStartFrame
 

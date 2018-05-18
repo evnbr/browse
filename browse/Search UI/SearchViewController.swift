@@ -12,7 +12,50 @@ import pop
 let typeaheadReuseID = "TypeaheadRow"
 let MAX_ROWS : Int = 4
 let SEARCHVIEW_MAX_H : CGFloat = 240.0
-let TEXTVIEW_PADDING = UIEdgeInsetsMake(24, 20, 40, 20 )
+let TEXTVIEW_PADDING = UIEdgeInsetsMake(20, 20, 40, 20 )
+
+
+class KeyboardManager: NSObject {
+    private var snapshot: UIImage?
+    private var lastKeyboardSize: CGSize?
+    private var lastKeyboardColor: UIColor?
+    
+    var height : CGFloat = 250
+
+    private func takeKeyboardSnapshot(size: CGSize) -> UIImage? {
+        let screen = UIScreen.main.bounds.size
+        UIGraphicsBeginImageContextWithOptions(size, false, 0)
+        let ctx = UIGraphicsGetCurrentContext()
+        ctx?.translateBy(x: 0, y: -(screen.height - height))
+        
+        for window in UIApplication.shared.windows {
+            if (window.screen == UIScreen.main) {
+                window.drawHierarchy(in: window.frame, afterScreenUpdates: false) // if true, weird flicker
+            }
+        }
+        let img = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext()
+        return img
+    }
+    
+    func snapshot(for backgroundColor: UIColor) -> UIImage? {
+        if backgroundColor.isLight {
+            return snapshot;
+        } else {
+            return snapshot;
+        }
+    }
+    
+    func updateSnapshot(with backgroundColor: UIColor?) {
+        let screen = UIScreen.main.bounds.size
+        let kbSize = CGSize(width: screen.width, height: height)
+        if backgroundColor != lastKeyboardColor || kbSize != lastKeyboardSize {
+            snapshot = takeKeyboardSnapshot(size: kbSize)
+            lastKeyboardSize = kbSize
+            lastKeyboardColor = backgroundColor
+        }
+    }
+}
 
 class SearchViewController: UIViewController {
 
@@ -24,11 +67,8 @@ class SearchViewController: UIViewController {
     var keyboardPlaceholder: UIImageView!
     var dragHandle: UIView!
     var pageActionView: PageActionView!
+    var keyboard = KeyboardManager()
     
-    private var keyboardSnapshot: UIImage?
-    private var lastKeyboardSize: CGSize?
-    private var lastKeyboardColor: UIColor?
-
     var isTransitioning = false
 
     var displaySearchTransition = SearchTransitionController()
@@ -46,7 +86,6 @@ class SearchViewController: UIViewController {
     var textHeight : CGFloat = 12
     var suggestionSpacer : CGFloat = 24
     var contextAreaHeight: CGFloat = 24
-    var keyboardHeight : CGFloat = 250
     var showingCancel = true
     
 //    var browserOffset: CGFloat {
@@ -166,6 +205,7 @@ class SearchViewController: UIViewController {
         let maskView = UIView(frame: textView.bounds)
         maskView.backgroundColor = .red
         maskView.frame = textView.bounds
+        maskView.radius = 24
         maskView.frame.size.height = 500 // TODO Large number because mask is scrollable :(
         textView.mask = maskView
         
@@ -187,7 +227,7 @@ class SearchViewController: UIViewController {
             suggestionTable.bottomAnchor.constraint(equalTo: textView.topAnchor, constant: -8),
         ])
         if isFakeTab {
-            contextAreaHeight = UIScreen.main.bounds.size.height - keyboardHeight
+            contextAreaHeight = UIScreen.main.bounds.size.height - keyboard.height
         }
         
         contentView.addSubview(pageActionView, constraints: [
@@ -329,10 +369,10 @@ class SearchViewController: UIViewController {
             return
         }
         
-        keyboardHeight = keyboardRectangle.height
+        keyboard.height = keyboardRectangle.height
         
         if textView.isFirstResponder && !kbHeightConstraint.isPopAnimating && !isTransitioning {
-            kbHeightConstraint.constant = keyboardHeight
+            kbHeightConstraint.constant = keyboard.height
         }
     }
 }
@@ -390,7 +430,7 @@ extension SearchViewController: UITextViewDelegate {
             return
         }
         if shouldShowActions  {
-            contextAreaHeight = 0 // 100
+            contextAreaHeight = 100 // 0 // 100
             actionsHeight.constant = contextAreaHeight
             contextAreaHeightConstraint.constant = contextAreaHeight
         }
@@ -416,14 +456,12 @@ extension SearchViewController: UITextViewDelegate {
     }
     
     func updateTextViewSize() {
-        let fixedWidth = textView.frame.size.width
-//        textView.textContainerInset = UIEdgeInsetsMake(10, 20, 22, showingCancel ? cancel.bounds.width : 0 )
+        let fixedWidth = textView.bounds.size.width
         textView.textContainerInset = TEXTVIEW_PADDING
         let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
         textView.isScrollEnabled = fullTextSize.height > SEARCHVIEW_MAX_H
         textHeight = max(20, min(fullTextSize.height, SEARCHVIEW_MAX_H))
         textHeightConstraint.constant = textHeight
-        
         textView.mask?.frame.size.width = textView.bounds.width
     }
     
@@ -523,7 +561,7 @@ extension SearchViewController : UIGestureRecognizerDelegate {
         let vel = gesture.velocity(in: view)
         
         if isEntrance {
-            dist.y += keyboardHeight
+            dist.y += keyboard.height
         }
 
         if gesture.state == .began {
@@ -531,15 +569,17 @@ extension SearchViewController : UIGestureRecognizerDelegate {
             isTransitioning = true
         }
         else if gesture.state == .changed {
+            self.iconProgress = (abs(dist.y) / keyboard.height).reverse().clip()
             if dist.y < 0 { 
-                kbHeightConstraint.constant = keyboardHeight
+                kbHeightConstraint.constant = keyboard.height
                 let elastic = 0.4 * elasticLimit(-dist.y)
                 textHeightConstraint.constant = textHeight + elastic
             }
             else {
-                kbHeightConstraint.constant = max(keyboardHeight - dist.y, 0)
-                let progress = dist.y.progress(0, keyboardHeight).clip()
+                kbHeightConstraint.constant = max(keyboard.height - dist.y, 0)
+                let progress = dist.y.progress(0, keyboard.height).clip()
                 contextAreaHeightConstraint.constant = contextAreaHeight
+                textHeightConstraint.constant = textHeight
             }
         }
         else if gesture.state == .ended || gesture.state == .cancelled {
@@ -552,10 +592,12 @@ extension SearchViewController : UIGestureRecognizerDelegate {
                     self.showRealKeyboard()
                     self.updateTextViewSize() // maybe reenable scrolls
                 }
-                let fromBelow = kbHeightConstraint.constant < keyboardHeight
-                kbHeightConstraint.springConstant(to: keyboardHeight) {_,_ in
+                let fromBelow = kbHeightConstraint.constant < keyboard.height
+                let anim = kbHeightConstraint.springConstant(to: keyboard.height) {_,_ in
                     if fromBelow { finish() }
                 }
+                anim?.springBounciness = 2
+                anim?.springSpeed = 9
                 
                 contextAreaHeightConstraint.springConstant(to: contextAreaHeight)
                 suggestionTable.alpha = 1
@@ -581,14 +623,14 @@ extension SearchViewController : UIGestureRecognizerDelegate {
     func showFakeKeyboard() {
         updateKeyboardSnapshot()
         keyboardPlaceholder.isHidden = false
-        keyboardPlaceholder.image = keyboardSnapshot
+        keyboardPlaceholder.image = keyboard.snapshot(for: backgroundView.overlayColor!)
         UIView.setAnimationsEnabled(false)
         textView.resignFirstResponder()
         UIView.setAnimationsEnabled(true)
         
         // shrink height to snapshot (in case was showing emoji etc)
         if let snapH = keyboardPlaceholder.image?.size.height, snapH < kbHeightConstraint.constant {
-            keyboardHeight = snapH
+            keyboard.height = snapH
             kbHeightConstraint.constant = snapH
         }
     }
@@ -602,33 +644,8 @@ extension SearchViewController : UIGestureRecognizerDelegate {
     }
     
     @objc func updateKeyboardSnapshot() {
-        if !textView.isFirstResponder
-            || kbHeightConstraint.constant != keyboardHeight { return }
-        
-        let screen = UIScreen.main.bounds.size
-        let kbSize = CGSize(width: screen.width, height: keyboardHeight)
-        let bg = backgroundView.overlayColor
-        if bg != lastKeyboardColor || kbSize != lastKeyboardSize {
-            keyboardSnapshot = takeKeyboardSnapshot(size: kbSize)
-            lastKeyboardSize = kbSize
-            lastKeyboardColor = bg
-        }
-    }
-    
-    func takeKeyboardSnapshot(size: CGSize) -> UIImage? {
-        let screen = UIScreen.main.bounds.size
-        UIGraphicsBeginImageContextWithOptions(size, false, 0)
-        let ctx = UIGraphicsGetCurrentContext()
-        ctx?.translateBy(x: 0, y: -(screen.height - keyboardHeight))
-        
-        for window in UIApplication.shared.windows {
-            if (window.screen == UIScreen.main) {
-                window.drawHierarchy(in: window.frame, afterScreenUpdates: false) // if true, weird flicker
-            }
-        }
-        let img = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext()
-        return img
+        if !textView.isFirstResponder || kbHeightConstraint.constant != keyboard.height { return }
+        keyboard.updateSnapshot(with: backgroundView.overlayColor)
     }
 }
 
