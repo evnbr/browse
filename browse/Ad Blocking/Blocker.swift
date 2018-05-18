@@ -17,8 +17,8 @@ class Blocker: NSObject {
         "disconnect-analytics",
         "disconnect-content",
         "disconnect-social",
-//        "ultimateAdblockList",
-        "ultimateAdblockListCSS",
+        "ultimateAdblockList",
+//        "ultimateAdblockListCSS",
     ]
     private var lists : [ WKContentRuleList ] = []
     
