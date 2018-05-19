@@ -56,8 +56,11 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             containerView.addSubview(browserVC.view)
         }
         else {
-            browserVC.updateSnapshot()
+            browserVC.updateSnapshot {
+                browserVC.isSnapshotMode = true
+            }
         }
+        
         
         let scrollView = browserVC.webView.scrollView
         scrollView.isScrollEnabled = false
@@ -66,6 +69,11 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
         var thumbCenter : CGPoint
         var thumbScale : CGFloat = 1
         var thumbOverlayAlpha : CGFloat = 0
+        
+        var expandedTransform = CATransform3DIdentity
+        let bScale = browserVC.cardView.scale
+        expandedTransform = CATransform3DScale(expandedTransform, bScale, bScale, bScale)
+        var stackTransform = CATransform3DIdentity
         
         if let ip = tabSwitcher.currentIndexPath,
             let cv = tabSwitcher.collectionView {
@@ -76,10 +84,17 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             
             // must be after toVC is added
             let selectedThumbCenter = attr.center
-
+            
             thumbOverlayAlpha = 1 - attr.alpha
             thumbCenter = containerView.convert(selectedThumbCenter, from: cv)
             thumbScale = attr.transform.xScale
+            
+            let s = thumbScale * 0.9
+            var tf = CATransform3DIdentity
+            tf.m34 = 1.0 / -4000.0
+            let rotated = CATransform3DRotate(tf, CGFloat.pi * -0.3, 1.0, 0.0, 0.0)
+            let scaled = CATransform3DScale(rotated, s, s, s)
+            stackTransform = scaled
         }
         else {
             // If can't find end point for some reason, just animate to/from bottom
@@ -111,6 +126,7 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
         }
         
         tabSwitcher.visibleCellsBelow.forEach {
+//            return
             guard let snap = $0.snapshotView(afterScreenUpdates: false) else { return }
             var center = containerView.convert($0.center, from: $0.superview!)
             snap.center = center
@@ -142,7 +158,7 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             
             browserVC.updateSnapshot {
                 tabSwitcher.visibleCells.forEach {
-                    $0.refresh()
+//                    $0.refresh()
                     $0.reset()
                 }
                 tabSwitcher.scrollToBottom()
@@ -191,27 +207,33 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
 
         let mockMatchCard = browserVC.cardView.center.x > browserVC.view.center.x
         
-        centerAnim?.animationDidApplyBlock = { _ in
-            let cardCenter = browserVC.cardView.center
-            if mockMatchCard {
-                browserVC.gestureController.mockCardView.center.y = cardCenter.y
-            }
-            tabSwitcher.updateStackOffset(for: cardCenter)
-        }
-        let startScale = browserVC.cardView.scale
+        let startDist = browserVC.cardView.center.distanceTo(newCenter)
         let startX = browserVC.gestureController.mockCardView.center.x
-        scaleAnim?.animationDidApplyBlock = { _ in
-            let s = browserVC.cardView.scale
-            let gc = browserVC.gestureController!
-            
+
+        centerAnim?.animationDidApplyBlock = { prop in
+            let cardCenter = browserVC.cardView.center
+            let dist = cardCenter.distanceTo(newCenter)
+            let pct = dist.progress(startDist, 0)
+
             if self.isDismissing {
-                let pct = s.progress(startScale, 1)
                 var endX = browserVC.view.center.x + browserVC.cardView.bounds.width
                 if mockMatchCard {
-                    gc.mockCardView.scale = s * gc.backItemScale
+                    browserVC.gestureController.mockCardView.center.y = cardCenter.y
                     endX = browserVC.cardView.center.x
                 }
                 browserVC.gestureController.mockCardView.center.x = pct.lerp(startX, endX)
+            }
+            tabSwitcher.updateStackOffset(for: cardCenter)
+        }
+        
+        scaleAnim?.animationDidApplyBlock = { _ in
+            let s = browserVC.cardView.scale
+            let gc = browserVC.gestureController!
+
+            if self.isDismissing {
+                if mockMatchCard {
+                    gc.mockCardView.scale = s * gc.backItemScale
+                }
             }
 
             tabSwitcher.setThumbScale(s)
@@ -247,14 +269,17 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             })
         }
         
+//        browserVC.cardView.layer.transform = isExpanding ? stackTransform : expandedTransform
+        
         UIView.animate(
-            withDuration: 0.6,
+            withDuration: 0.5,
             delay: 0.0,
-            usingSpringWithDamping: 0.9,
+            usingSpringWithDamping: 1,
             initialSpringVelocity: 0.0,
             options: .allowUserInteraction,
             animations: {
             
+//            browserVC.cardView.layer.transform = self.isExpanding ? expandedTransform : stackTransform
             browserVC.statusBar.backgroundView.alpha = 1
             browserVC.overlay.alpha = self.isExpanding ? 0 : thumbOverlayAlpha
             browserVC.gradientOverlay.alpha = self.isExpanding ? 0 : 1

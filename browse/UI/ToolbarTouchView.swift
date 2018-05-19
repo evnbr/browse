@@ -25,9 +25,8 @@ class ToolbarTouchView: UIView {
     }
     
     init(frame: CGRect, onTap: ToolbarButtonAction? ) {
-        action = onTap
-
         super.init(frame: frame)
+        if let a = onTap { setAction(a) }
         backgroundColor = .clear
         layer.masksToBounds = true
         radius = frame.height / 2

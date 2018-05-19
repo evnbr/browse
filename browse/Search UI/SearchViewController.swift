@@ -10,10 +10,10 @@ import UIKit
 import pop
 
 let typeaheadReuseID = "TypeaheadRow"
-let MAX_ROWS : Int = 4
-let SEARCHVIEW_MAX_H : CGFloat = 240.0
+let MAX_ROWS: Int = 4
+let SEARCHVIEW_MAX_H: CGFloat = 240.0
 let TEXTVIEW_PADDING = UIEdgeInsetsMake(20, 20, 40, 20 )
-
+let pageActionHeight: CGFloat = 40
 
 class KeyboardManager: NSObject {
     private var snapshot: UIImage?
@@ -430,7 +430,7 @@ extension SearchViewController: UITextViewDelegate {
             return
         }
         if shouldShowActions  {
-            contextAreaHeight = 100 // 0 // 100
+            contextAreaHeight = pageActionHeight
             actionsHeight.constant = contextAreaHeight
             contextAreaHeightConstraint.constant = contextAreaHeight
         }

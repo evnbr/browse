@@ -72,7 +72,7 @@ class VisitCell: UICollectionViewCell {
         shadowView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         shadowView.layer.shadowRadius = Const.shared.shadowRadius
         shadowView.layer.shadowOpacity = shadowAlpha
-        shadowView.layer.shouldRasterize = true
+//        shadowView.layer.shouldRasterize = true
         let path = UIBezierPath(roundedRect: bounds, cornerRadius: Const.shared.thumbRadius)
         shadowView.layer.shadowPath = path.cgPath
         
@@ -99,7 +99,6 @@ class VisitCell: UICollectionViewCell {
         connectorHeight = connector.heightAnchor.constraint(equalToConstant: 20)
         connecterWidth.isActive = true
         connectorHeight.isActive = true
-        
     }
     
     func setConnector(size: CGSize) {
@@ -145,11 +144,13 @@ class VisitCell: UICollectionViewCell {
 
         if let title = visit.title, title != "" { label.text = "\(title)" }
         if let url = visit.url { toolbarView.text = url.displayHost }
+        
+        isTappable = !(visit.tab?.isClosed ?? false)
     }
     
     func setSnapshot(_ newImage : UIImage) {
         let newAspect = newImage.size.height / newImage.size.width
-        if newAspect != snapAspectConstraint.multiplier {
+        if (abs(newAspect - snapAspectConstraint.multiplier) > 0.001) {
             snapView.removeConstraint(snapAspectConstraint)
             snapAspectConstraint = snapView.heightAnchor.constraint(equalTo: snapView.widthAnchor, multiplier: newAspect, constant: 0)
             snapAspectConstraint.isActive = true
@@ -180,28 +181,54 @@ class VisitCell: UICollectionViewCell {
         else { reset() }
     }
     
+    var hasBorder : Bool {
+        get {
+            return contentView.layer.borderWidth > 0
+        }
+        set {
+            contentView.layer.borderColor = newValue ? UIColor.yellow.cgColor : nil
+            contentView.layer.borderWidth = newValue ? 8 : 0
+        }
+    }
+    
+    var isTappable : Bool {
+        get {
+            return contentView.alpha == 1
+        }
+        set {
+            contentView.alpha = newValue ? 1 : 0.5
+            connector.alpha = newValue ? 1 : 0.5
+        }
+    }
+
+    
     func reset() {
         self.contentView.transform = .identity
         self.shadowView.scale = 1
-        self.shadowView.layer.shadowRadius = Const.shared.shadowRadius
-        self.shadowView.layer.shadowOpacity = shadowAlpha
     }
     
     override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
         super.apply(layoutAttributes)
         alpha = 1
         overlay.alpha = 1 - layoutAttributes.alpha
-        layer.zPosition = CGFloat(layoutAttributes.zIndex)
+//        layer.zPosition = CGFloat(layoutAttributes.zIndex)
         
         if let treeAttrs = layoutAttributes as? TreeConnectorAttributes,
             let connectorOffset = treeAttrs.connectorOffset {
             connectorLayer.strokeColor = UIColor.white.cgColor
             setConnector(size: connectorOffset)
         }
-        else {
-            connectorLayer.strokeColor = UIColor.red.cgColor
-            setConnector(size: CGSize(width: 10, height: 1))
-        }
+//        else {
+//            connectorLayer.strokeColor = UIColor.red.cgColor
+//            setConnector(size: CGSize(width: 10, height: 1))
+//        }
+        
+        let s = layoutAttributes.transform.xScale * 0.9
+        var tf = CATransform3DIdentity
+        tf.m34 = 1.0 / -4000.0
+        let rotated = CATransform3DRotate(tf, CGFloat.pi * -0.3, 1.0, 0.0, 0.0)
+        let scaled = CATransform3DScale(rotated, s, s, s)
+//        layer.transform = scaled
     }
     
     override func prepareForReuse() {

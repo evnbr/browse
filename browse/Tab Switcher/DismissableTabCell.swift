@@ -31,6 +31,13 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
         dismissPanner.delegate = self
         dismissPanner.addTarget(self, action: #selector(panGestureChange(gesture:)))
         addGestureRecognizer(dismissPanner)
+        
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        overlay.alpha = 0
+        self.isHidden = false
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -99,15 +106,20 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
                 if ( vel.x > 400 || gesturePos.x > bounds.width * 0.5 ) {
                     endCenter.x = startCenter.x + bounds.width
                     endAlpha = 1
-                    closeTabCallback(self)
                 }
                 else if ( vel.x < -400 || gesturePos.x < -bounds.width * 0.5 ) {
                     endCenter.x = startCenter.x - bounds.width
                     endAlpha = 1
-                    closeTabCallback(self)
                 }
                 
-                springCenter(to: endCenter, at: vel)
+                let anim = springCenter(to: endCenter, at: vel)
+                if endAlpha == 1 {
+                    anim?.completionBlock = { _, _ in
+                        self.center = self.startCenter
+                        self.isHidden = true
+                        self.closeTabCallback(self)
+                    }
+                }
                 UIView.animate(withDuration: 0.4) {
                     self.overlay.alpha = endAlpha
                     self.overlay.backgroundColor = .black

@@ -20,7 +20,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     let gradientLayer2: CAGradientLayer = CAGradientLayer()
     let gradientLayer3: CAGradientLayer = CAGradientLayer()
     
-    let duration : CFTimeInterval = 1//0.3
+    let duration : CFTimeInterval = 0.2//0.3
 
     var backgroundView: UIView!
     
@@ -136,18 +136,18 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
                 toColor.cgColor,
                 toColor.withAlphaComponent(0).cgColor
             ]
-//            beginLoc = [-2, 0]
+            beginLoc = [-2, 0]
             endLoc = [1, 5]
-            beginLoc = [0, 0.05]
+//            beginLoc = [0, 0.05]
 //            endLoc = [1, 1.05]
         } else {
             gLayer.colors = [
                 toColor.withAlphaComponent(0).cgColor,
                 toColor.cgColor
             ]
-//            beginLoc = [1, 3]
+            beginLoc = [1, 3]
             endLoc = [-4, 0]
-            beginLoc = [0.95, 1]
+//            beginLoc = [0.95, 1]
 //            endLoc = [-0.05, 0]
         }
         gLayer.locations = beginLoc
@@ -158,7 +158,8 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         colorChangeAnimation.duration = duration
         colorChangeAnimation.fromValue = beginLoc
         colorChangeAnimation.toValue = endLoc
-        colorChangeAnimation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+//        colorChangeAnimation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+        colorChangeAnimation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseIn)
         colorChangeAnimation.fillMode = kCAFillModeForwards
         colorChangeAnimation.isRemovedOnCompletion = false
 //        colorChangeAnimation.delegate = self
@@ -173,7 +174,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         backgroundView.layer.addSublayer(gLayer)
         CATransaction.commit()
         
-        UIView.animate(withDuration: 0.6, delay: 0, options: .curveEaseInOut, animations: {
+        UIView.animate(withDuration: 0.3, delay: 0.2, options: .curveEaseInOut, animations: {
             self.tintColor = toColor.isLight ? .white : .darkText
         }, completion: nil)
         

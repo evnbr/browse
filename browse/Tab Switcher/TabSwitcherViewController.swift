@@ -232,11 +232,6 @@ class TabSwitcherViewController: UICollectionViewController {
     }
     
     func springCards(toStacked: Bool, at velocity: CGPoint = .zero, completion: (() -> ())? = nil) {
-//        if !toStacked {
-//            cardStackLayout.offset = .zero
-//            cardStackLayout.scale = 1
-//        }
-        
         cardStackLayout.selectedHidden = true
         cardStackLayout.invalidateLayout()
 
@@ -254,6 +249,10 @@ class TabSwitcherViewController: UICollectionViewController {
         }
         anim?.springSpeed = 6
         anim?.springBounciness = 2
+    }
+    func setCardStackProgress(_ progress: CGFloat) {
+        cardStackLayout.expandedProgress = progress
+        cardStackLayout.invalidateLayout()
     }
     
     
@@ -391,7 +390,7 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
             if let ip = self.currentIndexPath {
                 self.cardStackLayout.selectedIndexPath = ip
             }
-            self.scrollToBottom(animated: true) // TODO this might be overkill
+//            self.scrollToBottom(animated: true) // TODO this might be overkill
         })
     }
 
@@ -410,7 +409,6 @@ extension TabSwitcherViewController {
             withReuseIdentifier: reuseIdentifier,
             for: indexPath)
         // Configure the cells
-        
         let tab = fetchedResultsController.object(at: indexPath)
         configureThumbnail(cell, withTab: tab)
         

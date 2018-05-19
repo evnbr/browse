@@ -8,21 +8,9 @@
 
 import UIKit
 
-let itemSpacing : CGFloat = 160
+let itemSpacing : CGFloat = 200
 let itemHeight : CGFloat = THUMB_H
 let startY : CGFloat = 240
-
-// TODO: drive this progress
-// with POP as described in
-// http://www.nicnocquee.com/ios/2015/01/29/drive-uicollectionview-interactive-layout-transition-using-facebooks-pop.html
-
-//class StackingTransition: UICollectionViewTransitionLayout {
-//    override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
-//        // Only adjust scroll for user, "proposed" seems to be garbage?
-////        print("current: \(collectionView!.contentOffset.y), proposed: \(proposedContentOffset.y)")
-//        return collectionView!.contentOffset
-//    }
-//}
 
 class CardStackingLayout: UICollectionViewFlowLayout {
     
@@ -70,15 +58,16 @@ class CardStackingLayout: UICollectionViewFlowLayout {
     
     override func prepare() {
         super.prepare()
-//        print("prepare - isStacked: \(isStacked)")
 
         stackedAttributes = calculateList(stacked: true)
         expandedAttributes = calculateList(stacked: false)
         blendedAttributes = (0..<itemCount).map { i -> UICollectionViewLayoutAttributes in
-            let attrs = stackedAttributes[i].copy(with: nil) as! UICollectionViewLayoutAttributes
+            let attrs = stackedAttributes[i]
             let expandedAttrs = expandedAttributes[i]
-            attrs.center = expandedProgress.lerp(attrs.center, expandedAttrs.center)
-            attrs.scale = expandedProgress.lerp(attrs.scale, maxScale)
+            let stackCenter = attrs.center
+            let stackScale = attrs.scale
+            attrs.center = expandedProgress.lerp(stackCenter, expandedAttrs.center)
+            attrs.scale = expandedProgress.lerp(stackScale, maxScale)
             attrs.isHidden = attrs.isHidden || expandedAttrs.isHidden
             return attrs
         }
@@ -87,7 +76,6 @@ class CardStackingLayout: UICollectionViewFlowLayout {
     private var itemCount: Int {
         return collectionView!.numberOfItems(inSection: 0)
     }
-
     
     private func calculateList(stacked: Bool) -> [UICollectionViewLayoutAttributes] {
         let baseCenter = collectionView!.center
@@ -135,8 +123,8 @@ class CardStackingLayout: UICollectionViewFlowLayout {
         
         attributes.isHidden = false
         if whenStacked {
-            newCenter.y -= extraH * 0.5
-            newCenter.y -= distFromTop * 0.95 * pct
+            newCenter.y -= extraH //* 0.5
+            newCenter.y -= distFromTop * 1 * pct
             attributes.transform = CGAffineTransform(scale: s * maxScale)
         } else {
             if indexPath != selectedIndexPath {
@@ -176,9 +164,10 @@ class CardStackingLayout: UICollectionViewFlowLayout {
 
     
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-        return blendedAttributes.filter { attrs -> Bool in
+        let attrs = blendedAttributes.filter { attrs -> Bool in
             return rect.intersects(attrs.frame.insetBy(dx: -40, dy: -40)) && attrs.alpha > 0 && !attrs.isHidden
         }
+        return attrs
     }
     
     override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {

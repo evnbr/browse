@@ -8,10 +8,10 @@
 
 import UIKit
 
-class Blend<T : Blendable>: NSObject {
+class Blend<T: Blendable>: NSObject {
     private var _progress : CGFloat = 0
-    var start : T = T.initialValue
-    var end : T = T.initialValue
+    var start: T = T.initialValue
+    var end: T = T.initialValue
 
     typealias BlendUpdateBlock = (T) -> ()
     let updateBlock : BlendUpdateBlock

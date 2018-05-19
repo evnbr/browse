@@ -9,7 +9,7 @@
 import Foundation
 import WebKit
 
-let MIN_TIME_BETWEEN_UPDATES = 0.2 //0.15
+let MIN_TIME_BETWEEN_UPDATES = 0.1 //0.15
 
 protocol WebviewColorSamplerDelegate {
     var sampledWebView : WKWebView { get }
@@ -43,7 +43,7 @@ class WebviewColorSampler : NSObject {
                 userInfo: nil,
                 repeats: true
             )
-            colorUpdateTimer?.tolerance = 0.3
+            colorUpdateTimer?.tolerance = 0.2
             RunLoop.main.add(colorUpdateTimer!, forMode: RunLoopMode.commonModes)
         }
     }

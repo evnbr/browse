@@ -57,10 +57,7 @@ extension String {
     }
     
     var urlPrefix : String? {
-        for p in potentialPrefixes {
-            if self.hasPrefix(p) { return p };
-        }
-        return nil;
+        return potentialPrefixes.first(where: { self.hasPrefix($0) })
     }
 }
 

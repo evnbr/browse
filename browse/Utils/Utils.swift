@@ -51,6 +51,14 @@ extension CGFloat {
     }
 }
 
+extension CGPoint {
+    func distanceTo(_ otherPoint: CGPoint) -> CGFloat {
+        let xDist = otherPoint.x - self.x
+        let yDist = otherPoint.y - self.y
+        return sqrt((xDist * xDist) + (yDist * yDist))
+    }
+}
+
 // MARK: - Transform
 extension CGAffineTransform {
     init(scale s: CGFloat) {

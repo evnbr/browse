@@ -67,10 +67,10 @@ class BrowserToolbarView: ColorToolbarView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        let blur = PlainBlurView(frame: bounds)
-        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        addSubview(blur)
-        sendSubview(toBack: blur)
+//        let blur = PlainBlurView(frame: bounds)
+//        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+//        addSubview(blur)
+//        sendSubview(toBack: blur)
         
         translatesAutoresizingMaskIntoConstraints = false
         heightConstraint = heightAnchor.constraint(equalToConstant: Const.toolbarHeight)
