@@ -108,11 +108,20 @@ class VisitCell: UICollectionViewCell {
         let connectorPath = UIBezierPath()
         connectorPath.move(to: CGPoint(x:0, y: 0))
 //        connectorPath.addLine(to: CGPoint(x: size.width, y: absSize.height))
-        connectorPath.addCurve(
-            to: CGPoint(x: size.width, y: absSize.height),
-            controlPoint1: CGPoint(x: size.width * 0.7, y: 0),
-            controlPoint2: CGPoint(x: size.width * 0.3, y: absSize.height)
-        )
+        if absSize.width > 140 {
+            connectorPath.addCurve(
+                to: CGPoint(x: size.width, y: absSize.height),
+                controlPoint1: CGPoint(x: size.width * 0.2, y: 0),
+                controlPoint2: CGPoint(x: size.width * 0.8, y: -size.width / 2)
+            )
+        } else {
+            connectorPath.addLine(to: CGPoint(x: size.width, y: absSize.height))
+        }
+//        connectorPath.addCurve(
+//            to: CGPoint(x: size.width, y: absSize.height),
+//            controlPoint1: CGPoint(x: size.width * 0.7, y: 0),
+//            controlPoint2: CGPoint(x: size.width * 0.3, y: absSize.height)
+//        )
 
         if size.height > 0 {
             connector.transform = .identity
@@ -215,13 +224,12 @@ class VisitCell: UICollectionViewCell {
         
         if let treeAttrs = layoutAttributes as? TreeConnectorAttributes,
             let connectorOffset = treeAttrs.connectorOffset {
+            connector.isHidden = false
             connectorLayer.strokeColor = UIColor.white.cgColor
             setConnector(size: connectorOffset)
+        } else {
+            connector.isHidden = true
         }
-//        else {
-//            connectorLayer.strokeColor = UIColor.red.cgColor
-//            setConnector(size: CGSize(width: 10, height: 1))
-//        }
         
         let s = layoutAttributes.transform.xScale * 0.9
         var tf = CATransform3DIdentity

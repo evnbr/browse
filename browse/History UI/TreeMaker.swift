@@ -107,8 +107,55 @@ class TreeMaker : NSObject {
         if ac == bc { return ad > bd }
         return ac > bc
     }
-
+    
+    // Inline
     private func traverseTrees(from roots: [Visit]) {
+        var currentDepth: Int = 0
+        var maxDepth: Int = 0
+        var maxY: Int = 0
+        
+        var usedPositions = Set<TreePosition>()
+        func availablePos(for potentialPos: TreePosition) -> TreePosition {
+            var pos = potentialPos
+            while usedPositions.contains(pos) {
+                pos = TreePosition(x: pos.x + 1, y: pos.y)
+            }
+            return pos
+        }
+        
+        func traverse(_ node: Visit, y: Int = 0) {
+            var currentY = y
+            if let back = node.backItem,
+                let parentPos = cellPositions[back.objectID] {
+                currentY = parentPos.y
+            }
+            let pos = availablePos(for: TreePosition(x: currentDepth, y: currentY))
+            
+            if pos.y > maxY { maxY = pos.y }
+            usedPositions.insert(pos)
+            self.addVisit(node, at: pos)
+            
+            if let children = node.forwardItems?.allObjects as? [Visit] {
+                currentDepth += 1
+                if currentDepth > maxDepth { maxDepth = currentDepth }
+                for child in children.sorted(by: oldToNew) {
+                    traverse(child, y: currentY)
+                }
+                currentDepth -= 1
+            }
+        }
+        
+        let sorted = roots.sorted(by: openTabsFirst)
+        for root in sorted {
+            traverse(root, y: sorted.index(of: root)! )
+        }
+        
+        self._gridSize = CGSize(width: maxDepth + 1, height: maxY)
+        self._nodeCount = nodeIDs.count
+    }
+
+
+    private func traverseTreesCompressed(from roots: [Visit]) {
         var currentDepth: Int = 0
         var maxDepth: Int = 0
         var maxY: Int = 0
@@ -150,7 +197,7 @@ class TreeMaker : NSObject {
         self._gridSize = CGSize(width: maxDepth, height: maxY + 1)
         self._nodeCount = nodeIDs.count
     }
-    
+
     private func traverseTreesAbsolute(from roots: [Visit]) {
         var currentY: Int = 0
         var currentDepth: Int = 0

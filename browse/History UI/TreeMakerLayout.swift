@@ -88,8 +88,18 @@ class TreeMakerLayout: UICollectionViewLayout {
     }
     
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
+        return attributesList
         return attributesList.filter { attrs -> Bool in
-            return rect.intersects(attrs.frame.insetBy(dx: -40, dy: -40))
+            let cardFrame = attrs.frame.insetBy(dx: -abs((attrs.connectorOffset ?? .zero).width), dy: -40)
+//            let connector = attrs.connectorOffset ?? .zero
+//            print(connector)
+//            let connectorFrame = CGRect(
+//                x: cardFrame.origin.x - connector.width,
+//                y: cardFrame.origin.y,
+//                width: connector.width,
+//                height: connector.width
+//            )
+            return rect.intersects(cardFrame)
         }
     }
     
