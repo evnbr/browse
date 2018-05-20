@@ -89,6 +89,10 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             thumbCenter = containerView.convert(selectedThumbCenter, from: cv)
             thumbScale = attr.transform.xScale
             
+            if isExpanding {
+                thumbScale *= tapScaleAmount
+            }
+            
             let s = thumbScale * 0.9
             var tf = CATransform3DIdentity
             tf.m34 = 1.0 / -4000.0
@@ -125,11 +129,13 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             browserVC.cardView.scale = thumbScale
         }
         
+        tabSwitcher.cardStackLayout.belowHidden = true
         tabSwitcher.visibleCellsBelow.forEach {
 //            return
             guard let snap = $0.snapshotView(afterScreenUpdates: false) else { return }
             var center = containerView.convert($0.center, from: $0.superview!)
             snap.center = center
+            snap.scale = $0.scale
             containerView.addSubview(snap)
             var endCenter = containerView.center
 
@@ -156,33 +162,25 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
                 browserVC.webView.scrollView.showsVerticalScrollIndicator = true
             }
             
-            browserVC.updateSnapshot {
-                tabSwitcher.visibleCells.forEach {
-//                    $0.refresh()
-                    $0.reset()
-                }
-                tabSwitcher.scrollToBottom()
-                
-                snapFab?.removeFromSuperview()
-                tabSwitcher.fab.isHidden = self.isExpanding
-                tabSwitcher.setNeedsStatusBarAppearanceUpdate()
-                
-                browserVC.contentView.mask = nil
-                browserVC.contentView.radius = 0
+            snapFab?.removeFromSuperview()
             
-                transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
-                if self.isDismissing {
-                    browserVC.view.removeFromSuperview()
-                    browserVC.gestureController.mockCardView.removeFromSuperview()
-                    browserVC.gestureController.mockCardView.imageView.image = nil
-                    tabSwitcher.visibleCells.forEach { $0.isHidden = false } // TODO: super janky, should wait for collectionview to update
-                }
-                
-                // Cleanup so non-animated transitions arent weird
-                browserVC.cardView.scale = 1
-                browserVC.cardView.center = browserVC.view.center
+            tabSwitcher.cardStackLayout.belowHidden = false
+            tabSwitcher.visibleCells.forEach { $0.reset() }
+            tabSwitcher.scrollToBottom()
+            tabSwitcher.fab.isHidden = self.isExpanding
+            tabSwitcher.setNeedsStatusBarAppearanceUpdate()
+            
+            browserVC.contentView.mask = nil
+            browserVC.contentView.radius = 0
+            browserVC.cardView.scale = 1
+            browserVC.cardView.center = browserVC.view.center
+
+            transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
+            if self.isDismissing {
+                browserVC.view.removeFromSuperview()
+                browserVC.gestureController.mockCardView.removeFromSuperview()
+                browserVC.gestureController.mockCardView.imageView.image = nil
             }
-            
         }
         
         let isLandscape = browserVC.view.bounds.width > browserVC.view.bounds.height
@@ -285,8 +283,9 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             browserVC.gradientOverlay.alpha = self.isExpanding ? 0 : 1
             browserVC.contentView.radius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
             mask.radius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
-            homeNav.view.alpha = self.isExpanding ? 0.4 : 1
-            
+//            homeNav.view.alpha = self.isExpanding ? 0.4 : 1
+            browserVC.gestureController.mockCardView.layer.shadowOpacity = 0
+                
             tabSwitcher.setNeedsStatusBarAppearanceUpdate()
                 
         }, completion: { finished in

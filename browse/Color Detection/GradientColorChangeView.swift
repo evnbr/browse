@@ -174,7 +174,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         backgroundView.layer.addSublayer(gLayer)
         CATransaction.commit()
         
-        UIView.animate(withDuration: 0.3, delay: 0.2, options: .curveEaseInOut, animations: {
+        UIView.animate(withDuration: 0.2, delay: 0.0, options: .curveEaseInOut, animations: {
             self.tintColor = toColor.isLight ? .white : .darkText
         }, completion: nil)
         

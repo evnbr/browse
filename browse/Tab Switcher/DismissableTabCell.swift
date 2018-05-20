@@ -11,6 +11,7 @@ import UIKit
 typealias CloseTabCallback = (UICollectionViewCell) -> Void
 
 let shadowAlpha : Float = 0.2
+let tapScaleAmount: CGFloat = 0.98
 
 class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
     var browserTab : Tab?
@@ -63,9 +64,9 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
     }
     
     override func select() {
-        self.contentView.scale = 0.98
-        self.contentView.transform = self.contentView.transform.translatedBy(x: 0, y: -4)
-        self.shadowView.scale = 0.98
+        self.contentView.scale = tapScaleAmount
+        self.contentView.transform = self.contentView.transform.translatedBy(x: 0, y: -3)
+        self.shadowView.scale = tapScaleAmount
     }
     
     func refresh() {
@@ -103,17 +104,24 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
                 var endCenter : CGPoint = startCenter
                 var endAlpha : CGFloat = startAlpha
                 
-                if ( vel.x > 400 || gesturePos.x > bounds.width * 0.5 ) {
+                let isLeft = gesturePos.x > 0
+                let isRight = gesturePos.x < 0
+                
+                var shouldDelete = false
+
+                if ( (isLeft && vel.x > 400) || gesturePos.x > bounds.width * 0.5 ) {
                     endCenter.x = startCenter.x + bounds.width
                     endAlpha = 1
+                    shouldDelete = true
                 }
-                else if ( vel.x < -400 || gesturePos.x < -bounds.width * 0.5 ) {
+                else if ( (isRight && vel.x < -400) || gesturePos.x < -bounds.width * 0.5 ) {
                     endCenter.x = startCenter.x - bounds.width
                     endAlpha = 1
+                    shouldDelete = true
                 }
                 
                 let anim = springCenter(to: endCenter, at: vel)
-                if endAlpha == 1 {
+                if shouldDelete {
                     anim?.completionBlock = { _, _ in
                         self.center = self.startCenter
                         self.isHidden = true

@@ -75,6 +75,8 @@ class PlaceholderView: UIView {
     }
     
     func setVisit(_ page: Visit) {
+        layer.shadowOpacity = 0.16
+        
         setSnapshot(page.snapshot)
         if let color = page.topColor { statusBar.backgroundColor = color }
         if let color = page.bottomColor { toolbarView.backgroundColor = color }

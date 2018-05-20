@@ -19,6 +19,7 @@ class CardStackingLayout: UICollectionViewFlowLayout {
     
     var selectedIndexPath = IndexPath(item: 0, section: 0)
     var selectedHidden: Bool = false
+    var belowHidden: Bool = false
     var parentIndexPath: IndexPath? = nil
     var parentHidden: Bool = false
     
@@ -144,6 +145,9 @@ class CardStackingLayout: UICollectionViewFlowLayout {
         }
 
         if selectedHidden && indexPath == selectedIndexPath {
+            attributes.isHidden = true
+        }
+        if belowHidden && indexPath.row > selectedIndexPath.row {
             attributes.isHidden = true
         }
         

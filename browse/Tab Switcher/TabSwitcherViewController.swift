@@ -423,8 +423,9 @@ extension TabSwitcherViewController {
     }
     
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        collectionView.deselectItem(at: indexPath, animated: true)
-        showTab(fetchedResultsController.object(at: indexPath))
+        showTab(fetchedResultsController.object(at: indexPath)) {
+            collectionView.deselectItem(at: indexPath, animated: true)
+        }
     }
     
     var thumbSize : CGSize {
