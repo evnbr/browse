@@ -145,12 +145,20 @@ class TabSwitcherViewController: UICollectionViewController {
         }
     }
     
-    func closeTab(fromCell cell: UICollectionViewCell) {
+    func closeTab(tab: Tab) {
+        cardStackLayout.dismissIndexPath = nil
+        cardStackLayout.dismissProgress = 0
+
+        tab.isClosed = true
+        _browserVC?.webViewManager.removeWebViewFor(tab)
+        saveContext()
+    }
+    
+    func dismissTab(from cell: UICollectionViewCell, progress: CGFloat) {
         if let indexPath = collectionView?.indexPath(for: cell) {
-            let tab = fetchedResultsController.object(at: indexPath)
-            tab.isClosed = true
-            _browserVC?.webViewManager.removeWebViewFor(tab)
-            saveContext()
+            cardStackLayout.dismissIndexPath = indexPath
+            cardStackLayout.dismissProgress = progress
+            cardStackLayout.invalidateLayout()
         }
     }
     
@@ -250,11 +258,10 @@ class TabSwitcherViewController: UICollectionViewController {
         anim?.springSpeed = 6
         anim?.springBounciness = 2
     }
-    func setCardStackProgress(_ progress: CGFloat) {
-        cardStackLayout.expandedProgress = progress
-        cardStackLayout.invalidateLayout()
-    }
-    
+//    func setCardStackProgress(_ progress: CGFloat) {
+//        cardStackLayout.expandedProgress = progress
+//        cardStackLayout.invalidateLayout()
+//    }
     
     
     func moveTabToEnd(_ tab: Tab) {
@@ -419,6 +426,7 @@ extension TabSwitcherViewController {
         if let thumb = cell as? DismissableTabCell {
             thumb.setTab(tab)
             thumb.closeTabCallback = closeTab
+            thumb.dismissCallback = dismissTab
         }
     }
     

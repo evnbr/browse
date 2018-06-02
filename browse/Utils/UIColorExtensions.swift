@@ -50,6 +50,10 @@ public extension UIColor {
         }
     }
     
+    var withSecondaryAlpha: UIColor {
+        return self.withAlphaComponent(self.isLight ? 0.4 : 0.6)
+    }
+    
     static func average(_ colors : UIColor...) -> UIColor {
         return self.average(colors)
     }

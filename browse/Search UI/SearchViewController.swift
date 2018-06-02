@@ -152,7 +152,7 @@ class SearchViewController: UIViewController {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.tintColor = .darkText
         contentView.clipsToBounds = true
-        contentView.radius = 8 //Const.shared.cardRadius
+        contentView.radius = Const.shared.cardRadius
         view.addSubview(contentView)
         
         backgroundView = PlainBlurView(frame: contentView.bounds)
@@ -390,7 +390,7 @@ extension SearchViewController: UITextViewDelegate {
         if txt.isProbablyURL, let url = URL(string: txt),
             let highlightRange = txt.allNSRanges(of: url.displayHost).first {
             let attrTxt = NSMutableAttributedString(string: txt, attributes: [
-                NSAttributedStringKey.foregroundColor: textView.textColor!.withAlphaComponent(0.5),
+                NSAttributedStringKey.foregroundColor: textView.textColor!.withSecondaryAlpha,
                 NSAttributedStringKey.font: textView.font!
                 ])
             let highlight = [ NSAttributedStringKey.foregroundColor: textView.textColor! ]
@@ -569,8 +569,8 @@ extension SearchViewController : UIGestureRecognizerDelegate {
             isTransitioning = true
         }
         else if gesture.state == .changed {
-            self.iconProgress = (abs(dist.y) / keyboard.height).reverse().clip()
-            if dist.y < 0 { 
+//            self.iconProgress = (abs(dist.y) / keyboard.height).reverse().clip()
+            if dist.y < 0 {
                 kbHeightConstraint.constant = keyboard.height
                 let elastic = 0.4 * elasticLimit(-dist.y)
                 textHeightConstraint.constant = textHeight + elastic

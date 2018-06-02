@@ -28,11 +28,14 @@ class CardStackingLayout: UICollectionViewFlowLayout {
     var blendedAttributes = [ UICollectionViewLayoutAttributes ]()
     
     var expandedProgress: CGFloat = 0
+    var dismissProgress: CGFloat = 0
+    var dismissIndexPath: IndexPath? = nil
 
     override var collectionViewContentSize: CGSize {
-        let newSize = CGSize(
+        var newSize = CGSize(
             width: collectionView!.bounds.width,
             height: startY + CGFloat(collectionView!.numberOfItems(inSection: 0)) * itemSpacing + (itemHeight - itemSpacing))
+//        newSize.height -= dismissProgress * itemSpacing
         return newSize
     }
     
@@ -105,6 +108,17 @@ class CardStackingLayout: UICollectionViewFlowLayout {
             x: baseCenter.x,
             y: startY + baseCenter.y + CGFloat(i) * itemSpacing
         )
+        if let dip = dismissIndexPath {
+            if indexPath.row == dip.row {
+                newCenter.x += collectionView!.bounds.width * dismissProgress
+            }
+            if indexPath.row > dip.row {
+                newCenter.y -= itemSpacing * dismissProgress * 0.5
+            }
+            else if indexPath.row < dip.row {
+                newCenter.y += itemSpacing * dismissProgress * 0.5
+            }
+        }
         
         attributes.bounds.size = cardSize
         
@@ -118,7 +132,6 @@ class CardStackingLayout: UICollectionViewFlowLayout {
         
         let pct = distFromTop.progress(-400, 600).reverse()
         let s = (pct * pct * 0.2).reverse()
-//            attributes.transform = CGAffineTransform(scaleX: s, y: s)
         
         let extraH = cardSize.height * (1 - s)
         
@@ -161,7 +174,7 @@ class CardStackingLayout: UICollectionViewFlowLayout {
         }
         
         attributes.center = newCenter
-        attributes.zIndex = i * 20
+        attributes.zIndex = i * 2
         
         return attributes
     }

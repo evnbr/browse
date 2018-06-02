@@ -47,18 +47,19 @@ class TypeaheadCell: UITableViewCell {
 //        contentView.insertSubview(backer, at: 0)
     }
     
+    
     func configure(title: String?, detail: String?, highlight: String) {
         if let title = title {
             let titleOverlaps = title.allNSRanges(of: highlight, split: true)
             let attributedTitle = NSMutableAttributedString(string: title)
-            titleOverlaps.forEach { attributedTitle.addAttributes([.foregroundColor : tintColor.withAlphaComponent(0.5)], range: $0) }
+            titleOverlaps.forEach { attributedTitle.addAttributes([.foregroundColor : tintColor], range: $0) }
             textLabel?.attributedText = attributedTitle
         }
         
         if let detail = detail {
             let detailOverlaps = detail.allNSRanges(of: highlight, split: true)
             let attributedDetail = NSMutableAttributedString(string: detail)
-            detailOverlaps.forEach { attributedDetail.addAttributes([.foregroundColor : tintColor.withAlphaComponent(0.5)], range: $0) }
+            detailOverlaps.forEach { attributedDetail.addAttributes([.foregroundColor : tintColor], range: $0) }
             detailTextLabel?.attributedText = attributedDetail
         }
     }
@@ -73,8 +74,8 @@ class TypeaheadCell: UITableViewCell {
     }
     
     override func tintColorDidChange() {
-        textLabel?.textColor = tintColor
-        detailTextLabel?.textColor = tintColor //.withAlphaComponent(0.7)
+        textLabel?.textColor = tintColor.withSecondaryAlpha
+        detailTextLabel?.textColor = tintColor.withSecondaryAlpha //.withAlphaComponent(0.7)
         selectedBackgroundView?.backgroundColor = tintColor.isLight ? .darkTouch : .lightTouch
     }
 }

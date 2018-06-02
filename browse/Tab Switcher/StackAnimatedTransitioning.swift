@@ -131,7 +131,6 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
         
         tabSwitcher.cardStackLayout.belowHidden = true
         tabSwitcher.visibleCellsBelow.forEach {
-//            return
             guard let snap = $0.snapshotView(afterScreenUpdates: false) else { return }
             var center = containerView.convert($0.center, from: $0.superview!)
             snap.center = center
@@ -144,7 +143,6 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
                 snap.removeFromSuperview()
             }
         }
-
         
         let newCenter = isExpanding ? expandedCenter : thumbCenter
         let velocity = browserVC.gestureController.dismissVelocity ?? .zero
@@ -187,7 +185,20 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
         let statusHeight : CGFloat = isLandscape ? 0 : Const.statusHeight
         
         browserVC.statusHeightConstraint.springConstant(to: isExpanding ? statusHeight : THUMB_OFFSET_COLLAPSED )
-        let scaleAnim = browserVC.cardView.springScale(to: isExpanding ? 1 : thumbScale)
+        
+//        let scaleAnim = browserVC.cardView.springScale(to: isExpanding ? 0.7 : thumbScale)
+        let startScale = browserVC.cardView.scale
+        let endScale = isExpanding ? 1 : thumbScale
+        let scaleSwitch = SpringSwitch { pct in
+            let baseScale = pct.lerp(startScale, endScale)
+            let quadraticArc = ((pct - 0.5) * (pct - 0.5) * -2 + 0.5) * 2 // todo: better arc when starting from small value
+            let adjustedScale = baseScale - 0.2 * quadraticArc
+            browserVC.cardView.scale = adjustedScale
+        }
+        scaleSwitch.setState(.start)
+        let scaleAnim = scaleSwitch.springState(.end)
+        
+        
         let maskAnim = mask.springFrame(to: isExpanding ? expandedBounds : thumbBounds) { _, _ in
             popBoundsDone = true
             finishTransition()
@@ -198,8 +209,11 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             popCenterDone = true
             finishTransition()
         }
-        centerAnim?.springSpeed = 10
-        centerAnim?.springBounciness = 2
+        centerAnim?.dynamicsMass = 3
+        centerAnim?.dynamicsTension = 350
+        centerAnim?.dynamicsFriction = 55
+//        centerAnim?.springSpeed = 10
+//        centerAnim?.springBounciness = 2
         scaleAnim?.springSpeed = 5
         scaleAnim?.springBounciness = 1
 

@@ -12,7 +12,6 @@ class VisitCell: UICollectionViewCell {
     var label : UILabel!
     var shadowView : UIView!
     var overlay : UIView!
-    var closeTabCallback : CloseTabCallback!
     var toolbarView: BrowserToolbarView!
     var snapView : UIImageView!
     

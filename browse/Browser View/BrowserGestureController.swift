@@ -383,7 +383,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 
         var cardPagingPoint: CGPoint
         // reveal back page from left
-        if (direction == .leftToRight && vc.webView.canGoBack) || isToParent {
+        if ((direction == .leftToRight || direction == .top) && vc.webView.canGoBack) || isToParent {
 //            dismissingPoint.y -= dismissPointPreviewY * 0.5 // to account for initial resisitance
             mockAlpha.setValue(of: PAGING, to: xShift.progress(0, 400).lerp(0.4, 0.1))
             
@@ -438,6 +438,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         }
         // rubber band
         else {
+            
             let unBlendedCardPagingPoint = CGPoint(
                 x: view.center.x + elasticLimit(xShift, constant: 100),
                 y: backFwdPoint.y )
@@ -692,6 +693,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         if GESTURE_DEBUG { vc.toolbar.text = "Started" }
         
         vc.tabSwitcher.moveTabToEnd(vc.currentTab)
+        vc.tabSwitcher.scrollToBottom()
 
         direction = newDir
         startPoint = gesture.translation(in: view)
@@ -714,10 +716,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         else if direction == .rightToLeft {
             if vc.webView.canGoForward { setupForwardGesture() }
         }
-//        if direction != .top {
-            dismissSwitch.setState(PAGING)
-            horizontalChange(gesture)
-//        }
+        dismissSwitch.setState(PAGING)
+        horizontalChange(gesture)
     }
     
     func commitDismiss(velocity vel: CGPoint) {

@@ -8,13 +8,16 @@
 
 import UIKit
 
-typealias CloseTabCallback = (UICollectionViewCell) -> Void
+typealias CloseTabCallback = (Tab) -> Void
+typealias DismissTabCallback = (UICollectionViewCell, CGFloat) -> Void
 
 let shadowAlpha : Float = 0.2
 let tapScaleAmount: CGFloat = 0.98
 
 class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
     var browserTab : Tab?
+    var closeTabCallback: CloseTabCallback!
+    var dismissCallback: DismissTabCallback!
 
     @available(iOS 11.0, *)
     override func dragStateDidChange(_ dragState: UICollectionViewCellDragState) {
@@ -79,6 +82,7 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
     
     @objc func panGestureChange(gesture: UIPanGestureRecognizer) {
         let gesturePos = gesture.translation(in: self.superview)
+        let pct = abs(gesturePos.x) / bounds.width
 
         if gesture.state == .began {
             isDismissing = true
@@ -87,11 +91,11 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
         }
         else if gesture.state == .changed {
             if isDismissing {
-                let pct = abs(gesturePos.x) / bounds.width
                 if pct > 0.4 {
                     overlay.alpha = (pct - 0.4) * 2
                 }
-                center.x = startCenter.x + elasticLimit(gesturePos.x)
+//                center.x = startCenter.x + elasticLimit(gesturePos.x)
+                dismissCallback(self, pct)
             }
         }
         else if gesture.state == .ended {
@@ -101,7 +105,7 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
                 
                 let vel = gesture.velocity(in: superview)
                 
-                var endCenter : CGPoint = startCenter
+//                var endCenter : CGPoint = startCenter
                 var endAlpha : CGFloat = startAlpha
                 
                 let isLeft = gesturePos.x > 0
@@ -110,22 +114,26 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
                 var shouldDelete = false
 
                 if ( (isLeft && vel.x > 400) || gesturePos.x > bounds.width * 0.5 ) {
-                    endCenter.x = startCenter.x + bounds.width
+//                    endCenter.x = startCenter.x + bounds.width
                     endAlpha = 1
                     shouldDelete = true
                 }
                 else if ( (isRight && vel.x < -400) || gesturePos.x < -bounds.width * 0.5 ) {
-                    endCenter.x = startCenter.x - bounds.width
+//                    endCenter.x = startCenter.x - bounds.width
                     endAlpha = 1
                     shouldDelete = true
                 }
                 
-                let anim = springCenter(to: endCenter, at: vel)
-                if shouldDelete {
+                let blend = Blend(start: pct, end: shouldDelete ? 1 : 0) {
+                    self.dismissCallback(self, $0)
+                }
+                let spring = SpringSwitch { blend.progress = $0 }
+                spring.setState(.start)
+                let anim = spring.springState(.end)
+                
+                if let tab = browserTab, shouldDelete {
                     anim?.completionBlock = { _, _ in
-                        self.center = self.startCenter
-                        self.isHidden = true
-                        self.closeTabCallback(self)
+                        self.closeTabCallback(tab)
                     }
                 }
                 UIView.animate(withDuration: 0.4) {

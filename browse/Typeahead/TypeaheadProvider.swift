@@ -120,6 +120,8 @@ class TypeaheadProvider: NSObject {
                     return suggestion
                 })
                 maybeCompletion()
+            } else {
+                maybeCompletion()
             }
         }).resume()
     }
