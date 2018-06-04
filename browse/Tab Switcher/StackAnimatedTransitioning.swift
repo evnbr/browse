@@ -80,7 +80,7 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             
 //            let attr = homeVC.stackedLayout.layoutAttributesForItem(at: ip)
             let attr = tabSwitcher.cardStackLayout.calculateItem(
-                for: ip, whenStacked: true, scrollY: cv.contentOffset.y, baseCenter: cv.center, totalItems: cv.numberOfItems(inSection: 0), withOffset: false)
+                for: ip, whenStacked: true, scrollY: cv.contentOffset.y, baseCenter: cv.center, totalItems: cv.numberOfItems(inSection: 0), withXOffset: false, withYOffset: false)
             
             // must be after toVC is added
             let selectedThumbCenter = attr.center
@@ -130,14 +130,17 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
         }
         
         tabSwitcher.cardStackLayout.belowHidden = true
+        var snaps: [ UIView ] = []
         tabSwitcher.visibleCellsBelow.forEach {
             guard let snap = $0.snapshotView(afterScreenUpdates: false) else { return }
             var center = containerView.convert($0.center, from: $0.superview!)
             snap.center = center
             snap.scale = $0.scale
+            snaps.append(snap)
             containerView.addSubview(snap)
+        }
+        snaps.forEach { snap in
             var endCenter = containerView.center
-
             endCenter.y += containerView.bounds.height
             snap.springCenter(to: endCenter) {_,_ in
                 snap.removeFromSuperview()
@@ -159,6 +162,10 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
                 browserVC.webView.scrollView.isScrollEnabled = true
                 browserVC.webView.scrollView.showsVerticalScrollIndicator = true
             }
+            if self.isDismissing {
+                tabSwitcher.cardStackLayout.selectedHidden = false
+                browserVC.gestureController.mockCardView.removeFromSuperview()
+            }
             
             snapFab?.removeFromSuperview()
             
@@ -166,6 +173,7 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             tabSwitcher.visibleCells.forEach { $0.reset() }
             tabSwitcher.scrollToBottom()
             tabSwitcher.fab.isHidden = self.isExpanding
+            tabSwitcher.cardStackLayout.invalidateLayout()
             tabSwitcher.setNeedsStatusBarAppearanceUpdate()
             
             browserVC.contentView.mask = nil
@@ -189,11 +197,13 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
 //        let scaleAnim = browserVC.cardView.springScale(to: isExpanding ? 0.7 : thumbScale)
         let startScale = browserVC.cardView.scale
         let endScale = isExpanding ? 1 : thumbScale
+        let scaleArcInfluence = abs(browserVC.cardView.center.y - newCenter.y).progress(0, 600) * 0.2
         let scaleSwitch = SpringSwitch { pct in
             let baseScale = pct.lerp(startScale, endScale)
-            let quadraticArc = ((pct - 0.5) * (pct - 0.5) * -2 + 0.5) * 2 // todo: better arc when starting from small value
-            let adjustedScale = baseScale - 0.2 * quadraticArc
+            let quadraticArc = ((pct - 0.5) * (pct - 0.5) * -2 + 0.5) * 2
+            let adjustedScale = baseScale - scaleArcInfluence * quadraticArc
             browserVC.cardView.scale = adjustedScale
+            snaps.forEach { $0.scale = adjustedScale }
         }
         scaleSwitch.setState(.start)
         let scaleAnim = scaleSwitch.springState(.end)
@@ -209,11 +219,9 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             popCenterDone = true
             finishTransition()
         }
-        centerAnim?.dynamicsMass = 3
-        centerAnim?.dynamicsTension = 350
-        centerAnim?.dynamicsFriction = 55
-//        centerAnim?.springSpeed = 10
-//        centerAnim?.springBounciness = 2
+        centerAnim?.dynamicsMass = 5
+        centerAnim?.dynamicsTension = 750
+        centerAnim?.dynamicsFriction = 95
         scaleAnim?.springSpeed = 5
         scaleAnim?.springBounciness = 1
 

@@ -249,14 +249,10 @@ class TabSwitcherViewController: UICollectionViewController {
         }
         spring.setState(toStacked ? .end : .start)
         let anim = spring.springState(toStacked ? .start : .end) { (_, _) in
-            if toStacked {
-                self.cardStackLayout.selectedHidden = false
-                self.cardStackLayout.invalidateLayout()
-            }
             completion?()
         }
-        anim?.springSpeed = 6
-        anim?.springBounciness = 2
+        anim?.springSpeed = 8
+        anim?.springBounciness = 1
     }
 //    func setCardStackProgress(_ progress: CGFloat) {
 //        cardStackLayout.expandedProgress = progress

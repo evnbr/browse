@@ -32,7 +32,7 @@ class CardStackingLayout: UICollectionViewFlowLayout {
     var dismissIndexPath: IndexPath? = nil
 
     override var collectionViewContentSize: CGSize {
-        var newSize = CGSize(
+        let newSize = CGSize(
             width: collectionView!.bounds.width,
             height: startY + CGFloat(collectionView!.numberOfItems(inSection: 0)) * itemSpacing + (itemHeight - itemSpacing))
 //        newSize.height -= dismissProgress * itemSpacing
@@ -51,12 +51,10 @@ class CardStackingLayout: UICollectionViewFlowLayout {
 
     override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
         if newBounds == collectionView?.bounds { return false }
-//        print("did scroll")
         return true
     }
     
     override func invalidateLayout() {
-//        print("invalidated")
         super.invalidateLayout()
     }
     
@@ -96,7 +94,25 @@ class CardStackingLayout: UICollectionViewFlowLayout {
         return attributesList
     }
     
-    func calculateItem(for indexPath: IndexPath, whenStacked: Bool, scrollY: CGFloat, baseCenter: CGPoint, totalItems: Int, withOffset: Bool = true) -> UICollectionViewLayoutAttributes {
+    func selectedCenter(scrollY: CGFloat, baseCenter: CGPoint, totalItems: Int) -> CGPoint {
+        return calculateItem(for: selectedIndexPath, whenStacked: true, scrollY: scrollY, baseCenter: baseCenter, totalItems: totalItems, withXOffset: false, withYOffset: false).center
+    }
+    
+    func stackOffsetY(baseCenter: CGPoint, endCenter: CGPoint, scrollY: CGFloat) -> CGFloat {
+        let effectiveOffset = (baseCenter.y - endCenter.y)
+        let newOffset = offset.y - effectiveOffset + 44 // why is N necessary here?
+        return newOffset
+    }
+    
+    func calculateItem(
+        for indexPath: IndexPath,
+        whenStacked: Bool,
+        scrollY: CGFloat,
+        baseCenter: CGPoint,
+        totalItems: Int,
+        withXOffset: Bool = true,
+        withYOffset: Bool = true
+    ) -> UICollectionViewLayoutAttributes {
         let topScrollPos = Const.statusHeight + 60
         let cardSize = UIScreen.main.bounds.size
 
@@ -135,14 +151,16 @@ class CardStackingLayout: UICollectionViewFlowLayout {
         
         let extraH = cardSize.height * (1 - s)
         
+        let endCenter = withYOffset ? selectedCenter(scrollY: scrollY, baseCenter: baseCenter, totalItems: totalItems) : .zero
+        
         attributes.isHidden = false
         if whenStacked {
             newCenter.y -= extraH //* 0.5
             newCenter.y -= distFromTop * 1 * pct
+            if withYOffset { newCenter.y -= stackOffsetY(baseCenter: baseCenter, endCenter: endCenter, scrollY: scrollY) }
             attributes.transform = CGAffineTransform(scale: s * maxScale)
         } else {
             if indexPath != selectedIndexPath {
-                let endCenter = calculateItem(for: selectedIndexPath, whenStacked: true, scrollY: scrollY, baseCenter: baseCenter, totalItems: totalItems, withOffset: false).center
                 let endDistFromTop = endCenter.y - scrollY - cardSize.height / 2
                 newCenter.y = endCenter.y - (cardSize.height * (maxScale) + 12) * distFromFront - endDistFromTop
             }
@@ -153,7 +171,7 @@ class CardStackingLayout: UICollectionViewFlowLayout {
             }
             newCenter.y -= offset.y
         }
-        if withOffset {
+        if withXOffset {
             newCenter.x -= offset.x
         }
 
