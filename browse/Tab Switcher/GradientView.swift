@@ -30,7 +30,7 @@ class GradientView: UIView {
 //        CATransaction.disableActions()
         gradientLayer.frame = bounds
         gradientLayer.frame.size.width *= 1.3 // TODO: Why does this not track correctly?
-        gradientLayer.frame.size.height = THUMB_H * 1.5
+//        gradientLayer.frame.size.height = THUMB_H * 1.5
 //        CATransaction.commit()
     }
     

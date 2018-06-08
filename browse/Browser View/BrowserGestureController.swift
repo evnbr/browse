@@ -40,14 +40,20 @@ extension UIScrollView {
         contentOffset = offset;
         delegate = prevDelegate;
     }
+    func safeY(_ newY: CGFloat) -> CGFloat {
+        return max(0, min(newY, self.maxScrollY))
+    }
+    func safeX(_ newX: CGFloat) -> CGFloat {
+        return max(0, min(newX, self.maxScrollX))
+    }
     func setScrollSilently(x newX: CGFloat) {
         var newOffset = contentOffset
-        newOffset.x = newX
+        newOffset.x = safeX(newX)
         setScrollSilently(newOffset)
     }
     func setScrollSilently(y newY: CGFloat) {
         var newOffset = contentOffset
-        newOffset.y = newY
+        newOffset.y = safeY(newY)
         setScrollSilently(newOffset)
     }
 }
@@ -211,10 +217,12 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             scrollView.setScrollSilently(CGPoint(x: startScroll.x, y: 0))
         }
         else if isDismissing && direction == .leftToRight {
-            scrollView.setScrollSilently(CGPoint(x: 0, y: startScroll.y))
+//            scrollView.setScrollSilently(CGPoint(x: 0, y: startScroll.y))
+            scrollView.setScrollSilently(x: 0)
         }
         else if isDismissing && direction == .rightToLeft {
-            scrollView.setScrollSilently(CGPoint(x: scrollView.maxScrollX, y: startScroll.y))
+//            scrollView.setScrollSilently(CGPoint(x: scrollView.maxScrollX, y: startScroll.y))
+            scrollView.setScrollSilently(x: scrollView.maxScrollX)
         }
         else if pinchController.isPinchDismissing {
             scrollView.setScrollSilently(pinchController.pinchStartScroll)
@@ -331,8 +339,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         
         let revealProgress = min(abs(gesturePos.x) / 200, 1)
         
-        let rad = min(Const.shared.cardRadius + revealProgress * 4 * Const.shared.thumbRadius, Const.shared.thumbRadius)
-        if (Const.shared.cardRadius < Const.shared.thumbRadius) {
+        let rad = min(Const.cardRadius + revealProgress * 4 * Const.thumbRadius, Const.thumbRadius)
+        if (Const.cardRadius < Const.thumbRadius) {
             cardView.radius = rad
             mockCardView.radius = rad
         }
@@ -373,14 +381,14 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
             x: view.center.x + xShift,
             y: view.center.y + (yShift > 0 ? yShift : 0))
         
-//        let thumbAlpha = switcherRevealProgress.progress(0, 0.7).clip().lerp(0, 1)
-//        vc.home.navigationController?.view.alpha = thumbAlpha
+        let amtOver = min(0, yShift)
+        vc.webView.scrollView.setScrollSilently(y: startScroll.y - 0.5 * elasticLimit(amtOver, constant: 60))
 
         cardScaler.setValue(of: PAGING, to: hintScale)
         thumbScaler.setValue(of: PAGING, to: hintScale)
 //        let hintX = yGestureInfluence.progress(0, 160).clip().lerp(0, 90)
 
-        let pagingHint = yShift.progress(0, 240).clip()
+        let pagingHint = yShift.progress(0, 360).clip()
 
         var cardPagingPoint: CGPoint
         // reveal back page from left
@@ -654,7 +662,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         // if we are swiping horizontally and the above conditions have not
         // triggered a dismiss, dismissing should no longer be possible
         // during this gesture
-        else if abs(gesturePos.x) > 10 {
+        else if abs(gesturePos.x) > 10 || abs(gesturePos.y) > 10 {
             dismissingEndedPossible()
         }
     }
@@ -947,6 +955,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     func dismissingEndedPossible() {
         vc.cardView.mask = nil
         isDismissingPossible = false
+        vc.webView.scrollView.showsVerticalScrollIndicator = true
         if GESTURE_DEBUG { vc.toolbar.text = "Not Possible" }
     }
     
@@ -956,6 +965,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         mask.frame = vc.cardView.bounds
         vc.cardView.mask = mask
         isDismissingPossible = true
+        vc.webView.scrollView.showsVerticalScrollIndicator = false
         if GESTURE_DEBUG { vc.toolbar.text = "Possible" }
     }
     

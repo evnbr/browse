@@ -24,8 +24,8 @@ class TabSwitcherViewController: UICollectionViewController {
     let sectionInsets = UIEdgeInsets(top: 120.0, left: THUMB_INSET, bottom: 8.0, right: THUMB_INSET)
     let itemsPerRow : CGFloat = 2
     
-    let thumbAnimationController = StackAnimatedTransitioning()
-    let cardStackLayout = CardStackingLayout()
+    let thumbAnimationController = CardStackTransition()
+    let cardStackLayout = CardStackCollectionViewLayout()
 
     private var _browserVC : BrowserViewController?
     func setupBrowser(with tab: Tab) -> BrowserViewController {
@@ -163,6 +163,14 @@ class TabSwitcherViewController: UICollectionViewController {
             cardStackLayout.invalidateLayout()
         }
     }
+    func swipeTab(from cell: UICollectionViewCell, progress: CGFloat) {
+        if let indexPath = collectionView?.indexPath(for: cell) {
+            cardStackLayout.dismissIndexPath = indexPath
+            cardStackLayout.swipeOffset = progress
+            cardStackLayout.invalidateLayout()
+        }
+    }
+
     
     func thumb(forTab tab: Tab) -> DismissableTabCell? {
         return collectionView?.visibleCells.first(where: { (cell) -> Bool in
@@ -242,6 +250,7 @@ class TabSwitcherViewController: UICollectionViewController {
     }
     
     func springCards(toStacked: Bool, at velocity: CGPoint = .zero, completion: (() -> ())? = nil) {
+        cardStackLayout.isTransitioning = true
         cardStackLayout.selectedHidden = true
         cardStackLayout.invalidateLayout()
 
@@ -253,7 +262,7 @@ class TabSwitcherViewController: UICollectionViewController {
         let anim = spring.springState(toStacked ? .start : .end) { (_, _) in
             completion?()
         }
-        anim?.springSpeed = 8
+        anim?.springSpeed = 4
         anim?.springBounciness = 1
     }
 //    func setCardStackProgress(_ progress: CGFloat) {
@@ -395,7 +404,6 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
             if let ip = self.currentIndexPath {
                 self.cardStackLayout.selectedIndexPath = ip
             }
-//            self.scrollToBottom(animated: true) // TODO this might be overkill
         })
     }
 
@@ -425,6 +433,7 @@ extension TabSwitcherViewController {
             thumb.setTab(tab)
             thumb.closeTabCallback = closeTab
             thumb.dismissCallback = dismissTab
+            thumb.swipeCallback = swipeTab
         }
     }
     

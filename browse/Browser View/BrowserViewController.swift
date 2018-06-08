@@ -40,14 +40,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var cardView: UIView!
     var contentView: UIView!
     var overlay: UIView!
-    var gradientOverlay: UIView!
+    var grad: GradientView!
     
     var overflowController: UIAlertController!
-        
     var onePasswordExtensionItem : NSExtensionItem!
-    
     var gestureController : BrowserGestureController!
 
+    var navigationToHide : WKNavigation? = nil// = false
+
+    
     // MARK: - Derived properties
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -95,7 +96,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     }
     
     
-    var navigationToHide : WKNavigation? = nil// = false
     func hideUntilNavigationDone(navigation: WKNavigation? ) {
         isSnapshotMode = true
         if let nav = navigation {
@@ -244,7 +244,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
 
         contentView = UIView(frame: cardViewDefaultFrame)
         contentView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        contentView.radius = Const.shared.cardRadius
+        contentView.radius = Const.cardRadius
         contentView.layer.masksToBounds = true
         contentView.backgroundColor = .white
 
@@ -252,9 +252,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         overlay.backgroundColor = UIColor.black
         overlay.alpha = 0
         
-        gradientOverlay = GradientView(frame: view.bounds)
-        gradientOverlay.alpha = 0
-
+        grad = GradientView(frame: view.bounds.insetBy(dx: -60, dy: -60) )
+        grad.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        grad.alpha = 0
         
         view.addSubview(cardView)
         cardView.addSubview(shadowView)
@@ -287,6 +287,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         contentView.addSubview(overlay)
         constrain4(contentView, overlay)
+        contentView.addSubview(grad)
 
         constrainTop3(statusBar, contentView)
         statusHeightConstraint = statusBar.heightAnchor.constraint(equalToConstant: Const.statusHeight)

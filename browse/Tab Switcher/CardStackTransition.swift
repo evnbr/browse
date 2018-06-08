@@ -24,7 +24,7 @@ extension UIScrollView {
 
 // TODO: Shouldn't change state permanently here.
 
-class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitioning {
+class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
     
     var direction : CustomAnimationDirection!
     var isExpanding  : Bool { return direction == .present }
@@ -53,6 +53,7 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
         
         if isExpanding {
             browserVC.resetSizes()
+            containerView.addSubview(tabSwitcher.view)
             containerView.addSubview(browserVC.view)
         }
         else {
@@ -112,7 +113,7 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
         let mask = UIView()
         mask.backgroundColor = .red
         mask.frame = isExpanding ? thumbBounds : expandedBounds
-        mask.radius = isExpanding ? Const.shared.thumbRadius : Const.shared.cardRadius
+        mask.radius = isExpanding ? Const.thumbRadius : Const.cardRadius
 
         // Avoid adjusting height: TODO just mask instead
         thumbCenter.y += (expandedBounds.size.height - thumbBounds.size.height) / 2
@@ -120,6 +121,7 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
         var smallerBounds = thumbBounds
         smallerBounds.size.height = expandedBounds.size.height
         
+        browserVC.grad.alpha = isExpanding ? 1 : 0
         browserVC.overlay.alpha = thumbOverlayAlpha
         browserVC.cardView.center = isExpanding ? thumbCenter : expandedCenter
 //        browserVC.cardView.bounds = isExpanding ? smallerBounds : expandedBounds
@@ -164,6 +166,7 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             }
             if self.isDismissing {
                 tabSwitcher.cardStackLayout.selectedHidden = false
+                tabSwitcher.cardStackLayout.isTransitioning = false
                 browserVC.gestureController.mockCardView.removeFromSuperview()
             }
             
@@ -181,9 +184,12 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             browserVC.cardView.scale = 1
             browserVC.cardView.center = browserVC.view.center
 
-            transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
+            homeNav.view.addSubview(tabSwitcher.view)
             if self.isDismissing {
                 browserVC.view.removeFromSuperview()
+            }
+            transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
+            if self.isDismissing {
                 browserVC.gestureController.mockCardView.removeFromSuperview()
                 browserVC.gestureController.mockCardView.imageView.image = nil
             }
@@ -197,13 +203,14 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
 //        let scaleAnim = browserVC.cardView.springScale(to: isExpanding ? 0.7 : thumbScale)
         let startScale = browserVC.cardView.scale
         let endScale = isExpanding ? 1 : thumbScale
-        let scaleArcInfluence = abs(browserVC.cardView.center.y - newCenter.y).progress(0, 600) * 0.2
+        let startAdjustment = 1 - thumbScale
+        let scaleArcInfluence = abs(browserVC.cardView.center.y - newCenter.y).progress(0, 600).clip().lerp(0, 0.15)
         let scaleSwitch = SpringSwitch { pct in
             let baseScale = pct.lerp(startScale, endScale)
             let quadraticArc = ((pct - 0.5) * (pct - 0.5) * -2 + 0.5) * 2
-            let adjustedScale = baseScale - scaleArcInfluence * quadraticArc
-            browserVC.cardView.scale = adjustedScale
-            snaps.forEach { $0.scale = adjustedScale }
+            let arcedScale = baseScale - scaleArcInfluence * quadraticArc
+            browserVC.cardView.scale = arcedScale
+            tabSwitcher.setThumbScale(arcedScale + startAdjustment * (1 - pct))
         }
         scaleSwitch.setState(.start)
         let scaleAnim = scaleSwitch.springState(.end)
@@ -219,13 +226,19 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             popCenterDone = true
             finishTransition()
         }
-        centerAnim?.dynamicsMass = 5
-        centerAnim?.dynamicsTension = 750
-        centerAnim?.dynamicsFriction = 95
-        scaleAnim?.springSpeed = 5
-        scaleAnim?.springBounciness = 1
+//        centerAnim?.dynamicsMass = 5
+//        centerAnim?.dynamicsTension = 700
+//        centerAnim?.dynamicsFriction = 95
+        
+        centerAnim?.dynamicsMass = 3
+        centerAnim?.dynamicsTension = 700
+        centerAnim?.dynamicsFriction = 80
 
-        let mockMatchCard = browserVC.cardView.center.x > browserVC.view.center.x
+        
+        scaleAnim?.springSpeed = 8
+        scaleAnim?.springBounciness = 2
+
+        let mockMatchCard = browserVC.gestureController.mockCardView.center.x < browserVC.cardView.center.x
         
         let startDist = browserVC.cardView.center.distanceTo(newCenter)
         let startX = browserVC.gestureController.mockCardView.center.x
@@ -255,8 +268,6 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
                     gc.mockCardView.scale = s * gc.backItemScale
                 }
             }
-
-            tabSwitcher.setThumbScale(s)
         }
 
         tabSwitcher.springCards(toStacked: isDismissing, at: velocity) {
@@ -301,10 +312,10 @@ class StackAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitionin
             
 //            browserVC.cardView.layer.transform = self.isExpanding ? expandedTransform : stackTransform
             browserVC.statusBar.backgroundView.alpha = 1
+            browserVC.grad.alpha = self.isExpanding ? 0 : 1
             browserVC.overlay.alpha = self.isExpanding ? 0 : thumbOverlayAlpha
-            browserVC.gradientOverlay.alpha = self.isExpanding ? 0 : 1
-            browserVC.contentView.radius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
-            mask.radius = self.isExpanding ? Const.shared.cardRadius : Const.shared.thumbRadius
+            browserVC.contentView.radius = self.isExpanding ? Const.cardRadius : Const.thumbRadius
+            mask.radius = self.isExpanding ? Const.cardRadius : Const.thumbRadius
 //            homeNav.view.alpha = self.isExpanding ? 0.4 : 1
             browserVC.gestureController.mockCardView.layer.shadowOpacity = 0
                 

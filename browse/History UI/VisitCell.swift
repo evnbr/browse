@@ -64,9 +64,13 @@ class VisitCell: UICollectionViewCell {
         overlay.backgroundColor = UIColor.black
         overlay.alpha = 0
         contentView.addSubview(overlay)
-        //        constrain4(contentView, overlay)
         overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-                
+        
+        let grad = GradientView(frame: bounds.insetBy(dx: -60, dy: -60) )
+        contentView.addSubview(grad)
+        grad.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+
+        
         shadowView = UIView(frame: bounds)
         shadowView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         shadowView.layer.shadowRadius = Const.shadowRadius

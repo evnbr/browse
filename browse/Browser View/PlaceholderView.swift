@@ -19,7 +19,7 @@ class PlaceholderView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        backgroundColor = .white
+        backgroundColor = .black
         clipsToBounds = false
 
         radius = Const.cardRadius

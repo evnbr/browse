@@ -18,6 +18,7 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
     var browserTab : Tab?
     var closeTabCallback: CloseTabCallback!
     var dismissCallback: DismissTabCallback!
+    var swipeCallback: DismissTabCallback!
 
     @available(iOS 11.0, *)
     override func dragStateDidChange(_ dragState: UICollectionViewCellDragState) {
@@ -82,7 +83,7 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
     
     @objc func panGestureChange(gesture: UIPanGestureRecognizer) {
         let gesturePos = gesture.translation(in: self.superview)
-        let pct = abs(gesturePos.x) / bounds.width
+        let swipePct = gesturePos.x / bounds.width
 
         if gesture.state == .began {
             isDismissing = true
@@ -91,11 +92,11 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
         }
         else if gesture.state == .changed {
             if isDismissing {
-                if pct > 0.4 {
-                    overlay.alpha = (pct - 0.4) * 2
+                if abs(swipePct) > 0.4 {
+                    overlay.alpha = (abs(swipePct) - 0.4) * 2
                 }
 //                center.x = startCenter.x + elasticLimit(gesturePos.x)
-                dismissCallback(self, pct)
+                swipeCallback(self, swipePct)
             }
         }
         else if gesture.state == .ended {
@@ -124,10 +125,16 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
                     shouldDelete = true
                 }
                 
-                let blend = Blend(start: pct, end: shouldDelete ? 1 : 0) {
+                let exit = Blend(start: swipePct, end: shouldDelete ? 1 : 0) {
+                    self.swipeCallback(self, $0)
+                }
+                let collapse = Blend<CGFloat>(start: 0, end: shouldDelete ? 1 : 0) {
                     self.dismissCallback(self, $0)
                 }
-                let spring = SpringSwitch { blend.progress = $0 }
+                let spring = SpringSwitch {
+                    exit.progress = $0
+                    collapse.progress = $0
+                }
                 spring.setState(.start)
                 let anim = spring.springState(.end)
                 
