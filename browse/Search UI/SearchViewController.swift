@@ -152,7 +152,7 @@ class SearchViewController: UIViewController {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.tintColor = .darkText
         contentView.clipsToBounds = true
-        contentView.radius = Const.shared.cardRadius
+        contentView.radius = Const.cardRadius
         view.addSubview(contentView)
         
         backgroundView = PlainBlurView(frame: contentView.bounds)
@@ -186,7 +186,7 @@ class SearchViewController: UIViewController {
 
         textView = UITextView()
         textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 48)
-        textView.font = Const.shared.textFieldFont
+        textView.font = Const.textFieldFont
         textView.text = ""
         textView.placeholder = "Where to?"
         textView.delegate = self

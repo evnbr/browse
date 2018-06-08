@@ -22,14 +22,14 @@ class PlaceholderView: UIView {
         backgroundColor = .white
         clipsToBounds = false
 
-        radius = Const.shared.cardRadius
-        layer.shadowRadius = Const.shared.shadowRadius
+        radius = Const.cardRadius
+        layer.shadowRadius = Const.shadowRadius
         layer.shadowOpacity = 0.16
         
         contentView = UIView(frame: bounds)
         contentView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         contentView.clipsToBounds = true
-        contentView.layer.cornerRadius = Const.shared.cardRadius
+        contentView.layer.cornerRadius = Const.cardRadius
         addSubview(contentView)
         
         statusBar = ColorStatusBarView()

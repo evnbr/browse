@@ -71,7 +71,7 @@ class ToolbarSearchField: ToolbarTouchView {
     }
     
     override var intrinsicContentSize: CGSize {
-        return CGSize(width: 180.0, height: Const.shared.buttonHeight)
+        return CGSize(width: 180.0, height: Const.buttonHeight)
     }
     
     override func layoutSubviews() {
@@ -80,7 +80,7 @@ class ToolbarSearchField: ToolbarTouchView {
     }
     
     init(onTap: ToolbarButtonAction? = nil) {
-        super.init(frame: CGRect(x: 0, y: 0, width: 180, height: Const.shared.buttonHeight), onTap: onTap)
+        super.init(frame: CGRect(x: 0, y: 0, width: 180, height: Const.buttonHeight), onTap: onTap)
         
         let lockImage = UIImage(named: "lock")!.withRenderingMode(.alwaysTemplate)
         lock = UIImageView(image: lockImage)
@@ -89,7 +89,7 @@ class ToolbarSearchField: ToolbarTouchView {
         magnify = UIImageView(image: magnifyImage)
         
         label.text = "Where to?"
-        label.font = Const.shared.thumbTitleFont
+        label.font = Const.thumbTitleFont
         label.adjustsFontSizeToFitWidth = false
         label.setContentHuggingPriority(UILayoutPriority(rawValue: 0), for: .horizontal)
 

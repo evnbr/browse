@@ -49,8 +49,8 @@ class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitionin
         let titleSnap = browserVC?.toolbar.searchField.labelHolder.snapshotView(afterScreenUpdates: false) // TODO doesnt work if hidden
         browserVC?.toolbar.searchField.labelHolder.isHidden = true
         
-        let smallSize = Const.shared.thumbTitleFont.pointSize
-        let largeSize = Const.shared.textFieldFont.pointSize
+        let smallSize = Const.thumbTitleFont.pointSize
+        let largeSize = Const.textFieldFont.pointSize
         let scaledUp: CGFloat = largeSize / smallSize
         let scaledDown: CGFloat = smallSize / largeSize
         

@@ -37,7 +37,7 @@ class TypeaheadCell: UITableViewCell {
         
 //        let backer = UIView(frame: contentView.bounds)
 //        backer.backgroundColor = .white
-//        backer.radius = Const.shared.cardRadius
+//        backer.radius = Const.cardRadius
 //        backer.layer.shadowRadius = 12
 //        backer.layer.shadowOpacity = 0.2
 //        backer.frame.size.height = 200

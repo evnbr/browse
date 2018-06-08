@@ -16,14 +16,14 @@ let PRESENT_TAB_BACK_SCALE : CGFloat = 1//0.97
 
 let TAP_SCALE : CGFloat = 1.0 //0.97
 
-class Const: NSObject {
-    static let shared = Const()
+class Constants: NSObject {
+//    static let shared = Const()
     
-    private var toolbarHeight: CGFloat
-    private var statusHeight: CGFloat
+    let toolbarHeight: CGFloat
+    let statusHeight: CGFloat
     
-    static var statusHeight : CGFloat { return shared.statusHeight }
-    static var toolbarHeight : CGFloat { return shared.toolbarHeight }
+//    static var statusHeight : CGFloat { return shared.statusHeight }
+//    static var toolbarHeight : CGFloat { return shared.toolbarHeight }
 
     var thumbRadius: CGFloat
     let textFieldFont: UIFont = .systemFont(ofSize: 18)
@@ -46,5 +46,6 @@ class Const: NSObject {
 
         super.init()
     }
-    
 }
+
+let Const = Constants()

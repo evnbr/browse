@@ -37,7 +37,7 @@ class ColorStatusBarView : GradientColorChangeView {
         ))
         label.text = "Blank"
         label.alpha = 0
-        label.font = Const.shared.thumbTitleFont
+        label.font = Const.thumbTitleFont
         label.textColor = .darkText
         label.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
         self.addSubview(label)

@@ -236,10 +236,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         let shadowView = UIView(frame: view.bounds)
         shadowView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        shadowView.layer.shadowRadius = Const.shared.shadowRadius
+        shadowView.layer.shadowRadius = Const.shadowRadius
         shadowView.layer.shadowOpacity = shadowAlpha
 //        shadowView.layer.shouldRasterize = true
-        let path = UIBezierPath(roundedRect: view.bounds, cornerRadius: Const.shared.thumbRadius)
+        let path = UIBezierPath(roundedRect: view.bounds, cornerRadius: Const.thumbRadius)
         shadowView.layer.shadowPath = path.cgPath
 
         contentView = UIView(frame: cardViewDefaultFrame)
@@ -338,7 +338,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
             x: 0,
             y: 0,
             width: UIScreen.main.bounds.width,
-            height: UIScreen.main.bounds.height// - Const.shared.toolbarHeight
+            height: UIScreen.main.bounds.height// - Const.toolbarHeight
         )
     }
     

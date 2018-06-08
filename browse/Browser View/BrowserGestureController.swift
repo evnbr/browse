@@ -680,7 +680,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         vc.webView.scrollView.cancelScroll()
         
         vc.currentTab.updateSnapshot(from: vc.webView)
-        vc.contentView.radius = Const.shared.cardRadius
+        vc.contentView.radius = Const.cardRadius
         
         cancelGesturesInWebview()
         
@@ -718,10 +718,10 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let parentMock = cardView.snapshotView(afterScreenUpdates: false)!
         parentMock.contentMode = .top
         parentMock.clipsToBounds = true
-        parentMock.radius = Const.shared.cardRadius
+        parentMock.radius = Const.cardRadius
         
         vc.view.insertSubview(parentMock, belowSubview: cardView)
-        vc.contentView.radius = Const.shared.cardRadius
+        vc.contentView.radius = Const.cardRadius
 
         vc.updateSnapshot {
             let vc = self.vc!
@@ -751,7 +751,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let childMock = cardView.snapshotView(afterScreenUpdates: false)!
         childMock.contentMode = .top
         childMock.clipsToBounds = true
-        childMock.radius = Const.shared.cardRadius
+        childMock.radius = Const.cardRadius
         
         vc.view.insertSubview(childMock, aboveSubview: cardView)
         vc.overlay.alpha = 0.8
@@ -1020,7 +1020,7 @@ class BrowserPinchController: NSObject, UIGestureRecognizerDelegate {
         isPinchDismissing = true
         pinchStartScale = gesture.scale
         pinchStartScroll = vc.webView.scrollView.contentOffset
-        vc.contentView.radius = Const.shared.cardRadius
+        vc.contentView.radius = Const.cardRadius
     }
     func endPinchGesture(gesture: UIPinchGestureRecognizer) {
         if vc.view.scale < 0.8 {

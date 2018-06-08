@@ -90,7 +90,7 @@ class HistoryZoomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransi
             offset.progress = $0
         }
         
-        browserVC.contentView.radius = Const.shared.cardRadius
+        browserVC.contentView.radius = Const.cardRadius
         
         spring.setState(.start)
         let anim = spring.springState(.end) { (_, _) in

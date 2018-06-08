@@ -10,6 +10,8 @@ import UIKit
 import WebKit
 import CoreData
 
+let FAB_SIZE: CGFloat = 64
+
 class TabSwitcherViewController: UICollectionViewController {
 
     var _fetchedResultsController: NSFetchedResultsController<Tab>? = nil
@@ -68,15 +70,15 @@ class TabSwitcherViewController: UICollectionViewController {
         collectionView?.backgroundColor = .black
         
         fab = FloatButton(
-            frame: CGRect(x: 0, y: 0, width: 64, height: 64),
+            frame: CGRect(x: 0, y: 0, width: FAB_SIZE, height: FAB_SIZE),
             icon: UIImage(named: "add"),
             onTap: self.showSearch
         )
         view.addSubview(fab, constraints: [
             view.bottomAnchor.constraint(equalTo: fab.bottomAnchor, constant: 32),
             fab.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            fab.widthAnchor.constraint(equalToConstant: 64),
-            fab.heightAnchor.constraint(equalToConstant: 64),
+            fab.widthAnchor.constraint(equalToConstant: FAB_SIZE),
+            fab.heightAnchor.constraint(equalToConstant: FAB_SIZE),
         ])
 
         collectionView?.contentInset = UIEdgeInsets(

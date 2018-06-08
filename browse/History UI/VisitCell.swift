@@ -26,7 +26,7 @@ class VisitCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        radius = Const.shared.thumbRadius
+        radius = Const.thumbRadius
         backgroundColor = .clear
                 
         snapView = UIImageView(frame: bounds)
@@ -43,7 +43,7 @@ class VisitCell: UICollectionViewCell {
         label = UILabel(frame: CGRect(x: 24, y: 12, width: frame.width - 48, height: 24))
         label.text = "Blank"
         label.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
-        label.font = Const.shared.thumbTitleFont
+        label.font = Const.thumbTitleFont
         label.textColor = .darkText
         label.alpha = 1
         contentView.addSubview(label)
@@ -69,16 +69,16 @@ class VisitCell: UICollectionViewCell {
                 
         shadowView = UIView(frame: bounds)
         shadowView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        shadowView.layer.shadowRadius = Const.shared.shadowRadius
+        shadowView.layer.shadowRadius = Const.shadowRadius
         shadowView.layer.shadowOpacity = shadowAlpha
 //        shadowView.layer.shouldRasterize = true
-        let path = UIBezierPath(roundedRect: bounds, cornerRadius: Const.shared.thumbRadius)
+        let path = UIBezierPath(roundedRect: bounds, cornerRadius: Const.thumbRadius)
         shadowView.layer.shadowPath = path.cgPath
         
         insertSubview(shadowView, belowSubview: contentView)
         
         contentView.backgroundColor = .white
-        contentView.radius = Const.shared.thumbRadius
+        contentView.radius = Const.thumbRadius
         contentView.clipsToBounds = true
         
         
