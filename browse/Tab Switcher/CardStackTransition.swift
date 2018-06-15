@@ -22,6 +22,10 @@ extension UIScrollView {
     }
 }
 
+
+func quadraticArc(_ t: CGFloat) -> CGFloat {
+    return ((t - 0.5) * (t - 0.5) * -2 + 0.5) * 2
+}
 // TODO: Shouldn't change state permanently here.
 
 class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
@@ -29,10 +33,11 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
     var direction : CustomAnimationDirection!
     var isExpanding  : Bool { return direction == .present }
     var isDismissing : Bool { return direction == .dismiss }
+    var useArc: Bool = true
 
         
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return 0.5
+        return 0.2
     }
     
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -62,9 +67,8 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
             }
         }
         
-        
         let scrollView = browserVC.webView.scrollView
-        scrollView.isScrollEnabled = false
+//        scrollView.isScrollEnabled = false
         scrollView.cancelScroll()
         
         var thumbCenter : CGPoint
@@ -81,7 +85,14 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
             
 //            let attr = homeVC.stackedLayout.layoutAttributesForItem(at: ip)
             let attr = tabSwitcher.cardStackLayout.calculateItem(
-                for: ip, whenStacked: true, scrollY: cv.contentOffset.y, baseCenter: cv.center, totalItems: cv.numberOfItems(inSection: 0), withXOffset: false, withYOffset: false)
+                for: ip,
+                whenStacked: true,
+                scrollY: cv.contentOffset.y,
+                baseCenter: cv.center,
+                baseScale: 1,
+                totalItems: cv.numberOfItems(inSection: 0),
+                withXOffset: false,
+                withYOffset: false)
             
             // must be after toVC is added
             let selectedThumbCenter = attr.center
@@ -94,12 +105,12 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
                 thumbScale *= tapScaleAmount
             }
             
-            let s = thumbScale * 0.9
-            var tf = CATransform3DIdentity
-            tf.m34 = 1.0 / -4000.0
-            let rotated = CATransform3DRotate(tf, CGFloat.pi * -0.3, 1.0, 0.0, 0.0)
-            let scaled = CATransform3DScale(rotated, s, s, s)
-            stackTransform = scaled
+//            let s = thumbScale * 0.9
+//            var tf = CATransform3DIdentity
+//            tf.m34 = 1.0 / -4000.0
+//            let rotated = CATransform3DRotate(tf, CGFloat.pi * -0.3, 1.0, 0.0, 0.0)
+//            let scaled = CATransform3DScale(rotated, s, s, s)
+//            stackTransform = scaled
         }
         else {
             // If can't find end point for some reason, just animate to/from bottom
@@ -124,7 +135,6 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
         browserVC.grad.alpha = isExpanding ? 1 : 0
         browserVC.overlay.alpha = thumbOverlayAlpha
         browserVC.cardView.center = isExpanding ? thumbCenter : expandedCenter
-//        browserVC.cardView.bounds = isExpanding ? smallerBounds : expandedBounds
         browserVC.contentView.mask = mask
         
         if isExpanding {
@@ -154,14 +164,12 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
         
         var popCenterDone = false
         var viewAnimFinished = false
-        var popBoundsDone = false
-        var popCardsDone = false
         
         func finishTransition() {
-            guard viewAnimFinished && popCenterDone && popBoundsDone && popCardsDone else {  return }
+            guard viewAnimFinished && popCenterDone else {  return }
             if self.isExpanding {
                 browserVC.isSnapshotMode = false
-                browserVC.webView.scrollView.isScrollEnabled = true
+//                browserVC.webView.scrollView.isScrollEnabled = true
                 browserVC.webView.scrollView.showsVerticalScrollIndicator = true
             }
             if self.isDismissing {
@@ -187,12 +195,10 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
             homeNav.view.addSubview(tabSwitcher.view)
             if self.isDismissing {
                 browserVC.view.removeFromSuperview()
-            }
-            transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
-            if self.isDismissing {
                 browserVC.gestureController.mockCardView.removeFromSuperview()
                 browserVC.gestureController.mockCardView.imageView.image = nil
             }
+            transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
         }
         
         let isLandscape = browserVC.view.bounds.width > browserVC.view.bounds.height
@@ -202,35 +208,38 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
         
 //        let scaleAnim = browserVC.cardView.springScale(to: isExpanding ? 0.7 : thumbScale)
         let startScale = browserVC.cardView.scale
-        let endScale = isExpanding ? 1 : thumbScale
-        let startAdjustment = 1 - thumbScale
-        let scaleArcInfluence = abs(browserVC.cardView.center.y - newCenter.y).progress(0, 600).clip().lerp(0, 0.15)
+        let endThumbScale: CGFloat = 1 //isExpanding ? 1 : thumbScale
+        let endCardScale: CGFloat = isExpanding ? 1 : thumbScale
+        print(thumbScale)
+        let scaleArcInfluence = useArc ? abs(browserVC.cardView.center.y - newCenter.y).progress(0, 600).clip().lerp(0, 0.15) : 0
         let scaleSwitch = SpringSwitch { pct in
-            let baseScale = pct.lerp(startScale, endScale)
-            let quadraticArc = ((pct - 0.5) * (pct - 0.5) * -2 + 0.5) * 2
-            let arcedScale = baseScale - scaleArcInfluence * quadraticArc
-            browserVC.cardView.scale = arcedScale
-            tabSwitcher.setThumbScale(arcedScale + startAdjustment * (1 - pct))
+            let arc = scaleArcInfluence * quadraticArc(pct)
+            let thumbScale = pct.lerp(startScale, endThumbScale) - arc
+            let cardScale = pct.lerp(startScale, endCardScale) - arc
+            
+            browserVC.cardView.scale = cardScale
+            tabSwitcher.setThumbScale(thumbScale)
         }
         scaleSwitch.setState(.start)
         let scaleAnim = scaleSwitch.springState(.end)
         
         
         let maskAnim = mask.springFrame(to: isExpanding ? expandedBounds : thumbBounds) { _, _ in
-            popBoundsDone = true
-            finishTransition()
+//            popBoundsDone = true
+//            finishTransition()
         }
         maskAnim?.springBounciness = 2
         
         let centerAnim = browserVC.cardView.springCenter(to: newCenter, at: velocity) { (_, _) in
             popCenterDone = true
+            print("center done")
             finishTransition()
         }
 //        centerAnim?.dynamicsMass = 5
 //        centerAnim?.dynamicsTension = 700
 //        centerAnim?.dynamicsFriction = 95
         
-        centerAnim?.dynamicsMass = 3
+        centerAnim?.dynamicsMass = 3.5
         centerAnim?.dynamicsTension = 700
         centerAnim?.dynamicsFriction = 80
 
@@ -270,10 +279,7 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
             }
         }
 
-        tabSwitcher.springCards(toStacked: isDismissing, at: velocity) {
-            popCardsDone = true
-            finishTransition()
-        }
+        tabSwitcher.springCards(toStacked: isDismissing, at: velocity)
 
         if let fab = snapFab {
             containerView.addSubview(fab)
@@ -303,7 +309,7 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
 //        browserVC.cardView.layer.transform = isExpanding ? stackTransform : expandedTransform
         
         UIView.animate(
-            withDuration: 0.5,
+            withDuration: 0.3,
             delay: 0.0,
             usingSpringWithDamping: 1,
             initialSpringVelocity: 0.0,
@@ -323,6 +329,7 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
                 
         }, completion: { finished in
             viewAnimFinished = true
+            print("view done")
             finishTransition()
         })
     }

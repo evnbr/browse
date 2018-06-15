@@ -12,7 +12,7 @@ typealias CloseTabCallback = (Tab) -> Void
 typealias DismissTabCallback = (UICollectionViewCell, CGFloat) -> Void
 
 let shadowAlpha : Float = 0.2
-let tapScaleAmount: CGFloat = 0.98
+let tapScaleAmount: CGFloat = 0.995
 
 class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
     var browserTab : Tab?
@@ -51,7 +51,10 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
     
     func setTab(_ newTab : Tab?) {
         browserTab = newTab
-        guard let visit = browserTab?.currentVisit else { return }
+        guard let visit = browserTab?.currentVisit else {
+            label.text = "Unknown visit"
+            return
+        }
         setVisit(visit)
     }
     
@@ -69,7 +72,7 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
     
     override func select() {
         self.contentView.scale = tapScaleAmount
-        self.contentView.transform = self.contentView.transform.translatedBy(x: 0, y: -3)
+//        self.contentView.transform = self.contentView.transform.translatedBy(x: 0, y: -3)
         self.shadowView.scale = tapScaleAmount
     }
     

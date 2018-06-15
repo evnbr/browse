@@ -24,7 +24,7 @@ class TabSwitcherViewController: UICollectionViewController {
     let sectionInsets = UIEdgeInsets(top: 120.0, left: THUMB_INSET, bottom: 8.0, right: THUMB_INSET)
     let itemsPerRow : CGFloat = 2
     
-    let thumbAnimationController = CardStackTransition()
+    let cardStackTransition = CardStackTransition()
     let cardStackLayout = CardStackCollectionViewLayout()
 
     private var _browserVC : BrowserViewController?
@@ -108,23 +108,29 @@ class TabSwitcherViewController: UICollectionViewController {
         }
     }
     
-    var isDisplayingFakeTab = false
+//    var isDisplayingFakeTab = false
     func showSearch() {
         let search = SearchViewController()
         search.isFakeTab = true
 //        if tabCount < 1 { search.showingCancel = false }
-        isDisplayingFakeTab = true
-        present(search, animated: true, completion: nil)
-//        addTab()
+//        isDisplayingFakeTab = true
+//        present(search, animated: true, completion: nil)
+        addTab()
     }
 
     func addTab(startingFrom url: URL? = nil, animated: Bool = true) {
         let newTab = createTab()
-        showTab(newTab, animated: animated, completion: {
+        moveTabToEnd(newTab)
+//            self.scrollToBottom(animated: true)
+        self.cardStackTransition.useArc = false
+        self.showTab(newTab, animated: animated, completion: {
             if let startURL = url,
                 let browser = self._browserVC {
                 browser.navigateTo(startURL)
+            } else {
+                self._browserVC?.displaySearch()
             }
+            self.cardStackTransition.useArc = true
         })
     }
     
@@ -272,9 +278,7 @@ class TabSwitcherViewController: UICollectionViewController {
     
     
     func moveTabToEnd(_ tab: Tab) {
-        if tab.sortIndex == tabCount - 1 {
-            return
-        }
+//        if tab.sortIndex == tabCount - 1 { return }
         tab.sortIndex = Int16(tabCount - 1)
         let tabs = fetchedResultsController.fetchedObjects ?? []
         var i : Int16 = 0
@@ -332,13 +336,13 @@ class TabSwitcherViewController: UICollectionViewController {
 
 extension TabSwitcherViewController: UIViewControllerTransitioningDelegate {
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        thumbAnimationController.direction = .present
-        return thumbAnimationController
+        cardStackTransition.direction = .present
+        return cardStackTransition
     }
     
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        thumbAnimationController.direction = .dismiss
-        return thumbAnimationController
+        cardStackTransition.direction = .dismiss
+        return cardStackTransition
     }
 }
 
@@ -373,10 +377,15 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
     }
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+
         switch type {
         case .insert:
             blockOperations.append(BlockOperation { [weak self] in
+                self?.cardStackLayout.addIndexPath = newIndexPath!
                 self?.collectionView!.insertItems(at: [newIndexPath!])
+                // TODO: for some reason, tap and swipe gestures don't work
+                // until configurethumbnail eventually
+                // gets called (ie scroll out of view and back in). Why?
             })
         case .delete:
             blockOperations.append(BlockOperation { [weak self] in
@@ -404,6 +413,7 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
             if let ip = self.currentIndexPath {
                 self.cardStackLayout.selectedIndexPath = ip
             }
+//            print("controller changed")
         })
     }
 
@@ -418,13 +428,10 @@ extension TabSwitcherViewController {
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: reuseIdentifier,
-            for: indexPath)
         // Configure the cells
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath)
         let tab = fetchedResultsController.object(at: indexPath)
         configureThumbnail(cell, withTab: tab)
-        
         return cell
     }
     
@@ -434,6 +441,8 @@ extension TabSwitcherViewController {
             thumb.closeTabCallback = closeTab
             thumb.dismissCallback = dismissTab
             thumb.swipeCallback = swipeTab
+        } else {
+            print("cant configure thumb")
         }
     }
     

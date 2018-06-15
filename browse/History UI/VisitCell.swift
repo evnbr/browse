@@ -223,7 +223,7 @@ class VisitCell: UICollectionViewCell {
         super.apply(layoutAttributes)
         alpha = 1
         overlay.alpha = 1 - layoutAttributes.alpha
-//        layer.zPosition = CGFloat(layoutAttributes.zIndex)
+        layer.zPosition = CGFloat(layoutAttributes.zIndex)
         
         if let treeAttrs = layoutAttributes as? TreeConnectorAttributes,
             let connectorOffset = treeAttrs.connectorOffset {

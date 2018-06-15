@@ -28,39 +28,42 @@ class TypeaheadCell: UITableViewCell {
         indentationLevel = 0
         
         textLabel?.lineBreakMode = .byWordWrapping
-        textLabel?.numberOfLines = 1
-        textLabel?.font = .systemFont(ofSize: 14)
+        textLabel?.numberOfLines = 2
+        textLabel?.font = .systemFont(ofSize: 18)
         layoutMargins = UIEdgeInsetsMake(12, 24, 12, 24)
         
-        detailTextLabel?.font = .systemFont(ofSize: 18)
+        detailTextLabel?.font = .systemFont(ofSize: 14)
         detailTextLabel?.numberOfLines = 1
         
-//        let backer = UIView(frame: contentView.bounds)
-//        backer.backgroundColor = .white
-//        backer.radius = Const.cardRadius
-//        backer.layer.shadowRadius = 12
-//        backer.layer.shadowOpacity = 0.2
-//        backer.frame.size.height = 200
-//        backer.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
         contentView.clipsToBounds = true
         clipsToBounds = true
-//        contentView.insertSubview(backer, at: 0)
     }
     
     
     func configure(title: String?, detail: String?, highlight: String) {
         if let title = title {
-            let titleOverlaps = title.allNSRanges(of: highlight, split: true)
-            let attributedTitle = NSMutableAttributedString(string: title)
-            titleOverlaps.forEach { attributedTitle.addAttributes([.foregroundColor : tintColor], range: $0) }
-            textLabel?.attributedText = attributedTitle
+//            let titleOverlaps = title.allNSRanges(of: highlight, split: true)
+//            let attributedTitle = NSMutableAttributedString(string: title)
+//            titleOverlaps.forEach { attributedTitle.addAttributes([.foregroundColor : tintColor], range: $0) }
+//            textLabel?.attributedText = attributedTitle
+            
+            textLabel?.text = title
+            if let detail = detail {
+                textLabel?.text?.append(" — \(detail)")
+            }
+            
+        } else if let detail = detail {
+//            let detailOverlaps = detail.allNSRanges(of: highlight, split: true)
+            let attributedDetail = NSMutableAttributedString(string: detail)
+//            detailOverlaps.forEach { attributedDetail.addAttributes([.foregroundColor : tintColor], range: $0) }
+            textLabel?.attributedText = attributedDetail
         }
         
         if let detail = detail {
             let detailOverlaps = detail.allNSRanges(of: highlight, split: true)
             let attributedDetail = NSMutableAttributedString(string: detail)
             detailOverlaps.forEach { attributedDetail.addAttributes([.foregroundColor : tintColor], range: $0) }
-            detailTextLabel?.attributedText = attributedDetail
+//            detailTextLabel?.attributedText = attributedDetail
         }
     }
     
@@ -74,8 +77,8 @@ class TypeaheadCell: UITableViewCell {
     }
     
     override func tintColorDidChange() {
-        textLabel?.textColor = tintColor.withSecondaryAlpha
-        detailTextLabel?.textColor = tintColor.withSecondaryAlpha //.withAlphaComponent(0.7)
+        textLabel?.textColor = tintColor //.withSecondaryAlpha
+        detailTextLabel?.textColor = tintColor //.withSecondaryAlpha
         selectedBackgroundView?.backgroundColor = tintColor.isLight ? .darkTouch : .lightTouch
     }
 }
