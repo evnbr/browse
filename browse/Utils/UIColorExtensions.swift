@@ -31,7 +31,6 @@ public extension UIColor {
                 return [gray, gray, gray, 0]
             }
             print("unkonwn name: \(name), components: \(components.count)")
-            print(components)
             return [0,0,0,1]
         }
         print("no name")

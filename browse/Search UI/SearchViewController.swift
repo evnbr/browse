@@ -504,7 +504,7 @@ extension SearchViewController: UITextViewDelegate {
         }
         if let switcher = self.switcher {
             self.dismiss(animated: false, completion: {
-                switcher.isDisplayingFakeTab = false
+//                switcher.isDisplayingFakeTab = false
                 switcher.addTab(startingFrom: url, animated: false)
             })
             return
@@ -537,14 +537,14 @@ extension SearchViewController : UITableViewDataSource {
         let currentText = textView.text ?? ""
 
         cell.configure(title: suggestion.title, detail: suggestion.detail, highlight: currentText)
-        
+
         return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let item = suggestions[indexPath.item]
         var h : CGFloat = 48.0
-        if item.title != nil { h += 16 }
+        if let t = item.title, t.count > 60 { h += 20 }
         return h
     }
 }
