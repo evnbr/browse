@@ -513,7 +513,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 }
             }
             else {
-//                commitDismiss(velocity: vel)
                 commitCancel(velocity: vel)
             }
         }
@@ -524,7 +523,6 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
                 animateCommit(action: .goForward, velocity: vel)
             }
             else {
-//                commitDismiss(velocity: vel)
                 commitCancel(velocity: vel)
             }
         }
@@ -629,7 +627,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let gestureVel = gesture.velocity(in: view)
         let gesturePos = gesture.translation(in: view)
         let isHorizontal = abs(gesturePos.y) < abs(gesturePos.x)
-        let hasHorizontalVel = abs(gestureVel.x) > 300
+//        let hasHorizontalVel = abs(gestureVel.x) > 300
         
         // Consider starting vertical dismiss
         if scrollView.isScrollableY && scroll.y <= 0 && gesturePos.y > 0 {
@@ -792,7 +790,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     func swapCardAndPlaceholder(for action: GestureNavigationAction) {
         // Swap image
         vc.setSnapshot(mockCardView.imageView.image)
-        if action != .goToParent {
+        if action != .goToParent { // because goToParent swaps images itself
             if let currentSnap = vc.currentTab.currentVisit?.snapshot {
                 mockCardView.setSnapshot(currentSnap)
             }
@@ -852,6 +850,11 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
 //        }
         else if action == .goForward {
             mockPositioner.end.x -= mockShift * parallaxAmount
+        }
+
+        if action == .goToParent {
+            // TODO: this makes sure webview isnt hidden, hack
+            self.vc.isSnapshotMode = false
         }
 
         // dont use velocity for this part, since it
