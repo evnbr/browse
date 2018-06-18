@@ -110,18 +110,12 @@ class TabSwitcherViewController: UICollectionViewController {
     
 //    var isDisplayingFakeTab = false
     func showSearch() {
-        let search = SearchViewController()
-        search.isFakeTab = true
-//        if tabCount < 1 { search.showingCancel = false }
-//        isDisplayingFakeTab = true
-//        present(search, animated: true, completion: nil)
         addTab()
     }
 
     func addTab(startingFrom url: URL? = nil, animated: Bool = true) {
         let newTab = createTab()
-        moveTabToEnd(newTab)
-//            self.scrollToBottom(animated: true)
+        newTab.sortIndex = Int16(tabCount)
         self.cardStackTransition.useArc = false
         self.showTab(newTab, animated: animated, completion: {
             if let startURL = url,
@@ -131,6 +125,7 @@ class TabSwitcherViewController: UICollectionViewController {
                 self._browserVC?.displaySearch()
             }
             self.cardStackTransition.useArc = true
+            self.moveTabToEnd(newTab)
         })
     }
     
@@ -271,11 +266,6 @@ class TabSwitcherViewController: UICollectionViewController {
         anim?.springSpeed = 4
         anim?.springBounciness = 1
     }
-//    func setCardStackProgress(_ progress: CGFloat) {
-//        cardStackLayout.expandedProgress = progress
-//        cardStackLayout.invalidateLayout()
-//    }
-    
     
     func moveTabToEnd(_ tab: Tab) {
 //        if tab.sortIndex == tabCount - 1 { return }
@@ -406,15 +396,21 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
     }
     
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        collectionView!.performBatchUpdates({
+        UIView.performWithoutAnimation {
             for operation: BlockOperation in self.blockOperations { operation.start() }
-        }, completion: { finished in
             self.blockOperations.removeAll(keepingCapacity: false)
             if let ip = self.currentIndexPath {
                 self.cardStackLayout.selectedIndexPath = ip
             }
-//            print("controller changed")
-        })
+        }
+//        collectionView!.performBatchUpdates({
+//            for operation: BlockOperation in self.blockOperations { operation.start() }
+//        }, completion: { finished in
+//            self.blockOperations.removeAll(keepingCapacity: false)
+//            if let ip = self.currentIndexPath {
+//                self.cardStackLayout.selectedIndexPath = ip
+//            }
+//        })
     }
 
 }
