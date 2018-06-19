@@ -26,8 +26,24 @@ enum GestureNavigationAction {
     case goToParent
 }
 
-let DISMISSING = SpringTransitionState.start
-let PAGING = SpringTransitionState.end
+extension Blend {
+    var dismissState: T {
+        get {
+            return self.start
+        }
+        set {
+            self.setValue(of: .start, to: newValue)
+        }
+    }
+    var pagingState: T {
+        get {
+            return self.end
+        }
+        set {
+            self.setValue(of: .end, to: newValue)
+        }
+    }
+}
 
 let GESTURE_DEBUG = false
 // Lets us modify scroll position
@@ -343,10 +359,10 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         let spaceW = cardView.bounds.width * ( 1 - dismissScale )
         let spaceH = cardView.bounds.height * ( 1 - dismissScale )
 
-        cardScaler.setValue(of: DISMISSING, to: dismissScale)
-        thumbScaler.setValue(of: PAGING, to: 1)
-        thumbScaler.setValue(of: DISMISSING, to: dismissScale)
-        mockCardView.scaler.setValue(of: DISMISSING, to: dismissScale)
+        cardScaler.dismissState = dismissScale
+        thumbScaler.pagingState = 1
+        thumbScaler.dismissState = dismissScale
+        mockCardView.scaler.dismissState = dismissScale
 
         let isToParent = (direction == .leftToRight || direction == .top) && !vc.webView.canGoBack && canGoBackToParent
         let cantPage = (direction == .leftToRight && !vc.webView.canGoBack && !isToParent)
@@ -357,9 +373,9 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
 //            x: view.center.x + spaceW * 0.5 * sign,
             y: view.center.y + max(elasticLimit(yShift), yShift) + spaceH * 0.2
         )
-        mockCardView.positioner.setValue(of: DISMISSING, to: CGPoint(
+        mockCardView.positioner.dismissState = CGPoint(
             x: view.center.x - view.bounds.width * sign,
-            y: view.center.y))
+            y: view.center.y)
 
         let backFwdPoint = CGPoint(
             x: view.center.x + xShift,
@@ -368,17 +384,16 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         let amtOver = min(0, yShift)
         vc.webView.scrollView.setScrollSilently(y: startScroll.y - 0.5 * elasticLimit(amtOver, constant: 60))
 
-        cardScaler.setValue(of: PAGING, to: hintScale)
-        thumbScaler.setValue(of: PAGING, to: hintScale)
-//        let hintX = yGestureInfluence.progress(0, 160).clip().lerp(0, 90)
+        cardScaler.pagingState = hintScale
+        thumbScaler.pagingState = hintScale
 
         let pagingHint = yShift.progress(0, 360).clip()
 
         var cardPagingPoint: CGPoint
+        
         // reveal back page from left
         if ((direction == .leftToRight || direction == .top) && vc.webView.canGoBack) || isToParent {
-//            dismissingPoint.y -= dismissPointPreviewY * 0.5 // to account for initial resisitance
-            mockCardView.darkener.setValue(of: PAGING, to: xShift.progress(0, 400).lerp(0.4, 0.1))
+            mockCardView.darkener.pagingState = xShift.progress(0, 400).lerp(0.4, 0.1)
 
             let mockPagingPoint = CGPoint(
                 x: view.center.x + xShift * parallaxAmount - view.bounds.width * parallaxAmount * hintScale,
@@ -386,55 +401,50 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
             let mockBlendedPoint = pagingHint.lerp(mockPagingPoint, dismissingPoint)
             let cardBlendedPoint = pagingHint.lerp(backFwdPoint, dismissingPoint)
             cardPagingPoint = cardBlendedPoint //CGPoint(x: backFwdPoint.x, y: mockBlendedPoint.y)
-            cardPositioner.setValue(of: PAGING, to: cardPagingPoint)
-            mockCardView.scaler.setValue(of: PAGING, to: backScale * hintScale )
-            mockCardView.positioner.setValue(of: DISMISSING, to: dismissingPoint)
+            cardPositioner.pagingState = cardPagingPoint
+            mockCardView.scaler.pagingState = backScale * hintScale
+            mockCardView.positioner.dismissState = dismissingPoint
 
-            if isToParent {
-                mockCardView.darkener.setValue(of: DISMISSING, to: 0.2)
-            } else {
-                mockCardView.darkener.setValue(of: DISMISSING, to: 0.7)
-            }
-
-            mockCardView.positioner.setValue(of: PAGING, to: mockBlendedPoint)
-            mockCardView.scaler.setValue(of: DISMISSING, to: dismissScale * backItemScale)
+            mockCardView.darkener.dismissState = isToParent ? 0.2 : 0.7
+            mockCardView.positioner.pagingState = mockBlendedPoint
+            mockCardView.scaler.dismissState = dismissScale * backItemScale
         }
+       
         // overlay forward page from right
         else if direction == .rightToLeft && vc.webView.canGoForward {
-//            dismissingPoint.y -= dismissPointPreviewY * 0.5 // to account for initial resisitance
-
             let pagingPoint = CGPoint(
                 x: view.center.x + xShift * parallaxAmount,
                 y: backFwdPoint.y )
             cardPagingPoint = pagingHint.lerp(pagingPoint, dismissingPoint)
-            cardPositioner.setValue(of: PAGING, to: cardPagingPoint)
+            cardPositioner.pagingState = cardPagingPoint
 
             let isBackness = xShift.progress(0, -400) * gesturePos.y.progress(100, 160).clip().reverse()
             vc.overlay.alpha = isBackness.lerp(0, 0.4)
 
             let pageScale = xShift.progress(0, -400).lerp(1, 0.95)
-            cardScaler.setValue(of: PAGING, to: pageScale * hintScale)
+            cardScaler.pagingState = pageScale * hintScale
 
             let hintX = yShift.progress(0, 240).lerp(0, -xShift)
 
-            mockCardView.darkener.setValue(of: PAGING, to: 0)
-            mockCardView.scaler.setValue(of: PAGING, to: 1)
-            mockCardView.scaler.setValue(of: DISMISSING, to: 1)
-            mockCardView.positioner.setValue(of: PAGING, to: CGPoint(
+            mockCardView.darkener.pagingState = 0
+            mockCardView.scaler.pagingState = 1
+            mockCardView.scaler.dismissState = 1
+            mockCardView.positioner.pagingState = CGPoint(
                 x: view.center.x + xShift + view.bounds.width + hintX,
-                y: view.center.y ))
+                y: view.center.y )
         }
+        
         // rubber band
         else {
             let unBlendedCardPagingPoint = CGPoint(
                 x: view.center.x + elasticLimit(xShift, constant: 100),
                 y: backFwdPoint.y )
             cardPagingPoint = pagingHint.lerp(unBlendedCardPagingPoint, dismissingPoint)
-            cardPositioner.setValue(of: PAGING, to: cardPagingPoint)
+            cardPositioner.pagingState = cardPagingPoint
         }
 
-        cardPositioner.setValue(of: DISMISSING, to: dismissingPoint)
-        thumbPositioner.setValue(of: DISMISSING, to: dismissingPoint)
+        cardPositioner.dismissState = dismissingPoint
+        thumbPositioner.dismissState = dismissingPoint
 
 //        if isToParent {
 //            thumbPositioner.setValue(of: PAGING, to: CGPoint(
@@ -443,12 +453,12 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
 //            ))
 //        }
 //        else {
-            thumbPositioner.setValue(of: PAGING, to: cardPagingPoint)
+            thumbPositioner.pagingState = cardPagingPoint
 //        }
 
         let isVerticalDismiss = gesturePos.y > dismissPointPreviewY
         let isHorizontalDismiss = false //abs(adjustedX) > 80
-        let newState = (isVerticalDismiss || (cantPage && isHorizontalDismiss)) ? DISMISSING : PAGING
+        let newState = (isVerticalDismiss || (cantPage && isHorizontalDismiss)) ? SpringTransitionState.start : SpringTransitionState.end
         dismissSwitch.springState(newState)
 
         updateStatusBar()
@@ -667,7 +677,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         } else if direction == .rightToLeft {
             if vc.webView.canGoForward { setupForwardGesture() }
         }
-        dismissSwitch.setState(PAGING)
+        dismissSwitch.setState(SpringTransitionState.end)
         gestureChange(gesture)
     }
 
