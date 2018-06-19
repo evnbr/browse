@@ -13,14 +13,13 @@ enum GradientColorChangeDirection {
     case bottomToTop
 }
 
-
 class GradientColorChangeView: UIView, CAAnimationDelegate {
     
     let gradientLayer: CAGradientLayer = CAGradientLayer()
     let gradientLayer2: CAGradientLayer = CAGradientLayer()
     let gradientLayer3: CAGradientLayer = CAGradientLayer()
-    
-    let duration : CFTimeInterval = 0.2//0.3
+
+    let duration: CFTimeInterval = 0.2//0.3
 
     var backgroundView: UIView!
     
@@ -34,12 +33,12 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         }
     }
     
-    var isLight : Bool {
+    var isLight: Bool {
         return lastColor.isLight
     }
     
     var initialHeight = Const.toolbarHeight
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
         
@@ -50,10 +49,10 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         gradientLayer2.frame = newFrame
         gradientLayer3.frame = newFrame
     }
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
+
         backgroundView = UIView(frame: bounds)
         backgroundView.clipsToBounds = true
 //        backgroundView.translatesAutoresizingMaskIntoConstraints = false
@@ -87,21 +86,18 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     func getGradientLayer() -> CAGradientLayer {
         if gradientLayer.superlayer == nil {
             return gradientLayer
-        }
-        else if gradientLayer2.superlayer == nil  {
+        } else if gradientLayer2.superlayer == nil  {
             return gradientLayer2
-        }
-        else if gradientLayer3.superlayer == nil  {
+        } else if gradientLayer3.superlayer == nil  {
             return gradientLayer3
-        }
-        else {
+        } else {
             let newLayer = CAGradientLayer()
             newLayer.frame = bounds
             newLayer.frame.size.height = initialHeight
             return newLayer
         }
     }
-    
+
     func animateGradientNew(toColor: UIColor, direction: GradientColorChangeDirection ) -> Bool {
         if toColor.isEqual(lastColor) { return false }
 
@@ -112,20 +108,20 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         lastColor = toColor
         return true
     }
-    
+
     private func setBackground(to newColor: UIColor) {
         cancelColorChange()
         self.backgroundView.backgroundColor = newColor
         self.tintColor = newColor.isLight ? .white : .darkText
         lastColor = newColor
     }
-    
+
     @discardableResult
     func transitionBackground(to toColor: UIColor, from direction: GradientColorChangeDirection ) -> Bool {
         if toColor.isEqual(lastColor) { return false }
-        
+
         let gLayer = getGradientLayer()
-        
+
         CATransaction.begin()
         CATransaction.setDisableActions(true)
 
@@ -153,7 +149,6 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         gLayer.locations = beginLoc
         lastColor = toColor
 
-        
         let colorChangeAnimation = CABasicAnimation(keyPath: "locations")
         colorChangeAnimation.duration = duration
         colorChangeAnimation.fromValue = beginLoc
@@ -163,8 +158,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         colorChangeAnimation.fillMode = kCAFillModeForwards
         colorChangeAnimation.isRemovedOnCompletion = false
 //        colorChangeAnimation.delegate = self
-        
-        
+
         CATransaction.setCompletionBlock({ [weak self] in
             self?.backgroundView.backgroundColor = toColor
             gLayer.removeAnimation(forKey: "gradientChange")
@@ -173,13 +167,12 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         gLayer.add(colorChangeAnimation, forKey: "gradientChange")
         backgroundView.layer.addSublayer(gLayer)
         CATransaction.commit()
-        
+
         UIView.animate(withDuration: 0.2, delay: 0.0, options: .curveEaseInOut, animations: {
             self.tintColor = toColor.isLight ? .white : .darkText
         }, completion: nil)
-        
+
         return true
     }
-    
 
 }

@@ -15,7 +15,6 @@ let kSpringScale = "springScale"
 let kSpringBounds = "springBounds"
 let kSpringFrame = "springFrame"
 
-
 typealias SpringCompletionBlock = (POPAnimation?, Bool) -> Void
 extension UIView {
     
@@ -29,13 +28,12 @@ extension UIView {
         to newCenter: CGPoint,
         at velocity: CGPoint = .zero,
         after delay: CFTimeInterval = 0,
-        then completion: @escaping SpringCompletionBlock = {_,_ in } ) -> POPSpringAnimation? {
+        then completion: @escaping SpringCompletionBlock = {_, _ in }) -> POPSpringAnimation? {
         
         if let anim = self.pop_animation(forKey: kSpringCenter) as? POPSpringAnimation {
             anim.toValue = newCenter
             return anim
-        }
-        else if let anim = POPSpringAnimation(propertyNamed: kPOPViewCenter) {
+        } else if let anim = POPSpringAnimation(propertyNamed: kPOPViewCenter) {
             anim.toValue = newCenter
             anim.velocity = velocity
             anim.beginTime = CACurrentMediaTime() + delay
@@ -54,8 +52,7 @@ extension UIView {
         
         if let anim = self.pop_animation(forKey: kSpringBounds) as? POPSpringAnimation {
             anim.toValue = newBounds
-        }
-        else if let anim = POPSpringAnimation(propertyNamed: kPOPViewBounds) {
+        } else if let anim = POPSpringAnimation(propertyNamed: kPOPViewBounds) {
             anim.toValue = newBounds
             anim.velocity = velocity
             
@@ -68,13 +65,12 @@ extension UIView {
     func springFrame(
         to newFrame: CGRect,
         at velocity: CGRect = .zero,
-        then completion: @escaping (POPAnimation?, Bool) -> Void = {_,_ in } ) -> POPSpringAnimation? {
+        then completion: @escaping (POPAnimation?, Bool) -> Void = {_, _ in }) -> POPSpringAnimation? {
         
         if let anim = self.pop_animation(forKey: kSpringFrame) as? POPSpringAnimation {
             anim.toValue = newFrame
             return anim
-        }
-        else if let anim = POPSpringAnimation(propertyNamed: kPOPViewFrame) {
+        } else if let anim = POPSpringAnimation(propertyNamed: kPOPViewFrame) {
             anim.toValue = newFrame
             anim.velocity = velocity
             
@@ -85,20 +81,18 @@ extension UIView {
         return nil
     }
 
-    
     @discardableResult
     func springScale(
         to newScale: CGFloat,
         at velocity: CGPoint = .zero,
-        then completion: @escaping (POPAnimation?, Bool) -> Void = {_,_ in } ) -> POPSpringAnimation? {
+        then completion: @escaping (POPAnimation?, Bool) -> Void = {_, _ in }) -> POPSpringAnimation? {
 
         let newScalePoint = CGPoint(x: newScale, y: newScale)
         
         if let anim = self.pop_animation(forKey: kSpringScale) as? POPSpringAnimation {
             anim.toValue = newScalePoint
             return anim
-        }
-        else if let anim = POPSpringAnimation(propertyNamed: kPOPViewScaleXY) {
+        } else if let anim = POPSpringAnimation(propertyNamed: kPOPViewScaleXY) {
             anim.toValue = newScalePoint
             anim.velocity = velocity
             anim.completionBlock = completion

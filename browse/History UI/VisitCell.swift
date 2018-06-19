@@ -145,8 +145,8 @@ class VisitCell: UICollectionViewCell {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    func setVisit(_ visit : Visit) {
+
+    func setVisit(_ visit: Visit) {
         if let img = visit.snapshot { setSnapshot(img) }
         if let color = visit.topColor {
             contentView.backgroundColor = color
@@ -156,13 +156,13 @@ class VisitCell: UICollectionViewCell {
 
         if let title = visit.title, title != "" { label.text = "\(title)" }
         if let url = visit.url { toolbarView.text = url.displayHost }
-        
+    
         isTappable = !(visit.tab?.isClosed ?? false)
     }
     
-    func setSnapshot(_ newImage : UIImage) {
+    func setSnapshot(_ newImage: UIImage) {
         let newAspect = newImage.size.height / newImage.size.width
-        if (abs(newAspect - snapAspectConstraint.multiplier) > 0.001) {
+        if abs(newAspect - snapAspectConstraint.multiplier) > 0.001 {
             snapView.removeConstraint(snapAspectConstraint)
             snapAspectConstraint = snapView.heightAnchor.constraint(equalTo: snapView.widthAnchor, multiplier: newAspect, constant: 0)
             snapAspectConstraint.isActive = true
@@ -183,17 +183,17 @@ class VisitCell: UICollectionViewCell {
         super.touchesCancelled(touches, with: event)
         unSelect()
     }
-    
+
     func select() {
         self.contentView.scale = 0.96
     }
-    
-    func unSelect(animated : Bool = true) {
+
+    func unSelect(animated: Bool = true) {
         if animated { UIView.animate(withDuration: 0.2) { self.reset() } }
         else { reset() }
     }
     
-    var hasBorder : Bool {
+    var hasBorder: Bool {
         get {
             return contentView.layer.borderWidth > 0
         }
@@ -203,7 +203,7 @@ class VisitCell: UICollectionViewCell {
         }
     }
     
-    var isTappable : Bool {
+    var isTappable: Bool {
         get {
             return contentView.alpha == 1
         }
@@ -212,19 +212,18 @@ class VisitCell: UICollectionViewCell {
             connector.alpha = newValue ? 1 : 0.5
         }
     }
-
     
     func reset() {
         self.contentView.transform = .identity
         self.shadowView.scale = 1
     }
-    
+
     override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
         super.apply(layoutAttributes)
         alpha = 1
         overlay.alpha = 1 - layoutAttributes.alpha
         layer.zPosition = CGFloat(layoutAttributes.zIndex)
-        
+    
         if let treeAttrs = layoutAttributes as? TreeConnectorAttributes,
             let connectorOffset = treeAttrs.connectorOffset {
             connector.isHidden = false
@@ -233,7 +232,7 @@ class VisitCell: UICollectionViewCell {
         } else {
             connector.isHidden = true
         }
-        
+    
         let s = layoutAttributes.transform.xScale * 0.9
         var tf = CATransform3DIdentity
         tf.m34 = 1.0 / -4000.0
@@ -241,7 +240,7 @@ class VisitCell: UICollectionViewCell {
         let scaled = CATransform3DScale(rotated, s, s, s)
 //        layer.transform = scaled
     }
-    
+
     override func prepareForReuse() {
         super.prepareForReuse()
         reset()

@@ -10,15 +10,19 @@ import UIKit
 import WebKit
 
 extension BrowserViewController: WKNavigationDelegate {
-    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+    func webView(
+        _ webView: WKWebView,
+        didCommit navigation: WKNavigation!) {
+
         errorView?.removeFromSuperview()
-        
         updateLoadingState()
     }
-    
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        updateLoadingState()
+
+    func webView(
+        _ webView: WKWebView,
+        didFinish navigation: WKNavigation!) {
         
+        updateLoadingState()
         if navigation == navigationToHide {
             // wait a sec... just because the first navigation is done,
             // doesnt mean the first paint is done
@@ -26,20 +30,27 @@ extension BrowserViewController: WKNavigationDelegate {
                 self.finishHiddenNavigation()
             }
         }
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             self.updateSnapshot()
         }
     }
-    
-    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        updateLoadingState()
 
+    func webView(
+        _ webView: WKWebView,
+        didFail navigation: WKNavigation!,
+        withError error: Error) {
+
+        updateLoadingState()
         if (error as NSError).code == NSURLErrorCancelled { return }
         displayError(text: error.localizedDescription)
     }
-    
-    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+
+    func webView(
+        _ webView: WKWebView,
+        didFailProvisionalNavigation navigation: WKNavigation!,
+        withError error: Error) {
+
         if (error as NSError).code == NSURLErrorCancelled { return }
         updateLoadingState()
         
@@ -47,12 +58,16 @@ extension BrowserViewController: WKNavigationDelegate {
         displayError(text: error.localizedDescription)
     }
     
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    func webView(
+        _ webView: WKWebView,
+        decidePolicyFor navigationAction: WKNavigationAction,
+        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+
         if webView != self.webView {
             decisionHandler(.allow)
             return
         }
-        
+
         let app = UIApplication.shared
         if let url = navigationAction.request.url {
             if navigationAction.targetFrame == nil { // Handle target="_blank"
@@ -69,62 +84,69 @@ extension BrowserViewController: WKNavigationDelegate {
             else {
                 let canOpen = app.canOpenURL(url)
                 decisionHandler(.cancel)
-                let ac = UIAlertController(title: "\(url.absoluteString)", message: "Open this in app?", preferredStyle: .actionSheet)
-                
-                if !canOpen { ac.message = "Not sure if I can open this." }
-                
-                ac.addAction(UIAlertAction(title: "Open", style: .default, handler: { _ in
+                let alert = UIAlertController(
+                    title: "\(url.absoluteString)",
+                    message: "Open this in app?",
+                    preferredStyle: .actionSheet)
+
+                if !canOpen {
+                    alert.message = "Not sure if I can open this."
+                }
+
+                alert.addAction(UIAlertAction(title: "Open", style: .default, handler: { _ in
                     app.open(url, options: [:], completionHandler: nil)
                 }))
-                ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-                
-                present(ac, animated: true, completion: nil)
+                alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+
+                present(alert, animated: true, completion: nil)
                 return
             }
         }
     }
-    
 
-        
     func webView(_ webView: WKWebView, didReceiveServerRedirectForProvisionalNavigation navigation: WKNavigation!) {
     }
-    
-    func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-        
+
+    func webView(
+        _ webView: WKWebView,
+        didReceive challenge: URLAuthenticationChallenge,
+        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+
         if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodHTTPBasic {
             let space = challenge.protectionSpace
-            
-            let ac = UIAlertController(
+
+            let alert = UIAlertController(
                 title: "Log in to \(space.host)",
                 message: "",
                 preferredStyle: .alert)
 
-            ac.addTextField { field in
+            alert.addTextField { field in
                 field.keyboardAppearance = .light
                 field.placeholder = "username"
                 field.returnKeyType = .next
             }
-            ac.addTextField { field in
+            alert.addTextField { field in
                 field.keyboardAppearance = .light
                 field.isSecureTextEntry = true
                 field.placeholder = "password"
                 field.returnKeyType = .go
             }
-            ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { action in
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { _ in
                 completionHandler(URLSession.AuthChallengeDisposition.performDefaultHandling, nil)
             }))
-            ac.addAction(UIAlertAction(title: "Submit", style: .default, handler: { action in
-                if let userName = ac.textFields?.first?.text,
-                    let password = ac.textFields?.last?.text {
-                    let credential = URLCredential(user: userName, password: password, persistence: URLCredential.Persistence.forSession)
+            alert.addAction(UIAlertAction(title: "Submit", style: .default, handler: { _ in
+                if let userName = alert.textFields?.first?.text,
+                    let password = alert.textFields?.last?.text {
+                    let credential = URLCredential(
+                        user: userName,
+                        password: password,
+                        persistence: URLCredential.Persistence.forSession)
                     challenge.sender?.use(credential, for: challenge)
                     completionHandler(URLSession.AuthChallengeDisposition.useCredential, credential)
                 }
             }))
-            present(ac, animated: true, completion: nil)
-            
-        }
-        else {
+            present(alert, animated: true, completion: nil)
+        } else {
             completionHandler(URLSession.AuthChallengeDisposition.performDefaultHandling, nil)
         }
     }

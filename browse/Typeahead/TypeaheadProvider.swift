@@ -8,7 +8,7 @@
 
 import Foundation
 
-fileprivate enum SearchProviderName : String {
+fileprivate enum SearchProviderName: String {
     case google = "google"
     case duck = "duckduckgo"
 }
@@ -17,21 +17,20 @@ struct TypeaheadSuggestion: Hashable {
     let title: String?
     let detail: String?
     let url: URL?
-    
+
     var hashValue: Int {
         return url?.hashValue ?? 0
     }
-    
-    static func ==(lhs: TypeaheadSuggestion, rhs: TypeaheadSuggestion) -> Bool {
+
+    static func == (lhs: TypeaheadSuggestion, rhs: TypeaheadSuggestion) -> Bool {
         return lhs.url == rhs.url
     }
 }
 
-
 class TypeaheadProvider: NSObject {
     static let shared = TypeaheadProvider()
-    
-    fileprivate var provider : SearchProvider = DuckSearchProvider()
+
+    fileprivate var provider: SearchProvider = DuckSearchProvider()
 
     override init() {
         super.init()
@@ -42,19 +41,18 @@ class TypeaheadProvider: NSObject {
         )
         updateSearchProvider()
     }
-    
+
     @objc func updateSearchProvider() {
         if let str = UserDefaults.standard.value(forKey: "search_provider") as? String,
             let lastProvider = SearchProviderName(rawValue: str) {
             if lastProvider == .duck {
                 provider = DuckSearchProvider()
-            }
-            else if lastProvider == .google {
+            } else if lastProvider == .google {
                 provider = GoogleSearchProvider()
             }
         }
     }
-    
+
     func serpURLfor(_ query: String) -> URL? {
         return provider.serpURLfor(query)
     }
@@ -66,15 +64,16 @@ class TypeaheadProvider: NSObject {
         
         var searchSuggestions: [ TypeaheadSuggestion ] = []
         var historySuggestions: [ TypeaheadSuggestion ] = []
-        var suggestionScore : [ TypeaheadSuggestion : Int ] = [:]
+        var suggestionScore: [ TypeaheadSuggestion: Int ] = [:]
         
         let maybeCompletion = {
             guard isHistoryLoaded && isSuggestionLoaded else { return }
             let sorted = (searchSuggestions + historySuggestions).sorted {
                 if let scoreA = suggestionScore[$0], let scoreB = suggestionScore[$1] {
                     return scoreA > scoreB
+                } else {
+                    return false
                 }
-                else { return false }
             }
             let suggestions = Array(sorted[..<min(sorted.count, maxCount)])
             DispatchQueue.main.async { completion(suggestions) }
@@ -85,13 +84,12 @@ class TypeaheadProvider: NSObject {
             if let results = visits {
                 historySuggestions = results.map { item in
                     let score = self.splitMatchingScore(for: item, query: text)
-                    
-                    var suggestion : TypeaheadSuggestion
-                    
-                    if let q = item.url.searchQuery {
-                        suggestion = TypeaheadSuggestion(title: item.title, detail: q, url: item.url)
-                    }
-                    else {
+
+                    var suggestion: TypeaheadSuggestion
+
+                    if let query = item.url.searchQuery {
+                        suggestion = TypeaheadSuggestion(title: item.title, detail: query, url: item.url)
+                    } else {
                         suggestion = TypeaheadSuggestion(title: item.title, detail: item.url.cleanString, url: item.url)
                     }
 
@@ -101,17 +99,17 @@ class TypeaheadProvider: NSObject {
             }
             maybeCompletion()
         }
-        
+
         guard let url = provider.suggestionURLfor(text) else { return }
-        
+
         //fetching the data from the url
-        URLSession.shared.dataTask(with: url, completionHandler: {(data, response, error) -> Void in
+        URLSession.shared.dataTask(with: url, completionHandler: {(data, _, error) -> Void in
             isSuggestionLoaded = true
             if data == nil {
-                searchSuggestions = [ TypeaheadSuggestion(title: "Unable to search", detail: error?.localizedDescription, url: nil)  ]
+                searchSuggestions = [TypeaheadSuggestion(title: "Unable to search", detail: error?.localizedDescription, url: nil)  ]
                 maybeCompletion()
-            }
-            else if let json = try? JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! NSArray {
+            } else if let maybejson = try? JSONSerialization.jsonObject(with: data!, options: .allowFragments),
+                let json = maybejson as? NSArray {
                 searchSuggestions = self.provider.parseSuggestions(from: json, maxCount: maxCount).map({ str in
                     let score = self.splitMatchingScore(for: str, query: text)
 //                    let suggestion = TypeaheadSuggestion(title: str, detail: nil, url: self.serpURLfor(str))
@@ -126,7 +124,6 @@ class TypeaheadProvider: NSObject {
         }).resume()
     }
 }
-
 
 // History result scoring and sorting
 extension TypeaheadProvider {

@@ -14,38 +14,38 @@ class ToolbarTouchView: UIView {
     private var action: ToolbarButtonAction?
     private var tapColor: UIColor = .lightTouch
     private var tap: UITapGestureRecognizer?
-    
+
     override var intrinsicContentSize: CGSize {
         return frame.size
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
         radius = frame.height / 2
     }
-    
+
     init(frame: CGRect, onTap: ToolbarButtonAction? ) {
         super.init(frame: frame)
-        if let a = onTap { setAction(a) }
+        if let action = onTap { setAction(action) }
         backgroundColor = .clear
         layer.masksToBounds = true
         radius = frame.height / 2
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func setAction(_ action: @escaping ToolbarButtonAction) {
         if tap == nil { setupTapGesture() }
         self.action = action
     }
-    
+
     @objc func doAction() {
         action?()
         deSelect()
     }
-    
+
     func setupTapGesture() {
         let tap = UITapGestureRecognizer(target: self, action: #selector(doAction))
         tap.numberOfTapsRequired = 1
@@ -55,7 +55,7 @@ class ToolbarTouchView: UIView {
         addGestureRecognizer(tap)
         self.tap = tap
     }
-    
+
     override func tintColorDidChange() {
         super.tintColorDidChange()
         tapColor = tintColor.isLight ? .darkTouch : .lightTouch
@@ -66,17 +66,17 @@ class ToolbarTouchView: UIView {
             select()
         }
     }
-    
+
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         if touches.first != nil {
             // do something with your currentPoint
         }
     }
-    
+
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         deSelect()
     }
-    
+
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         deSelect()
     }

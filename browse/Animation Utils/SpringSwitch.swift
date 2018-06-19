@@ -18,23 +18,23 @@ fileprivate let kProgressAnimation = "kProgressAnimation"
 fileprivate let kProgressProperty = "kProgressProperty"
 
 typealias SpringProgress = CGFloat
-typealias SpringUpdateBlock = (SpringProgress) -> ()
+typealias SpringUpdateBlock = (SpringProgress) -> Void
 
-class SpringSwitch : NSObject {
-    private var progress : SpringProgress = 0
+class SpringSwitch: NSObject {
+    private var progress: SpringProgress = 0
 
-    let updateBlock : SpringUpdateBlock
+    let updateBlock: SpringUpdateBlock
 
     init(update block : @escaping SpringUpdateBlock) {
         updateBlock = block
         super.init()
     }
     
-    func setState(_ newState : SpringTransitionState) {
+    func setState(_ newState: SpringTransitionState) {
         progress = newState.rawValue
         self.updateBlock(progress)
     }
-    
+
     private var progressPropery: POPAnimatableProperty? {
         return POPAnimatableProperty.property(withName: kProgressProperty, initializer: { prop in
             guard let prop = prop else { return }
@@ -50,11 +50,11 @@ class SpringSwitch : NSObject {
             prop.threshold = 0.001
         }) as? POPAnimatableProperty
     }
-    
+
     // External
     @discardableResult
-    func springState(_ newState : SpringTransitionState, completion: SpringCompletionBlock? = nil) -> POPSpringAnimation? {
-        let newVal : CGFloat = newState.rawValue
+    func springState(_ newState: SpringTransitionState, completion: SpringCompletionBlock? = nil) -> POPSpringAnimation? {
+        let newVal: CGFloat = newState.rawValue
         guard newVal != progress else {
             updateBlock(progress)
             return nil
@@ -64,8 +64,7 @@ class SpringSwitch : NSObject {
             anim.toValue = newVal
             if let c = completion { anim.completionBlock = c }
             return anim
-        }
-        else if let anim = POPSpringAnimation(propertyNamed: kProgressProperty) {
+        } else if let anim = POPSpringAnimation(propertyNamed: kProgressProperty) {
             anim.toValue = newVal
             anim.property = progressPropery
             anim.springBounciness = 1
@@ -81,4 +80,3 @@ class SpringSwitch : NSObject {
         self.pop_removeAnimation(forKey: kProgressAnimation)
     }
 }
-

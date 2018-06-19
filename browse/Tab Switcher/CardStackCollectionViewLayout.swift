@@ -8,9 +8,9 @@
 
 import UIKit
 
-let itemSpacing : CGFloat = 200
-let itemHeight : CGFloat = THUMB_H
-let startY : CGFloat = 240
+let itemSpacing: CGFloat = 200
+let itemHeight: CGFloat = THUMB_H
+let startY: CGFloat = 240
 
 class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
     
@@ -20,20 +20,20 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
     var selectedIndexPath = IndexPath(item: 0, section: 0)
     var selectedHidden: Bool = false
     var belowHidden: Bool = false
-    var parentIndexPath: IndexPath? = nil
+    var parentIndexPath: IndexPath?
     var parentHidden: Bool = false
     
     var stackedAttributes = [ UICollectionViewLayoutAttributes ]()
     var expandedAttributes = [ UICollectionViewLayoutAttributes ]()
     var blendedAttributes = [ UICollectionViewLayoutAttributes ]()
-    
+
     var isTransitioning: Bool = false
     var expandedProgress: CGFloat = 0
     
     var swipeOffset: CGFloat = 0 // -1 to 1
     var dismissProgress: CGFloat = 0
-    var dismissIndexPath: IndexPath? = nil
-    var addIndexPath: IndexPath? = nil
+    var dismissIndexPath: IndexPath?
+    var addIndexPath: IndexPath?
 
     override var collectionViewContentSize: CGSize {
         var newSize = CGSize(
@@ -45,7 +45,8 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
     
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
         // Only adjust scroll for user, "proposed" seems to be garbage?
-        if let cv = collectionView, collectionViewContentSize.height <= cv.bounds.size.height {
+        if let cv = collectionView,
+            collectionViewContentSize.height <= cv.bounds.size.height {
 //            print("contentsize too small")
 //            return proposedContentOffset
         }
@@ -57,7 +58,7 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
         if newBounds == collectionView?.bounds { return false }
         return true
     }
-    
+
     override func invalidateLayout() {
         super.invalidateLayout()
     }
@@ -82,7 +83,7 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
     private var itemCount: Int {
         return collectionView!.numberOfItems(inSection: 0)
     }
-    
+
     private func calculateList(stacked: Bool) -> [UICollectionViewLayoutAttributes] {
         let baseCenter = collectionView!.center
         let scrollY = collectionView!.contentOffset.y
@@ -98,7 +99,7 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
         }
         return attributesList
     }
-    
+
     func selectedCenter(scrollY: CGFloat, baseCenter: CGPoint, totalItems: Int) -> CGPoint {
         return calculateItem(
             for: selectedIndexPath,
@@ -111,14 +112,14 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
             withYOffset: false
         ).center
     }
-    
+
     func stackOffsetY(baseCenter: CGPoint, endCenter: CGPoint, scrollY: CGFloat) -> CGFloat {
         let effectiveOffset = (baseCenter.y - endCenter.y)
         let scrollAdjust = scrollY // why is N necessary here?
         let newOffset = offset.y - effectiveOffset - scrollAdjust
         return newOffset
     }
-    
+
     func calculateItem(
         for indexPath: IndexPath,
         whenStacked: Bool,
@@ -135,7 +136,7 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
         let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
         let i = indexPath.item
         let distFromFront : CGFloat = CGFloat(selectedIndexPath.item - i)
-        
+
         var newCenter = CGPoint(
             x: baseCenter.x,
             y: startY + baseCenter.y + CGFloat(i) * itemSpacing
@@ -151,7 +152,7 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
 //                newCenter.y += itemSpacing * dismissProgress * 0.5
 //            }
         }
-        
+
         attributes.bounds.size = cardSize
         
         if cardSize.width > cardSize.height {
@@ -161,27 +162,29 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
         }
         
         let distFromTop = newCenter.y - (attributes.bounds.height / 2) - scrollY - topScrollPos
-        
+
         let pct = distFromTop.progress(-400, 600).reverse()
-        let s = (pct * pct * 0.2).reverse()
-        
-        let extraH = cardSize.height * (1 - s)
-        
+        let perspectiveScale = (pct * pct * 0.2).reverse()
+    
+        let extraH = cardSize.height * (1 - perspectiveScale)
+
         let endCenter = withYOffset ? selectedCenter(scrollY: scrollY, baseCenter: baseCenter, totalItems: totalItems) : .zero
-        
+
         let withYOffsetAndTransitioning = withYOffset && isTransitioning
         attributes.isHidden = false
         if whenStacked {
             newCenter.y -= extraH * 0.8
             newCenter.y -= distFromTop * 1 * pct
-            if withYOffsetAndTransitioning { newCenter.y -= stackOffsetY(baseCenter: baseCenter, endCenter: endCenter, scrollY: scrollY) }
-            attributes.transform = CGAffineTransform(scale: s * baseScale)
+            if withYOffsetAndTransitioning {
+                newCenter.y -= stackOffsetY(baseCenter: baseCenter, endCenter: endCenter, scrollY: scrollY)
+            }
+            attributes.transform = CGAffineTransform(scale: perspectiveScale * baseScale)
         } else {
             if indexPath != selectedIndexPath {
                 let endDistFromTop = endCenter.y - scrollY - cardSize.height / 2
                 newCenter.y = endCenter.y - (cardSize.height * (baseScale) + 12) * distFromFront - endDistFromTop
             }
-            
+
             attributes.transform = CGAffineTransform(scale: baseScale)
             if parentHidden && indexPath == parentIndexPath {
                 attributes.isHidden = true
@@ -198,22 +201,16 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
         if belowHidden && indexPath.row > selectedIndexPath.row {
             attributes.isHidden = true
         }
-        
+
         if i < totalItems - 1 {
             attributes.alpha = 1 - ( pct * pct * pct )
             // attributes.transform = CGAffineTransform(scale: s)
         }
-//        if i == totalItems - 1 {
-//            attributes.alpha = 1
-//            attributes.transform = .identity
-//        }
-        
         attributes.center = newCenter
         attributes.zIndex = i * 2
-        
         return attributes
     }
-    
+
     // Based on https://stackoverflow.com/questions/13498052/initiallayoutattributesforappearingitematindexpath-fired-for-all-visible-cells
     var deleteIndexPaths: [ IndexPath ] = []
     var insertIndexPaths: [ IndexPath ] = []
@@ -222,10 +219,11 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
         deleteIndexPaths = []
         insertIndexPaths = []
         for item in updateItems {
-            if item.updateAction == .insert, let ip = item.indexPathAfterUpdate {
+            if item.updateAction == .insert,
+                let ip = item.indexPathAfterUpdate {
                 insertIndexPaths.append(ip)
-            }
-            else if item.updateAction == .delete, let ip = item.indexPathBeforeUpdate {
+            } else if item.updateAction == .delete,
+                let ip = item.indexPathBeforeUpdate {
                 deleteIndexPaths.append(ip)
             }
         }
@@ -235,17 +233,17 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
         insertIndexPaths = []
     }
 
-    override func initialLayoutAttributesForAppearingItem(at itemIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+    override func initialLayoutAttributesForAppearingItem(
+        at itemIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
         if insertIndexPaths.contains(itemIndexPath) {
             return exitPositionForItem(at: itemIndexPath)
-        }
-        else { return nil }
+        } else { return nil }
     }
 //
 //    override func finalLayoutAttributesForDisappearingItem(at itemIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
 //        return nil
 //    }
-    
+
     private func exitPositionForItem(at ip: IndexPath) -> UICollectionViewLayoutAttributes {
         let scrollY = collectionView!.contentOffset.y
         let baseCenter = collectionView!.center
@@ -256,14 +254,14 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
         attrs.zIndex = ip.item * 2
         return attrs
     }
-    
+
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         let attrs = blendedAttributes.filter { attrs -> Bool in
             return rect.intersects(attrs.frame.insetBy(dx: -40, dy: -40)) && attrs.alpha > 0 && !attrs.isHidden
         }
         return attrs
     }
-    
+
     override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
         guard indexPath.count > 0, // sometimes this method sent nil paths - why?
             indexPath.row < blendedAttributes.count else { return nil }

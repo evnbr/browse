@@ -9,21 +9,21 @@
 import Foundation
 import UIKit
 
-class ColorStatusBarView : GradientColorChangeView {
+class ColorStatusBarView: GradientColorChangeView {
     var blurView : UIVisualEffectView!
-    var label : UILabel!
+    var label: UILabel!
     
     init() {
         let rect = CGRect(
             origin: CGPoint(x: 0, y: 0),
-            size:CGSize(width: UIScreen.main.bounds.size.width, height: Const.statusHeight)
+            size: CGSize(width: UIScreen.main.bounds.size.width, height: Const.statusHeight)
         )
 
         super.init(frame: rect)
         initialHeight = Const.statusHeight
 //        self.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
         self.translatesAutoresizingMaskIntoConstraints = false
-        
+
         let blur = PlainBlurView(frame: bounds)
         blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(blur)
@@ -42,14 +42,14 @@ class ColorStatusBarView : GradientColorChangeView {
         label.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
         self.addSubview(label)
     }
-    
+
     override func tintColorDidChange() {
         super.tintColorDidChange()
         label.textColor = tintColor
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
 }

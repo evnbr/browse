@@ -10,6 +10,7 @@ target 'browse' do
   pod 'UITextView+Placeholder', '~> 1.2'
   pod 'pop', '~> 1.0'
   pod 'SwiftyJSON'
+  pod 'SwiftLint'
 
   target 'browseTests' do
     inherit! :search_paths

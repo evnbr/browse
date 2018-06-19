@@ -10,21 +10,18 @@ import Foundation
 
 extension URL {
     var displayHost : String {
-        get {
-            guard let host : String = self.host else { return "No host"}
-            if host.hasPrefix("www.") {
-                let index = host.index(host.startIndex, offsetBy: 4)
-                return host.substring(from: index)
-            }
-            else {
-                return host
-            }
+        guard let host : String = self.host else { return "No host"}
+        if host.hasPrefix("www.") {
+            let index = host.index(host.startIndex, offsetBy: 4)
+            return host.substring(from: index)
+        } else {
+            return host
         }
     }
-    var isSearching : Bool {
+    var isSearching: Bool {
         return searchQuery != nil
     }
-    var searchQuery : String? {
+    var searchQuery: String? {
         guard let components = URLComponents(string: self.absoluteString),
             let queryParam : String = components.queryItems?.first(where: { $0.name == "q" })?.value
         else { return nil }
@@ -47,7 +44,7 @@ fileprivate let potentialPrefixes = [
     "http://www.",
     "https://www.",
     "http://",
-    "https://",
+    "https://"
 ]
 
 // TODO: Make more robust
@@ -56,9 +53,8 @@ extension String {
         return self.range(of:".") != nil && self.range(of:" ") == nil
     }
     
-    var urlPrefix : String? {
+    var urlPrefix: String? {
         return potentialPrefixes.first(where: { self.hasPrefix($0) })
     }
 }
-
 

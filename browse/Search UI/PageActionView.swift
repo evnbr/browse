@@ -37,7 +37,7 @@ class PageActionView: UIView {
         clipsToBounds = true
         
         label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 14)
+        label.font = Const.thumbTitleFont //UIFont.systemFont(ofSize: 14)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = "Page title"
         label.alpha = 0.5

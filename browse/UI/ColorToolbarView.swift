@@ -10,34 +10,34 @@ import UIKit
 
 class ColorToolbarView: GradientColorChangeView {
     let stackView = UIStackView()
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
+
         backgroundColor = .clear
         tintColor = .white
         clipsToBounds = true
-        
+
         autoresizingMask = [.flexibleTopMargin, .flexibleWidth]
 //        translatesAutoresizingMaskIntoConstraints = false
-        
+
         stackView.axis  = .horizontal
         stackView.distribution  = .fill
         stackView.alignment = .top
         stackView.spacing   = 0.0
-        
-        stackView.translatesAutoresizingMaskIntoConstraints = false;
-        
+
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+
         addSubview(stackView)
-        
+
         let toolbarInset: CGFloat = 8.0
         stackView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
         stackView.topAnchor.constraint(equalTo: self.topAnchor, constant: toolbarInset).isActive = true
         stackView.leftAnchor.constraint(equalTo: self.leftAnchor, constant: toolbarInset).isActive = true
         stackView.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -toolbarInset).isActive = true
     }
-        
-    var items : [ UIView ] {
+
+    var items: [ UIView ] {
         get {
             return stackView.subviews
         }
@@ -48,12 +48,10 @@ class ColorToolbarView: GradientColorChangeView {
             }
         }
     }
-    
+
     override func tintColorDidChange() {
         super.tintColorDidChange()
-        subviews.forEach { (v) in
-            v.tintColor = tintColor
-        }
+        subviews.forEach { $0.tintColor = tintColor }
     }
 
     required init?(coder aDecoder: NSCoder) {

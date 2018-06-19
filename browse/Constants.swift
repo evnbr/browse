@@ -6,32 +6,28 @@
 //  Copyright © 2017 Evan Brooks. All rights reserved.
 //
 
-let CORNER_RADIUS : CGFloat = 8.0 //8.0
-let SEARCH_RADIUS : CGFloat = 20.0
-let THUMB_OFFSET_COLLAPSED : CGFloat = 44 //24.0 //40.0 // 28.0
-let THUMB_TITLE : CGFloat = 12.0
-let THUMB_H : CGFloat =  240//480.0
-let THUMB_INSET : CGFloat = 0 // 4.0 //8.0
-let PRESENT_TAB_BACK_SCALE : CGFloat = 1//0.97
+let CORNER_RADIUS: CGFloat = 8.0 //8.0
+let SEARCH_RADIUS: CGFloat = 20.0
+let THUMB_OFFSET_COLLAPSED: CGFloat = 44 //24.0 //40.0 // 28.0
+let THUMB_TITLE: CGFloat = 12.0
+let THUMB_H: CGFloat =  240//480.0
+let THUMB_INSET: CGFloat = 0 // 4.0 //8.0
+let PRESENT_TAB_BACK_SCALE: CGFloat = 1//0.97
 
-let TAP_SCALE : CGFloat = 1.0 //0.97
+let TAP_SCALE: CGFloat = 1.0 //0.97
 
 class Constants: NSObject {
-//    static let shared = Const()
-    
+
     let toolbarHeight: CGFloat
     let statusHeight: CGFloat
-    
-//    static var statusHeight : CGFloat { return shared.statusHeight }
-//    static var toolbarHeight : CGFloat { return shared.toolbarHeight }
 
     var thumbRadius: CGFloat
     let textFieldFont: UIFont = .systemFont(ofSize: 18)
-    let thumbTitleFont : UIFont = .systemFont(ofSize: 16)
+    let thumbTitleFont: UIFont = .systemFont(ofSize: 16)
 //    let thumbTitleFont : UIFont = .systemFont(ofSize: 14.0, weight: .medium)
 
     var cardRadius: CGFloat
-    
+
     let shadowRadius: CGFloat = 32
     let shadowOpacity: Float = 0.4
     let buttonHeight: CGFloat = 40

@@ -11,21 +11,21 @@ import UIKit
 import WebKit
 
 class WebViewManager: NSObject {
-    private var webViewMap: [ Tab : WKWebView ] = [:]
+    private var webViewMap: [ Tab: WKWebView ] = [:]
     private var blocker = Blocker()
-    
+
     override init() {
         super.init()
         blocker.getRules { lists in
             lists.forEach {
                 self.baseConfiguration.userContentController.add($0)
-                for (_, wv) in self.webViewMap { // in case we already have some
-                    wv.configuration.userContentController.add($0)
+                for (_, existingWebView) in self.webViewMap { // in case we already have some
+                    existingWebView.configuration.userContentController.add($0)
                 }
             }
         }
     }
-    
+
     private var baseConfiguration: WKWebViewConfiguration = {
         let configuration = WKWebViewConfiguration()
         configuration.processPool = WKProcessPool()
@@ -36,28 +36,27 @@ class WebViewManager: NSObject {
         )
         return configuration
     }()
-    
+
     func webViewFor(_ tab: Tab) -> WKWebView {
         if let existing = webViewMap[tab] {
             return existing
-        }
-        else {
+        } else {
             let newWebView = createWebView(with: baseConfiguration)
             webViewMap[tab] = newWebView
             return newWebView
         }
     }
-    
+
     func removeWebViewFor(_ tab: Tab) {
         webViewMap.removeValue(forKey: tab)
     }
-    
+
     func addWebView(for tab: Tab, with config: WKWebViewConfiguration) -> WKWebView {
         let newWebView = createWebView(with: config)
         webViewMap[tab] = newWebView
         return newWebView
     }
-    
+
     private func createWebView(with config: WKWebViewConfiguration) -> WKWebView {
         let webView = WKWebView(frame: UIScreen.main.bounds, configuration: config)
         webView.translatesAutoresizingMaskIntoConstraints = false
@@ -66,7 +65,7 @@ class WebViewManager: NSObject {
         webView.scrollView.clipsToBounds = false
         webView.scrollView.alwaysBounceHorizontal = true
         webView.allowsLinkPreview = false
-        
+
         return webView
     }
 }
@@ -77,8 +76,8 @@ struct FixedNavResult {
 }
 extension WKWebView {
     func evaluateFixedNav(_ completionHandler: @escaping (FixedNavResult) -> Void) {
-        evaluateJavaScript("window.\(checkFixedFuncName)()") { (result, error) in
-            if let dict = result as? Dictionary<String, Bool>,
+        evaluateJavaScript("window.\(checkFixedFuncName)()") { (result, _) in
+            if let dict = result as? [String: Bool],
                 let top = dict["top"],
                 let bottom = dict["bottom"] {
                 completionHandler(FixedNavResult(top: top, bottom: bottom))
@@ -87,8 +86,8 @@ extension WKWebView {
     }
 }
 
-fileprivate let checkFixedFuncName = "__BROWSE_HAS_FIXED_NAV__"
-fileprivate let checkFixedFunc = """
+private let checkFixedFuncName = "__BROWSE_HAS_FIXED_NAV__"
+private let checkFixedFunc = """
     (function() {
         const isFixed = (elm) => {
             let el = elm;
