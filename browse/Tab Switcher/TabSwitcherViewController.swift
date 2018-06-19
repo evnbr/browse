@@ -113,20 +113,15 @@ class TabSwitcherViewController: UICollectionViewController {
         addTab()
     }
 
-    func addTab(startingFrom url: URL? = nil, animated: Bool = true) {
+    func addTab(animated: Bool = true) {
         let newTab = createTab()
         newTab.sortIndex = Int16(tabCount)
         self.cardStackTransition.useArc = false
         self.showTab(newTab, animated: animated, completion: {
-            if let startURL = url,
-                let browser = self._browserVC {
-                browser.navigateTo(startURL)
-            } else {
-                self._browserVC?.displaySearch()
-            }
             self.cardStackTransition.useArc = true
             self.moveTabToEnd(newTab)
         })
+        self._browserVC?.displaySearch(instant: true)
     }
     
     func createTab() -> Tab {

@@ -18,150 +18,165 @@ let lockWidth: CGFloat = 19
 let searchWidth: CGFloat = 22
 let textFieldMargin: CGFloat = 40
 
-class SearchTransitionController: NSObject, UIViewControllerAnimatedTransitioning {
+typealias SearchTransitionCompletionBlock = () -> Void
+
+
+class SearchTransitionController: NSObject {
     
     var direction : CustomAnimationDirection!
     var isExpanding  : Bool { return direction == .present }
     var isDismissing : Bool { return direction == .dismiss }
     
     var showKeyboard : Bool = true
-
-    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return 0.5
-    }
+    var isPreExpanded: Bool = false
     
-    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
-        let fromVC = transitionContext.viewController(forKey: .from)!
-        let toVC = transitionContext.viewController(forKey: .to)!
-        let containerView = transitionContext.containerView
+    func animateTransition(searchVC: SearchViewController, browserVC: BrowserViewController, completion: SearchTransitionCompletionBlock? ) {
+        browserVC.toolbar.backgroundView.alpha = 1
+        let titleSnap = browserVC.toolbar.searchField.labelHolder.snapshotView(afterScreenUpdates: false) // TODO doesnt work if hidden
+        browserVC.toolbar.searchField.labelHolder.isHidden = true
         
-        let typeaheadVC = (isExpanding ? toVC : fromVC) as! SearchViewController
-        let browserVC = (isExpanding ? fromVC : toVC) as? BrowserViewController
-        let navVC = (isExpanding ? fromVC : toVC) as? UINavigationController
-        let switcherVC = navVC?.topViewController as? TabSwitcherViewController // TODO simplify
-        let isAnimatingFromToolbar = browserVC != nil
-
-        if isExpanding {
-            containerView.addSubview(typeaheadVC.view)
-        }
-        
-        browserVC?.toolbar.backgroundView.alpha = 1
-        let titleSnap = browserVC?.toolbar.searchField.labelHolder.snapshotView(afterScreenUpdates: false) // TODO doesnt work if hidden
-        browserVC?.toolbar.searchField.labelHolder.isHidden = true
+        print("start transition")
+        searchVC.isTransitioning = true
         
         let smallSize = Const.thumbTitleFont.pointSize
         let largeSize = Const.textFieldFont.pointSize
         let scaledUp: CGFloat = largeSize / smallSize
         let scaledDown: CGFloat = smallSize / largeSize
         
-        let prefix = typeaheadVC.textView.text.urlPrefix
+        let prefix = searchVC.textView.text.urlPrefix
         let prefixSize = prefix?.boundingRect(
-            with: typeaheadVC.textView.bounds.size,
+            with: searchVC.textView.bounds.size,
             options: [.usesLineFragmentOrigin, .usesFontLeading],
-            attributes: [NSAttributedStringKey.font: typeaheadVC.textView.font!],
+            attributes: [NSAttributedStringKey.font: searchVC.textView.font!],
             context: nil)
         let prefixWidth: CGFloat = (prefixSize?.width ?? 0)
-
+        
         var maskStartSize : CGSize = titleSnap?.bounds.size ?? .zero
         maskStartSize.height = 48
         let maskStartFrame = CGRect(origin: CGPoint(x: prefixWidth + maskExtraXShift, y: 0), size: maskStartSize)
-        let maskEndSize : CGSize = CGSize(width: typeaheadVC.textView.bounds.size.width, height: typeaheadVC.textHeight)
+        let maskEndSize : CGSize = CGSize(width: searchVC.textView.bounds.size.width, height: searchVC.textHeight)
         let maskEndFrame = CGRect(origin: .zero, size: maskEndSize)
-
         
         if let title = titleSnap {
-            containerView.addSubview(title)
+            searchVC.view.addSubview(title)
         }
-        var titleStartCenter = browserVC?.toolbar.center ?? .zero
+        var titleStartCenter = browserVC.toolbar.center
         var titleEndCenter = titleStartCenter
         titleStartCenter.y += titleExtraYShift
         
-        let hasSearch = browserVC?.toolbar.isSearch ?? false
-        let hasLock = (browserVC?.toolbar.isSecure ?? false) && !hasSearch
+        let hasSearch = browserVC.toolbar.isSearch
+        let hasLock = (browserVC.toolbar.isSecure) && !hasSearch
         let titleWidth = (titleSnap?.bounds.width ?? 0) * scaledUp
-        let textFieldWidth = (browserVC?.toolbar.bounds.width ?? UIScreen.main.bounds.width) - textFieldMargin
+        let textFieldWidth = (browserVC.toolbar.bounds.width) - textFieldMargin
         let titleToTextDist = (textFieldWidth - titleWidth ) / 2
         let roomForLockShift: CGFloat = (hasLock ? lockWidth : 0) + (hasSearch ? searchWidth : 0)
         let titleHorizontalShift : CGFloat = titleToTextDist + roomForLockShift - prefixWidth + extraXShift
         titleEndCenter.x -= titleHorizontalShift
-        titleEndCenter.y -= typeaheadVC.textHeightConstraint.constant
+        titleEndCenter.y -= searchVC.textHeightConstraint.constant
         titleEndCenter.y += titleExtraYShiftEnd
         if isDismissing {
-            titleEndCenter.y -= max(typeaheadVC.kbHeightConstraint.constant, 0)
+            titleEndCenter.y -= max(searchVC.kbHeightConstraint.constant, 0)
         }
         else if showKeyboard {
-            titleEndCenter.y -= typeaheadVC.keyboard.height
+            titleEndCenter.y -= searchVC.keyboard.height
         }
-
-        titleSnap?.center = isExpanding ? titleStartCenter : titleEndCenter
-
-        browserVC?.toolbar.backgroundView.alpha = 1
-        typeaheadVC.scrim.alpha = isExpanding ? 0 : 1
         
-        typeaheadVC.kbHeightConstraint.constant = isExpanding
-            ? (showKeyboard ? typeaheadVC.keyboard.height : 0 )
+        titleSnap?.center = isExpanding ? titleStartCenter : titleEndCenter
+        
+        browserVC.toolbar.backgroundView.alpha = 1
+        //        typeaheadVC.scrim.alpha = isExpanding ? 0 : 1
+        
+        searchVC.kbHeightConstraint.constant = isExpanding
+            ? (showKeyboard ? searchVC.keyboard.height : 0 )
             : 0
-        typeaheadVC.contextAreaHeightConstraint.springConstant(to: isExpanding
-            ? typeaheadVC.contextAreaHeight : 0)
+        searchVC.contextAreaHeightConstraint.springConstant(to: isExpanding
+            ? searchVC.contextAreaHeight : 0)
         
         titleSnap?.scale = isExpanding ? 1 : scaledUp
         titleSnap?.alpha = isExpanding ? 1 : 0
-        typeaheadVC.textView.alpha = isExpanding ? 0 : 1
-
-        typeaheadVC.textView.transform = CGAffineTransform(scale: isExpanding ? scaledDown : 1).translatedBy(x: isExpanding ? titleHorizontalShift : 0, y: isExpanding ? textFieldExtraYShift : 0)
+        searchVC.textView.alpha = isExpanding ? 0 : 1
+        
+        searchVC.textView.transform = CGAffineTransform(scale: isExpanding ? scaledDown : 1).translatedBy(x: isExpanding ? titleHorizontalShift : 0, y: isExpanding ? textFieldExtraYShift : 0)
         
         UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: {
-            typeaheadVC.dragHandle.alpha = self.isExpanding ? 1 : 0
-            typeaheadVC.suggestionTable.alpha = self.isExpanding ? 1 : 0
+            searchVC.dragHandle.alpha = self.isExpanding ? 1 : 0
+            searchVC.suggestionTable.alpha = self.isExpanding ? 1 : 0
         })
         
-        typeaheadVC.textView.mask?.frame = isExpanding ? maskStartFrame : maskEndFrame
+        searchVC.textView.mask?.frame = isExpanding ? maskStartFrame : maskEndFrame
         
         if showKeyboard && isExpanding {
-            typeaheadVC.focusTextView()
+            searchVC.focusTextView()
         }
         
-        typeaheadVC.textHeightConstraint.constant = isExpanding ? typeaheadVC.textHeight : Const.toolbarHeight
+        searchVC.textHeightConstraint.constant = isExpanding ? searchVC.textHeight : Const.toolbarHeight
         
         func completeTransition() {
-            if self.isDismissing { typeaheadVC.view.removeFromSuperview() }
+            if self.isDismissing { searchVC.view.removeFromSuperview() }
+            searchVC.isTransitioning = false
             titleSnap?.removeFromSuperview()
-            browserVC?.toolbar.searchField.labelHolder.isHidden = false
-            browserVC?.toolbar.backgroundView.alpha = 1
-            transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
+            browserVC.toolbar.searchField.labelHolder.isHidden = false
+            browserVC.toolbar.backgroundView.alpha = 1
+            print("end transition")
+            completion?()
         }
         
-        let completeEarly = !showKeyboard && isExpanding
+        let completeEarly = !showKeyboard && isExpanding && !isPreExpanded
+        print("complete early: \(completeEarly)")
         if completeEarly { completeTransition() }
         
-        typeaheadVC.iconProgress = isExpanding ? 1 : 0
+        searchVC.iconEntranceProgress = isExpanding ? 1 : 0
+        searchVC.view.center = browserVC.view.center
         
         UIView.animate(
-            withDuration: 0.5,
+            withDuration: isPreExpanded ? 2.0 : 0.5,
             delay: 0.0,
             usingSpringWithDamping: 1,
             initialSpringVelocity: 0.0,
             options: [.curveLinear],
             animations: {
-                typeaheadVC.view.layoutIfNeeded()
-                typeaheadVC.pageActionView.alpha = self.isExpanding ? 1 : 0
-                typeaheadVC.scrim.alpha = self.isExpanding ? 1 : 0
-                typeaheadVC.textView.alpha = self.isExpanding ? 1 : 0
+                searchVC.view.layoutIfNeeded()
+                searchVC.pageActionView.alpha = self.isExpanding ? 1 : 0
+                searchVC.scrim.alpha = 0//self.isExpanding ? 1 : 0
+                searchVC.textView.alpha = self.isExpanding ? 1 : 0
                 titleSnap?.alpha = self.isExpanding ? 0 : 1
                 
                 titleSnap?.scale = self.isExpanding ? scaledUp : 1
                 titleSnap?.center = self.isExpanding ? titleEndCenter : titleStartCenter
                 
-                typeaheadVC.textView.transform = CGAffineTransform(scale: self.isExpanding ? 1 : scaledDown ).translatedBy(x: self.isExpanding ? 0 : titleHorizontalShift, y: self.isExpanding ? 0 : textFieldExtraYShift)
-
-                typeaheadVC.textView.mask?.frame = self.isExpanding ? maskEndFrame : maskStartFrame
-
-                if self.isDismissing { typeaheadVC.textView.resignFirstResponder() }
+                searchVC.textView.transform = CGAffineTransform(scale: self.isExpanding ? 1 : scaledDown ).translatedBy(x: self.isExpanding ? 0 : titleHorizontalShift, y: self.isExpanding ? 0 : textFieldExtraYShift)
+                
+                searchVC.textView.mask?.frame = self.isExpanding ? maskEndFrame : maskStartFrame
+                
+                if self.isDismissing { searchVC.textView.resignFirstResponder() }
                 
         }, completion: { _ in
             if !completeEarly { completeTransition() }
         })
     }
     
+}
 
+extension SearchTransitionController: UIViewControllerAnimatedTransitioning {
+    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
+        return 2.5
+    }
+
+    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
+        let fromVC = transitionContext.viewController(forKey: .from)!
+        let toVC = transitionContext.viewController(forKey: .to)!
+        let containerView = transitionContext.containerView
+        
+        let typeaheadVC = (isExpanding ? toVC : fromVC) as! SearchViewController
+        let browserVC = (isExpanding ? fromVC : toVC) as! BrowserViewController
+        
+        if isExpanding {
+            containerView.addSubview(typeaheadVC.view)
+        }
+        
+        self.animateTransition(searchVC: typeaheadVC, browserVC: browserVC) {
+            transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
+        }
+        
+    }
 }

@@ -34,14 +34,14 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
     var isExpanding  : Bool { return direction == .present }
     var isDismissing : Bool { return direction == .dismiss }
     var useArc: Bool = true
-
+    var isTransitioning: Bool = false
         
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         return 0.2
     }
     
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
-        
+        isTransitioning = true
         let fromVC = transitionContext.viewController(forKey: .from)!
         let toVC = transitionContext.viewController(forKey: .to)!
         let containerView = transitionContext.containerView
@@ -198,6 +198,7 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
                 browserVC.gestureController.mockCardView.removeFromSuperview()
                 browserVC.gestureController.mockCardView.imageView.image = nil
             }
+            isTransitioning = false
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
         }
         
@@ -232,7 +233,6 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
         
         let centerAnim = browserVC.cardView.springCenter(to: newCenter, at: velocity) { (_, _) in
             popCenterDone = true
-            print("center done")
             finishTransition()
         }
 //        centerAnim?.dynamicsMass = 5
@@ -266,6 +266,9 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
                 browserVC.gestureController.mockCardView.center.x = pct.lerp(startX, endX)
             }
             tabSwitcher.updateStackOffset(for: cardCenter)
+            let search = browserVC.searchVC
+            let offsetTextField = (cardCenter.y - newCenter.y) * 0.8
+            search.kbHeightConstraint?.constant = search.keyboard.height + offsetTextField
         }
         
         scaleAnim?.animationDidApplyBlock = { _ in
@@ -329,7 +332,6 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
                 
         }, completion: { finished in
             viewAnimFinished = true
-            print("view done")
             finishTransition()
         })
     }

@@ -325,10 +325,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     
     @objc func showSearchGesture(_ gesture: UIPanGestureRecognizer) {
         if gesture.state == .began {
-            searchVC.displaySearchTransition.showKeyboard = false
+            searchVC.transition.showKeyboard = false
             searchVC.setBackground(toolbar.backgroundColor)
             present(searchVC, animated: true) {
-                self.searchVC.displaySearchTransition.showKeyboard = true
+                self.searchVC.transition.showKeyboard = true
             }
         }
         searchVC.handleEntrancePan(gesture)
@@ -399,7 +399,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     func setUpToolbar() -> BrowserToolbarView {
         let toolbar = BrowserToolbarView(frame: CGRect(x: 0, y: 0, width: cardView.frame.width, height: Const.toolbarHeight))
         
-        toolbar.searchField.setAction(displaySearch)
+        toolbar.searchField.setAction({ self.displaySearch() })
         toolbar.backButton.setAction(goBack)
         toolbar.stopButton.setAction(stop)
         toolbar.tabButton.setAction(displayHistory)
@@ -417,10 +417,16 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
     }
     
-    func displaySearch() {
+    func displaySearch(instant: Bool = false) {
         searchVC.setBackground(toolbar.backgroundColor)
-        searchVC.modalPresentationStyle = .custom
-        present(searchVC, animated: true, completion: nil)
+        searchVC.browserVC = self
+        cardView.addSubview(searchVC.view)
+        searchVC.transition.isPreExpanded = instant
+        searchVC.transition.direction = .present
+        searchVC.transition.animateTransition(searchVC: searchVC, browserVC: self, completion: {
+            self.searchVC.transition.isPreExpanded = false
+            self.searchVC.updateKeyboardSnapshot()
+        })
     }
     
     func stop() {

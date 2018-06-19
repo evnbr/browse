@@ -15,48 +15,6 @@ let SEARCHVIEW_MAX_H: CGFloat = 240.0
 let TEXTVIEW_PADDING = UIEdgeInsetsMake(20, 20, 40, 20 )
 let pageActionHeight: CGFloat = 40
 
-class KeyboardManager: NSObject {
-    private var snapshot: UIImage?
-    private var lastKeyboardSize: CGSize?
-    private var lastKeyboardColor: UIColor?
-    
-    var height : CGFloat = 250
-
-    private func takeKeyboardSnapshot(size: CGSize) -> UIImage? {
-        let screen = UIScreen.main.bounds.size
-        UIGraphicsBeginImageContextWithOptions(size, false, 0)
-        let ctx = UIGraphicsGetCurrentContext()
-        ctx?.translateBy(x: 0, y: -(screen.height - height))
-        
-        for window in UIApplication.shared.windows {
-            if (window.screen == UIScreen.main) {
-                window.drawHierarchy(in: window.frame, afterScreenUpdates: false) // if true, weird flicker
-            }
-        }
-        let img = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext()
-        return img
-    }
-    
-    func snapshot(for backgroundColor: UIColor) -> UIImage? {
-        if backgroundColor.isLight {
-            return snapshot;
-        } else {
-            return snapshot;
-        }
-    }
-    
-    func updateSnapshot(with backgroundColor: UIColor?) {
-        let screen = UIScreen.main.bounds.size
-        let kbSize = CGSize(width: screen.width, height: height)
-        if backgroundColor != lastKeyboardColor || kbSize != lastKeyboardSize {
-            snapshot = takeKeyboardSnapshot(size: kbSize)
-            lastKeyboardSize = kbSize
-            lastKeyboardColor = backgroundColor
-        }
-    }
-}
-
 class SearchViewController: UIViewController {
 
     var contentView: UIView!
@@ -71,7 +29,7 @@ class SearchViewController: UIViewController {
     
     var isTransitioning = false
 
-    var displaySearchTransition = SearchTransitionController()
+    var transition = SearchTransitionController()
     
     var kbHeightConstraint : NSLayoutConstraint!
     var suggestionHeightConstraint : NSLayoutConstraint!
@@ -88,11 +46,7 @@ class SearchViewController: UIViewController {
     var contextAreaHeight: CGFloat = 24
     var showingCancel = true
     
-//    var browserOffset: CGFloat {
-//        return keyboardHeight + textHeight + suggestionSpacer - 100
-//    }
-    
-    var iconProgress: CGFloat {
+    var iconEntranceProgress: CGFloat {
         get {
             return leftIconConstraint.constant.progress(8, -36)
         }
@@ -108,16 +62,7 @@ class SearchViewController: UIViewController {
     var isFakeTab = false
     var defaultBackground: UIColor = .white //.black
     
-    var browser : BrowserViewController? {
-        return self.presentingViewController as? BrowserViewController
-    }
-    var switcher : TabSwitcherViewController? {
-        if let nav = self.presentingViewController as? UINavigationController,
-            let switcher = nav.topViewController as? TabSwitcherViewController {
-            return switcher
-        }
-        else { return nil }
-    }
+    var browserVC : BrowserViewController?
     
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -320,7 +265,7 @@ class SearchViewController: UIViewController {
         // TODO: Why?
         view.frame = UIScreen.main.bounds
         
-        if let browser = self.browser {
+        if let browser = self.browserVC {
             textView.text = browser.editableLocation
             pageActionView.title = browser.webView.title
             pageActionView.isBookmarked = false
@@ -343,14 +288,16 @@ class SearchViewController: UIViewController {
         keyboardPlaceholder.isHidden = true
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        updateKeyboardSnapshot()
-    }
+//    override func viewDidAppear(_ animated: Bool) {
+//        updateKeyboardSnapshot()
+//    }
     
     @objc
     func dismissSelf() {
         showFakeKeyboard()
-        self.dismiss(animated: true)
+//        self.dismiss(animated: true)
+        transition.direction = .dismiss
+        transition.animateTransition(searchVC: self, browserVC: browserVC!, completion: nil)
     }
 
     override func didReceiveMemoryWarning() {
@@ -370,8 +317,9 @@ class SearchViewController: UIViewController {
         }
         
         keyboard.height = keyboardRectangle.height
-        
-        if textView.isFirstResponder && !kbHeightConstraint.isPopAnimating && !isTransitioning {
+        let isTabTransitioning = browserVC?.tabSwitcher.cardStackTransition.isTransitioning ?? false
+        if textView.isFirstResponder && !kbHeightConstraint.isPopAnimating && !isTransitioning && !isTabTransitioning  {
+            print("ukh, is not transitioning")
             kbHeightConstraint.constant = keyboard.height
         }
     }
@@ -420,7 +368,7 @@ extension SearchViewController: UITextViewDelegate {
     }
     
     var shouldShowActions : Bool {
-        return browser?.editableLocation == textView.text || (browser != nil && textView.text == "")
+        return browserVC?.editableLocation == textView.text || (browserVC != nil && textView.text == "")
     }
     
     func renderSuggestions() {
@@ -496,17 +444,10 @@ extension SearchViewController: UITextViewDelegate {
     }
     
     func navigateTo(_ url: URL) {
-        if let browser = self.browser {
+        if let browser = self.browserVC {
             browser.navigateTo(url)
             setBackground(.white) // since navigate insta-hides
             dismissSelf()
-            return
-        }
-        if let switcher = self.switcher {
-            self.dismiss(animated: false, completion: {
-//                switcher.isDisplayingFakeTab = false
-                switcher.addTab(startingFrom: url, animated: false)
-            })
             return
         }
     }
@@ -562,6 +503,10 @@ extension SearchViewController : UIGestureRecognizerDelegate {
         
         if isEntrance {
             dist.y += keyboard.height
+        }
+        if browserVC?.gestureController.isDismissing == true {
+            dismissSelf()
+            return
         }
 
         if gesture.state == .began {
@@ -652,7 +597,7 @@ extension SearchViewController : UIGestureRecognizerDelegate {
 // MARK - Actions
 extension SearchViewController : PageActionHandler {
     func refresh() {
-        browser?.webView.reload()
+        browserVC?.webView.reload()
     }
     
     func bookmark() {
@@ -677,7 +622,7 @@ extension SearchViewController : PageActionHandler {
             }
         }
         else if !pageActionView.isBookmarked {
-            guard let url = browser?.webView.url, let title = browser?.webView.title else { return }
+            guard let url = browserVC?.webView.url, let title = browserVC?.webView.title else { return }
             BookmarkProvider.shared.addBookmark(url, title: title) { isBookmarked in
                 if isBookmarked { self.pageActionView.isBookmarked = true }
             }
@@ -687,7 +632,7 @@ extension SearchViewController : PageActionHandler {
             let options = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
             options.addAction(UIAlertAction(title: "Edit", style: .default, handler: nil))
             options.addAction(UIAlertAction(title: "Remove", style: .destructive, handler: { _ in
-                guard let url = self.browser?.webView.url else { return }
+                guard let url = self.browserVC?.webView.url else { return }
                 BookmarkProvider.shared.removeBookmark(url) { isRemoved in
                     if isRemoved { self.pageActionView.isBookmarked = false }
                 }
@@ -710,7 +655,7 @@ extension SearchViewController : PageActionHandler {
     }
     
     func share() {
-        browser?.makeShareSheet { avc in
+        browserVC?.makeShareSheet { avc in
             self.showFakeKeyboard()
             avc.completionWithItemsHandler = { _, _, _, _ in
                 self.showRealKeyboard()
@@ -720,7 +665,7 @@ extension SearchViewController : PageActionHandler {
     }
     
     func copy() {
-        let b = browser
+        let b = browserVC
         b?.copyURL()
         let alert = UIAlertController(title: "Copied", message: nil, preferredStyle: .alert)
         self.showFakeKeyboard()
@@ -738,12 +683,12 @@ extension SearchViewController : PageActionHandler {
 
 extension SearchViewController : UIViewControllerTransitioningDelegate {
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        displaySearchTransition.direction = .present
-        return displaySearchTransition
+        transition.direction = .present
+        return transition
     }
     
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        displaySearchTransition.direction = .dismiss
-        return displaySearchTransition
+        transition.direction = .dismiss
+        return transition
     }
 }
