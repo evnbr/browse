@@ -36,12 +36,12 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     var isLight: Bool {
         return lastColor.isLight
     }
-    
+
     var initialHeight = Const.toolbarHeight
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        
+
         var newFrame = bounds
         newFrame.size.height = initialHeight
 

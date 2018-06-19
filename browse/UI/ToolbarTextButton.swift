@@ -22,7 +22,7 @@ class ToolbarTextButton: ToolbarTouchView {
     var icon: UIImageView?
     
     private var _size: ToolbarTextButtonSize = .small
-    
+
     var size: ToolbarTextButtonSize {
         get {
             return _size
@@ -30,7 +30,7 @@ class ToolbarTextButton: ToolbarTouchView {
         set {
             if newValue != size {
                 _size = newValue
-                
+
                 if _size == .small {
                     label.font = .systemFont(ofSize: 13.0)
                     frame.size.height = Const.buttonHeight
@@ -41,7 +41,7 @@ class ToolbarTextButton: ToolbarTouchView {
                     label.font = .systemFont(ofSize: 17.0)
                     frame.size.height = Const.buttonHeight + 6
                 }
-                
+
                 label.sizeToFit()
             }
         }
@@ -56,7 +56,7 @@ class ToolbarTextButton: ToolbarTouchView {
             label.sizeToFit()
         }
     }
-    
+
     var showIcon: Bool {
         get {
             return !icon!.isHidden
@@ -65,20 +65,19 @@ class ToolbarTextButton: ToolbarTouchView {
             icon?.isHidden = !newValue
         }
     }
-    
+
     init(title: String, withIcon image: UIImage?, onTap: @escaping () -> Void) {
         super.init(frame: CGRect(x: 0, y: 0, width: 180, height: Const.buttonHeight), onTap: onTap)
-        
-        
+
         label.text = title
         label.font = .systemFont(ofSize: 13.0)
         label.sizeToFit()
-        
+
         // https://stackoverflow.com/questions/30728062/add-views-in-uistackview-programmatically
         stackView.axis  = .horizontal
-        stackView.distribution  = .equalSpacing
+        stackView.distribution = .equalSpacing
         stackView.alignment = .center
-        stackView.spacing   = 6.0
+        stackView.spacing = 6.0
 
         if image != nil {
             let template = image!.withRenderingMode(.alwaysTemplate)

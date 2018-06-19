@@ -16,7 +16,7 @@ class HistoryZoomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransi
     var direction: CustomAnimationDirection!
     var isZoomingOut: Bool { return direction == .present }
     var isZoomingIn: Bool { return direction == .dismiss }
-    var targetIndexPath: IndexPath? = nil
+    var targetIndexPath: IndexPath?
     
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         return 0.5
@@ -28,8 +28,8 @@ class HistoryZoomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransi
         let toVC = transitionContext.viewController(forKey: .to)!
         let containerView = transitionContext.containerView
         
-        let historyVC = (isZoomingIn ? fromVC : toVC) as! HistoryTreeViewController
-        let browserVC = (isZoomingIn ? toVC : fromVC) as! BrowserViewController
+        guard let historyVC = (isZoomingIn ? fromVC : toVC) as? HistoryTreeViewController,
+            let browserVC = (isZoomingIn ? toVC : fromVC) as? BrowserViewController else { return }
     
         let browserCurrentScale = isZoomingOut ? browserVC.view.scale : 1
         let pctScaleChange : CGFloat = 120 / browserVC.view.bounds.width
@@ -89,9 +89,9 @@ class HistoryZoomAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransi
             alpha.progress = $0
             offset.progress = $0
         }
-        
+
         browserVC.contentView.radius = Const.cardRadius
-        
+
         spring.setState(.start)
         let anim = spring.springState(.end) { (_, _) in
             browserVC.contentView.radius = 0

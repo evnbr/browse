@@ -16,6 +16,10 @@ class PlaceholderView: UIView {
     var imageView: UIImageView!
     var aspectConstraint: NSLayoutConstraint!
     
+    var positioner: Blend<CGPoint>!
+    var scaler: Blend<CGFloat>!
+    var darkener: Blend<CGFloat>!
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
 
@@ -55,6 +59,10 @@ class PlaceholderView: UIView {
         overlay.alpha = 0
         overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         contentView.addSubview(overlay)
+        
+        positioner = Blend { self.center = $0 }
+        scaler = Blend { self.scale = $0  }
+        darkener = Blend { self.overlay.alpha = $0  }
     }
 
     func setupStatusbar() {

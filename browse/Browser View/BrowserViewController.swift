@@ -11,6 +11,7 @@ import WebKit
 import OnePasswordExtension
 import pop
 
+// swiftlint:disable:next type_body_length
 class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     
     var tabSwitcher: TabSwitcherViewController
@@ -20,7 +21,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     var webView: WKWebView!
     var snapshotView: UIImageView = UIImageView()
     var currentTab: Tab
-    
+
     var topConstraint: NSLayoutConstraint!
     var accessoryHeightConstraint: NSLayoutConstraint!
     var aspectConstraint: NSLayoutConstraint!
@@ -35,7 +36,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     var toolbar: BrowserToolbarView!
     var toolbarPlaceholder = UIView()
     var accessoryView: GradientColorChangeView!
-    
+
     var errorView: UIView!
     var cardView: UIView!
     var contentView: UIView!
@@ -46,14 +47,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     var onePasswordExtensionItem: NSExtensionItem!
     var gestureController: BrowserGestureController!
 
-    var navigationToHide: WKNavigation? = nil// = false
+    var navigationToHide: WKNavigation?
 
     // MARK: - Derived properties
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return statusBar.backgroundColor.isLight ? .lightContent : .default
     }
-    
+
     override var prefersStatusBarHidden: Bool {
         return gestureController.isDismissing
     }
@@ -72,14 +73,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         let url = webView.url!
         return url.displayHost
     }
-    
+
     var isBlank: Bool {
         return webView?.url == nil
     }
     
-    var isSearching : Bool {
-        guard let url = webView.url else { return false }
-        return (url.absoluteString.contains("google") || url.absoluteString.contains("duck")) && url.absoluteString.contains("?q=")
+    var isSearching: Bool {
+        guard let str = webView.url?.absoluteString else { return false }
+        return (str.contains("google") || str.contains("duck")) && str.contains("?q=")
     }
     
     var editableLocation : String {
@@ -586,29 +587,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     @objc func copyURL() {
         UIPasteboard.general.string = self.editableLocation
     }
-    
-    // MARK: - Share ActivityViewController and 1Password
 
+    // MARK: - Share ActivityViewController and 1Password
 
     @objc func displayShareSheet() {
         self.resignFirstResponder() // without this, action sheet dismiss animation won't go all the way
         makeShareSheet { avc in
             self.present(avc, animated: true, completion: nil)
         }
-    }
-
-    func displayPassword() {
-        OnePasswordExtension.shared().fillItem(
-            intoWebView: self.webView,
-            for: self,
-            sender: nil,
-            showOnlyLogins: true,
-            completion: { (success, error) in
-                if success == false {
-                    print("Failed to fill into webview: <\(String(describing: error))>")
-                }
-            }
-        )
     }
 
     // MARK: - Webview State
@@ -651,9 +637,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
     func displayError(text: String) {
         if errorView == nil { errorView = makeError() }
+        guard let errorLabel = errorView.subviews.first as? UILabel else { return }
 
         errorView.backgroundColor = toolbar.backgroundColor
-        let errorLabel = errorView.subviews.first as! UILabel
         errorLabel.text = text
         errorLabel.textColor = toolbar.tintColor
         let size = errorLabel.sizeThatFits(CGSize(width: cardView.bounds.size.width - 40, height: 200))
@@ -714,6 +700,19 @@ extension UIResponder {
 }
 
 extension BrowserViewController: UIActivityItemSource {
+    func displayPassword() {
+        OnePasswordExtension.shared().fillItem(
+            intoWebView: self.webView,
+            for: self,
+            sender: nil,
+            showOnlyLogins: true,
+            completion: { (success, error) in
+                if success == false {
+                    print("Failed to fill into webview: <\(String(describing: error))>")
+                }
+        })
+    }
+
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
         return self.webView!.url!
     }
@@ -792,7 +791,8 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
 
     @objc func keyboardWillShow(notification: NSNotification) {
         let userInfo: NSDictionary = notification.userInfo! as NSDictionary
-        let keyboardFrame: NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as! NSValue
+        guard let keyboardFrame: NSValue = userInfo.value(
+            forKey: UIKeyboardFrameEndUserInfoKey) as? NSValue else { return }
         let keyboardRectangle = keyboardFrame.cgRectValue
         let newHeight = keyboardRectangle.height
 

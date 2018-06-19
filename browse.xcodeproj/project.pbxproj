@@ -19,9 +19,6 @@
 		A90F51211F70C6CB00221815 /* UIImageColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90F51201F70C6CB00221815 /* UIImageColors.swift */; };
 		A91372071F777511002C160B /* ultimateAdblockList.json in Resources */ = {isa = PBXBuildFile; fileRef = A91372061F777511002C160B /* ultimateAdblockList.json */; };
 		A92095841ED90E7B009497A2 /* Blocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095831ED90E7B009497A2 /* Blocker.swift */; };
-		A92095861ED9E242009497A2 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095851ED9E241009497A2 /* SettingsViewController.swift */; };
-		A92095881ED9E3C0009497A2 /* SettingsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095871ED9E3C0009497A2 /* SettingsTableViewCell.swift */; };
-		A920958A1EDA6526009497A2 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095891EDA6526009497A2 /* Settings.swift */; };
 		A920958F1EDF4AB8009497A2 /* CardStackTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = A920958E1EDF4AB8009497A2 /* CardStackTransition.swift */; };
 		A92095911EE34CDC009497A2 /* TabSwitcherViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095901EE34CDC009497A2 /* TabSwitcherViewController.swift */; };
 		A92095931EE36483009497A2 /* DismissableTabCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92095921EE36483009497A2 /* DismissableTabCell.swift */; };
@@ -42,6 +39,7 @@
 		A95DFF7B2058BEC600D540DD /* Blendable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7A2058BEC600D540DD /* Blendable.swift */; };
 		A95DFF7E205B2FB700D540DD /* HistoryModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7C205B2FB700D540DD /* HistoryModel.xcdatamodeld */; };
 		A95DFFBF205B6A8F00D540DD /* HistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFFBE205B6A8F00D540DD /* HistoryManager.swift */; };
+		A95EDB6820D97513001B24CD /* BrowserPinchController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95EDB6720D97513001B24CD /* BrowserPinchController.swift */; };
 		A9667E922051F90400295E76 /* PinboardLoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E912051F90400295E76 /* PinboardLoginController.swift */; };
 		A966CA64204003FC00EB2771 /* TypeaheadCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A966CA63204003FC00EB2771 /* TypeaheadCell.swift */; };
 		A969D4A51F1321EC008A7BC6 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A969D4A41F1321EC008A7BC6 /* Constants.swift */; };
@@ -121,9 +119,6 @@
 		A90F51201F70C6CB00221815 /* UIImageColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageColors.swift; sourceTree = "<group>"; };
 		A91372061F777511002C160B /* ultimateAdblockList.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ultimateAdblockList.json; sourceTree = "<group>"; };
 		A92095831ED90E7B009497A2 /* Blocker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Blocker.swift; sourceTree = "<group>"; };
-		A92095851ED9E241009497A2 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
-		A92095871ED9E3C0009497A2 /* SettingsTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsTableViewCell.swift; sourceTree = "<group>"; };
-		A92095891EDA6526009497A2 /* Settings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		A920958E1EDF4AB8009497A2 /* CardStackTransition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CardStackTransition.swift; sourceTree = "<group>"; };
 		A92095901EE34CDC009497A2 /* TabSwitcherViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TabSwitcherViewController.swift; sourceTree = "<group>"; };
 		A92095921EE36483009497A2 /* DismissableTabCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DismissableTabCell.swift; sourceTree = "<group>"; };
@@ -145,6 +140,7 @@
 		A95DFF7A2058BEC600D540DD /* Blendable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Blendable.swift; sourceTree = "<group>"; };
 		A95DFF7D205B2FB700D540DD /* HistoryModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = HistoryModel.xcdatamodel; sourceTree = "<group>"; };
 		A95DFFBE205B6A8F00D540DD /* HistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryManager.swift; sourceTree = "<group>"; };
+		A95EDB6720D97513001B24CD /* BrowserPinchController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserPinchController.swift; sourceTree = "<group>"; };
 		A9667E912051F90400295E76 /* PinboardLoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinboardLoginController.swift; sourceTree = "<group>"; };
 		A966CA63204003FC00EB2771 /* TypeaheadCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeaheadCell.swift; sourceTree = "<group>"; };
 		A969D4A41F1321EC008A7BC6 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -284,6 +280,7 @@
 			children = (
 				A97CB0711EC53DCD005DDBD1 /* BrowserViewController.swift */,
 				A9DEAE3C1F16C15700CF66BA /* BrowserToolbarView.swift */,
+				A95EDB6720D97513001B24CD /* BrowserPinchController.swift */,
 				A92C9C3A1EF8B5E600D8AAA3 /* BrowserGestureController.swift */,
 				A907DBAD205DB7A6009554C9 /* WebViewManager.swift */,
 				A9EF36D41F4A6451005112E2 /* WKWebview+Toolbar.swift */,
@@ -321,16 +318,6 @@
 				A9404D0E20633E840004DD83 /* ultimateAdblockListCSS.json */,
 			);
 			path = "Ad Blocking";
-			sourceTree = "<group>";
-		};
-		A920958D1EDAA714009497A2 /* Settings */ = {
-			isa = PBXGroup;
-			children = (
-				A92095891EDA6526009497A2 /* Settings.swift */,
-				A92095851ED9E241009497A2 /* SettingsViewController.swift */,
-				A92095871ED9E3C0009497A2 /* SettingsTableViewCell.swift */,
-			);
-			name = Settings;
 			sourceTree = "<group>";
 		};
 		A9667E9920575E4700295E76 /* Animation Utils */ = {
@@ -395,7 +382,6 @@
 				A90F51251F71787800221815 /* Color Detection */,
 				A90F51281F7178FF00221815 /* UI */,
 				A90F51291F71791D00221815 /* Ad Blocking */,
-				A920958D1EDAA714009497A2 /* Settings */,
 				A9446E9A1ECEBFC40082B4D9 /* Bridging-Header.h */,
 				A94FE4201ECA661700ED48DB /* Sampler.swift */,
 				A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */,
@@ -481,7 +467,7 @@
 				A97CB0691EC53DCC005DDBD1 /* Frameworks */,
 				A97CB06A1EC53DCC005DDBD1 /* Resources */,
 				89E8F91E165779D586E360EA /* [CP] Embed Pods Frameworks */,
-				AA1C35B1530D4B0C22CC1874 /* [CP] Copy Pods Resources */,
+				A95EDB6620D8A432001B24CD /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -500,8 +486,6 @@
 				A97CB07C1EC53DCD005DDBD1 /* Sources */,
 				A97CB07D1EC53DCD005DDBD1 /* Frameworks */,
 				A97CB07E1EC53DCD005DDBD1 /* Resources */,
-				94C9B04FB25868A18B9B7588 /* [CP] Embed Pods Frameworks */,
-				7293269D83E98F2F89B88585 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -521,8 +505,6 @@
 				A97CB0871EC53DCD005DDBD1 /* Sources */,
 				A97CB0881EC53DCD005DDBD1 /* Frameworks */,
 				A97CB0891EC53DCD005DDBD1 /* Resources */,
-				D2A6C40966D703F01D7D1473 /* [CP] Embed Pods Frameworks */,
-				5826B7CCCE60641543F88BDF /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -620,36 +602,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		5826B7CCCE60641543F88BDF /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-browseUITests/Pods-browseUITests-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		7293269D83E98F2F89B88585 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-browseTests/Pods-browseTests-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		89E8F91E165779D586E360EA /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -674,50 +626,18 @@
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-browse/Pods-browse-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		94C9B04FB25868A18B9B7588 /* [CP] Embed Pods Frameworks */ = {
+		A95EDB6620D8A432001B24CD /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-browseTests/Pods-browseTests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		AA1C35B1530D4B0C22CC1874 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-browse/Pods-browse-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		D2A6C40966D703F01D7D1473 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-browseUITests/Pods-browseUITests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
+			shellScript = "\"${PODS_ROOT}/SwiftLint/swiftlint\"";
 		};
 		D314FB949F2E7F6732374083 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -805,6 +725,7 @@
 				A907DBAA205CFAB4009554C9 /* Visit+snapshot.swift in Sources */,
 				A969D4A51F1321EC008A7BC6 /* Constants.swift in Sources */,
 				A92095911EE34CDC009497A2 /* TabSwitcherViewController.swift in Sources */,
+				A95EDB6820D97513001B24CD /* BrowserPinchController.swift in Sources */,
 				A92095841ED90E7B009497A2 /* Blocker.swift in Sources */,
 				A9E4859D1EC8D7BE0021D155 /* WebviewColorSampler.swift in Sources */,
 				A95DFFBF205B6A8F00D540DD /* HistoryManager.swift in Sources */,
@@ -815,21 +736,18 @@
 				A9D33D9220D8443F00066A05 /* KeyboardManager.swift in Sources */,
 				A9526D4D1ED238C300A73A8A /* WebNavigationController.swift in Sources */,
 				A9A88DE92015C64F007FC6C0 /* GradientView.swift in Sources */,
-				A92095881ED9E3C0009497A2 /* SettingsTableViewCell.swift in Sources */,
 				A920958F1EDF4AB8009497A2 /* CardStackTransition.swift in Sources */,
 				A9F9D7C02050B8BA000BA8A3 /* DuckSearchProvider.swift in Sources */,
 				A95DFF7E205B2FB700D540DD /* HistoryModel.xcdatamodeld in Sources */,
 				A907DBAC205DB055009554C9 /* Tab+Extensions.swift in Sources */,
 				A9AA4A581FF72471001AB639 /* PlaceholderView.swift in Sources */,
 				A908920A1ED547C500A5E9BA /* ToolbarSearchField.swift in Sources */,
-				A920958A1EDA6526009497A2 /* Settings.swift in Sources */,
 				A966CA64204003FC00EB2771 /* TypeaheadCell.swift in Sources */,
 				A925E3EA204CCE2B005778A0 /* PlainBlurView.swift in Sources */,
 				A90ED966201EDB26003F4831 /* FloatButton.swift in Sources */,
 				A9F9D7C42050B93A000BA8A3 /* SearchProvider.swift in Sources */,
 				A985F89D20831FD5007A726A /* TreeMakerLayout.swift in Sources */,
 				A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */,
-				A92095861ED9E242009497A2 /* SettingsViewController.swift in Sources */,
 				A95DFF7720575FDF00D540DD /* SpringSwitch.swift in Sources */,
 				A94FE4211ECA661700ED48DB /* Sampler.swift in Sources */,
 				A9210D511F0148E600904A0B /* URL+DisplayHost.swift in Sources */,

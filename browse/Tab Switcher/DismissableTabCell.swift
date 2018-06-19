@@ -48,8 +48,8 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    func setTab(_ newTab : Tab?) {
+
+    func setTab(_ newTab: Tab?) {
         browserTab = newTab
         guard let visit = browserTab?.currentVisit else {
             label.text = "New Tab"
@@ -81,9 +81,9 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
     }
         
     var isDismissing = false
-    var startCenter : CGPoint = .zero
-    var startAlpha : CGFloat = 0
-    
+    var startCenter: CGPoint = .zero
+    var startAlpha: CGFloat = 0
+
     @objc func panGestureChange(gesture: UIPanGestureRecognizer) {
         let gesturePos = gesture.translation(in: self.superview)
         let swipePct = gesturePos.x / bounds.width
@@ -92,8 +92,7 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
             isDismissing = true
             startCenter = center
             startAlpha = overlay.alpha
-        }
-        else if gesture.state == .changed {
+        } else if gesture.state == .changed {
             if isDismissing {
                 if abs(swipePct) > 0.4 {
                     overlay.alpha = (abs(swipePct) - 0.4) * 2
@@ -101,33 +100,32 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
 //                center.x = startCenter.x + elasticLimit(gesturePos.x)
                 swipeCallback(self, swipePct)
             }
-        }
-        else if gesture.state == .ended {
+        } else if gesture.state == .ended {
 
             if isDismissing {
                 isDismissing = false
-                
+
                 let vel = gesture.velocity(in: superview)
-                
+
 //                var endCenter : CGPoint = startCenter
-                var endAlpha : CGFloat = startAlpha
+                var endAlpha: CGFloat = startAlpha
                 
                 let isLeft = gesturePos.x > 0
                 let isRight = gesturePos.x < 0
                 
                 var shouldDelete = false
 
-                if ( (isLeft && vel.x > 400) || gesturePos.x > bounds.width * 0.5 ) {
+                if (isLeft && vel.x > 400) || gesturePos.x > bounds.width * 0.5 {
 //                    endCenter.x = startCenter.x + bounds.width
                     endAlpha = 1
                     shouldDelete = true
                 }
-                else if ( (isRight && vel.x < -400) || gesturePos.x < -bounds.width * 0.5 ) {
+                else if (isRight && vel.x < -400) || gesturePos.x < -bounds.width * 0.5 {
 //                    endCenter.x = startCenter.x - bounds.width
                     endAlpha = 1
                     shouldDelete = true
                 }
-                
+
                 let exit = Blend(start: swipePct, end: shouldDelete ? 1 : 0) {
                     self.swipeCallback(self, $0)
                 }
@@ -140,7 +138,7 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
                 }
                 spring.setState(.start)
                 let anim = spring.springState(.end)
-                
+
                 if let tab = browserTab, shouldDelete {
                     anim?.completionBlock = { _, _ in
                         self.closeTabCallback(tab)
@@ -154,5 +152,4 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
         }
     }
 }
-
 

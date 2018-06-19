@@ -23,20 +23,18 @@ extension URL {
     }
     var searchQuery: String? {
         guard let components = URLComponents(string: self.absoluteString),
-            let queryParam : String = components.queryItems?.first(where: { $0.name == "q" })?.value
+            let queryParam: String = components.queryItems?.first(where: { $0.name == "q" })?.value
         else { return nil }
-        let withoutPlus : String = queryParam.replacingOccurrences(of: "+", with: " ")
+        let withoutPlus: String = queryParam.replacingOccurrences(of: "+", with: " ")
         return withoutPlus
     }
-    var cleanString : String {
-        get {
-            var clean = absoluteString
-            clean = clean.replacingOccurrences(of: "http://", with: "")
-            clean = clean.replacingOccurrences(of: "https://", with: "")
-            if clean.starts(with: "www.") { clean = clean.replacingOccurrences(of: "www.", with: "") }
-            if clean.last == "/" { clean.removeLast() }
-            return clean
-        }
+    var cleanString: String {
+        var clean = absoluteString
+        clean = clean.replacingOccurrences(of: "http://", with: "")
+        clean = clean.replacingOccurrences(of: "https://", with: "")
+        if clean.starts(with: "www.") { clean = clean.replacingOccurrences(of: "www.", with: "") }
+        if clean.last == "/" { clean.removeLast() }
+        return clean
     }
 }
 
@@ -50,11 +48,10 @@ fileprivate let potentialPrefixes = [
 // TODO: Make more robust
 extension String {
     var isProbablyURL: Bool {
-        return self.range(of:".") != nil && self.range(of:" ") == nil
+        return self.range(of: ".") != nil && self.range(of: " ") == nil
     }
     
     var urlPrefix: String? {
         return potentialPrefixes.first(where: { self.hasPrefix($0) })
     }
 }
-

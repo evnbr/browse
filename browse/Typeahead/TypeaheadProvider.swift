@@ -106,7 +106,13 @@ class TypeaheadProvider: NSObject {
         URLSession.shared.dataTask(with: url, completionHandler: {(data, _, error) -> Void in
             isSuggestionLoaded = true
             if data == nil {
-                searchSuggestions = [TypeaheadSuggestion(title: "Unable to search", detail: error?.localizedDescription, url: nil)  ]
+                searchSuggestions = [
+                    TypeaheadSuggestion(
+                        title: "Unable to search",
+                        detail: error?.localizedDescription,
+                        url: nil
+                    )
+                ]
                 maybeCompletion()
             } else if let maybejson = try? JSONSerialization.jsonObject(with: data!, options: .allowFragments),
                 let json = maybejson as? NSArray {
@@ -134,7 +140,7 @@ extension TypeaheadProvider {
             .reduce(0, { $0 + $1 })
         return inOrderScore * 2 + splitScore
     }
-    
+
     func splitMatchingScore(for text: String, query: String) -> Int {
         let inOrderScore = matchingScore(for: text, query: query)
         let splitScore = query.split(separator: " ")
@@ -145,7 +151,7 @@ extension TypeaheadProvider {
     
     func matchingScore(for item: HistorySearchResult, query: String) -> Int {
         if query == "" { return 0 }
-        var score : Float = 0
+        var score: Float = 0
         // repeat visits worth 100 each
         if item.visitCount > 1 {  score += Float((item.visitCount - 1) * 100) }
         // more points for matching more text
@@ -153,9 +159,9 @@ extension TypeaheadProvider {
         score += Float(matchingScore(for: item.url, query: query))
         return Int(score)
     }
-    
+
     func matchingScore(for url: URL, query: String) -> Int {
-        var score : Float = 0
+        var score: Float = 0
         // Points for host matching
         if let host = url.host, host.localizedCaseInsensitiveContains(query) {
             let parts = host.split(separator: ".")
@@ -167,15 +173,15 @@ extension TypeaheadProvider {
         }
         return Int(score)
     }
-    
+
     func matchingScore(for text: String, query: String) -> Int {
-        var score : Float = 0
+        var score: Float = 0
         
         // Points for words in the title
         if text.localizedCaseInsensitiveContains(query) {
             let words = text.split(separator: " ")
-            let maxWordScore : Float = 200 / Float(words.count)
-            
+            let maxWordScore: Float = 200 / Float(words.count)
+
             words.forEach { word in
                 let partPct = Float(word.count) / Float(text.count) // bias against long urls
                 let pct = Float(query.count) / Float(word.count)

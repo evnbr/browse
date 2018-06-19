@@ -23,7 +23,7 @@ public struct UIImageColors {
 class PCCountedColor {
     let color: UIColor
     let count: Int
-    
+
     init(color: UIColor, count: Int) {
         self.color = color
         self.count = count
@@ -32,14 +32,12 @@ class PCCountedColor {
 
 extension CGColor {
     var components: [CGFloat] {
-        get {
-            var red = CGFloat()
-            var green = CGFloat()
-            var blue = CGFloat()
-            var alpha = CGFloat()
-            UIColor(cgColor: self).getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-            return [red,green,blue,alpha]
-        }
+        var red = CGFloat()
+        var green = CGFloat()
+        var blue = CGFloat()
+        var alpha = CGFloat()
+        UIColor(cgColor: self).getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        return [red, green, blue, alpha]
     }
 }
 
@@ -77,21 +75,21 @@ extension UIColor {
         var brightness: CGFloat = 0.0
         var alpha: CGFloat = 0.0
         self.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
-        
+
         if saturation < minSaturation {
             return UIColor(hue: hue, saturation: minSaturation, brightness: brightness, alpha: alpha)
         } else {
             return self
         }
     }
-    
+
     func isContrastingColor(compareColor: UIColor) -> Bool {
         let bg = self.cgColor.components
         let fg = compareColor.cgColor.components
         
         let bgLum = 0.2126 * bg[0] + 0.7152 * bg[1] + 0.0722 * bg[2]
         let fgLum = 0.2126 * fg[0] + 0.7152 * fg[1] + 0.0722 * fg[2]
-        
+
         let bgGreater = bgLum > fgLum
         let nom = bgGreater ? bgLum : fgLum
         let denom = bgGreater ? fgLum : bgLum
@@ -111,7 +109,7 @@ extension UIImage {
         guard let result = UIGraphicsGetImageFromCurrentImageContext() else {
             fatalError("UIImageColors.resizeForUIImageColors failed: UIGraphicsGetImageFromCurrentImageContext returned nil")
         }
-        
+
         return result
     }
     
@@ -133,12 +131,14 @@ extension UIImage {
             }
         }
     }
-    
+
     /**
      Get `UIImageColors` from the image synchronously (in main thread).
-     Discussion: Use smaller sizes for better performance at the cost of quality colors. Use larger sizes for better color sampling and quality at the cost of performance.
+     Discussion: Use smaller sizes for better performance at the cost of quality colors.
+     Use larger sizes for better color sampling and quality at the cost of performance.
      
-     - parameter scaleDownSize: Downscale size of image for sampling, if `CGSize.zero` is provided, the sample image is rescaled to a width of 250px and the aspect ratio height.
+     - parameter scaleDownSize: Downscale size of image for sampling, if `CGSize.zero`
+     is provided, the sample image is rescaled to a width of 250px and the aspect ratio height.
      
      - returns: `UIImageColors` for this image.
      */
@@ -156,16 +156,18 @@ extension UIImage {
 //        let cgImage = self.cgImage!
 
         var result = UIImageColors()
-        
-        
+
         let width: Int = cgImage.width
         let height: Int = cgImage.height
-        
+
         let fallbackColor = UIColor.cyan
-        
+
         let randomColorsThreshold = 0//Int(CGFloat(height) * 0.01)
         let sortedColorComparator: Comparator = { (main, other) -> ComparisonResult in
-            let m = main as! PCCountedColor, o = other as! PCCountedColor
+            guard let m = main as? PCCountedColor,
+                let o = other as? PCCountedColor else {
+                return ComparisonResult.orderedSame
+            }
             if m.count < o.count {
                 return ComparisonResult.orderedDescending
             } else if m.count == o.count {
@@ -174,15 +176,13 @@ extension UIImage {
                 return ComparisonResult.orderedAscending
             }
         }
-        
+
         guard let data = CFDataGetBytePtr(cgImage.dataProvider!.data) else {
             fatalError("UIImageColors.getColors failed: could not get cgImage data")
         }
-        
+
         // Filter out and collect pixels from image
         let imageColors = NSCountedSet(capacity: width * height)
-        
-//        print("w: \(width) h: \(height)")
 
         for x in 0..<width {
             for y in 0..<height {
@@ -190,7 +190,7 @@ extension UIImage {
                 if x < 8 || x > width - 8 {
                     // Only count pixels within N of sides
                     let pixel: Int = ((width * y) + x) * 4
-                    
+
                     if 127 <= data[pixel+3] { // alpha over 0.5
 
                         let color = UIColor(
@@ -210,7 +210,7 @@ extension UIImage {
                 }
             }
         }
-        
+
         // Get background color
         let enumerator = imageColors.objectEnumerator()
         let sortedColors = NSMutableArray(capacity: imageColors.count)
@@ -223,24 +223,20 @@ extension UIImage {
         sortedColors.sort(comparator: sortedColorComparator)
         
         var proposedEdgeColor: PCCountedColor
-        if sortedColors.count > 0 {
-            let firstColor = sortedColors.object(at: 0) as! PCCountedColor
-            
+        if sortedColors.count > 0,
+            let firstColor = sortedColors.object(at: 0) as? PCCountedColor {
+
             if sortedColors.count == 1 {
                 proposedEdgeColor = firstColor
 //                print("one choice")
-            }
-            else {
-                let secondColor = sortedColors.object(at: 1) as! PCCountedColor
-//                print("1: \(firstColor.count) 2: \(ssecondColor.count)")
-                if firstColor.count - secondColor.count < 120 {
-//                    proposedEdgeColor = PCCountedColor(color: fallbackColor, count: 1)
+            } else {
+                if let secondColor = sortedColors.object(at: 1) as? PCCountedColor,
+                    firstColor.count - secondColor.count < 120 {
                     proposedEdgeColor = PCCountedColor(
                         color: UIColor.average([firstColor.color, secondColor.color]),
                         count: 1)
 //                    print("colors are close")
-                }
-                else {
+                } else {
                     proposedEdgeColor = firstColor
 //                    print("clear winner")
                 }
@@ -249,76 +245,10 @@ extension UIImage {
             proposedEdgeColor = PCCountedColor(color: fallbackColor, count: 1)
             return nil
         }
-        
-//        if proposedEdgeColor.color.isBlackOrWhite && 0 < sortedColors.count {
-//            for i in 1..<sortedColors.count {
-//                let nextProposedEdgeColor = sortedColors.object(at: i) as! PCCountedColor
-//                if (CGFloat(nextProposedEdgeColor.count)/CGFloat(proposedEdgeColor.count)) > 0.3 {
-//                    if !nextProposedEdgeColor.color.isBlackOrWhite {
-//                        proposedEdgeColor = nextProposedEdgeColor
-//                        break
-//                    }
-//                } else {
-//                    break
-//                }
-//            }
-//        }
+
         result.background = proposedEdgeColor.color
-        
-        // Get foreground colors
-//        enumerator = imageColors.objectEnumerator()
-//        sortedColors.removeAllObjects()
-//        sortedColors = NSMutableArray(capacity: imageColors.count)
-//        let findDarkTextColor = !result.background.isDarkColor
-//
-//        while var kolor = enumerator.nextObject() as? UIColor {
-//            kolor = kolor.colorWithMinimumSaturation(minSaturation: 0.15)
-//            if kolor.isDarkColor == findDarkTextColor {
-//                let colorCount = imageColors.count(for: kolor)
-//                sortedColors.add(PCCountedColor(color: kolor, count: colorCount))
-//            }
-//        }
-//        sortedColors.sort(comparator: sortedColorComparator)
-//
-//        for curContainer in sortedColors {
-//            let kolor = (curContainer as! PCCountedColor).color
-//
-//            if result.primary == nil {
-//                if kolor.isContrastingColor(compareColor: result.background) {
-//                    result.primary = kolor
-//                }
-//            } else if result.secondary == nil {
-//                if !result.primary.isDistinct(compareColor: kolor) || !kolor.isContrastingColor(compareColor: result.background) {
-//                    continue
-//                }
-//
-//                result.secondary = kolor
-//            } else if result.detail == nil {
-//                if !result.secondary.isDistinct(compareColor: kolor) || !result.primary.isDistinct(compareColor: kolor) || !kolor.isContrastingColor(compareColor: result.background) {
-//                    continue
-//                }
-//
-//                result.detail = kolor
-//                break
-//            }
-//        }
-//
-//        let isDarkBackgound = result.background.isDarkColor
-//
-//        if result.primary == nil {
-//            result.primary = isDarkBackgound ? whiteColor:blackColor
-//        }
-//
-//        if result.secondary == nil {
-//            result.secondary = isDarkBackgound ? whiteColor:blackColor
-//        }
-//
-//        if result.detail == nil {
-//            result.detail = isDarkBackgound ? whiteColor:blackColor
-//        }
-        
+
         return result
     }
 }
-
 

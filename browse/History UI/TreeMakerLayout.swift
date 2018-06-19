@@ -9,12 +9,13 @@
 import UIKit
 
 class TreeConnectorAttributes: UICollectionViewLayoutAttributes {
-    var connectorOffset: CGSize? = nil
+    var connectorOffset: CGSize?
     
     override func copy(with zone: NSZone?) -> Any {
-        let copy = super.copy(with: zone) as! TreeConnectorAttributes
-        copy.connectorOffset = self.connectorOffset
-        return copy
+        let copy = super.copy(with: zone)
+        guard let attrs = copy as? TreeConnectorAttributes else { return copy }
+        attrs.connectorOffset = self.connectorOffset
+        return attrs
     }
     
     override func isEqual(_ object: Any?) -> Bool {

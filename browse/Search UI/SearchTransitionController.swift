@@ -20,7 +20,6 @@ let textFieldMargin: CGFloat = 40
 
 typealias SearchTransitionCompletionBlock = () -> Void
 
-
 class SearchTransitionController: NSObject {
     
     var direction: CustomAnimationDirection!
@@ -30,9 +29,11 @@ class SearchTransitionController: NSObject {
     var showKeyboard: Bool = true
     var isPreExpanded: Bool = false
     
-    func animateTransition(searchVC: SearchViewController,
-                           browserVC: BrowserViewController,
-                           completion: SearchTransitionCompletionBlock? ) {
+    func animateTransition(
+        searchVC: SearchViewController,
+        browserVC: BrowserViewController,
+        completion: SearchTransitionCompletionBlock? ) {
+        
         browserVC.toolbar.backgroundView.alpha = 1
         // TODO snapshot doesnt work if hidden
         let titleSnap = browserVC.toolbar.searchField.labelHolder.snapshotView(afterScreenUpdates: false)
@@ -101,7 +102,10 @@ class SearchTransitionController: NSObject {
         titleSnap?.alpha = isExpanding ? 1 : 0
         searchVC.textView.alpha = isExpanding ? 0 : 1
 
-        searchVC.textView.transform = CGAffineTransform(scale: isExpanding ? scaledDown : 1).translatedBy(x: isExpanding ? titleHorizontalShift : 0, y: isExpanding ? textFieldExtraYShift : 0)
+        searchVC.textView.transform = CGAffineTransform(scale: isExpanding ? scaledDown : 1)
+            .translatedBy(
+                x: isExpanding ? titleHorizontalShift : 0,
+                y: isExpanding ? textFieldExtraYShift : 0)
 
         UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: {
             searchVC.dragHandle.alpha = self.isExpanding ? 1 : 0
@@ -148,10 +152,12 @@ class SearchTransitionController: NSObject {
                 titleSnap?.center = self.isExpanding ? titleEndCenter : titleStartCenter
 
                 searchVC.textView.transform = CGAffineTransform(scale: self.isExpanding ? 1 : scaledDown )
-                    .translatedBy(x: self.isExpanding ? 0 : titleHorizontalShift, y: self.isExpanding ? 0 : textFieldExtraYShift)
-                
+                    .translatedBy(
+                        x: self.isExpanding ? 0 : titleHorizontalShift,
+                        y: self.isExpanding ? 0 : textFieldExtraYShift)
+
                 searchVC.textView.mask?.frame = self.isExpanding ? maskEndFrame : maskStartFrame
-                
+
                 if self.isDismissing { searchVC.textView.resignFirstResponder() }
                 
         }, completion: { _ in
@@ -169,17 +175,17 @@ extension SearchTransitionController: UIViewControllerAnimatedTransitioning {
         let fromVC = transitionContext.viewController(forKey: .from)!
         let toVC = transitionContext.viewController(forKey: .to)!
         let containerView = transitionContext.containerView
-        
-        let typeaheadVC = (isExpanding ? toVC : fromVC) as! SearchViewController
-        let browserVC = (isExpanding ? fromVC : toVC) as! BrowserViewController
-        
+
+        guard let typeaheadVC = (isExpanding ? toVC : fromVC) as? SearchViewController,
+            let browserVC = (isExpanding ? fromVC : toVC) as? BrowserViewController else { return }
+
         if isExpanding {
             containerView.addSubview(typeaheadVC.view)
         }
-        
+
         self.animateTransition(searchVC: typeaheadVC, browserVC: browserVC) {
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
         }
-        
+
     }
 }
