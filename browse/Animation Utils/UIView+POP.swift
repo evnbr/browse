@@ -29,7 +29,7 @@ extension UIView {
         at velocity: CGPoint = .zero,
         after delay: CFTimeInterval = 0,
         then completion: @escaping SpringCompletionBlock = {_, _ in }) -> POPSpringAnimation? {
-        
+
         if let anim = self.pop_animation(forKey: kSpringCenter) as? POPSpringAnimation {
             anim.toValue = newCenter
             return anim
@@ -66,7 +66,7 @@ extension UIView {
         to newFrame: CGRect,
         at velocity: CGRect = .zero,
         then completion: @escaping (POPAnimation?, Bool) -> Void = {_, _ in }) -> POPSpringAnimation? {
-        
+
         if let anim = self.pop_animation(forKey: kSpringFrame) as? POPSpringAnimation {
             anim.toValue = newFrame
             return anim

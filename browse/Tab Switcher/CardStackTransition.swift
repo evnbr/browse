@@ -22,7 +22,6 @@ extension UIScrollView {
     }
 }
 
-
 func quadraticArc(_ t: CGFloat) -> CGFloat {
     return ((t - 0.5) * (t - 0.5) * -2 + 0.5) * 2
 }
@@ -59,7 +58,7 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
         // TODO: This is not necessarily the correct thumb.
         // When swapping between tabs it gets mixed up.
 //        homeVC.setThumbsVisible()
-        
+
         if isExpanding {
             browserVC.resetSizes()
             containerView.addSubview(tabSwitcher.view)
@@ -73,16 +72,16 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
         let scrollView = browserVC.webView.scrollView
 //        scrollView.isScrollEnabled = false
         scrollView.cancelScroll()
-        
+
         var thumbCenter: CGPoint
         var thumbScale: CGFloat = 1
         var thumbOverlayAlpha: CGFloat = 0
-        
+
         var expandedTransform = CATransform3DIdentity
         let bScale = browserVC.cardView.scale
         expandedTransform = CATransform3DScale(expandedTransform, bScale, bScale, bScale)
         var stackTransform = CATransform3DIdentity
-        
+
         if let ip = tabSwitcher.currentIndexPath,
             let cv = tabSwitcher.collectionView,
             !fromBottom {
@@ -97,18 +96,18 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
                 totalItems: cv.numberOfItems(inSection: 0),
                 withXOffset: false,
                 withYOffset: false)
-            
+
             // must be after toVC is added
             let selectedThumbCenter = attr.center
             
             thumbOverlayAlpha = 1 - attr.alpha
             thumbCenter = containerView.convert(selectedThumbCenter, from: cv)
             thumbScale = attr.transform.xScale
-            
+
             if isExpanding {
                 thumbScale *= tapScaleAmount
             }
-            
+
 //            let s = thumbScale * 0.9
 //            var tf = CATransform3DIdentity
 //            tf.m34 = 1.0 / -4000.0
@@ -171,7 +170,7 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
 
         var popCenterDone = false
         var viewAnimFinished = false
-        
+
         func finishTransition() {
             guard viewAnimFinished && popCenterDone else {  return }
             if self.isExpanding {

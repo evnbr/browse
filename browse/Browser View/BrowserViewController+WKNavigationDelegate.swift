@@ -53,11 +53,11 @@ extension BrowserViewController: WKNavigationDelegate {
 
         if (error as NSError).code == NSURLErrorCancelled { return }
         updateLoadingState()
-        
+
         print("failed provisional")
         displayError(text: error.localizedDescription)
     }
-    
+
     func webView(
         _ webView: WKWebView,
         decidePolicyFor navigationAction: WKNavigationAction,

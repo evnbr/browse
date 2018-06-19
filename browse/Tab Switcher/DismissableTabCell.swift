@@ -11,11 +11,11 @@ import UIKit
 typealias CloseTabCallback = (Tab) -> Void
 typealias DismissTabCallback = (UICollectionViewCell, CGFloat) -> Void
 
-let shadowAlpha : Float = 0.2
+let shadowAlpha: Float = 0.2
 let tapScaleAmount: CGFloat = 0.995
 
 class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
-    var browserTab : Tab?
+    var browserTab: Tab?
     var closeTabCallback: CloseTabCallback!
     var dismissCallback: DismissTabCallback!
     var swipeCallback: DismissTabCallback!
@@ -24,8 +24,7 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
     override func dragStateDidChange(_ dragState: UICollectionViewCellDragState) {
         if dragState == .dragging {
             layer.borderColor = UIColor.red.cgColor
-        }
-        else if dragState == .none {
+        } else if dragState == .none {
             layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
         }
     }
@@ -36,15 +35,14 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
         dismissPanner.delegate = self
         dismissPanner.addTarget(self, action: #selector(panGestureChange(gesture:)))
         addGestureRecognizer(dismissPanner)
-        
     }
-    
+
     override func prepareForReuse() {
         super.prepareForReuse()
         overlay.alpha = 0
         self.isHidden = false
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

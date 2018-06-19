@@ -9,18 +9,18 @@
 import UIKit
 
 class Blend<T: Blendable>: NSObject {
-    private var _progress : CGFloat = 0
+    private var _progress: CGFloat = 0
     var start: T = T.initialValue
     var end: T = T.initialValue
 
-    typealias BlendUpdateBlock = (T) -> ()
-    let updateBlock : BlendUpdateBlock
-    
+    typealias BlendUpdateBlock = (T) -> Void
+    let updateBlock: BlendUpdateBlock
+
     init(update block : @escaping BlendUpdateBlock) {
         updateBlock = block
         super.init()
     }
-    
+
     convenience init(start: T, end: T, update block: @escaping BlendUpdateBlock) {
         self.init(update: block)
         setValue(of: .start, to: start)
@@ -39,11 +39,11 @@ class Blend<T: Blendable>: NSObject {
             update()
         }
     }
-    
+
     var currentValue: T {
         return T.blend(from: start, to: end, by: _progress)
     }
-    
+
     private func update() {
         updateBlock(currentValue)
     }
