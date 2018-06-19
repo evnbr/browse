@@ -1004,7 +1004,7 @@
 				INFOPLIST_FILE = browse/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = evn.browser;
+				PRODUCT_BUNDLE_IDENTIFIER = evn.browse;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "browse/Bridging-Header.h";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
@@ -1021,7 +1021,7 @@
 				INFOPLIST_FILE = browse/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = evn.browser;
+				PRODUCT_BUNDLE_IDENTIFIER = evn.browse;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "browse/Bridging-Header.h";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
