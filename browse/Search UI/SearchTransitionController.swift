@@ -35,8 +35,11 @@ class SearchTransitionController: NSObject {
         let titleSnap = browserVC.toolbar.searchField.labelHolder.snapshotView(afterScreenUpdates: false) // TODO doesnt work if hidden
         browserVC.toolbar.searchField.labelHolder.isHidden = true
         
-        print("start transition")
         searchVC.isTransitioning = true
+        if !searchVC.isViewLoaded {
+            print("no view")
+            searchVC.loadViewIfNeeded()
+        }
         
         let smallSize = Const.thumbTitleFont.pointSize
         let largeSize = Const.textFieldFont.pointSize

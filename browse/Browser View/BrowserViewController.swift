@@ -323,17 +323,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
     }
     
-    @objc func showSearchGesture(_ gesture: UIPanGestureRecognizer) {
-        if gesture.state == .began {
-            searchVC.transition.showKeyboard = false
-            searchVC.setBackground(toolbar.backgroundColor)
-            present(searchVC, animated: true) {
-                self.searchVC.transition.showKeyboard = true
-            }
-        }
-        searchVC.handleEntrancePan(gesture)
-    }
-    
     var cardViewDefaultFrame : CGRect {
         return CGRect(
             x: 0,
@@ -417,17 +406,33 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         }
     }
     
-    func displaySearch(instant: Bool = false) {
+    func prepareToShowSearch() {
         searchVC.setBackground(toolbar.backgroundColor)
         searchVC.browserVC = self
-        cardView.addSubview(searchVC.view)
-        searchVC.transition.isPreExpanded = instant
         searchVC.transition.direction = .present
+        cardView.addSubview(searchVC.view)
+    }
+    
+    func displaySearch(instant: Bool = false) {
+        prepareToShowSearch()
+        searchVC.transition.isPreExpanded = instant
         searchVC.transition.animateTransition(searchVC: searchVC, browserVC: self, completion: {
             self.searchVC.transition.isPreExpanded = false
             self.searchVC.updateKeyboardSnapshot()
         })
     }
+    
+    @objc func showSearchGesture(_ gesture: UIPanGestureRecognizer) {
+        if gesture.state == .began {
+            prepareToShowSearch()
+            searchVC.transition.showKeyboard = false
+            searchVC.transition.animateTransition(searchVC: searchVC, browserVC: self) {
+                self.searchVC.transition.showKeyboard = true
+            }
+        }
+        searchVC.handleEntrancePan(gesture)
+    }
+
     
     func stop() {
         webView.stopLoading()
