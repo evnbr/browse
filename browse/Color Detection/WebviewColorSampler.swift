@@ -11,7 +11,7 @@ import WebKit
 
 let MIN_TIME_BETWEEN_UPDATES = 0.1 //0.15
 
-protocol WebviewColorSamplerDelegate {
+protocol WebviewColorSamplerDelegate: class {
     var sampledWebView: WKWebView { get }
     
     var shouldUpdateSample: Bool { get }
@@ -25,7 +25,7 @@ protocol WebviewColorSamplerDelegate {
 
 class WebviewColorSampler: NSObject {
     
-    var delegate: WebviewColorSamplerDelegate!
+    weak var delegate: WebviewColorSamplerDelegate!
 
     private var colorUpdateTimer: Timer?
     
@@ -56,22 +56,22 @@ class WebviewColorSampler: NSObject {
 
     @objc func updateColors() {
         guard delegate.shouldUpdateSample else { return }
-        
+
         delegate.didTakeSample()
-        
+
         let now = CACurrentMediaTime()
         guard (now - lastSampledColorsTime) > MIN_TIME_BETWEEN_UPDATES else { return }
         lastSampledColorsTime = now
-    
+
         let sampleH: CGFloat = 6
         let sampleW: CGFloat = delegate.sampledWebView.bounds.width
-        
+
         let currentItem = delegate.sampledWebView.backForwardList.currentItem
-        
+
         func didNavigateAfterSample() -> Bool {
             return self.delegate.sampledWebView.backForwardList.currentItem !== currentItem
         }
-        
+
         let bottomConfig = WKSnapshotConfiguration()
         bottomConfig.rect = CGRect(
             x: 0,
@@ -88,7 +88,7 @@ class WebviewColorSampler: NSObject {
                 self.delegate.bottomColorChange(self.bottom)
             }
         }
-        
+
         let topConfig = WKSnapshotConfiguration()
         topConfig.rect = CGRect(
             x: 0,
@@ -105,5 +105,4 @@ class WebviewColorSampler: NSObject {
             }
         }
     }
-    
 }

@@ -9,7 +9,7 @@
 import Foundation
 import pop
 
-enum SpringTransitionState : CGFloat {
+enum SpringTransitionState: CGFloat {
     case start = 0
     case end = 1
 }
@@ -29,7 +29,7 @@ class SpringSwitch: NSObject {
         updateBlock = block
         super.init()
     }
-    
+
     func setState(_ newState: SpringTransitionState) {
         progress = newState.rawValue
         self.updateBlock(progress)
@@ -53,13 +53,16 @@ class SpringSwitch: NSObject {
 
     // External
     @discardableResult
-    func springState(_ newState: SpringTransitionState, completion: SpringCompletionBlock? = nil) -> POPSpringAnimation? {
+    func springState(
+        _ newState: SpringTransitionState,
+        completion: SpringCompletionBlock? = nil
+    ) -> POPSpringAnimation? {
         let newVal: CGFloat = newState.rawValue
         guard newVal != progress else {
             updateBlock(progress)
             return nil
         }
-        
+
         if let anim = self.pop_animation(forKey: kProgressAnimation) as? POPSpringAnimation {
             anim.toValue = newVal
             if let c = completion { anim.completionBlock = c }
@@ -75,7 +78,7 @@ class SpringSwitch: NSObject {
         }
         return nil
     }
-    
+
     func cancel() {
         self.pop_removeAnimation(forKey: kProgressAnimation)
     }

@@ -14,19 +14,17 @@ class BrowserPinchController: NSObject, UIGestureRecognizerDelegate {
     var isPinchDismissing = false
     var pinchStartScale: CGFloat = 1
     var pinchStartScroll: CGPoint = .zero
-    
+
     @objc func pinch(gesture: UIPinchGestureRecognizer) {
         if gesture.state == .began {
             considerPinchDismissing(gesture: gesture)
-        }
-        else if gesture.state == .changed {
+        } else if gesture.state == .changed {
             updatePinchDismiss(gesture: gesture)
-        }
-        else if gesture.state == .ended || gesture.state == .cancelled {
+        } else if gesture.state == .ended || gesture.state == .cancelled {
             endPinchGesture(gesture: gesture)
         }
     }
-    
+
     func updatePinchDismiss(gesture: UIPinchGestureRecognizer) {
         if isPinchDismissing {
             let adjustedScale = 1 - (pinchStartScale - gesture.scale)

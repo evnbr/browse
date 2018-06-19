@@ -9,17 +9,17 @@
 import UIKit
 
 class VisitCell: UICollectionViewCell {
-    var label : UILabel!
-    var shadowView : UIView!
-    var overlay : UIView!
+    var label: UILabel!
+    var shadowView: UIView!
+    var overlay: UIView!
     var toolbarView: BrowserToolbarView!
-    var snapView : UIImageView!
+    var snapView: UIImageView!
     
     var connector: UIView!
     let connectorLayer = CAShapeLayer()
 
-    var snapTopOffsetConstraint : NSLayoutConstraint!
-    var snapAspectConstraint : NSLayoutConstraint!
+    var snapTopOffsetConstraint: NSLayoutConstraint!
+    var snapAspectConstraint: NSLayoutConstraint!
     var connecterWidth: NSLayoutConstraint!
     var connectorHeight: NSLayoutConstraint!
 
@@ -33,11 +33,16 @@ class VisitCell: UICollectionViewCell {
         snapView.contentMode = .scaleAspectFill
         snapView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(snapView)
-        snapTopOffsetConstraint = snapView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: THUMB_OFFSET_COLLAPSED)
+        snapTopOffsetConstraint = snapView.topAnchor.constraint(
+            equalTo: contentView.topAnchor,
+            constant: THUMB_OFFSET_COLLAPSED)
         snapTopOffsetConstraint.isActive = true
         snapView.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
         snapView.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
-        snapAspectConstraint = snapView.heightAnchor.constraint(equalTo: snapView.widthAnchor, multiplier: 1, constant: 0)
+        snapAspectConstraint = snapView.heightAnchor.constraint(
+            equalTo: snapView.widthAnchor,
+            multiplier: 1,
+            constant: 0)
         snapAspectConstraint.isActive = true
         
         label = UILabel(frame: CGRect(x: 24, y: 12, width: frame.width - 48, height: 24))
@@ -84,8 +89,7 @@ class VisitCell: UICollectionViewCell {
         contentView.backgroundColor = .white
         contentView.radius = Const.thumbRadius
         contentView.clipsToBounds = true
-        
-        
+
         connector = UIView()
         connector.translatesAutoresizingMaskIntoConstraints = false
         
@@ -109,7 +113,7 @@ class VisitCell: UICollectionViewCell {
         let absSize = CGSize(width: abs(size.width), height: abs(size.height))
         
         let connectorPath = UIBezierPath()
-        connectorPath.move(to: CGPoint(x:0, y: 0))
+        connectorPath.move(to: CGPoint(x: 0, y: 0))
 //        connectorPath.addLine(to: CGPoint(x: size.width, y: absSize.height))
         if absSize.width > 140 {
             connectorPath.addCurve(
@@ -156,7 +160,7 @@ class VisitCell: UICollectionViewCell {
 
         if let title = visit.title, title != "" { label.text = "\(title)" }
         if let url = visit.url { toolbarView.text = url.displayHost }
-    
+
         isTappable = !(visit.tab?.isClosed ?? false)
     }
     
@@ -164,12 +168,15 @@ class VisitCell: UICollectionViewCell {
         let newAspect = newImage.size.height / newImage.size.width
         if abs(newAspect - snapAspectConstraint.multiplier) > 0.001 {
             snapView.removeConstraint(snapAspectConstraint)
-            snapAspectConstraint = snapView.heightAnchor.constraint(equalTo: snapView.widthAnchor, multiplier: newAspect, constant: 0)
+            snapAspectConstraint = snapView.heightAnchor.constraint(
+                equalTo: snapView.widthAnchor,
+                multiplier: newAspect,
+                constant: 0)
             snapAspectConstraint.isActive = true
         }
         snapView.image = newImage
     }
-    
+
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         UIView.animate(withDuration: 0.15, delay: 0.0, animations: {
@@ -189,10 +196,13 @@ class VisitCell: UICollectionViewCell {
     }
 
     func unSelect(animated: Bool = true) {
-        if animated { UIView.animate(withDuration: 0.2) { self.reset() } }
-        else { reset() }
+        if animated {
+            UIView.animate(withDuration: 0.2) { self.reset() }
+        } else {
+            reset()
+        }
     }
-    
+
     var hasBorder: Bool {
         get {
             return contentView.layer.borderWidth > 0
@@ -202,7 +212,7 @@ class VisitCell: UICollectionViewCell {
             contentView.layer.borderWidth = newValue ? 8 : 0
         }
     }
-    
+
     var isTappable: Bool {
         get {
             return contentView.alpha == 1
@@ -212,7 +222,7 @@ class VisitCell: UICollectionViewCell {
             connector.alpha = newValue ? 1 : 0.5
         }
     }
-    
+
     func reset() {
         self.contentView.transform = .identity
         self.shadowView.scale = 1
@@ -223,7 +233,7 @@ class VisitCell: UICollectionViewCell {
         alpha = 1
         overlay.alpha = 1 - layoutAttributes.alpha
         layer.zPosition = CGFloat(layoutAttributes.zIndex)
-    
+
         if let treeAttrs = layoutAttributes as? TreeConnectorAttributes,
             let connectorOffset = treeAttrs.connectorOffset {
             connector.isHidden = false
@@ -232,7 +242,7 @@ class VisitCell: UICollectionViewCell {
         } else {
             connector.isHidden = true
         }
-    
+
         let s = layoutAttributes.transform.xScale * 0.9
         var tf = CATransform3DIdentity
         tf.m34 = 1.0 / -4000.0

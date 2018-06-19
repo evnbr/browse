@@ -10,9 +10,9 @@ import Foundation
 import UIKit
 
 class ColorStatusBarView: GradientColorChangeView {
-    var blurView : UIVisualEffectView!
+    var blurView: UIVisualEffectView!
     var label: UILabel!
-    
+
     init() {
         let rect = CGRect(
             origin: CGPoint(x: 0, y: 0),

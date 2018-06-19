@@ -17,7 +17,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     var tabSwitcher: TabSwitcherViewController
     
     let webViewManager = WebViewManager()
-    
     var webView: WKWebView!
     var snapshotView: UIImageView = UIImageView()
     var currentTab: Tab
@@ -28,11 +27,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     var statusHeightConstraint: NSLayoutConstraint!
 
     var colorSampler: WebviewColorSampler!
-    
+
     lazy var searchVC = SearchViewController()
-    
+
     var statusBar: ColorStatusBarView!
-    
+
     var toolbar: BrowserToolbarView!
     var toolbarPlaceholder = UIView()
     var accessoryView: GradientColorChangeView!
@@ -42,7 +41,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     var contentView: UIView!
     var overlay: UIView!
     var gradientOverlay: GradientView!
-    
+
     var overflowController: UIAlertController!
     var onePasswordExtensionItem: NSExtensionItem!
     var gestureController: BrowserGestureController!
@@ -58,15 +57,18 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     override var prefersStatusBarHidden: Bool {
         return gestureController.isDismissing
     }
-    
+
     var isShowingToolbar: Bool {
         return toolbar.heightConstraint.constant > 0
     }
 
     var displayLocation: String {
         guard let url = webView?.url else { return "" }
-        if let q = url.searchQuery { return q }
-        else { return displayURL }
+        if let query = url.searchQuery {
+            return query
+        } else {
+            return displayURL
+        }
     }
 
     var displayURL: String {
@@ -77,16 +79,19 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     var isBlank: Bool {
         return webView?.url == nil
     }
-    
+
     var isSearching: Bool {
         guard let str = webView.url?.absoluteString else { return false }
         return (str.contains("google") || str.contains("duck")) && str.contains("?q=")
     }
-    
-    var editableLocation : String {
+
+    var editableLocation: String {
         guard let url = webView?.url else { return "" }
-        if let q = url.searchQuery { return q }
-        else { return url.absoluteString }
+        if let query = url.searchQuery {
+            return query
+        } else {
+            return url.absoluteString
+        }
     }
 
     func hideUntilNavigationDone(navigation: WKNavigation? ) {
@@ -139,45 +144,30 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         fatalError("init(coder:) has not been implemented")
     }
 
+    var progressObserver: NSKeyValueObservation?
+    var titleObserver: NSKeyValueObservation?
+    var urlObserver: NSKeyValueObservation?
+    var canGoBackObserver: NSKeyValueObservation?
+
     func setTab(_ newTab: Tab) {
         if view == nil {
             fatalError("Can't set tab before view loaded")
         }
         if newTab == currentTab && webView != nil { return }
 
-        let oldWebView = webView
-
-        oldWebView?.removeFromSuperview()
-
-        oldWebView?.uiDelegate = nil
-        oldWebView?.navigationDelegate = nil
-        oldWebView?.scrollView.delegate = nil
-
-        oldWebView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress))
-        oldWebView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.title))
-        oldWebView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.url))
-        oldWebView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.canGoBack))
-        oldWebView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.canGoForward))
-
+        // Cleanup
+        if let oldWebView = webView {
+            oldWebView.removeFromSuperview()
+            clearObservers(for: oldWebView)
+        }
+        
+        // Setup
         currentTab = newTab
         webView = webViewManager.webViewFor(newTab)
 
-        if let img = newTab.currentVisit?.snapshot {
-            snapshotView.image = img
-        } else {
-            snapshotView.image = nil
-        }
-
-        if let newTop = newTab.currentVisit?.topColor {
-            statusBar.backgroundColor = newTop
-        } else {
-            statusBar.backgroundColor = .white
-        }
-        if let newBottom = newTab.currentVisit?.bottomColor {
-            toolbar.backgroundColor = newBottom
-        } else {
-            toolbar.backgroundColor = .white
-        }
+        snapshotView.image = newTab.currentVisit?.snapshot
+        statusBar.backgroundColor = newTab.currentVisit?.topColor ?? .white
+        toolbar.backgroundColor = newTab.currentVisit?.bottomColor ?? .white
 
         webView.navigationDelegate = self
         webView.uiDelegate = self
@@ -193,35 +183,41 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         webView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -Const.toolbarHeight).isActive = true
         toolbarPlaceholder.topAnchor.constraint(equalTo: webView.bottomAnchor).isActive = true
 
-        observeLoadingChanges(for: webView)
-
         webView.addInputAccessory(toolbar: accessoryView)
 
+        observeLoadingChanges(for: webView)
         updateLoadingState()
+
         showToolbar(animated: true)
 
         if let startLocation = currentTab.currentVisit?.url, self.isBlank {
             navigateTo(startLocation)
         }
     }
+    
+    func clearObservers(for webView: WKWebView) {
+        webView.uiDelegate = nil
+        webView.navigationDelegate = nil
+        webView.scrollView.delegate = nil
 
-    var obsProgress: NSKeyValueObservation?
-    var obsTitle: NSKeyValueObservation?
-    var obsURL: NSKeyValueObservation?
-    var obsCanGoBack: NSKeyValueObservation?
+        progressObserver = nil
+        titleObserver = nil
+        urlObserver = nil
+        canGoBackObserver = nil
+    }
 
     func observeLoadingChanges(for webView: WKWebView) {
-        obsProgress = webView.observe(\.estimatedProgress) { _, _ in
+        progressObserver = webView.observe(\.estimatedProgress) { _, _ in
             self.toolbar.progress = CGFloat(webView.estimatedProgress)
             self.updateLoadingState()
         }
-        obsTitle = webView.observe(\.title) { _, _ in
+        titleObserver = webView.observe(\.title) { _, _ in
             self.updateLoadingState()
         }
-        obsURL = webView.observe(\.url) { _, _ in
+        urlObserver = webView.observe(\.url) { _, _ in
             self.updateLoadingState()
         }
-        obsCanGoBack = webView.observe(\.canGoBack) { _, _ in
+        canGoBackObserver = webView.observe(\.canGoBack) { _, _ in
             UIView.animate(withDuration: 0.25) {
                 self.toolbar.backButton.isEnabled = self.webView.canGoBack || self.currentTab.hasParent
             }

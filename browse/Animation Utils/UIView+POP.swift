@@ -18,7 +18,7 @@ let kSpringFrame = "springFrame"
 typealias SpringCompletionBlock = (POPAnimation?, Bool) -> Void
 
 extension UIView {
-    var isPopAnimating : Bool {
+    var isPopAnimating: Bool {
         let anims = self.pop_animationKeys()
         return anims != nil && anims!.count > 0
     }

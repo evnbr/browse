@@ -20,13 +20,13 @@ class Blocker: NSObject {
         "ultimateAdblockList",
 //        "ultimateAdblockListCSS",
     ]
-    private var lists : [ WKContentRuleList ] = []
+    private var lists: [ WKContentRuleList ] = []
     
     private var listsAreReady: Bool {
         return lists.count == fileNames.count
     }
     
-    func getRules(_ callback: @escaping ([WKContentRuleList]) -> ()) {
+    func getRules(_ callback: @escaping ([WKContentRuleList]) -> Void) {
         if listsAreReady {
             callback(lists)
             return
@@ -40,19 +40,20 @@ class Blocker: NSObject {
     }
     
     
-    func findList(_ fileName : String, completion: @escaping (WKContentRuleList?) -> ()) {
+    func findList(_ fileName : String, completion: @escaping (WKContentRuleList?) -> Void) {
         WKContentRuleListStore.default().getAvailableContentRuleListIdentifiers { (identifiers) in
             if identifiers != nil && identifiers!.contains(fileName) {
-                WKContentRuleListStore.default().lookUpContentRuleList(forIdentifier: fileName, completionHandler: { (list, error) in
-                    if let list : WKContentRuleList = list {
+                WKContentRuleListStore.default().lookUpContentRuleList(
+                    forIdentifier: fileName,
+                    completionHandler: { (list, error) in
+                    if let list: WKContentRuleList = list {
                         completion(list)
                     } else {
                         print("existing rules failed to be fetched")
                         if let e = error { print(e) }
                         if let e = error as? WKError, e.code == WKError.contentRuleListStoreVersionMismatch {
                             self.compileList(fileName, completion: completion)
-                        }
-                        else {
+                        } else {
                             completion(nil)
                         }
                     }
@@ -63,16 +64,19 @@ class Blocker: NSObject {
         }
     }
     
-    func compileList(_ fileName : String, completion: @escaping (WKContentRuleList?) -> ()) {
+    func compileList(_ fileName: String, completion: @escaping (WKContentRuleList?) -> Void) {
         print("compiling rules '\(fileName)'")
         guard let path = Bundle.main.path(forResource: fileName, ofType: "json"),
-            let data = try? String(contentsOfFile:path, encoding: String.Encoding.utf8) else {
+            let data = try? String(contentsOfFile: path, encoding: String.Encoding.utf8) else {
                 print("rules file not found")
                 completion(nil)
                 return
         }
-        WKContentRuleListStore.default().compileContentRuleList(forIdentifier: fileName, encodedContentRuleList: data) { (list, error) in
-            if let list : WKContentRuleList = list {
+        WKContentRuleListStore.default().compileContentRuleList(
+            forIdentifier: fileName,
+            encodedContentRuleList: data
+        ) { (list, error) in
+            if let list: WKContentRuleList = list {
                 print("compiled '\(fileName)'")
                 completion(list)
             } else {

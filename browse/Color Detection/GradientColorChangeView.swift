@@ -14,7 +14,6 @@ enum GradientColorChangeDirection {
 }
 
 class GradientColorChangeView: UIView, CAAnimationDelegate {
-    
     let gradientLayer: CAGradientLayer = CAGradientLayer()
     let gradientLayer2: CAGradientLayer = CAGradientLayer()
     let gradientLayer3: CAGradientLayer = CAGradientLayer()
@@ -22,17 +21,20 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     let duration: CFTimeInterval = 0.2//0.3
 
     var backgroundView: UIView!
-    
+
     private var lastColor: UIColor = UIColor.clear
-    
+
     override var backgroundColor: UIColor! {
         get { return lastColor }
         set {
-            if let c = newValue { setBackground(to: c) }
-            else { lastColor = .clear }
+            if let color = newValue {
+                setBackground(to: color)
+            } else {
+                lastColor = .clear
+            }
         }
     }
-    
+
     var isLight: Bool {
         return lastColor.isLight
     }
@@ -58,7 +60,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
 //        backgroundView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(backgroundView)
         sendSubview(toBack: backgroundView)
-        
+
         backgroundView.translatesAutoresizingMaskIntoConstraints = false
         backgroundView.topAnchor.constraint(equalTo: topAnchor).isActive = true
         backgroundView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
@@ -70,7 +72,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
             layer.colors = [UIColor.clear.cgColor, UIColor.clear.cgColor]
         }
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -82,13 +84,13 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         }
         backgroundView.backgroundColor = lastColor
     }
-    
+
     func getGradientLayer() -> CAGradientLayer {
         if gradientLayer.superlayer == nil {
             return gradientLayer
-        } else if gradientLayer2.superlayer == nil  {
+        } else if gradientLayer2.superlayer == nil {
             return gradientLayer2
-        } else if gradientLayer3.superlayer == nil  {
+        } else if gradientLayer3.superlayer == nil {
             return gradientLayer3
         } else {
             let newLayer = CAGradientLayer()

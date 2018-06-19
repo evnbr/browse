@@ -15,11 +15,11 @@ class PlaceholderView: UIView {
     var overlay: UIView!
     var imageView: UIImageView!
     var aspectConstraint: NSLayoutConstraint!
-    
+
     var positioner: Blend<CGPoint>!
     var scaler: Blend<CGFloat>!
     var darkener: Blend<CGFloat>!
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
 
@@ -29,7 +29,7 @@ class PlaceholderView: UIView {
         radius = Const.cardRadius
         layer.shadowRadius = Const.shadowRadius
         layer.shadowOpacity = 0.16
-        
+
         contentView = UIView(frame: bounds)
         contentView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         contentView.clipsToBounds = true
@@ -59,7 +59,7 @@ class PlaceholderView: UIView {
         overlay.alpha = 0
         overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         contentView.addSubview(overlay)
-        
+
         positioner = Blend { self.center = $0 }
         scaler = Blend { self.scale = $0  }
         darkener = Blend { self.overlay.alpha = $0  }

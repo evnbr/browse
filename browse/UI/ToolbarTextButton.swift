@@ -15,12 +15,11 @@ enum ToolbarTextButtonSize {
 }
 
 class ToolbarTextButton: ToolbarTouchView {
-    
     let label = UILabel()
     let stackView = UIStackView()
 
     var icon: UIImageView?
-    
+
     private var _size: ToolbarTextButtonSize = .small
 
     var size: ToolbarTextButtonSize {

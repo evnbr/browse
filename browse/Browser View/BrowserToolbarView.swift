@@ -9,7 +9,7 @@
 import UIKit
 
 class BrowserToolbarView: ColorToolbarView {
-    
+
     var heightConstraint: NSLayoutConstraint!
     var backButton: ToolbarIconButton!
     var stopButton: ToolbarIconButton!
@@ -24,7 +24,7 @@ class BrowserToolbarView: ColorToolbarView {
         get { return searchField.progress }
         set { searchField.progress = newValue }
     }
-    
+
     var contentsAlpha: CGFloat {
         get { return searchField.alpha }
         set {
@@ -33,17 +33,17 @@ class BrowserToolbarView: ColorToolbarView {
             tabButton.alpha = newValue
         }
     }
-    
+
     var isSecure: Bool {
         get { return searchField.isSecure }
         set { searchField.isSecure = newValue }
     }
-    
+
     var isSearch: Bool {
         get { return searchField.isSearch }
         set { searchField.isSearch = newValue }
     }
-    
+
     var isLoading: Bool {
         get { return searchField.isLoading }
         set {
@@ -51,7 +51,7 @@ class BrowserToolbarView: ColorToolbarView {
             isStopVisible = newValue
         }
     }
-    
+
     private var isStopVisible: Bool {
         get { return self.stopButton.isEnabled }
         set {
@@ -63,15 +63,14 @@ class BrowserToolbarView: ColorToolbarView {
         }
     }
 
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
+
 //        let blur = PlainBlurView(frame: bounds)
 //        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 //        addSubview(blur)
 //        sendSubview(toBack: blur)
-        
+
         translatesAutoresizingMaskIntoConstraints = false
         heightConstraint = heightAnchor.constraint(equalToConstant: Const.toolbarHeight)
         heightConstraint.isActive = true
@@ -82,20 +81,19 @@ class BrowserToolbarView: ColorToolbarView {
 
         stopButton = searchField.stopButton
         items = [backButton, searchField, tabButton]
-        
+
         // Initial values
         isLoading = false
         progress = 1
     }
-        
+
     override func tintColorDidChange() {
         super.tintColorDidChange()
         subviews.forEach { (v) in
             v.tintColor = tintColor
         }
     }
-    
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

@@ -208,16 +208,11 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         // Cancel scroll, assume gesture will handle
         if isDismissing && direction == .top {
             scrollView.setScrollSilently(CGPoint(x: startScroll.x, y: 0))
-        }
-        else if isDismissing && direction == .leftToRight {
-//            scrollView.setScrollSilently(CGPoint(x: 0, y: startScroll.y))
+        } else if isDismissing && direction == .leftToRight {
             scrollView.setScrollSilently(x: 0)
-        }
-        else if isDismissing && direction == .rightToLeft {
-//            scrollView.setScrollSilently(CGPoint(x: scrollView.maxScrollX, y: startScroll.y))
+        } else if isDismissing && direction == .rightToLeft {
             scrollView.setScrollSilently(x: scrollView.maxScrollX)
-        }
-        else if pinchController.isPinchDismissing {
+        } else if pinchController.isPinchDismissing {
             scrollView.setScrollSilently(pinchController.pinchStartScroll)
         }
         updateToolbar(scrollView)

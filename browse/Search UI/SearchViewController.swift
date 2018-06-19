@@ -96,10 +96,10 @@ class SearchViewController: UIViewController {
         contentView.radius = Const.cardRadius
         view.addSubview(contentView)
 
-//        backgroundView = PlainBlurView(frame: contentView.bounds)
-//        backgroundView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-//        backgroundView.overlayAlpha = 1//isFakeTab ? 1 : 0.8
-//        contentView.addSubview(backgroundView)
+        backgroundView = PlainBlurView(frame: contentView.bounds)
+        backgroundView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        backgroundView.overlayAlpha = 1//isFakeTab ? 1 : 0.8
+        contentView.addSubview(backgroundView)
 
         NSLayoutConstraint.activate([
             contentView.leftAnchor.constraint(equalTo: view.leftAnchor),
