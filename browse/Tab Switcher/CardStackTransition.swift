@@ -34,6 +34,7 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
     var isExpanding  : Bool { return direction == .present }
     var isDismissing : Bool { return direction == .dismiss }
     var useArc: Bool = true
+    var fromBottom: Bool = false
     var isTransitioning: Bool = false
         
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
@@ -81,7 +82,8 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
         var stackTransform = CATransform3DIdentity
         
         if let ip = tabSwitcher.currentIndexPath,
-            let cv = tabSwitcher.collectionView {
+            let cv = tabSwitcher.collectionView,
+            !fromBottom {
             
 //            let attr = homeVC.stackedLayout.layoutAttributesForItem(at: ip)
             let attr = tabSwitcher.cardStackLayout.calculateItem(
@@ -114,6 +116,7 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
         }
         else {
             // If can't find end point for some reason, just animate to/from bottom
+            print("card from bottom")
             thumbCenter = CGPoint(x: tabSwitcher.view.center.x, y: tabSwitcher.view.center.y + (tabSwitcher.view.bounds.height))
         }
 
@@ -132,7 +135,7 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
         var smallerBounds = thumbBounds
         smallerBounds.size.height = expandedBounds.size.height
         
-        browserVC.grad.alpha = isExpanding ? 1 : 0
+        browserVC.gradientOverlay.alpha = isExpanding ? 1 : 0
         browserVC.overlay.alpha = thumbOverlayAlpha
         browserVC.cardView.center = isExpanding ? thumbCenter : expandedCenter
         browserVC.contentView.mask = mask
@@ -296,7 +299,11 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
 
         browserVC.statusBar.frame.size.height = !isExpanding ? statusHeight : THUMB_OFFSET_COLLAPSED
         browserVC.currentTab.currentVisit?.title = browserVC.webView.title
-        browserVC.statusBar.label.text = browserVC.webView.title
+        if let title = browserVC.webView.title, title != "" {
+            browserVC.statusBar.label.text = title
+        } else {
+            browserVC.statusBar.label.text = "New Tab"
+        }
         
         if isExpanding {
             UIView.animate(withDuration: 0.2, delay: 0, animations: {
@@ -321,7 +328,7 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
             
 //            browserVC.cardView.layer.transform = self.isExpanding ? expandedTransform : stackTransform
             browserVC.statusBar.backgroundView.alpha = 1
-            browserVC.grad.alpha = self.isExpanding ? 0 : 1
+            browserVC.gradientOverlay.alpha = self.isExpanding ? 0 : 1
             browserVC.overlay.alpha = self.isExpanding ? 0 : thumbOverlayAlpha
             browserVC.contentView.radius = self.isExpanding ? Const.cardRadius : Const.thumbRadius
             mask.radius = self.isExpanding ? Const.cardRadius : Const.thumbRadius

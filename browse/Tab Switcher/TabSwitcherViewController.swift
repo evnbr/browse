@@ -72,7 +72,7 @@ class TabSwitcherViewController: UICollectionViewController {
         fab = FloatButton(
             frame: CGRect(x: 0, y: 0, width: FAB_SIZE, height: FAB_SIZE),
             icon: UIImage(named: "add"),
-            onTap: self.showSearch
+            onTap: { self.addTab() }
         )
         view.addSubview(fab, constraints: [
             view.bottomAnchor.constraint(equalTo: fab.bottomAnchor, constant: 32),
@@ -109,19 +109,14 @@ class TabSwitcherViewController: UICollectionViewController {
     }
     
 //    var isDisplayingFakeTab = false
-    func showSearch() {
-        addTab()
-    }
 
     func addTab(animated: Bool = true) {
         let newTab = createTab()
         newTab.sortIndex = Int16(tabCount)
-        self.cardStackTransition.useArc = false
+        cardStackTransition.fromBottom = true
         self.showTab(newTab, animated: animated, completion: {
-            self.cardStackTransition.useArc = true
-            self.moveTabToEnd(newTab)
+            self.cardStackTransition.fromBottom = false
         })
-        self._browserVC?.displaySearch(instant: true)
     }
     
     func createTab() -> Tab {
@@ -277,17 +272,21 @@ class TabSwitcherViewController: UICollectionViewController {
     }
     
     func showTab(_ tab: Tab, animated: Bool = true, completion: (() -> Void)? = nil) {
-        let browser = self.setupBrowser(with: tab)
+        let browser = setupBrowser(with: tab)
         browser.modalPresentationStyle = .custom
         browser.transitioningDelegate = self
         
         cardStackLayout.selectedIndexPath = currentIndexPath!
-
+        if tab.currentVisit == nil {
+            cardStackTransition.useArc = false
+            browser.displaySearch(instant: true)
+        }
         present(browser, animated: animated, completion: {
             if let thumb = self.thumb(forTab: tab) {
                 thumb.unSelect(animated: false)
                 thumb.setTab(tab)
             }
+            self.cardStackTransition.useArc = true
             self.moveTabToEnd(tab)
             completion?()
         })

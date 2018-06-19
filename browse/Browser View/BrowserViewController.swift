@@ -40,7 +40,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
     var cardView: UIView!
     var contentView: UIView!
     var overlay: UIView!
-    var grad: GradientView!
+    var gradientOverlay: GradientView!
     
     var overflowController: UIAlertController!
     var onePasswordExtensionItem : NSExtensionItem!
@@ -252,9 +252,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         overlay.backgroundColor = UIColor.black
         overlay.alpha = 0
         
-        grad = GradientView(frame: view.bounds.insetBy(dx: -60, dy: -60) )
-        grad.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        grad.alpha = 0
+        gradientOverlay = GradientView(frame: view.bounds.insetBy(dx: -60, dy: -60) )
+        gradientOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        gradientOverlay.alpha = 0
         
         view.addSubview(cardView)
         cardView.addSubview(shadowView)
@@ -287,7 +287,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         
         contentView.addSubview(overlay)
         constrain4(contentView, overlay)
-        contentView.addSubview(grad)
+        
+        cardView.addSubview(gradientOverlay)
 
         constrainTop3(statusBar, contentView)
         statusHeightConstraint = statusBar.heightAnchor.constraint(equalToConstant: Const.statusHeight)
@@ -410,7 +411,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate, UIAc
         searchVC.setBackground(toolbar.backgroundColor)
         searchVC.browserVC = self
         searchVC.transition.direction = .present
-        cardView.addSubview(searchVC.view)
+//        cardView.addSubview(searchVC.view)
+        cardView.insertSubview(searchVC.view, belowSubview: gradientOverlay)
     }
     
     func displaySearch(instant: Bool = false) {

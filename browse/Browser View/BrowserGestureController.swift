@@ -156,7 +156,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         dismissPanner.addTarget(self, action: #selector(anywherePan(gesture:)))
         dismissPanner.cancelsTouchesInView = false
         dismissPanner.delaysTouchesBegan = false
-        view.addGestureRecognizer(dismissPanner)
+        vc.contentView.addGestureRecognizer(dismissPanner)
         
         let backDismissPan = UIScreenEdgePanGestureRecognizer()
         backDismissPan.delegate = self
@@ -177,7 +177,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         let pincher = UIPinchGestureRecognizer()
         pincher.delegate = self
         pincher.addTarget(pinchController, action: #selector(pinchController.pinch(gesture:)))
-        view.addGestureRecognizer(pincher)
+        vc.contentView.addGestureRecognizer(pincher)
     }
     
     func scrollViewDidScrollToTop(_ scrollView: UIScrollView) {
@@ -541,7 +541,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     @objc
     func leftEdgePan(gesture:UIScreenEdgePanGestureRecognizer) {
         if gesture.state == .began {
-            guard !isDismissing else { return }
+            if isDismissing { return }
             startDismiss(gesture, direction: .leftToRight)
             startPoint = .zero
             vc.showToolbar()
@@ -560,7 +560,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     @objc
     func rightEdgePan(gesture:UIScreenEdgePanGestureRecognizer) {
         if gesture.state == .began {
-            guard !isDismissing else { return }
+            if isDismissing { return }
             startDismiss(gesture, direction: .rightToLeft)
             startPoint = .zero
             vc.showToolbar()
@@ -672,6 +672,8 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
         isDismissing = true
         dismissingEndedPossible()
         if GESTURE_DEBUG { vc.toolbar.text = "Started" }
+        
+        vc.searchVC.dismissSelf()
         
         vc.tabSwitcher.moveTabToEnd(vc.currentTab)
         vc.tabSwitcher.scrollToBottom()
@@ -974,6 +976,7 @@ class BrowserGestureController : NSObject, UIGestureRecognizerDelegate, UIScroll
     
     @objc func anywherePan(gesture: UIPanGestureRecognizer) {
         if gesture.state == .began {
+            if isDismissing { return }
             dismissingBecamePossible()
             considerStarting(gesture: gesture)
         }

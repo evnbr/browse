@@ -52,7 +52,7 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
     func setTab(_ newTab : Tab?) {
         browserTab = newTab
         guard let visit = browserTab?.currentVisit else {
-            label.text = "Unknown visit"
+            label.text = "New Tab"
             return
         }
         setVisit(visit)

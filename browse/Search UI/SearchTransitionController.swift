@@ -87,7 +87,7 @@ class SearchTransitionController: NSObject {
         titleSnap?.center = isExpanding ? titleStartCenter : titleEndCenter
         
         browserVC.toolbar.backgroundView.alpha = 1
-        //        typeaheadVC.scrim.alpha = isExpanding ? 0 : 1
+//        searchVC.scrim.alpha = isExpanding ? 0 : 1
         
         searchVC.kbHeightConstraint.constant = isExpanding
             ? (showKeyboard ? searchVC.keyboard.height : 0 )
@@ -120,19 +120,17 @@ class SearchTransitionController: NSObject {
             titleSnap?.removeFromSuperview()
             browserVC.toolbar.searchField.labelHolder.isHidden = false
             browserVC.toolbar.backgroundView.alpha = 1
-            print("end transition")
             completion?()
         }
         
         let completeEarly = !showKeyboard && isExpanding && !isPreExpanded
-        print("complete early: \(completeEarly)")
         if completeEarly { completeTransition() }
         
         searchVC.iconEntranceProgress = isExpanding ? 1 : 0
         searchVC.view.center = browserVC.view.center
         
         UIView.animate(
-            withDuration: isPreExpanded ? 2.0 : 0.5,
+            withDuration: 0.5,
             delay: 0.0,
             usingSpringWithDamping: 1,
             initialSpringVelocity: 0.0,
@@ -140,7 +138,7 @@ class SearchTransitionController: NSObject {
             animations: {
                 searchVC.view.layoutIfNeeded()
                 searchVC.pageActionView.alpha = self.isExpanding ? 1 : 0
-                searchVC.scrim.alpha = 0//self.isExpanding ? 1 : 0
+                searchVC.scrim.alpha = 0 //self.isExpanding ? 1 : 0
                 searchVC.textView.alpha = self.isExpanding ? 1 : 0
                 titleSnap?.alpha = self.isExpanding ? 0 : 1
                 

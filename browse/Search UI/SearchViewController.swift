@@ -13,7 +13,7 @@ let typeaheadReuseID = "TypeaheadRow"
 let MAX_ROWS: Int = 4
 let SEARCHVIEW_MAX_H: CGFloat = 240.0
 let TEXTVIEW_PADDING = UIEdgeInsetsMake(20, 20, 40, 20 )
-let pageActionHeight: CGFloat = 40
+let pageActionHeight: CGFloat = 120
 
 class SearchViewController: UIViewController {
 
@@ -28,6 +28,7 @@ class SearchViewController: UIViewController {
     var keyboard = KeyboardManager()
     
     var isTransitioning = false
+    var isSwiping = false
 
     var transition = SearchTransitionController()
     
@@ -43,7 +44,7 @@ class SearchViewController: UIViewController {
 
     var textHeight : CGFloat = 12
     var suggestionSpacer : CGFloat = 24
-    var contextAreaHeight: CGFloat = 24
+    var contextAreaHeight: CGFloat = 120
     var showingCancel = true
     
     var iconEntranceProgress: CGFloat {
@@ -294,6 +295,7 @@ class SearchViewController: UIViewController {
     
     @objc
     func dismissSelf() {
+        if isTransitioning || view.superview == nil { return }
         showFakeKeyboard()
 //        self.dismiss(animated: true)
         transition.direction = .dismiss
@@ -318,8 +320,12 @@ class SearchViewController: UIViewController {
         
         keyboard.height = keyboardRectangle.height
         let isTabTransitioning = browserVC?.tabSwitcher.cardStackTransition.isTransitioning ?? false
-        if textView.isFirstResponder && !kbHeightConstraint.isPopAnimating && !isTransitioning && !isTabTransitioning  {
-            print("ukh, is not transitioning")
+        if textView.isFirstResponder
+            && !kbHeightConstraint.isPopAnimating
+            && !isSwiping
+            && !isTransitioning
+            && !isTabTransitioning  {
+            // only apply kbheight if textview focused and not animating
             kbHeightConstraint.constant = keyboard.height
         }
     }
@@ -511,7 +517,7 @@ extension SearchViewController : UIGestureRecognizerDelegate {
 
         if gesture.state == .began {
             showFakeKeyboard()
-            isTransitioning = true
+            isSwiping = true
         }
         else if gesture.state == .changed {
 //            self.iconProgress = (abs(dist.y) / keyboard.height).reverse().clip()
@@ -528,12 +534,14 @@ extension SearchViewController : UIGestureRecognizerDelegate {
             }
         }
         else if gesture.state == .ended || gesture.state == .cancelled {
-            isTransitioning = false
+            isSwiping = false
             if (vel.y > 100 || kbHeightConstraint.constant < 50) && showingCancel {
                 dismissSelf()
             }
             else {
+                isTransitioning = true
                 func finish() {
+                    isTransitioning = false
                     self.showRealKeyboard()
                     self.updateTextViewSize() // maybe reenable scrolls
                 }
@@ -561,7 +569,7 @@ extension SearchViewController : UIGestureRecognizerDelegate {
     }
     
     func handleEntrancePan(_ gesture: UIPanGestureRecognizer) {
-        isTransitioning = true
+        isSwiping = true
         verticalPan(gesture: gesture, isEntrance: true)
     }
     
@@ -581,7 +589,8 @@ extension SearchViewController : UIGestureRecognizerDelegate {
     }
     
     func showRealKeyboard() {
-        if isTransitioning { return }
+        if isTransitioning || isSwiping { return }
+        print("srk")
         keyboardPlaceholder.isHidden = true
         UIView.setAnimationsEnabled(false)
         textView.becomeFirstResponder()
