@@ -264,7 +264,7 @@ class TabSwitcherViewController: UICollectionViewController {
         let tabs = fetchedResultsController.fetchedObjects ?? []
         var i: Int16 = 0
         for t in tabs {
-            if t == tab { return }
+            if t == tab { continue }
             t.sortIndex = i
             i += 1
         }
@@ -408,6 +408,7 @@ extension TabSwitcherViewController: NSFetchedResultsControllerDelegate {
                 self.cardStackLayout.selectedIndexPath = ip
             }
         }
+
 //        collectionView!.performBatchUpdates({
 //            for operation: BlockOperation in self.blockOperations { operation.start() }
 //        }, completion: { finished in
