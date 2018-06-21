@@ -68,7 +68,7 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
                 browserVC.isSnapshotMode = true
             }
         }
-        
+
         let scrollView = browserVC.webView.scrollView
 //        scrollView.isScrollEnabled = false
         scrollView.cancelScroll()
@@ -213,20 +213,27 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
 
         browserVC.statusHeightConstraint.springConstant(to: isExpanding ? statusHeight : THUMB_OFFSET_COLLAPSED )
 
-//        let scaleAnim = browserVC.cardView.springScale(to: isExpanding ? 0.7 : thumbScale)
+        let gc = browserVC.gestureController!
+        let hideMockBehindCard = browserVC.gestureController.mockCardView.center.x < browserVC.cardView.center.x
+
         let startScale = browserVC.cardView.scale
+        let startThumbScale = tabSwitcher.cardStackLayout.maxScale
         let endThumbScale: CGFloat = 1 //isExpanding ? 1 : thumbScale
         let endCardScale: CGFloat = isExpanding ? 1 : thumbScale
-//        print(thumbScale)
         let scaleArcInfluence = useArc
             ? abs(browserVC.cardView.center.y - newCenter.y).progress(0, 600).clip().lerp(0, 0.15)
             : 0
+        
         let scaleSwitch = SpringSwitch { pct in
             let arc = scaleArcInfluence * quadraticArc(pct)
-            let thumbScale = pct.lerp(startScale, endThumbScale) - arc
+            let thumbScale = pct.lerp(startThumbScale, endThumbScale) - arc
             let cardScale = pct.lerp(startScale, endCardScale) - arc
             browserVC.cardView.scale = cardScale
             tabSwitcher.setThumbScale(thumbScale)
+            
+            if self.isDismissing && hideMockBehindCard {
+                gc.mockCardView.scale = cardScale * gc.backItemScale
+            }
         }
         scaleSwitch.setState(.start)
         let scaleAnim = scaleSwitch.springState(.end)
@@ -242,13 +249,11 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
             finishTransition()
         }
         centerAnim?.dynamicsMass = 3.5
-        centerAnim?.dynamicsTension = 700
-        centerAnim?.dynamicsFriction = 80
+        centerAnim?.dynamicsTension = 900
+        centerAnim?.dynamicsFriction = 90
 
         scaleAnim?.springSpeed = 8
         scaleAnim?.springBounciness = 2
-
-        let mockMatchCard = browserVC.gestureController.mockCardView.center.x < browserVC.cardView.center.x
 
         let startDist = browserVC.cardView.center.distanceTo(newCenter)
         let startX = browserVC.gestureController.mockCardView.center.x
@@ -260,7 +265,7 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
 
             if self.isDismissing {
                 var endX = browserVC.view.center.x + browserVC.cardView.bounds.width
-                if mockMatchCard {
+                if hideMockBehindCard {
                     browserVC.gestureController.mockCardView.center.y = cardCenter.y
                     endX = browserVC.cardView.center.x
                 }
@@ -270,17 +275,6 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
             let search = browserVC.searchVC
             let offsetTextField = (cardCenter.y - newCenter.y) * 0.8
             search.kbHeightConstraint?.constant = search.keyboard.height + offsetTextField
-        }
-
-        scaleAnim?.animationDidApplyBlock = { _ in
-            let s = browserVC.cardView.scale
-            let gc = browserVC.gestureController!
-
-            if self.isDismissing {
-                if mockMatchCard {
-                    gc.mockCardView.scale = s * gc.backItemScale
-                }
-            }
         }
 
         tabSwitcher.springCards(toStacked: isDismissing, at: velocity)
