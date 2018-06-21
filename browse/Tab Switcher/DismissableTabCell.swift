@@ -28,7 +28,7 @@ class DismissableTabCell: VisitCell, UIGestureRecognizerDelegate {
             layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
         }
     }
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         let dismissPanner = UIPanGestureRecognizer()
