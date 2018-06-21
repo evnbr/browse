@@ -15,16 +15,16 @@ func clip(_ val: CGFloat) -> CGFloat {
 }
 
 func blend(from: CGFloat, to: CGFloat, by pct: CGFloat) -> CGFloat {
-    return from + (to - from) * pct;
+    return from + (to - from) * pct
 }
 
 func progress(value: CGFloat, from: CGFloat, to: CGFloat) -> CGFloat {
     let dist = from - to
     let amt = from - value
-    return amt / dist;
+    return amt / dist
 }
 
-func elasticLimit(_ val : CGFloat, constant: CGFloat = 150) -> CGFloat {
+func elasticLimit(_ val: CGFloat, constant: CGFloat = 150) -> CGFloat {
     let resist = 1 - log10(1 + abs(val) / constant) // 1 ... 0.5
     return val * resist
 }
@@ -32,20 +32,20 @@ func elasticLimit(_ val : CGFloat, constant: CGFloat = 150) -> CGFloat {
 // MARK: - Origami Patch Extensions
 
 extension CGFloat {
-    
+
     func clip() -> CGFloat {
         return Swift.max(0, Swift.min(1, self))
     }
-    func limit(min : CGFloat, max : CGFloat) -> CGFloat {
+    func limit(min: CGFloat, max: CGFloat) -> CGFloat {
         return Swift.max(min, Swift.min(max, self))
     }
 
     func progress(_ from: CGFloat, _ to: CGFloat) -> CGFloat {
         let total = from - to
         let amt = from - self
-        return amt / total;
+        return amt / total
     }
-    
+
     func reverse() -> CGFloat {
         return 1 - self
     }
@@ -64,12 +64,12 @@ extension CGAffineTransform {
     init(scale s: CGFloat) {
         self.init(scaleX: s, y: s)
     }
-    
-    var xScale : CGFloat {
-        return a;
+
+    var xScale: CGFloat {
+        return a
 //        return sqrt(a * a + c * c);
     }
-    
+
     func scaledBy(_ newScale: CGFloat) -> CGAffineTransform {
         return self.scaledBy(x: newScale, y: newScale)
     }
@@ -100,7 +100,7 @@ func constrainTop3(_ A: UIView, _ B: UIView) {
 func constrainBottom3(_ A: UIView, _ B: UIView) {
 //    A.translatesAutoresizingMaskIntoConstraints = false
 //    B.translatesAutoresizingMaskIntoConstraints = false
-    
+
     A.bottomAnchor.constraint(equalTo: B.bottomAnchor).isActive = true
     A.leftAnchor.constraint(equalTo: B.leftAnchor).isActive = true
     A.rightAnchor.constraint(equalTo: B.rightAnchor).isActive = true
@@ -143,21 +143,20 @@ extension UIScrollView {
 
 // MARK: - UIView
 extension UIView {
-    var radius : CGFloat {
+    var radius: CGFloat {
         set { layer.cornerRadius = newValue }
         get { return layer.cornerRadius }
     }
-    
-    var scale : CGFloat {
+
+    var scale: CGFloat {
         set { transform = CGAffineTransform(scale: newValue) }
         get { return transform.xScale }
     }
 }
 
 extension UICollectionViewLayoutAttributes {
-    var scale : CGFloat {
+    var scale: CGFloat {
         set { transform = CGAffineTransform(scale: newValue) }
         get { return transform.xScale }
     }
 }
-

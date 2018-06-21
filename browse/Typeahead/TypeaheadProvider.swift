@@ -61,11 +61,11 @@ class TypeaheadProvider: NSObject {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         var isHistoryLoaded = false
         var isSuggestionLoaded = false
-        
+
         var searchSuggestions: [ TypeaheadSuggestion ] = []
         var historySuggestions: [ TypeaheadSuggestion ] = []
         var suggestionScore: [ TypeaheadSuggestion: Int ] = [:]
-        
+
         let maybeCompletion = {
             guard isHistoryLoaded && isSuggestionLoaded else { return }
             let sorted = (searchSuggestions + historySuggestions).sorted {
@@ -78,7 +78,7 @@ class TypeaheadProvider: NSObject {
             let suggestions = Array(sorted[..<min(sorted.count, maxCount)])
             DispatchQueue.main.async { completion(suggestions) }
         }
-        
+
         HistoryManager.shared.findItemsMatching(text) { visits in
             isHistoryLoaded = true
             if let results = visits {
@@ -118,7 +118,6 @@ class TypeaheadProvider: NSObject {
                 let json = maybejson as? NSArray {
                 searchSuggestions = self.provider.parseSuggestions(from: json, maxCount: maxCount).map({ str in
                     let score = self.splitMatchingScore(for: str, query: text)
-//                    let suggestion = TypeaheadSuggestion(title: str, detail: nil, url: self.serpURLfor(str))
                     let suggestion = TypeaheadSuggestion(title: nil, detail: str, url: self.serpURLfor(str))
                     suggestionScore[suggestion] = score
                     return suggestion
@@ -148,7 +147,7 @@ extension TypeaheadProvider {
             .reduce(0, { $0 + $1 })
         return inOrderScore * 2 + splitScore
     }
-    
+
     func matchingScore(for item: HistorySearchResult, query: String) -> Int {
         if query == "" { return 0 }
         var score: Float = 0
@@ -176,14 +175,14 @@ extension TypeaheadProvider {
 
     func matchingScore(for text: String, query: String) -> Int {
         var score: Float = 0
-        
+
         // Points for words in the title
         if text.localizedCaseInsensitiveContains(query) {
             let words = text.split(separator: " ")
             let maxWordScore: Float = 200 / Float(words.count)
 
             words.forEach { word in
-                let partPct = Float(word.count) / Float(text.count) // bias against long urls
+//                let partPct = Float(word.count) / Float(text.count) // bias against long urls
                 let pct = Float(query.count) / Float(word.count)
                 score += maxWordScore * pct * ( word.starts(with: query) ? 1 : 0.2 )
             }

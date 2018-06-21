@@ -15,7 +15,7 @@ import pop
 class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     
     var tabSwitcher: TabSwitcherViewController
-    
+
     let webViewManager = WebViewManager()
     var webView: WKWebView!
     var snapshotView: UIImageView = UIImageView()
@@ -160,7 +160,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             oldWebView.removeFromSuperview()
             clearObservers(for: oldWebView)
         }
-        
+
         // Setup
         currentTab = newTab
         webView = webViewManager.webViewFor(newTab)
@@ -194,7 +194,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             navigateTo(startLocation)
         }
     }
-    
+
     func clearObservers(for webView: WKWebView) {
         webView.uiDelegate = nil
         webView.navigationDelegate = nil

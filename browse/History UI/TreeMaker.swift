@@ -23,9 +23,9 @@ class TreeMaker : NSObject {
     private let viewContext = HistoryManager.shared.persistentContainer.viewContext
     
     private var layout: TreeMakerLayout
-    private var nodeIDs: [IndexPath : NSManagedObjectID] = [:]
-    private var parentIDs: [IndexPath : NSManagedObjectID] = [:]
-    private var cellPositions: [NSManagedObjectID : TreePosition] = [:]
+    private var nodeIDs: [IndexPath: NSManagedObjectID] = [:]
+    private var parentIDs: [IndexPath: NSManagedObjectID] = [:]
+    private var cellPositions: [NSManagedObjectID: TreePosition] = [:]
     
     var _nodeCount: Int = 0
     var _gridSize: CGSize = .zero
@@ -41,9 +41,9 @@ class TreeMaker : NSObject {
         self.layout = layout
         super.init()
     }
-    
+
     func indexPath(for visit: Visit) -> IndexPath? {
-        return nodeIDs.first(where: { (ip, id) -> Bool in
+        return nodeIDs.first(where: { (_, id) -> Bool in
             return id == visit.objectID
         })?.key
     }
@@ -55,8 +55,7 @@ class TreeMaker : NSObject {
         }
         do {
             return try viewContext.existingObject(with: id) as? Visit
-        }
-        catch {
+        } catch {
             print("Can't find visit on main thread: \(error.localizedDescription)")
             return nil
         }
@@ -85,10 +84,15 @@ class TreeMaker : NSObject {
     private func openTabsFirst(_ a: Visit, _ b: Visit) -> Bool {
         let aClosed = a.tab?.isClosed ?? true
         let bClosed = b.tab?.isClosed ?? true
-        if aClosed && bClosed { return oldToNew(a, b) }
-        else if !aClosed && !bClosed { return oldToNew(a, b) }
-        else if aClosed { return false }
-        else if bClosed { return true }
+        if aClosed && bClosed {
+            return oldToNew(a, b)
+        } else if !aClosed && !bClosed {
+            return oldToNew(a, b)
+        } else if aClosed {
+            return false
+        } else if bClosed {
+            return true
+        }
         return false
     }
 
@@ -122,7 +126,7 @@ class TreeMaker : NSObject {
             }
             return pos
         }
-        
+
         func traverse(_ node: Visit, y: Int = 0) {
             var currentY = y
             if let back = node.backItem,
@@ -134,7 +138,7 @@ class TreeMaker : NSObject {
             if pos.y > maxY { maxY = pos.y }
             usedPositions.insert(pos)
             self.addVisit(node, at: pos)
-            
+
             if let children = node.forwardItems?.allObjects as? [Visit] {
                 currentDepth += 1
                 if currentDepth > maxDepth { maxDepth = currentDepth }
@@ -144,16 +148,15 @@ class TreeMaker : NSObject {
                 currentDepth -= 1
             }
         }
-        
+
         let sorted = roots.sorted(by: openTabsFirst)
         for root in sorted {
             traverse(root, y: sorted.index(of: root)! )
         }
-        
+
         self._gridSize = CGSize(width: maxDepth + 1, height: maxY)
         self._nodeCount = nodeIDs.count
     }
-
 
     private func traverseTreesCompressed(from roots: [Visit]) {
         var currentDepth: Int = 0
@@ -193,7 +196,7 @@ class TreeMaker : NSObject {
         roots.sorted(by: openTabsFirst).forEach {
             traverse($0)
         }
-        
+
         self._gridSize = CGSize(width: maxDepth, height: maxY + 1)
         self._nodeCount = nodeIDs.count
     }
@@ -227,8 +230,8 @@ class TreeMaker : NSObject {
         self._gridSize = CGSize(width: maxDepth, height: currentY)
         self._nodeCount = nodeIDs.count
     }
-    
-    func loadTabs(selectedTabID: NSManagedObjectID?, completion: (() -> ())?) {
+
+    func loadTabs(selectedTabID: NSManagedObjectID?, completion: (() -> Void)?) {
         HistoryManager.shared.persistentContainer.performBackgroundTask { ctx in
             var tabs: [Tab]
             let request: NSFetchRequest<Tab> = Tab.fetchRequest()
@@ -239,7 +242,7 @@ class TreeMaker : NSObject {
 //            request.fetchBatchSize = 20
             do {
                 tabs = try ctx.fetch(request)
-            } catch let error{
+            } catch let error {
                 print(error)
                 return
             }
@@ -248,7 +251,7 @@ class TreeMaker : NSObject {
                 // TODO: cross-tab connections arent
                 // being created consistently, so dont filter these
                 // out just yet
-    
+
 //                if let parent = tab.parentTab, tabs.contains(parent) {
 //                    return false
 //                }
@@ -272,7 +275,7 @@ class TreeMaker : NSObject {
         }
     }
     
-    private func applyLayout(completion: (() -> ())?) {
+    private func applyLayout(completion: (() -> Void)?) {
         DispatchQueue.main.async {
             self.layout.collectionView?.reloadData()
             self.layout.invalidateLayout()

@@ -13,7 +13,7 @@ let MIN_TIME_BETWEEN_UPDATES = 0.1 //0.15
 
 protocol WebviewColorSamplerDelegate: class {
     var sampledWebView: WKWebView { get }
-    
+
     var shouldUpdateSample: Bool { get }
     var bottomSamplePosition: CGFloat { get }
 
@@ -24,16 +24,16 @@ protocol WebviewColorSamplerDelegate: class {
 }
 
 class WebviewColorSampler: NSObject {
-    
+
     weak var delegate: WebviewColorSamplerDelegate!
 
     private var colorUpdateTimer: Timer?
-    
+
     var top: UIColor = UIColor.clear
     var bottom: UIColor = UIColor.clear
-    
+
     var lastSampledColorsTime: CFTimeInterval = 0.0
-    
+
     func startUpdates() {
         if colorUpdateTimer == nil {
             colorUpdateTimer = Timer.scheduledTimer(

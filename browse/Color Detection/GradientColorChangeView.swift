@@ -76,7 +76,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func cancelColorChange() {
         backgroundView.layer.sublayers?.forEach {
             $0.removeFromSuperlayer()

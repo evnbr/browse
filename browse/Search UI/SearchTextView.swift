@@ -24,7 +24,7 @@ class SearchTextView: UITextView {
         UIMenuController.shared.menuItems?.append(shareItem)
         UIMenuController.shared.update()
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -32,17 +32,17 @@ class SearchTextView: UITextView {
     @objc func share(_ sender: Any?) {
         print("tapped share")
     }
-    
+
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
         switch action {
         case #selector(select(_:)):
-            return super.canPerformAction(action, withSender:sender)
+            return super.canPerformAction(action, withSender: sender)
         case #selector(selectAll(_:)):
-            return super.canPerformAction(action, withSender:sender)
+            return super.canPerformAction(action, withSender: sender)
         case #selector(copy(_:)):
-            return super.canPerformAction(action, withSender:sender)
+            return super.canPerformAction(action, withSender: sender)
         case #selector(paste(_:)):
-            return super.canPerformAction(action, withSender:sender)
+            return super.canPerformAction(action, withSender: sender)
         case #selector(share(_:)):
             return true
         default:

@@ -42,12 +42,12 @@ extension CGColor {
 }
 
 extension UIColor {
-    
+
     var isDarkColor: Bool {
         let RGB = self.cgColor.components
         return (0.2126 * RGB[0] + 0.7152 * RGB[1] + 0.0722 * RGB[2]) < 0.5
     }
-    
+
     var isBlackOrWhite: Bool {
         let RGB = self.cgColor.components
         return (RGB[0] > 0.91 && RGB[1] > 0.91 && RGB[2] > 0.91) || (RGB[0] < 0.09 && RGB[1] < 0.09 && RGB[2] < 0.09)
@@ -57,7 +57,7 @@ extension UIColor {
         let bg = self.cgColor.components
         let fg = compareColor.cgColor.components
         let threshold: CGFloat = 0.25
-        
+
         if fabs(bg[0] - fg[0]) > threshold || fabs(bg[1] - fg[1]) > threshold || fabs(bg[2] - fg[2]) > threshold {
             if fabs(bg[0] - bg[1]) < 0.03 && fabs(bg[0] - bg[2]) < 0.03 {
                 if fabs(fg[0] - fg[1]) < 0.03 && fabs(fg[0] - fg[2]) < 0.03 {
@@ -68,7 +68,7 @@ extension UIColor {
         }
         return false
     }
-    
+
     func colorWithMinimumSaturation(minSaturation: CGFloat) -> UIColor {
         var hue: CGFloat = 0.0
         var saturation: CGFloat = 0.0
@@ -86,7 +86,7 @@ extension UIColor {
     func isContrastingColor(compareColor: UIColor) -> Bool {
         let bg = self.cgColor.components
         let fg = compareColor.cgColor.components
-        
+
         let bgLum = 0.2126 * bg[0] + 0.7152 * bg[1] + 0.0722 * bg[2]
         let fgLum = 0.2126 * fg[0] + 0.7152 * fg[1] + 0.0722 * fg[2]
 
@@ -96,7 +96,6 @@ extension UIColor {
         let contrast = (nom + 0.05) / (denom + 0.05)
         return 1.6 < contrast
     }
-    
 }
 
 extension UIImage {
@@ -124,7 +123,7 @@ extension UIImage {
         DispatchQueue.global().async {
             let result = self.getColors(scaleDownSize: scaleDownSize)
             
-            if let colors : UIImageColors = result {
+            if let colors: UIImageColors = result {
                 DispatchQueue.main.async {
                     completionHandler(colors)
                 }
@@ -143,7 +142,6 @@ extension UIImage {
      - returns: `UIImageColors` for this image.
      */
     public func getColors(scaleDownSize: CGSize = CGSize.zero) -> UIImageColors? {
-        
         // TODO: Scale down is not encessary but without it
         // the image gets released(?) and accessing the bytes will fail
         var scaleDownSize = scaleDownSize
@@ -221,7 +219,7 @@ extension UIImage {
             }
         }
         sortedColors.sort(comparator: sortedColorComparator)
-        
+
         var proposedEdgeColor: PCCountedColor
         if sortedColors.count > 0,
             let firstColor = sortedColors.object(at: 0) as? PCCountedColor {
@@ -251,4 +249,3 @@ extension UIImage {
         return result
     }
 }
-

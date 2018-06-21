@@ -32,7 +32,7 @@ extension CGFloat {
     func lerp(_ start: CGFloat, _ end: CGFloat) -> CGFloat {
         return start + (end - start) * self
     }
-    
+
     func lerp(_ start: CGPoint, _ end: CGPoint) -> CGPoint {
         return CGPoint(
             x: self.lerp(start.x, end.x),

@@ -82,9 +82,9 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
     var view: UIView!
     var toolbar: UIView!
     var cardView: UIView!
-    
+
     let pinchController = BrowserPinchController()
-    
+
     var direction: GestureNavigationDirection!
     var dismissVelocity: CGPoint?
 
@@ -103,7 +103,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
     var isDismissingPossible: Bool = false
     var startPoint: CGPoint = .zero
     var startScroll: CGPoint = .zero
-    
+
     let dismissPointX: CGFloat = 150
     let backPointX: CGFloat = 120
     let dismissPointY: CGFloat = 120 //  120
@@ -336,9 +336,9 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
 //        guard isDismissing && (direction == .leftToRight || direction == .rightToLeft) else { return }
 
         let gesturePos = gesture.translation(in: view)
-        
+
         let revealProgress = min(abs(gesturePos.x) / 200, 1)
-        
+
         let rad = min(Const.cardRadius + revealProgress * 4 * Const.thumbRadius, Const.thumbRadius)
         if Const.cardRadius < Const.thumbRadius {
             cardView.radius = rad
@@ -390,7 +390,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         let pagingHint = yShift.progress(0, 360).clip()
 
         var cardPagingPoint: CGPoint
-        
+
         // reveal back page from left
         if ((direction == .leftToRight || direction == .top) && vc.webView.canGoBack) || isToParent {
             mockCardView.darkener.pagingState = xShift.progress(0, 400).lerp(0.4, 0.1)
@@ -409,7 +409,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
             mockCardView.positioner.pagingState = mockBlendedPoint
             mockCardView.scaler.dismissState = dismissScale * backItemScale
         }
-       
+
         // overlay forward page from right
         else if direction == .rightToLeft && vc.webView.canGoForward {
             let pagingPoint = CGPoint(
@@ -433,7 +433,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
                 x: view.center.x + xShift + view.bounds.width + hintX,
                 y: view.center.y )
         }
-        
+
         // rubber band
         else {
             let unBlendedCardPagingPoint = CGPoint(
@@ -522,40 +522,6 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         mockCardView.bounds = cardView.bounds
     }
 
-    @objc func leftEdgePan(gesture: UIScreenEdgePanGestureRecognizer) {
-        switch gesture.state {
-        case .began:
-            if isDismissing { return }
-            startDismiss(gesture, direction: .leftToRight)
-            startPoint = .zero
-            vc.showToolbar()
-        case .changed:
-            if isDismissing { gestureChange(gesture) }
-        case .ended:
-            if isDismissing { horizontalEnd(gesture) }
-        case .cancelled:
-            if isDismissing { horizontalEnd(gesture) }
-        default: break
-        }
-    }
-
-    @objc func rightEdgePan(gesture: UIScreenEdgePanGestureRecognizer) {
-        switch gesture.state {
-        case .began:
-            if isDismissing { return }
-            startDismiss(gesture, direction: .rightToLeft)
-            startPoint = .zero
-            vc.showToolbar()
-        case .changed:
-            if isDismissing { gestureChange(gesture) }
-        case .ended:
-            if isDismissing { horizontalEnd(gesture) }
-        case .cancelled:
-            if isDismissing { horizontalEnd(gesture) }
-        default: break
-        }
-    }
-
     func setupBackGesture() {
         resetMockCardView()
         guard let backItem = vc.webView.backForwardList.backItem?.visit else { return }
@@ -599,7 +565,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
             dismissingEndedPossible()
             return
         }
-        
+
         let scrollView = vc.webView.scrollView
         let scroll = scrollView.contentOffset
         if scrollView.isZooming || scrollView.isZoomBouncing { return }
@@ -609,35 +575,37 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         let isHorizontal = abs(gesturePos.y) < abs(gesturePos.x)
 //        let hasHorizontalVel = abs(gestureVel.x) > 300
 
-        // Consider starting vertical dismiss
-        if scrollView.isScrollableY && scroll.y <= 0 && gesturePos.y > 0 {
-            // Body scrollable, cancel at scrollPos 0
-            startDismiss(gesture, direction: .top)
-        }
-        else if !scrollView.isScrollableY && scroll.y < 0 && gesturePos.y > 0 {
-            // Inner div is scrollable, trigger at scrollPos -1
-            startDismiss(gesture, direction: .top)
-        }
+        let hScrollingPage = scrollView.isScrollableX && isHorizontal
+        let fakeHScrollingPage = !scrollView.isScrollableX && isHorizontal
 
-        // Consider horizontal dismiss
-        else if scrollView.isScrollableX && isHorizontal {
-            if scroll.x <= 0 && gesturePos.x > 0 {
-                startDismiss(gesture, direction: .leftToRight)
-            } else if scroll.x >= scrollView.maxScrollX && gesturePos.x < 0 {
-                startDismiss(gesture, direction: .rightToLeft)
-            }
-        } else if !scrollView.isScrollableX && isHorizontal {
-            if scroll.x < 0 && gesturePos.x > 0 {
-                startDismiss(gesture, direction: .leftToRight)
-            } else if scroll.x > scrollView.maxScrollX && gesturePos.x < 0 {
-                startDismiss(gesture, direction: .rightToLeft)
-            }
-        }
+        let hasMoved = abs(gesturePos.x) > 10 || abs(gesturePos.y) > 10
+        let isGestureDown = gesturePos.y > 0
+        let isGestureLeft = gesturePos.x > 0
+        let isGestureRight = gesturePos.x < 0
 
-        // if we are swiping horizontally and the above conditions have not
-        // triggered a dismiss, dismissing should no longer be possible
-        // during this gesture
-        else if abs(gesturePos.x) > 10 || abs(gesturePos.y) > 10 {
+        let triggerDismissTop = isGestureDown && (
+            scrollView.isScrollableY && scroll.y <= 0
+            || !scrollView.isScrollableY && scroll.y < 0
+        )
+        let triggerDismissLeft = isGestureLeft && (
+            (hScrollingPage && scroll.x <= 0)
+            || (fakeHScrollingPage && scroll.x < 0)
+        )
+        let triggerDismissRight = isGestureRight && (
+            (hScrollingPage && scroll.x >= scrollView.maxScrollX)
+            || (fakeHScrollingPage && scroll.x > scrollView.maxScrollX)
+        )
+
+        if triggerDismissTop {
+            startDismiss(gesture, direction: .top)
+        } else if triggerDismissLeft {
+            startDismiss(gesture, direction: .leftToRight)
+        } else if triggerDismissRight {
+            startDismiss(gesture, direction: .rightToLeft)
+        } else if hasMoved {
+            // if we are swiping horizontally and the above conditions have not
+            // triggered a dismiss, dismissing should no longer be possible
+            // during this gesture
             dismissingEndedPossible()
         }
     }
@@ -899,12 +867,10 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         let mockShift = mockCardView.bounds.width
         if mockCardView.center.y < view.center.y - 200 { // upward
             mockCenter.y -= view.bounds.height
-        }
-        else if mockCardView.center.x > view.center.x {// forward
+        } else if mockCardView.center.x > view.center.x { // forward
             mockCenter.x += mockShift
             mockScale = 1
-        }
-        else {
+        } else {
             mockCenter.x -= mockShift * parallaxAmount // back
         }
 
@@ -923,7 +889,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
             self.vc.statusBar.label.alpha = 0
         }
     }
-    
+
     func updateStatusBar() {
         if vc.preferredStatusBarStyle != UIApplication.shared.statusBarStyle
         || vc.prefersStatusBarHidden != UIApplication.shared.isStatusBarHidden {
@@ -950,25 +916,59 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         if GESTURE_DEBUG { vc.toolbar.text = "Possible" }
     }
 
+    @objc func leftEdgePan(gesture: UIScreenEdgePanGestureRecognizer) {
+        switch gesture.state {
+        case .began:
+            if isDismissing { return }
+            startDismiss(gesture, direction: .leftToRight)
+            startPoint = .zero
+            vc.showToolbar()
+        case .changed:
+            if isDismissing { gestureChange(gesture) }
+        case .ended:
+            if isDismissing { horizontalEnd(gesture) }
+        case .cancelled:
+            if isDismissing { horizontalEnd(gesture) }
+        default: break
+        }
+    }
+
+    @objc func rightEdgePan(gesture: UIScreenEdgePanGestureRecognizer) {
+        switch gesture.state {
+        case .began:
+            if isDismissing { return }
+            startDismiss(gesture, direction: .rightToLeft)
+            startPoint = .zero
+            vc.showToolbar()
+        case .changed:
+            if isDismissing { gestureChange(gesture) }
+        case .ended:
+            if isDismissing { horizontalEnd(gesture) }
+        case .cancelled:
+            if isDismissing { horizontalEnd(gesture) }
+        default: break
+        }
+    }
+
     @objc func anywherePan(gesture: UIPanGestureRecognizer) {
-        if gesture.state == .began {
+        switch gesture.state {
+        case .began:
             if isDismissing { return }
             dismissingBecamePossible()
             considerStarting(gesture: gesture)
-        }
-        else if gesture.state == .changed {
+        case .changed:
             if isDismissing {
                 gestureChange(gesture)
-            }
-            else if isDismissingPossible {
+            } else if isDismissingPossible {
                 considerStarting(gesture: gesture)
             }
-        }
-        else if gesture.state == .ended || gesture.state == .cancelled {
-            if isDismissing {
-                horizontalEnd(gesture)
-            }
+        case .ended:
+            if isDismissing { horizontalEnd(gesture) }
             dismissingEndedPossible()
+        case .cancelled:
+            if isDismissing { horizontalEnd(gesture) }
+            dismissingEndedPossible()
+        default: break
         }
     }
 

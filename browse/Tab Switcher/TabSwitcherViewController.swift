@@ -18,12 +18,12 @@ class TabSwitcherViewController: UICollectionViewController {
     var blockOperations: [BlockOperation] = []
 
     var fab: FloatButton!
-    var fabSnapshot : UIView?
-    
+    var fabSnapshot: UIView?
+
     let reuseIdentifier = "TabCell"
     let sectionInsets = UIEdgeInsets(top: 120.0, left: THUMB_INSET, bottom: 8.0, right: THUMB_INSET)
     let itemsPerRow: CGFloat = 2
-    
+
     let cardStackTransition = CardStackTransition()
     let cardStackLayout = CardStackCollectionViewLayout()
 
@@ -37,7 +37,7 @@ class TabSwitcherViewController: UICollectionViewController {
         _browserVC = newBrowser
         return newBrowser
     }
-    
+
     override var preferredStatusBarStyle: UIStatusBarStyle {
         if let b = _browserVC, b.view.window != nil && !b.isBeingDismissed {
             return b.preferredStatusBarStyle
@@ -47,18 +47,18 @@ class TabSwitcherViewController: UICollectionViewController {
     override var prefersStatusBarHidden: Bool {
         return _browserVC?.prefersStatusBarHidden ??  false
     }
-    
+
     var tabCount: Int {
         return fetchedResultsController.sections?.first?.numberOfObjects ?? 0
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         view.clipsToBounds = false
         navigationController?.navigationBar.barStyle = .blackTranslucent
         navigationController?.navigationBar.tintColor = .white
-        
+
         collectionView?.clipsToBounds = false
         collectionView?.collectionViewLayout = cardStackLayout
         collectionView?.delaysContentTouches = false
@@ -68,7 +68,7 @@ class TabSwitcherViewController: UICollectionViewController {
         collectionView?.showsVerticalScrollIndicator = false
         collectionView?.register(DismissableTabCell.self, forCellWithReuseIdentifier: reuseIdentifier)
         collectionView?.backgroundColor = .black
-        
+
         fab = FloatButton(
             frame: CGRect(x: 0, y: 0, width: FAB_SIZE, height: FAB_SIZE),
             icon: UIImage(named: "add"),
@@ -87,7 +87,7 @@ class TabSwitcherViewController: UICollectionViewController {
             bottom: Const.toolbarHeight,
             right: 0
         )
-        
+
         if #available(iOS 11.0, *) {
             collectionView?.contentInsetAdjustmentBehavior = .never
         }
@@ -96,7 +96,7 @@ class TabSwitcherViewController: UICollectionViewController {
             self.scrollToBottom()
         }
     }
-        
+
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         updateCollectionViewLayout(with: size)
@@ -107,7 +107,7 @@ class TabSwitcherViewController: UICollectionViewController {
             layout.invalidateLayout()
         }
     }
-    
+
 //    var isDisplayingFakeTab = false
 
     func addTab(animated: Bool = true) {
@@ -118,7 +118,7 @@ class TabSwitcherViewController: UICollectionViewController {
             self.cardStackTransition.fromBottom = false
         })
     }
-    
+
     func createTab() -> Tab {
         let context = self.fetchedResultsController.managedObjectContext
         let newTab = Tab(context: context)
@@ -126,7 +126,7 @@ class TabSwitcherViewController: UICollectionViewController {
         saveContext()
         return newTab
     }
-    
+
     func saveContext() {
         let context = self.fetchedResultsController.managedObjectContext
         do {
@@ -237,7 +237,7 @@ class TabSwitcherViewController: UICollectionViewController {
             y: view.center.y - pos.y
         ))
     }
-    
+
     func springCards(
         toStacked: Bool,
         at velocity: CGPoint = .zero,

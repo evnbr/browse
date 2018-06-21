@@ -9,11 +9,11 @@
 import Foundation
 
 extension URL {
-    var displayHost : String {
-        guard let host : String = self.host else { return "No host"}
+    var displayHost: String {
+        guard let host: String = self.host else { return "No host"}
         if host.hasPrefix("www.") {
             let index = host.index(host.startIndex, offsetBy: 4)
-            return host.substring(from: index)
+            return String(host[index..<host.endIndex]) //  .substring(from: index)
         } else {
             return host
         }
@@ -50,7 +50,7 @@ extension String {
     var isProbablyURL: Bool {
         return self.range(of: ".") != nil && self.range(of: " ") == nil
     }
-    
+
     var urlPrefix: String? {
         return potentialPrefixes.first(where: { self.hasPrefix($0) })
     }

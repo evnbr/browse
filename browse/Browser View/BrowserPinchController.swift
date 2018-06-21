@@ -10,7 +10,7 @@ import UIKit
 
 class BrowserPinchController: NSObject, UIGestureRecognizerDelegate {
     var vc: BrowserViewController!
-    
+
     var isPinchDismissing = false
     var pinchStartScale: CGFloat = 1
     var pinchStartScroll: CGPoint = .zero

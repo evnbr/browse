@@ -74,7 +74,7 @@ class BrowserToolbarView: ColorToolbarView {
         translatesAutoresizingMaskIntoConstraints = false
         heightConstraint = heightAnchor.constraint(equalToConstant: Const.toolbarHeight)
         heightConstraint.isActive = true
-        
+
         searchField = ToolbarSearchField()
         backButton = ToolbarIconButton(icon: UIImage(named: "back"))
         tabButton = ToolbarIconButton(icon: UIImage(named: "tab"))

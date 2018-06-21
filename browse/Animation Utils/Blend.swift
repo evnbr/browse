@@ -27,9 +27,12 @@ class Blend<T: Blendable>: NSObject {
         setValue(of: .end, to: end)
     }
 
-    func setValue(of: SpringTransitionState, to newValue: T) {
-        if of == .start { start = newValue }
-        else if of == .end { end = newValue }
+    func setValue(of state: SpringTransitionState, to newValue: T) {
+        if state == .start {
+            start = newValue
+        } else if state == .end {
+            end = newValue
+        }
     }
     
     var progress: CGFloat {
