@@ -15,6 +15,14 @@ let SEARCHVIEW_MAX_H: CGFloat = 240.0
 let TEXTVIEW_PADDING = UIEdgeInsets(top: 20, left: 20, bottom: 40, right: 20)
 let pageActionHeight: CGFloat = 120
 
+// https://medium.com/@nguyenminhphuc/how-to-pass-ui-events-through-views-in-ios-c1be9ab1626b
+class PassthroughView: UIView {
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let view = super.hitTest(point, with: event)
+        return view == self ? nil : view
+    }
+}
+
 class SearchViewController: UIViewController {
 
     var contentView: UIView!
@@ -73,12 +81,16 @@ class SearchViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    override func loadView() {
+        view = PassthroughView()
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 
-        scrim = UIView(frame: view.bounds)
+        scrim = PassthroughView(frame: view.bounds)
         scrim.backgroundColor = UIColor.black.withAlphaComponent(0.2)
         view.addSubview(scrim, constraints: [
             scrim.topAnchor.constraint(equalTo: view.topAnchor),
@@ -88,7 +100,7 @@ class SearchViewController: UIViewController {
         ])
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissSelf))
         scrim.addGestureRecognizer(tap)
-
+        
         contentView = UIView(frame: view.bounds)
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.tintColor = .darkText
@@ -168,7 +180,7 @@ class SearchViewController: UIViewController {
             keyboardPlaceholder.rightAnchor.constraint(equalTo: contentView.rightAnchor)
             ])
         toolbarBottomMargin = keyboardPlaceholder.topAnchor.constraint(equalTo: textView.bottomAnchor)
-        
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(updateKeyboardHeight),
@@ -179,15 +191,27 @@ class SearchViewController: UIViewController {
             selector: #selector(updateKeyboardHeight),
             name: NSNotification.Name.UIKeyboardWillChangeFrame,
             object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(maybeAutoHide),
+            name: NSNotification.Name.UIKeyboardWillHide,
+            object: nil)
     }
-    
+
+    @objc func maybeAutoHide() {
+        if keyboardPlaceholder.isHidden {
+            showFakeKeyboard()
+            dismissSelf()
+        }
+    }
+
     func setupDrag() {
         let dismissPanner = UIPanGestureRecognizer()
         dismissPanner.delegate = self
         dismissPanner.addTarget(self, action: #selector(handleDimissPan(_:)))
         dismissPanner.cancelsTouchesInView = true
         dismissPanner.delaysTouchesBegan = false
-        view.addGestureRecognizer(dismissPanner)
+        contentView.addGestureRecognizer(dismissPanner)
 
         dragHandle = UIView(frame: .zero)
         dragHandle.radius = 2
@@ -198,7 +222,7 @@ class SearchViewController: UIViewController {
             dragHandle.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
         ])
     }
-    
+
     func setupPlaceholderIcons() {
         let backButton = ToolbarIconButton(icon: UIImage(named: "back"))
         let tabButton = ToolbarIconButton(icon: UIImage(named: "tab"))
@@ -223,7 +247,7 @@ class SearchViewController: UIViewController {
             textView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor)
         ])
     }
-    
+
     func createTextView() -> UITextView {
         let txt = UITextView()
         txt.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 48)
@@ -271,7 +295,6 @@ class SearchViewController: UIViewController {
         textView.textColor = view.tintColor
         dragHandle.backgroundColor = view.tintColor.withAlphaComponent(0.2)
 
-//        textView.backgroundColor = darkContent ? UIColor.black.withAlphaComponent(0.1) : UIColor.white.withAlphaComponent(0.3)
         textView.placeholderColor = darkContent
             ? UIColor.black.withAlphaComponent(0.4)
             : UIColor.white.withAlphaComponent(0.4)
@@ -315,8 +338,7 @@ class SearchViewController: UIViewController {
 //        updateKeyboardSnapshot()
 //    }
 
-    @objc
-    func dismissSelf() {
+    @objc func dismissSelf() {
         if isTransitioning || view.superview == nil { return }
         showFakeKeyboard()
 //        self.dismiss(animated: true)
@@ -529,24 +551,20 @@ extension SearchViewController: UIGestureRecognizerDelegate {
         if gesture.state == .began {
             showFakeKeyboard()
             isSwiping = true
-        }
-        else if gesture.state == .changed {
+        } else if gesture.state == .changed {
 //            self.iconProgress = (abs(dist.y) / keyboard.height).reverse().clip()
             if dist.y < 0 {
                 kbHeightConstraint.constant = keyboard.height
                 let elastic = 0.4 * elasticLimit(-dist.y)
                 textHeightConstraint.constant = textHeight + elastic
-            }
-            else {
+            } else {
                 kbHeightConstraint.constant = max(keyboard.height - dist.y, 0)
-                let progress = dist.y.progress(0, keyboard.height).clip()
                 contextAreaHeightConstraint.constant = contextAreaHeight
                 textHeightConstraint.constant = textHeight
             }
-        }
-        else if gesture.state == .ended || gesture.state == .cancelled {
+        } else if gesture.state == .ended || gesture.state == .cancelled {
             isSwiping = false
-            if (vel.y > 100 || kbHeightConstraint.constant < 50) {
+            if vel.y > 100 || kbHeightConstraint.constant < 50 {
                 dismissSelf()
             } else {
                 animateCancel()
@@ -580,6 +598,19 @@ extension SearchViewController: UIGestureRecognizerDelegate {
         verticalPan(gesture: gesture, isEntrance: false)
     }
 
+    @objc func handleScrimPan(_ gesture: UIPanGestureRecognizer) {
+        if gesture.state == .began {
+            print("scrim start")
+            browserVC?.gestureController.startDismiss(gesture, direction: .leftToRight)
+        } else if gesture.state == .cancelled {
+            print("scrim cancel")
+        } else {
+            print("scrim change")
+            browserVC?.gestureController.anywherePan(gesture: gesture)
+        }
+//        verticalPan(gesture: gesture, isEntrance: false)
+    }
+
     func handleEntrancePan(_ gesture: UIPanGestureRecognizer) {
         isSwiping = true
         verticalPan(gesture: gesture, isEntrance: true)
@@ -609,7 +640,10 @@ extension SearchViewController: UIGestureRecognizerDelegate {
     }
 
     @objc func updateKeyboardSnapshot() {
-        if !textView.isFirstResponder || kbHeightConstraint.constant != keyboard.height { return }
+        if !textView.isFirstResponder
+            || kbHeightConstraint.constant != keyboard.height
+            || isTransitioning
+            || isSwiping { return }
         keyboard.updateSnapshot(with: backgroundView.overlayColor)
     }
 }
@@ -619,7 +653,7 @@ extension SearchViewController: PageActionHandler {
     func refresh() {
         browserVC?.webView.reload()
     }
-    
+
     func bookmark() {
         //
         if !BookmarkProvider.shared.isLoggedIn {
@@ -640,14 +674,12 @@ extension SearchViewController: PageActionHandler {
             DispatchQueue.main.async {
                 self.present(prompt, animated: true)
             }
-        }
-        else if !pageActionView.isBookmarked {
+        } else if !pageActionView.isBookmarked {
             guard let url = browserVC?.webView.url, let title = browserVC?.webView.title else { return }
             BookmarkProvider.shared.addBookmark(url, title: title) { isBookmarked in
                 if isBookmarked { self.pageActionView.isBookmarked = true }
             }
-        }
-        else if pageActionView.isBookmarked {
+        } else if pageActionView.isBookmarked {
 //            BookmarkProvider.shared.add(browser?.webView.url)
             let options = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
             options.addAction(UIAlertAction(title: "Edit", style: .default, handler: nil))

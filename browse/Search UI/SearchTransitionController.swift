@@ -144,7 +144,7 @@ class SearchTransitionController: NSObject {
             animations: {
                 searchVC.view.layoutIfNeeded()
                 searchVC.pageActionView.alpha = self.isExpanding ? 1 : 0
-                searchVC.scrim.alpha = 0 //self.isExpanding ? 1 : 0
+                searchVC.scrim.alpha = self.isExpanding ? 1 : 0
                 searchVC.textView.alpha = self.isExpanding ? 1 : 0
                 titleSnap?.alpha = self.isExpanding ? 0 : 1
 
@@ -159,7 +159,6 @@ class SearchTransitionController: NSObject {
                 searchVC.textView.mask?.frame = self.isExpanding ? maskEndFrame : maskStartFrame
 
                 if self.isDismissing { searchVC.textView.resignFirstResponder() }
-                
         }, completion: { _ in
             if !completeEarly { completeTransition() }
         })

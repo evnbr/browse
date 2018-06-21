@@ -458,7 +458,9 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
 
         let isVerticalDismiss = gesturePos.y > dismissPointPreviewY
         let isHorizontalDismiss = false //abs(adjustedX) > 80
-        let newState = (isVerticalDismiss || (cantPage && isHorizontalDismiss)) ? SpringTransitionState.start : SpringTransitionState.end
+        let newState = (isVerticalDismiss || (cantPage && isHorizontalDismiss))
+            ? SpringTransitionState.start
+            : SpringTransitionState.end
         dismissSwitch.springState(newState)
 
         updateStatusBar()
@@ -561,7 +563,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         if isDismissing {
             fatalError("consider starting dismiss when previous dismissal hasn't ended")
         }
-        if pinchController.isPinchDismissing {
+        if pinchController.isPinchDismissing || vc.searchVC.isSwiping {
             dismissingEndedPossible()
             return
         }
@@ -569,7 +571,11 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         let scrollView = vc.webView.scrollView
         let scroll = scrollView.contentOffset
         if scrollView.isZooming || scrollView.isZoomBouncing { return }
-        
+
+        if vc.isDisplayingSearch {
+            vc.searchVC.dismissSelf()
+        }
+
         // let gestureVel = gesture.velocity(in: view)
         let gesturePos = gesture.translation(in: view)
         let isHorizontal = abs(gesturePos.y) < abs(gesturePos.x)

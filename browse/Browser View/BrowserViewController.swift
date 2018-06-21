@@ -426,6 +426,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         cardView.insertSubview(searchVC.view, belowSubview: gradientOverlay)
     }
 
+    var isDisplayingSearch: Bool {
+        return searchVC.view.superview == cardView
+    }
+
     func displaySearch(instant: Bool = false) {
         prepareToShowSearch()
         searchVC.transition.isPreExpanded = instant
