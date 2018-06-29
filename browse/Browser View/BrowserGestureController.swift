@@ -249,12 +249,21 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
             && !vc.webView.isLoading
             && !pinchController.isPinchDismissing
             && !isDismissing
+            && !vc.isDisplayingSearch
+//            && !vc.searchVC.isTransitioning
+//            && !vc.searchVC.isSwiping
     }
 
     func updateToolbar(_ scrollView: UIScrollView) {
         // Navigated to page that is not scrollable
         if scrollView.contentOffset.y == 0 && !scrollView.isScrollableY && !vc.isShowingToolbar {
             vc.showToolbar(animated: false)
+            return
+        }
+        if vc.isDisplayingSearch {
+            scrollDelta = 0
+            prevScrollY = scrollView.contentOffset.y
+            if !vc.isShowingToolbar { vc.showToolbar(animated: false) }
             return
         }
 
@@ -300,12 +309,22 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
             return
         }
 
+        if vc.isDisplayingSearch {
+            vc.showToolbar(animated: false, adjustScroll: false)
+            return
+        }
+
         let dragAmount = scrollView.contentOffset.y - dragStartScrollY
 
-        if      scrollDelta >  1 { vc.hideToolbar() }
-        else if scrollDelta < -1 { vc.showToolbar() }
-        else if  dragAmount >  1 { vc.hideToolbar() }
-        else if  dragAmount < -1 { vc.showToolbar() }
+        if scrollDelta > 1 {
+            vc.hideToolbar()
+        } else if scrollDelta < -1 {
+            vc.showToolbar()
+        } else if dragAmount > 1 {
+            vc.hideToolbar()
+        } else if dragAmount < -1 {
+            vc.showToolbar()
+        }
 
         if !decelerate {
             vc.updateSnapshot()
@@ -563,7 +582,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         if isDismissing {
             fatalError("consider starting dismiss when previous dismissal hasn't ended")
         }
-        if pinchController.isPinchDismissing || vc.searchVC.isSwiping {
+        if pinchController.isPinchDismissing || (vc.isDisplayingSearch && vc.searchVC.isSwiping) {
             dismissingEndedPossible()
             return
         }
@@ -986,3 +1005,5 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         return true
     }
 }
+// swiftlint:disable:next file_length
+

@@ -13,7 +13,7 @@ let typeaheadReuseID = "TypeaheadRow"
 let MAX_ROWS: Int = 4
 let SEARCHVIEW_MAX_H: CGFloat = 240.0
 let TEXTVIEW_PADDING = UIEdgeInsets(top: 20, left: 20, bottom: 40, right: 20)
-let pageActionHeight: CGFloat = 120
+let pageActionHeight: CGFloat = 100
 
 // https://medium.com/@nguyenminhphuc/how-to-pass-ui-events-through-views-in-ios-c1be9ab1626b
 class PassthroughView: UIView {
@@ -27,6 +27,7 @@ class SearchViewController: UIViewController {
 
     var contentView: UIView!
     var backgroundView: PlainBlurView!
+    var shadowView: UIView!
     var scrim: UIView!
     var textView: UITextView!
     var suggestionTable: UITableView!
@@ -82,13 +83,17 @@ class SearchViewController: UIViewController {
     }
 
     override func loadView() {
-        view = PassthroughView()
+        view = PassthroughView(frame: UIScreen.main.bounds)
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        
+        // make sure fake kb is clipped when not aligned with screen
+        view.radius = Const.cardRadius
+        view.clipsToBounds = true
 
         scrim = PassthroughView(frame: view.bounds)
         scrim.backgroundColor = UIColor.black.withAlphaComponent(0.2)
@@ -100,17 +105,31 @@ class SearchViewController: UIViewController {
         ])
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissSelf))
         scrim.addGestureRecognizer(tap)
-        
+
         contentView = UIView(frame: view.bounds)
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.tintColor = .darkText
         contentView.clipsToBounds = true
-        contentView.radius = Const.cardRadius
+        contentView.radius = 8
         view.addSubview(contentView)
-
+        
+        shadowView = UIView(frame: view.bounds)
+        shadowView.translatesAutoresizingMaskIntoConstraints = false
+        let path = UIBezierPath(roundedRect: view.bounds, cornerRadius: 8)
+        shadowView.layer.shadowPath = path.cgPath
+        shadowView.layer.shadowOpacity = 0.1
+        shadowView.layer.shadowRadius = 0
+        view.insertSubview(shadowView, belowSubview: contentView)
+        NSLayoutConstraint.activate([
+            shadowView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            shadowView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            shadowView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            shadowView.heightAnchor.constraint(equalToConstant: 100),
+        ])
+        
         backgroundView = PlainBlurView(frame: contentView.bounds)
         backgroundView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        backgroundView.overlayAlpha = 1//isFakeTab ? 1 : 0.8
+        backgroundView.overlayAlpha = 0.9//isFakeTab ? 1 : 0.8
         contentView.addSubview(backgroundView)
 
         NSLayoutConstraint.activate([
@@ -596,19 +615,6 @@ extension SearchViewController: UIGestureRecognizerDelegate {
 
     @objc func handleDimissPan(_ gesture: UIPanGestureRecognizer) {
         verticalPan(gesture: gesture, isEntrance: false)
-    }
-
-    @objc func handleScrimPan(_ gesture: UIPanGestureRecognizer) {
-        if gesture.state == .began {
-            print("scrim start")
-            browserVC?.gestureController.startDismiss(gesture, direction: .leftToRight)
-        } else if gesture.state == .cancelled {
-            print("scrim cancel")
-        } else {
-            print("scrim change")
-            browserVC?.gestureController.anywherePan(gesture: gesture)
-        }
-//        verticalPan(gesture: gesture, isEntrance: false)
     }
 
     func handleEntrancePan(_ gesture: UIPanGestureRecognizer) {

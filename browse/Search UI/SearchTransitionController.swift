@@ -23,12 +23,13 @@ typealias SearchTransitionCompletionBlock = () -> Void
 class SearchTransitionController: NSObject {
     
     var direction: CustomAnimationDirection!
-    var isExpanding : Bool { return direction == .present }
+    var isExpanding: Bool { return direction == .present }
     var isDismissing: Bool { return direction == .dismiss }
     
     var showKeyboard: Bool = true
     var isPreExpanded: Bool = false
     
+    // swiftlint:disable:next function_body_length
     func animateTransition(
         searchVC: SearchViewController,
         browserVC: BrowserViewController,
@@ -91,6 +92,9 @@ class SearchTransitionController: NSObject {
 
         browserVC.toolbar.backgroundView.alpha = 1
 //        searchVC.scrim.alpha = isExpanding ? 0 : 1
+        if !self.isPreExpanded {
+            searchVC.shadowView.alpha = isExpanding ? 0 : 1
+        }
 
         searchVC.kbHeightConstraint.constant = isExpanding
             ? (showKeyboard ? searchVC.keyboard.height : 0 )
@@ -122,6 +126,11 @@ class SearchTransitionController: NSObject {
 
         func completeTransition() {
             if self.isDismissing { searchVC.view.removeFromSuperview() }
+            if self.isExpanding {
+                // We really should catch this earlier and
+                // modify the transition end point on the fly
+                searchVC.kbHeightConstraint.constant = searchVC.keyboard.height
+            }
             searchVC.isTransitioning = false
             titleSnap?.removeFromSuperview()
             browserVC.toolbar.searchField.labelHolder.isHidden = false
@@ -144,7 +153,12 @@ class SearchTransitionController: NSObject {
             animations: {
                 searchVC.view.layoutIfNeeded()
                 searchVC.pageActionView.alpha = self.isExpanding ? 1 : 0
-                searchVC.scrim.alpha = self.isExpanding ? 1 : 0
+                
+                if !self.isPreExpanded {
+                    searchVC.shadowView.alpha = self.isExpanding ? 1 : 0
+                }
+                
+                searchVC.scrim.alpha = 0 //self.isExpanding ? 1 : 0
                 searchVC.textView.alpha = self.isExpanding ? 1 : 0
                 titleSnap?.alpha = self.isExpanding ? 0 : 1
 
