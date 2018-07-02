@@ -13,7 +13,7 @@ import pop
 
 // swiftlint:disable:next type_body_length
 class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
-    
+
     var tabSwitcher: TabSwitcherViewController
 
     let webViewManager = WebViewManager()
@@ -552,7 +552,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         self.colorSampler.startUpdates()
 
 //         disable mysterious delays
-//         https://stackoverflow.com/questions/19799961/uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen
+//         https://stackoverflow.com/questions/19799961/
+//        uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen
         let window = view.window!
         let gr0 = window.gestureRecognizers![0] as UIGestureRecognizer
         let gr1 = window.gestureRecognizers![1] as UIGestureRecognizer

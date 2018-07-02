@@ -104,7 +104,7 @@ class HistoryManager: NSObject {
                     existingVisit.title = title
                 }
                 existingVisit.url = wkItem.url
-                
+
                 tab.currentVisit?.isCurrentVisitOf = nil
                 tab.currentVisit = existingVisit
                 existingVisit.isCurrentVisitOf = tab
@@ -115,7 +115,7 @@ class HistoryManager: NSObject {
             } else {
                 // Create a new entry
                 let newVisit = self.addVisit(from: wkItem, in: ctx)!
-                
+
                 if let backWKItem = list.backItem,
                     let backVisit = self.existingVisit(from: backWKItem, in: ctx),
                     backVisit == tab.currentVisit {
@@ -123,13 +123,13 @@ class HistoryManager: NSObject {
                     newVisit.backItem = tab.currentVisit
                     tab.currentVisit?.addToForwardItems(newVisit)
                 }
-                
+
                 tab.currentVisit?.isCurrentVisitOf = nil
                 tab.currentVisit = newVisit
                 tab.addToVisits(newVisit)
                 newVisit.isCurrentVisitOf = tab
                 newVisit.tab = tab
-                
+
                 if let parentTabVisit = tab.parentTab?.currentVisit, list.backItem == nil {
                     // Opened in new tab, create cross-tab link
                     newVisit.backItem = parentTabVisit

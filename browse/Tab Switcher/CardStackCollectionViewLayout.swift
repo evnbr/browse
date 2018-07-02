@@ -22,14 +22,14 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
     var belowHidden: Bool = false
     var parentIndexPath: IndexPath?
     var parentHidden: Bool = false
-    
+
     var stackedAttributes = [ UICollectionViewLayoutAttributes ]()
     var expandedAttributes = [ UICollectionViewLayoutAttributes ]()
     var blendedAttributes = [ UICollectionViewLayoutAttributes ]()
 
     var isTransitioning: Bool = false
     var expandedProgress: CGFloat = 0
-    
+
     var swipeOffset: CGFloat = 0 // -1 to 1
     var dismissProgress: CGFloat = 0
     var dismissIndexPath: IndexPath?
@@ -42,7 +42,7 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
         newSize.height -= dismissProgress * itemSpacing
         return newSize
     }
-    
+
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
         // Only adjust scroll for user, "proposed" seems to be garbage?
         if let cv = collectionView,
@@ -135,7 +135,7 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
 
         let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
         let i = indexPath.item
-        let distFromFront : CGFloat = CGFloat(selectedIndexPath.item - i)
+        let distFromFront: CGFloat = CGFloat(selectedIndexPath.item - i)
 
         var newCenter = CGPoint(
             x: baseCenter.x,
@@ -154,27 +154,29 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
         }
 
         attributes.bounds.size = cardSize
-        
+
         if cardSize.width > cardSize.height {
             let pct = (attributes.bounds.width - 96) / attributes.bounds.width
             attributes.bounds.size.width *= pct
             attributes.bounds.size.height *= pct
         }
-        
+
         let distFromTop = newCenter.y - (attributes.bounds.height / 2) - scrollY - topScrollPos
 
         let pct = distFromTop.progress(-400, 600).reverse()
-        let perspectiveScale = (pct * pct * 0.2).reverse()
-    
+        let perspectiveScale = (pct * pct * 0.3).reverse() * 0.93
+
         let extraH = cardSize.height * (1 - perspectiveScale)
 
-        let endCenter = withYOffset ? selectedCenter(scrollY: scrollY, baseCenter: baseCenter, totalItems: totalItems) : .zero
+        let endCenter = withYOffset
+            ? selectedCenter(scrollY: scrollY, baseCenter: baseCenter, totalItems: totalItems)
+            : .zero
 
         let withYOffsetAndTransitioning = withYOffset && isTransitioning
         attributes.isHidden = false
         if whenStacked {
-            newCenter.y -= extraH * 0.8
-            newCenter.y -= distFromTop * 1 * pct
+            newCenter.y -= extraH * 0.7
+            newCenter.y -= distFromTop * pct
             if withYOffsetAndTransitioning {
                 newCenter.y -= stackOffsetY(baseCenter: baseCenter, endCenter: endCenter, scrollY: scrollY)
             }

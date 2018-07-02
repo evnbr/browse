@@ -28,17 +28,13 @@ enum GestureNavigationAction {
 
 extension Blend {
     var dismissState: T {
-        get {
-            return self.start
-        }
+        get { return self.start }
         set {
             self.setValue(of: .start, to: newValue)
         }
     }
     var pagingState: T {
-        get {
-            return self.end
-        }
+        get {  return self.end }
         set {
             self.setValue(of: .end, to: newValue)
         }
