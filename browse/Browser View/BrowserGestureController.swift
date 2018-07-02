@@ -287,9 +287,9 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
             let toolbarH = newH.limit(min: 0, max: Const.toolbarHeight)
             let pct = toolbarH / Const.toolbarHeight
             vc.toolbar.heightConstraint.constant = toolbarH
-            let inset = -Const.toolbarHeight + toolbarH
-            scrollView.contentInset.bottom = inset
-            scrollView.scrollIndicatorInsets.bottom = inset
+//            let inset = -Const.toolbarHeight + toolbarH
+//            scrollView.contentInset.bottom = inset
+//            scrollView.scrollIndicatorInsets.bottom = inset
 
             let alpha = pct * 3 - 2
             vc.toolbar.contentsAlpha = alpha

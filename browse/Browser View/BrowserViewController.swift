@@ -180,10 +180,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
         webView.leftAnchor.constraint(equalTo: cardView.leftAnchor).isActive = true
         webView.rightAnchor.constraint(equalTo: cardView.rightAnchor).isActive = true
-        webView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -Const.toolbarHeight).isActive = true
-        toolbarPlaceholder.topAnchor.constraint(equalTo: webView.bottomAnchor).isActive = true
+//        webView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -Const.toolbarHeight).isActive = true
+        webView.bottomAnchor.constraint(equalTo: toolbar.topAnchor, constant: 0).isActive = true
+        toolbarPlaceholder.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
 
-        webView.addInputAccessory(toolbar: accessoryView)
+//        webView.addInputAccessory(toolbar: accessoryView)
 
         observeLoadingChanges(for: webView)
         updateLoadingState()
@@ -354,13 +355,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             delay: 0,
             options: .curveEaseInOut,
             animations: {
-                self.webView.scrollView.scrollIndicatorInsets.bottom = -Const.toolbarHeight
+//                self.webView.scrollView.scrollIndicatorInsets.bottom = -Const.toolbarHeight
                 self.toolbar.contentsAlpha = 0
             }
         )
         toolbar.heightConstraint.springConstant(to: 0)
-        webView.scrollView.springBottomInset(to: -Const.toolbarHeight)
-
+//        webView.scrollView.springBottomInset(to: Const.toolbarHeight)
     }
     @objc func tapToolbarPlaceholder() {
         showToolbar(adjustScroll: true)
@@ -376,11 +376,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
                 delay: 0,
                 options: [.curveEaseInOut, .allowAnimatedContent],
                 animations: {
-                    self.webView.scrollView.scrollIndicatorInsets.bottom = 0
+//                    self.webView.scrollView.scrollIndicatorInsets.bottom = 0
                     self.toolbar.contentsAlpha = 1
             })
             toolbar.heightConstraint.springConstant(to: Const.toolbarHeight)
-            webView.scrollView.springBottomInset(to: 0)
+//            webView.scrollView.springBottomInset(to: 0)
             if adjustScroll {
                 let scroll = webView.scrollView
                 var newOffset = scroll.contentOffset
@@ -389,8 +389,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             }
         } else {
             toolbar.heightConstraint.constant = Const.toolbarHeight
-            webView.scrollView.contentInset.bottom = 0
-            webView.scrollView.scrollIndicatorInsets.bottom = 0
+//            webView.scrollView.contentInset.bottom = 0
+//            webView.scrollView.scrollIndicatorInsets.bottom = 0
             toolbar.contentsAlpha = 1
         }
     }
