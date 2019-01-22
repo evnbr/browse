@@ -12,6 +12,8 @@ import WebKit
 
 typealias BrowseLoadingHandler = (WKScriptMessage) -> Void
 
+let USER_AGENT = "Mozilla/5.0 (iPod; CPU iPhone OS 12_0 like macOS) AppleWebKit/602.1.50 (KHTML, like Gecko) Version/12.0 Mobile/14A5335d Safari/602.1.50"
+
 class WebViewManager: NSObject {
     private var webViewMap: [ Tab: WKWebView ] = [:]
     private var blocker = Blocker()
@@ -89,6 +91,7 @@ class WebViewManager: NSObject {
         webView.scrollView.clipsToBounds = false
         webView.scrollView.alwaysBounceHorizontal = true
         webView.allowsLinkPreview = false
+        webView.customUserAgent = USER_AGENT
 
         return webView
     }
