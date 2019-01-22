@@ -77,7 +77,7 @@ class BrowserToolbarView: ColorToolbarView {
 
         searchField = ToolbarSearchField()
         backButton = ToolbarIconButton(icon: UIImage(named: "back"))
-        tabButton = ToolbarIconButton(icon: UIImage(named: "tab"))
+        tabButton = ToolbarIconButton(icon: UIImage(named: "action"))
 
         stopButton = searchField.stopButton
         items = [backButton, searchField, tabButton]

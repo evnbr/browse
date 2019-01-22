@@ -162,7 +162,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         dismissPanner.addTarget(self, action: #selector(anywherePan(gesture:)))
         dismissPanner.cancelsTouchesInView = false
         dismissPanner.delaysTouchesBegan = false
-        vc.contentView.addGestureRecognizer(dismissPanner)
+//        vc.contentView.addGestureRecognizer(dismissPanner)
 
         let backDismissPan = UIScreenEdgePanGestureRecognizer()
         backDismissPan.delegate = self
@@ -180,10 +180,10 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         forwardDismissPan.delaysTouchesBegan = false
         view.addGestureRecognizer(forwardDismissPan)
 
-        let pincher = UIPinchGestureRecognizer()
-        pincher.delegate = self
-        pincher.addTarget(pinchController, action: #selector(pinchController.pinch(gesture:)))
-        vc.contentView.addGestureRecognizer(pincher)
+//        let pincher = UIPinchGestureRecognizer()
+//        pincher.delegate = self
+//        pincher.addTarget(pinchController, action: #selector(pinchController.pinch(gesture:)))
+//        vc.contentView.addGestureRecognizer(pincher)
     }
 
     func scrollViewDidScrollToTop(_ scrollView: UIScrollView) {
@@ -361,9 +361,9 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         }
 
         let xShift = gesturePos.x - startPoint.x
-        let yShift = gesturePos.y
+        let yShift: CGFloat = 0 //gesturePos.y
 
-        let verticalProgress = gesturePos.y.progress(0, 200).clip()
+        let verticalProgress: CGFloat = 0 // = gesturePos.y.progress(0, 200).clip()
 
 //        let sign : CGFloat = adjustedX > 0 ? 1 : -1 //direction == .left ? 1 : -1
         let sign: CGFloat = direction == .rightToLeft ? -1 : 1
@@ -471,7 +471,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
             thumbPositioner.pagingState = cardPagingPoint
 //        }
 
-        let isVerticalDismiss = gesturePos.y > dismissPointPreviewY
+        let isVerticalDismiss = false //gesturePos.y > dismissPointPreviewY
         let isHorizontalDismiss = false //abs(adjustedX) > 80
         let newState = (isVerticalDismiss || (cantPage && isHorizontalDismiss))
             ? SpringTransitionState.start
@@ -498,9 +498,10 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         let isHorizontal = abs(gesturePos.y) < abs(gesturePos.x)
         let isVerticalVel = vel.y > abs(vel.x)
 
-        if isVerticalVel || gesturePos.y > dismissPointY {
-            commitDismiss(velocity: vel)
-        } else if adjustedX > backPointX && isHorizontal {
+//        if isVerticalVel || gesturePos.y > dismissPointY {
+//            commitDismiss(velocity: vel)
+//        } else
+        if adjustedX > backPointX && isHorizontal {
             if vc.webView.canGoBack
             && mockCardView.frame.origin.x + mockCardView.frame.width > backPointX {
                 let nav = vc.webView.goBack()
@@ -868,7 +869,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         hVel.y = 0
 
         // Move card back to center
-        let centerAnim = cardView.springCenter(to: view.center, at: velocity) {_, _ in
+        let centerAnim = cardView.springCenter(to: view.center, at: hVel) {_, _ in
             UIView.animate(withDuration: 0.2, animations: {
                 self.vc.tabSwitcher.setNeedsStatusBarAppearanceUpdate()
             })

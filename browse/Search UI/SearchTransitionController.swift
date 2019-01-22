@@ -144,6 +144,9 @@ class SearchTransitionController: NSObject {
         searchVC.iconEntranceProgress = isExpanding ? 1 : 0
         searchVC.view.center = browserVC.view.center
 
+        // Don't block touches when dismissing
+        searchVC.scrim.isUserInteractionEnabled = isExpanding
+        
         UIView.animate(
             withDuration: 0.5,
             delay: 0.0,
@@ -158,7 +161,7 @@ class SearchTransitionController: NSObject {
                     searchVC.shadowView.alpha = self.isExpanding ? 1 : 0
                 }
                 
-                searchVC.scrim.alpha = 0 //self.isExpanding ? 1 : 0
+                searchVC.scrim.alpha = self.isExpanding ? 1 : 0
                 searchVC.textView.alpha = self.isExpanding ? 1 : 0
                 titleSnap?.alpha = self.isExpanding ? 0 : 1
 

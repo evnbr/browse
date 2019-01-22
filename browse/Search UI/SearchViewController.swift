@@ -95,7 +95,7 @@ class SearchViewController: UIViewController {
         view.radius = Const.cardRadius
         view.clipsToBounds = true
 
-        scrim = PassthroughView(frame: view.bounds)
+        scrim = UIView(frame: view.bounds)
         scrim.backgroundColor = UIColor.black.withAlphaComponent(0.2)
         view.addSubview(scrim, constraints: [
             scrim.topAnchor.constraint(equalTo: view.topAnchor),
@@ -110,15 +110,15 @@ class SearchViewController: UIViewController {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.tintColor = .darkText
         contentView.clipsToBounds = true
-        contentView.radius = 8
+        contentView.radius = 12
         view.addSubview(contentView)
         
         shadowView = UIView(frame: view.bounds)
         shadowView.translatesAutoresizingMaskIntoConstraints = false
-        let path = UIBezierPath(roundedRect: view.bounds, cornerRadius: 8)
+        let path = UIBezierPath(roundedRect: contentView.bounds, cornerRadius: 12)
         shadowView.layer.shadowPath = path.cgPath
         shadowView.layer.shadowOpacity = 0.1
-        shadowView.layer.shadowRadius = 0
+        shadowView.layer.shadowRadius = 24
         view.insertSubview(shadowView, belowSubview: contentView)
         NSLayoutConstraint.activate([
             shadowView.topAnchor.constraint(equalTo: contentView.topAnchor),
@@ -244,7 +244,7 @@ class SearchViewController: UIViewController {
 
     func setupPlaceholderIcons() {
         let backButton = ToolbarIconButton(icon: UIImage(named: "back"))
-        let tabButton = ToolbarIconButton(icon: UIImage(named: "tab"))
+        let tabButton = ToolbarIconButton(icon: UIImage(named: "action"))
         leftIconConstraint = backButton.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 8)
         rightIconConstraint = tabButton.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -8)
         contentView.addSubview(backButton, constraints: [

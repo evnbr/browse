@@ -10,12 +10,18 @@
 import UIKit
 import WebKit
 
+typealias BrowseLoadingHandler = (WKScriptMessage) -> Void
+
 class WebViewManager: NSObject {
     private var webViewMap: [ Tab: WKWebView ] = [:]
     private var blocker = Blocker()
+    private var baseConfiguration: WKWebViewConfiguration!
+
+    var loadingHandler: BrowseLoadingHandler?
 
     override init() {
         super.init()
+        baseConfiguration = createBaseConfiguration()
         blocker.getRules { lists in
             lists.forEach {
                 self.baseConfiguration.userContentController.add($0)
@@ -26,7 +32,7 @@ class WebViewManager: NSObject {
         }
     }
 
-    private var baseConfiguration: WKWebViewConfiguration = {
+    func createBaseConfiguration() -> WKWebViewConfiguration {
         let configuration = WKWebViewConfiguration()
         configuration.processPool = WKProcessPool()
         configuration.allowsInlineMediaPlayback = true
@@ -34,8 +40,26 @@ class WebViewManager: NSObject {
         configuration.userContentController.addUserScript(
             WKUserScript(source: checkFixedFunc, injectionTime: .atDocumentStart, forMainFrameOnly: false)
         )
+        let loadAlerterStr = """
+            document.addEventListener("DOMContentLoaded", () => {
+                console.log("hey")
+                window.webkit.messageHandlers["\(browseLoadHandlerName)"].postMessage("DOMContentLoaded");
+            });
+        """
+        let readyStateStr = """
+            document.onreadystatechange = () => {
+                if (document.readyState === "interactive") {
+                    window.webkit.messageHandlers["\(browseLoadHandlerName)"].postMessage("interactive");
+                }
+            }
+        """
+
+        configuration.userContentController.addUserScript(
+            WKUserScript(source: readyStateStr, injectionTime: .atDocumentStart, forMainFrameOnly: true)
+        )
+        configuration.userContentController.add(self, name: browseLoadHandlerName)
         return configuration
-    }()
+    }
 
     func webViewFor(_ tab: Tab) -> WKWebView {
         if let existing = webViewMap[tab] {
@@ -67,6 +91,16 @@ class WebViewManager: NSObject {
         webView.allowsLinkPreview = false
 
         return webView
+    }
+}
+
+let browseLoadHandlerName = "browseLoadEvent"
+
+extension WebViewManager: WKScriptMessageHandler {
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == browseLoadHandlerName {
+            loadingHandler?(message)
+        }
     }
 }
 

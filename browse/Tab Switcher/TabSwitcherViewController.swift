@@ -254,8 +254,8 @@ class TabSwitcherViewController: UICollectionViewController {
         let anim = spring.springState(toStacked ? .start : .end) { (_, _) in
             completion?()
         }
-        anim?.springSpeed = 4
-        anim?.springBounciness = 1
+        anim?.springSpeed = 6
+        anim?.springBounciness = 2
     }
 
     func moveTabToEnd(_ tab: Tab) {

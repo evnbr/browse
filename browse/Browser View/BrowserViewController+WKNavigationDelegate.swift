@@ -22,6 +22,7 @@ extension BrowserViewController: WKNavigationDelegate {
         _ webView: WKWebView,
         didFinish navigation: WKNavigation!) {
 
+//        print("didFinish")
         updateLoadingState()
         if navigation == navigationToHide {
             // wait a sec... just because the first navigation is done,

@@ -56,7 +56,7 @@ class VisitCell: UICollectionViewCell {
         toolbarView = BrowserToolbarView(frame: bounds)
         toolbarView.backButton.isHidden = true
         toolbarView.tabButton.isHidden = true
-        toolbarView.backgroundColor = .red
+        toolbarView.backgroundColor = .white
         toolbarView.isUserInteractionEnabled = false
         toolbarView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(toolbarView, constraints: [

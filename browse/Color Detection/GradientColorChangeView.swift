@@ -18,7 +18,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     let gradientLayer2: CAGradientLayer = CAGradientLayer()
     let gradientLayer3: CAGradientLayer = CAGradientLayer()
 
-    let duration: CFTimeInterval = 0.2//0.3
+    let duration: CFTimeInterval = 0.4//0.3
 
     var backgroundView: UIView!
 
@@ -103,7 +103,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     func animateGradientNew(toColor: UIColor, direction: GradientColorChangeDirection ) -> Bool {
         if toColor.isEqual(lastColor) { return false }
 
-        UIView.animate(withDuration: 0.5, delay: 0, options: .beginFromCurrentState, animations: {
+        UIView.animate(withDuration: 1, delay: 0, options: .beginFromCurrentState, animations: {
             self.backgroundView.backgroundColor = toColor
             self.tintColor = toColor.isLight ? .white : .darkText
         })

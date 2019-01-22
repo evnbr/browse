@@ -248,8 +248,8 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
             popCenterDone = true
             finishTransition()
         }
-        centerAnim?.dynamicsMass = 3.5
-        centerAnim?.dynamicsTension = 900
+        centerAnim?.dynamicsMass = 4
+        centerAnim?.dynamicsTension = 800
         centerAnim?.dynamicsFriction = 90
 
         scaleAnim?.springSpeed = 8
@@ -272,9 +272,11 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
                 browserVC.gestureController.mockCardView.center.x = pct.lerp(startX, endX)
             }
             tabSwitcher.updateStackOffset(for: cardCenter)
-            let search = browserVC.searchVC
-            let offsetTextField = (cardCenter.y - newCenter.y) * 0.8
-            search.kbHeightConstraint?.constant = search.keyboard.height + offsetTextField
+            if browserVC.isDisplayingSearch {
+                let search = browserVC.searchVC
+                let offsetTextField = (cardCenter.y - newCenter.y) * 0.8
+                search.kbHeightConstraint?.constant = search.keyboard.height + offsetTextField
+            }
         }
 
         tabSwitcher.springCards(toStacked: isDismissing, at: velocity)

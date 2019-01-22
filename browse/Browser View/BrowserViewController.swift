@@ -334,6 +334,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             selector: #selector(keyboardWillShow),
             name: NSNotification.Name.UIKeyboardWillShow,
             object: nil)
+
+        webViewManager.loadingHandler = { msg in
+//            if msg.webView == self.webView {
+//                print("int")
+//                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+//                    self.finishHiddenNavigation()
+//                }
+//            }
+        }
     }
 
     var cardViewDefaultFrame: CGRect {
@@ -403,7 +412,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         toolbar.searchField.setAction({ self.displaySearch() })
         toolbar.backButton.setAction(goBack)
         toolbar.stopButton.setAction(stop)
-        toolbar.tabButton.setAction(displayHistory)
+//        toolbar.tabButton.setAction(displayHistory)
+        toolbar.tabButton.setAction(displayShareSheet)
         toolbar.tintColor = .darkText
         return toolbar
     }
