@@ -17,9 +17,8 @@ protocol WebviewColorSamplerDelegate: class {
     var shouldUpdateSample: Bool { get }
     var bottomSamplePosition: CGFloat { get }
 
-    func didTakeSample()
-    func topColorChange(_ newColor: UIColor)
-    func bottomColorChange(_ newColor: UIColor)
+    func topColorChange(_ newColor: UIColor, offset: CGPoint)
+    func bottomColorChange(_ newColor: UIColor, offset: CGPoint)
     func cancelColorChange()
 }
 
@@ -57,8 +56,6 @@ class WebviewColorSampler: NSObject {
     @objc func updateColors() {
         guard delegate.shouldUpdateSample else { return }
 
-        delegate.didTakeSample()
-
         let now = CACurrentMediaTime()
         guard (now - lastSampledColorsTime) > MIN_TIME_BETWEEN_UPDATES else { return }
         lastSampledColorsTime = now
@@ -66,6 +63,7 @@ class WebviewColorSampler: NSObject {
         let sampleH: CGFloat = 6
         let sampleW: CGFloat = delegate.sampledWebView.bounds.width
 
+        let offsetDuringSnapshot = delegate.sampledWebView.scrollView.contentOffset
         let currentItem = delegate.sampledWebView.backForwardList.currentItem
 
         func didNavigateAfterSample() -> Bool {
@@ -82,10 +80,10 @@ class WebviewColorSampler: NSObject {
         delegate.sampledWebView.takeSnapshot(with: bottomConfig) { image, _ in
             if didNavigateAfterSample() { return }
 //            image?.getColors(scaleDownSize: bottomConfig.rect.size) { colors in
-            image?.getColors { colors in
+            image?.asyncGetEdgeColors { colors in
                 if didNavigateAfterSample() { return }
                 self.bottom = colors.background
-                self.delegate.bottomColorChange(self.bottom)
+                self.delegate.bottomColorChange(self.bottom, offset: offsetDuringSnapshot)
             }
         }
 
@@ -98,10 +96,10 @@ class WebviewColorSampler: NSObject {
         )
         delegate.sampledWebView.takeSnapshot(with: topConfig) { image, _ in
             if didNavigateAfterSample() { return }
-            image?.getColors { colors in
+            image?.asyncGetEdgeColors { colors in
                 if didNavigateAfterSample() { return }
                 self.top = colors.background
-                self.delegate.topColorChange(self.top)
+                self.delegate.topColorChange(self.top, offset: offsetDuringSnapshot)
             }
         }
     }

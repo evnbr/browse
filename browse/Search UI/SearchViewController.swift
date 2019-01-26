@@ -13,7 +13,7 @@ let typeaheadReuseID = "TypeaheadRow"
 let MAX_ROWS: Int = 4
 let SEARCHVIEW_MAX_H: CGFloat = 240.0
 let TEXTVIEW_PADDING = UIEdgeInsets(top: 20, left: 20, bottom: 40, right: 20)
-let pageActionHeight: CGFloat = 100
+let pageActionHeight: CGFloat = 20 //100
 
 // https://medium.com/@nguyenminhphuc/how-to-pass-ui-events-through-views-in-ios-c1be9ab1626b
 class PassthroughView: UIView {

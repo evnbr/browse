@@ -26,7 +26,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     var aspectConstraint: NSLayoutConstraint!
     var statusHeightConstraint: NSLayoutConstraint!
 
-    var colorSampler: WebviewColorSampler!
+    let colorSampler = WebviewColorSampler()
+    let statusColorBar = ColorBarCollectionViewController()
+    let toolbarColorBar = ColorBarCollectionViewController()
 
     lazy var searchVC = SearchViewController()
 
@@ -35,7 +37,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     var toolbar: BrowserToolbarView!
     var toolbarPlaceholder = UIView()
     var accessoryView: GradientColorChangeView!
-
+    
     var errorView: UIView!
     var cardView: UIView!
     var contentView: UIView!
@@ -51,7 +53,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     // MARK: - Derived properties
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        return statusBar.backgroundColor.isLight ? .lightContent : .default
+        return statusColorBar.averageColor().isLight  ? .lightContent : .default
     }
 
     override var prefersStatusBarHidden: Bool {
@@ -95,6 +97,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     }
 
     func hideUntilNavigationDone(navigation: WKNavigation? ) {
+        statusColorBar.sampleCache.removeAll()
+        toolbarColorBar.sampleCache.removeAll()
+        
         isSnapshotMode = true
         if let nav = navigation {
             // nav delegate will track and alert when done
@@ -299,7 +304,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
         snapshotView.isHidden = true
         aspectConstraint = snapshotView.heightAnchor.constraint(equalTo: snapshotView.widthAnchor, multiplier: 1)
-
+        
         NSLayoutConstraint.activate([
             statusHeightConstraint,
             aspectConstraint,
@@ -316,7 +321,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
         accessoryView = setupAccessoryView()
 
-        colorSampler = WebviewColorSampler()
         colorSampler.delegate = self
 
         gestureController = BrowserGestureController(for: self)
@@ -343,6 +347,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 //                }
 //            }
         }
+        
+        statusBar.addSubview(statusColorBar.view)
+        statusColorBar.view.frame = statusBar.bounds
+        toolbar.insertSubview(toolbarColorBar.view, belowSubview: toolbar.stackView)
+        toolbarColorBar.view.frame = toolbar.bounds
     }
 
     var cardViewDefaultFrame: CGRect {
@@ -355,6 +364,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     }
 
     func hideToolbar(animated: Bool = true) {
+        return
+        
         if !webView.scrollView.isScrollableY { return }
         if webView.isLoading { return }
         if toolbar.heightConstraint.constant == 0 { return }
@@ -375,6 +386,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         showToolbar(adjustScroll: true)
     }
     func showToolbar(animated: Bool = true, adjustScroll: Bool = false) {
+        return
+        
         if toolbar.heightConstraint.constant == Const.toolbarHeight { return }
 
         let dist = Const.toolbarHeight - toolbar.heightConstraint.constant
@@ -792,8 +805,7 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
             && UIApplication.shared.applicationState == .active
             && webView != nil
             && !isSnapshotMode
-            && !webView.scrollView.isOverScrolledTop
-            && !webView.scrollView.isOverScrolledBottom
+
     }
 
     var bottomSamplePosition: CGFloat {
@@ -816,34 +828,8 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
         accessoryHeightConstraint?.constant = 0
     }
 
-    func didTakeSample() {
-        checkFixedNav()
-    }
-
-    func checkFixedNav() {
-//        webView.evaluateFixedNav() { (isFixed) in
-//            let sv = self.webView.scrollView
-//
-//            let transparentStatusBar = sv.isScrollableY
-//                && sv.contentOffset.y > Const.statusHeight
-//                && !isFixed.top
-//            let transparentToolbar = sv.isScrollableY
-//                && !isFixed.bottom
-//                && sv.contentOffset.y < sv.maxScrollY - Const.toolbarHeight
-//            let newStatusAlpha : CGFloat = transparentStatusBar ? 0.8 : 1
-//            let newToolbarAlpha : CGFloat = transparentToolbar ? 0.8 : 1
-//
-//            if newStatusAlpha != self.statusBar.backgroundView.alpha
-//                || newToolbarAlpha != self.toolbar.backgroundView.alpha {
-//                UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
-//                    self.statusBar.backgroundView.alpha = newStatusAlpha
-//                    self.toolbar.backgroundView.alpha = newToolbarAlpha
-//                })
-//            }
-//        }
-    }
-
-    func topColorChange(_ newColor: UIColor) {
+    func topColorChange(_ newColor: UIColor, offset: CGPoint) {
+        statusColorBar.addSample(newColor, offsetY: offset.y + Const.statusHeight + 6)
         if newColor != currentTab.currentVisit?.topColor {
             currentTab.currentVisit?.topColor = newColor
             return
@@ -855,7 +841,13 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
         }
     }
 
-    func bottomColorChange(_ newColor: UIColor) {
+    func bottomColorChange(_ newColor: UIColor, offset: CGPoint) {
+        toolbarColorBar.addSample(newColor, offsetY: offset.y - 6)
+        
+        UIView.animate(withDuration: 0.2, delay: 0.0, options: .curveEaseInOut, animations: {
+            self.toolbar.tintColor = self.toolbarColorBar.averageColor().isLight ? .white : .darkText
+        }, completion: nil)
+
         if newColor != currentTab.currentVisit?.bottomColor {
             currentTab.currentVisit?.bottomColor = newColor
             return

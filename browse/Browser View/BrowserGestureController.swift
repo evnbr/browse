@@ -228,6 +228,8 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
             scrollView.setScrollSilently(pinchController.pinchStartScroll)
         }
         updateToolbar(scrollView)
+        vc.statusColorBar.update(scrollView)
+        vc.toolbarColorBar.update(scrollView)
     }
 
     func scrollViewDidZoom(_ scrollView: UIScrollView) {
@@ -251,6 +253,8 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
     }
 
     func updateToolbar(_ scrollView: UIScrollView) {
+        return
+        
         // Navigated to page that is not scrollable
         if scrollView.contentOffset.y == 0 && !scrollView.isScrollableY && !vc.isShowingToolbar {
             vc.showToolbar(animated: false)
@@ -334,7 +338,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
     let vProgressScaleMultiplier: CGFloat = 0
     let vProgressCancelBackScaleMultiplier: CGFloat = 0.2
     let cantGoBackScaleMultiplier: CGFloat = 1.2
-    let backItemScale: CGFloat = 0.97
+    let backItemScale: CGFloat = 1 //0.97
 
     var wouldCommitPreviousX = false
     var wouldCommitPreviousY = false

@@ -119,9 +119,9 @@ extension UIImage {
      - parameter scaleDownSize:     Downscale size of image for sampling, if `CGSize.zero` is provided, the sample image is rescaled to a width of 250px and the aspect ratio height.
      - parameter completionHandler: `UIImageColors` for this image.
      */
-    public func getColors(scaleDownSize: CGSize = CGSize.zero, completionHandler: @escaping (UIImageColors) -> Void) {
+    public func asyncGetEdgeColors(scaleDownSize: CGSize = CGSize.zero, completionHandler: @escaping (UIImageColors) -> Void) {
         DispatchQueue.global().async {
-            let result = self.getColors(scaleDownSize: scaleDownSize)
+            let result = self.getEdgeColors(scaleDownSize: scaleDownSize)
             
             if let colors: UIImageColors = result {
                 DispatchQueue.main.async {
@@ -141,7 +141,7 @@ extension UIImage {
      
      - returns: `UIImageColors` for this image.
      */
-    public func getColors(scaleDownSize: CGSize = CGSize.zero) -> UIImageColors? {
+    public func getEdgeColors(scaleDownSize: CGSize = CGSize.zero) -> UIImageColors? {
         // TODO: Scale down is not encessary but without it
         // the image gets released(?) and accessing the bytes will fail
         var scaleDownSize = scaleDownSize
