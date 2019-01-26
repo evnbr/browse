@@ -15,7 +15,7 @@ class Blocker: NSObject {
     private var fileNames = [
         "disconnect-advertising",
         "disconnect-analytics",
-        "disconnect-content",
+//        "disconnect-content_",
         "disconnect-social",
         "ultimateAdblockList",
 //        "ultimateAdblockListCSS",
@@ -40,7 +40,7 @@ class Blocker: NSObject {
     }
     
     
-    func findList(_ fileName : String, completion: @escaping (WKContentRuleList?) -> Void) {
+    func findList(_ fileName: String, completion: @escaping (WKContentRuleList?) -> Void) {
         WKContentRuleListStore.default().getAvailableContentRuleListIdentifiers { (identifiers) in
             if identifiers != nil && identifiers!.contains(fileName) {
                 WKContentRuleListStore.default().lookUpContentRuleList(
@@ -63,7 +63,7 @@ class Blocker: NSObject {
             }
         }
     }
-    
+
     func compileList(_ fileName: String, completion: @escaping (WKContentRuleList?) -> Void) {
         print("compiling rules '\(fileName)'")
         guard let path = Bundle.main.path(forResource: fileName, ofType: "json"),

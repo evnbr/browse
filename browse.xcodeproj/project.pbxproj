@@ -58,7 +58,7 @@
 		A985F8A620843D8C007A726A /* disconnect-advertising.json in Resources */ = {isa = PBXBuildFile; fileRef = A985F8A220843D8B007A726A /* disconnect-advertising.json */; };
 		A985F8A720843D8C007A726A /* disconnect-analytics.json in Resources */ = {isa = PBXBuildFile; fileRef = A985F8A320843D8B007A726A /* disconnect-analytics.json */; };
 		A985F8A820843D8C007A726A /* disconnect-social.json in Resources */ = {isa = PBXBuildFile; fileRef = A985F8A420843D8C007A726A /* disconnect-social.json */; };
-		A985F8A920843D8C007A726A /* disconnect-content.json in Resources */ = {isa = PBXBuildFile; fileRef = A985F8A520843D8C007A726A /* disconnect-content.json */; };
+		A985F8A920843D8C007A726A /* disconnect-content_.json in Resources */ = {isa = PBXBuildFile; fileRef = A985F8A520843D8C007A726A /* disconnect-content_.json */; };
 		A99328471F098E270045EBAA /* ToolbarTextButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99328461F098E270045EBAA /* ToolbarTextButton.swift */; };
 		A9A88DE92015C64F007FC6C0 /* GradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9A88DE82015C64F007FC6C0 /* GradientView.swift */; };
 		A9AA4A581FF72471001AB639 /* PlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9AA4A571FF72471001AB639 /* PlaceholderView.swift */; };
@@ -67,6 +67,7 @@
 		A9B62CD2208AA54B003CAA54 /* TreeMaker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B62CD1208AA54B003CAA54 /* TreeMaker.swift */; };
 		A9B62CD82091148E003CAA54 /* HistoryZoomAnimatedTransitioning.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B62CD72091148E003CAA54 /* HistoryZoomAnimatedTransitioning.swift */; };
 		A9BED7BD1F4E23430012B34F /* GradientColorChangeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */; };
+		A9C1BAF621FC179400FCB346 /* ColorBarCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9C1BAF521FC179400FCB346 /* ColorBarCollectionViewController.swift */; };
 		A9D33D9220D8443F00066A05 /* KeyboardManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D33D9120D8443F00066A05 /* KeyboardManager.swift */; };
 		A9D4B8C11F72F6D6006F0F18 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */; };
 		A9DEAE3D1F16C15700CF66BA /* BrowserToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DEAE3C1F16C15700CF66BA /* BrowserToolbarView.swift */; };
@@ -165,7 +166,7 @@
 		A985F8A220843D8B007A726A /* disconnect-advertising.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "disconnect-advertising.json"; sourceTree = "<group>"; };
 		A985F8A320843D8B007A726A /* disconnect-analytics.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "disconnect-analytics.json"; sourceTree = "<group>"; };
 		A985F8A420843D8C007A726A /* disconnect-social.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "disconnect-social.json"; sourceTree = "<group>"; };
-		A985F8A520843D8C007A726A /* disconnect-content.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "disconnect-content.json"; sourceTree = "<group>"; };
+		A985F8A520843D8C007A726A /* disconnect-content_.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "disconnect-content_.json"; sourceTree = "<group>"; };
 		A99328461F098E270045EBAA /* ToolbarTextButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToolbarTextButton.swift; sourceTree = "<group>"; };
 		A9A88DE82015C64F007FC6C0 /* GradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientView.swift; sourceTree = "<group>"; };
 		A9AA4A571FF72471001AB639 /* PlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderView.swift; sourceTree = "<group>"; };
@@ -174,6 +175,7 @@
 		A9B62CD1208AA54B003CAA54 /* TreeMaker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreeMaker.swift; sourceTree = "<group>"; };
 		A9B62CD72091148E003CAA54 /* HistoryZoomAnimatedTransitioning.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HistoryZoomAnimatedTransitioning.swift; sourceTree = "<group>"; };
 		A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientColorChangeView.swift; sourceTree = "<group>"; };
+		A9C1BAF521FC179400FCB346 /* ColorBarCollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorBarCollectionViewController.swift; sourceTree = "<group>"; };
 		A9D33D9120D8443F00066A05 /* KeyboardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardManager.swift; sourceTree = "<group>"; };
 		A9D4B8C01F72F6D6006F0F18 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		A9DEAE3C1F16C15700CF66BA /* BrowserToolbarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserToolbarView.swift; sourceTree = "<group>"; };
@@ -271,6 +273,7 @@
 				A9E4859C1EC8D7BE0021D155 /* WebviewColorSampler.swift */,
 				A90F51201F70C6CB00221815 /* UIImageColors.swift */,
 				A9BED7BC1F4E23430012B34F /* GradientColorChangeView.swift */,
+				A9C1BAF521FC179400FCB346 /* ColorBarCollectionViewController.swift */,
 			);
 			path = "Color Detection";
 			sourceTree = "<group>";
@@ -312,7 +315,7 @@
 				A92095831ED90E7B009497A2 /* Blocker.swift */,
 				A985F8A220843D8B007A726A /* disconnect-advertising.json */,
 				A985F8A320843D8B007A726A /* disconnect-analytics.json */,
-				A985F8A520843D8C007A726A /* disconnect-content.json */,
+				A985F8A520843D8C007A726A /* disconnect-content_.json */,
 				A985F8A420843D8C007A726A /* disconnect-social.json */,
 				A91372061F777511002C160B /* ultimateAdblockList.json */,
 				A9404D0E20633E840004DD83 /* ultimateAdblockListCSS.json */,
@@ -467,7 +470,6 @@
 				A97CB0691EC53DCC005DDBD1 /* Frameworks */,
 				A97CB06A1EC53DCC005DDBD1 /* Resources */,
 				89E8F91E165779D586E360EA /* [CP] Embed Pods Frameworks */,
-				A95EDB6620D8A432001B24CD /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -574,7 +576,7 @@
 				A985F8A820843D8C007A726A /* disconnect-social.json in Resources */,
 				A985F8A720843D8C007A726A /* disconnect-analytics.json in Resources */,
 				A97CB0771EC53DCD005DDBD1 /* Assets.xcassets in Resources */,
-				A985F8A920843D8C007A726A /* disconnect-content.json in Resources */,
+				A985F8A920843D8C007A726A /* disconnect-content_.json in Resources */,
 				A91372071F777511002C160B /* ultimateAdblockList.json in Resources */,
 				A9D4B8C11F72F6D6006F0F18 /* Launch Screen.storyboard in Resources */,
 				A9404D0F20633E840004DD83 /* ultimateAdblockListCSS.json in Resources */,
@@ -625,19 +627,6 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-browse/Pods-browse-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
-		};
-		A95EDB6620D8A432001B24CD /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/SwiftLint/swiftlint\"";
 		};
 		D314FB949F2E7F6732374083 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -702,6 +691,7 @@
 			files = (
 				A9F9D7C6205117B2000BA8A3 /* BookmarkProvider.swift in Sources */,
 				A95DFF7B2058BEC600D540DD /* Blendable.swift in Sources */,
+				A9C1BAF621FC179400FCB346 /* ColorBarCollectionViewController.swift in Sources */,
 				A92C9C3B1EF8B5E600D8AAA3 /* BrowserGestureController.swift in Sources */,
 				A90F51211F70C6CB00221815 /* UIImageColors.swift in Sources */,
 				A9B62CD82091148E003CAA54 /* HistoryZoomAnimatedTransitioning.swift in Sources */,
@@ -920,7 +910,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = DJXSN639VG;
 				INFOPLIST_FILE = browse/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = evn.browse;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -937,7 +927,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = DJXSN639VG;
 				INFOPLIST_FILE = browse/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = evn.browse;
 				PRODUCT_NAME = "$(TARGET_NAME)";
