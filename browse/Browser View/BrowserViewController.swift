@@ -114,6 +114,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     @objc func finishHiddenNavigation() {
         self.navigationToHide = nil //false
         self.isSnapshotMode = false
+        colorSampler.updateColors()
     }
 
     func setVisit(_ visit: Visit, wkItem: WKBackForwardListItem) {
@@ -805,7 +806,6 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
             && UIApplication.shared.applicationState == .active
             && webView != nil
             && !isSnapshotMode
-
     }
 
     var bottomSamplePosition: CGFloat {
@@ -829,6 +829,10 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
     }
 
     func topColorChange(_ newColor: UIColor, offset: CGPoint) {
+        if webView.scrollView.isOverScrolledTop {
+            return
+        }
+
         statusColorBar.addSample(newColor, offsetY: offset.y + Const.statusHeight + 6)
         if newColor != currentTab.currentVisit?.topColor {
             currentTab.currentVisit?.topColor = newColor

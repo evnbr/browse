@@ -6,19 +6,8 @@
 //  Original Cocoa version by Panic Inc. - Portland
 //
 //  Modified by Evan Brooks (@evnbr) 2017-09-19 - SF
-//  Changes:
-//  - only looks for background color
-//  - does not resize image (since sample is already small, was upsizing)
-//  - remove alpha detection (irrelevant)
 
 import UIKit
-
-public struct UIImageColors {
-    public var background: UIColor!
-//    public var primary: UIColor!
-//    public var secondary: UIColor!
-//    public var detail: UIColor!
-}
 
 class PCCountedColor {
     let color: UIColor
@@ -98,6 +87,9 @@ extension UIColor {
     }
 }
 
+let edgeWidth: Int = 12
+let veryEdgeWidth: Int = 5
+
 extension UIImage {
     private func resizeForUIImageColors(newSize: CGSize) -> UIImage {
         UIGraphicsBeginImageContextWithOptions(newSize, false, 0)
@@ -119,13 +111,13 @@ extension UIImage {
      - parameter scaleDownSize:     Downscale size of image for sampling, if `CGSize.zero` is provided, the sample image is rescaled to a width of 250px and the aspect ratio height.
      - parameter completionHandler: `UIImageColors` for this image.
      */
-    public func asyncGetEdgeColors(scaleDownSize: CGSize = CGSize.zero, completionHandler: @escaping (UIImageColors) -> Void) {
+    public func asyncGetEdgeColors(scaleDownSize: CGSize = CGSize.zero, completionHandler: @escaping (UIColor) -> Void) {
         DispatchQueue.global().async {
             let result = self.getEdgeColors(scaleDownSize: scaleDownSize)
             
-            if let colors: UIImageColors = result {
+            if let color = result {
                 DispatchQueue.main.async {
-                    completionHandler(colors)
+                    completionHandler(color)
                 }
             }
         }
@@ -141,7 +133,8 @@ extension UIImage {
      
      - returns: `UIImageColors` for this image.
      */
-    public func getEdgeColors(scaleDownSize: CGSize = CGSize.zero) -> UIImageColors? {
+    
+    public func getEdgeColors(scaleDownSize: CGSize = CGSize.zero) -> UIColor? {
         // TODO: Scale down is not encessary but without it
         // the image gets released(?) and accessing the bytes will fail
         var scaleDownSize = scaleDownSize
@@ -153,18 +146,77 @@ extension UIImage {
         let cgImage = self.resizeForUIImageColors(newSize: scaleDownSize).cgImage!
 //        let cgImage = self.cgImage!
 
-        var result = UIImageColors()
-
         let width: Int = cgImage.width
         let height: Int = cgImage.height
 
-        let fallbackColor = UIColor.cyan
+        guard let data = CFDataGetBytePtr(cgImage.dataProvider!.data) else {
+            fatalError("UIImageColors.getColors failed: could not get cgImage data")
+        }
 
+        // Filter out and collect pixels from image
+        let imageColorsLeft = NSCountedSet(capacity: edgeWidth * height)
+        let imageColorsRight = NSCountedSet(capacity: edgeWidth * height)
+
+        for x in 0..<width {
+            for y in 0..<height {
+                // Only count pixels within N of sides
+                if x < edgeWidth {
+                    let pixel: Int = ((width * y) + x) * 4
+                    if 127 <= data[pixel+3] { // alpha over 0.5
+                        let color = UIColor(
+                            red: CGFloat(data[pixel + 2]) / 255,
+                            green: CGFloat(data[pixel + 1]) / 255,
+                            blue: CGFloat(data[pixel]) / 255,
+                            alpha: 1.0
+                        )
+                        imageColorsLeft.add(color)
+                        if x < veryEdgeWidth {
+                            // boost very edges
+                            imageColorsLeft.add(color)
+                            imageColorsLeft.add(color)
+                            imageColorsLeft.add(color)
+                        }
+                    }
+                }
+                if x > width - edgeWidth {
+                    let pixel: Int = ((width * y) + x) * 4
+                    if 127 <= data[pixel+3] { // alpha over 0.5
+                        let color = UIColor(
+                            red: CGFloat(data[pixel + 2]) / 255,
+                            green: CGFloat(data[pixel + 1]) / 255,
+                            blue: CGFloat(data[pixel]) / 255,
+                            alpha: 1.0
+                        )
+                        imageColorsRight.add(color)
+                        if x > width - veryEdgeWidth {
+                            // boost very edges
+                            imageColorsRight.add(color)
+                            imageColorsRight.add(color)
+                            imageColorsRight.add(color)
+                        }
+                    }
+                }
+            }
+        }
+
+        // Get background color
+        let leftColor = getDominantColor(imageColors: imageColorsLeft)
+        let rightColor = getDominantColor(imageColors: imageColorsRight)
+
+        
+        if let l = leftColor, let r = rightColor, l.difference(from: r) < 0.05 {
+            return leftColor
+        } else {
+            return nil
+        }
+    }
+    
+    func getDominantColor(imageColors: NSCountedSet) -> UIColor? {
         let randomColorsThreshold = 0//Int(CGFloat(height) * 0.01)
         let sortedColorComparator: Comparator = { (main, other) -> ComparisonResult in
             guard let m = main as? PCCountedColor,
                 let o = other as? PCCountedColor else {
-                return ComparisonResult.orderedSame
+                    return ComparisonResult.orderedSame
             }
             if m.count < o.count {
                 return ComparisonResult.orderedDescending
@@ -175,41 +227,6 @@ extension UIImage {
             }
         }
 
-        guard let data = CFDataGetBytePtr(cgImage.dataProvider!.data) else {
-            fatalError("UIImageColors.getColors failed: could not get cgImage data")
-        }
-
-        // Filter out and collect pixels from image
-        let imageColors = NSCountedSet(capacity: width * height)
-
-        for x in 0..<width {
-            for y in 0..<height {
-
-                if x < 8 || x > width - 8 {
-                    // Only count pixels within N of sides
-                    let pixel: Int = ((width * y) + x) * 4
-
-                    if 127 <= data[pixel+3] { // alpha over 0.5
-
-                        let color = UIColor(
-                            red: CGFloat(data[pixel + 2]) / 255,
-                            green: CGFloat(data[pixel + 1]) / 255,
-                            blue: CGFloat(data[pixel]) / 255,
-                            alpha: 1.0
-                        )
-                        imageColors.add(color)
-                        if x < 5 || x > width - 5 {
-                            // boost very edges
-                            imageColors.add(color)
-                            imageColors.add(color)
-                            imageColors.add(color)
-                        }
-                    }
-                }
-            }
-        }
-
-        // Get background color
         let enumerator = imageColors.objectEnumerator()
         let sortedColors = NSMutableArray(capacity: imageColors.count)
         while let kolor = enumerator.nextObject() as? UIColor {
@@ -219,33 +236,11 @@ extension UIImage {
             }
         }
         sortedColors.sort(comparator: sortedColorComparator)
-
-        var proposedEdgeColor: PCCountedColor
+        
         if sortedColors.count > 0,
             let firstColor = sortedColors.object(at: 0) as? PCCountedColor {
-
-            if sortedColors.count == 1 {
-                proposedEdgeColor = firstColor
-//                print("one choice")
-            } else {
-                if let secondColor = sortedColors.object(at: 1) as? PCCountedColor,
-                    firstColor.count - secondColor.count < 120 {
-                    proposedEdgeColor = PCCountedColor(
-                        color: UIColor.average([firstColor.color, secondColor.color]),
-                        count: 1)
-//                    print("colors are close")
-                } else {
-                    proposedEdgeColor = firstColor
-//                    print("clear winner")
-                }
-            }
-        } else {
-            proposedEdgeColor = PCCountedColor(color: fallbackColor, count: 1)
-            return nil
+            return firstColor.color
         }
-
-        result.background = proposedEdgeColor.color
-
-        return result
+        return nil
     }
 }

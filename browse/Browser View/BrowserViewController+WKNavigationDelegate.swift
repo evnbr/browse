@@ -23,6 +23,9 @@ extension BrowserViewController: WKNavigationDelegate {
         didFinish navigation: WKNavigation!) {
 
 //        print("didFinish")
+        statusColorBar.sampleCache.removeAll()
+        toolbarColorBar.sampleCache.removeAll()
+        
         updateLoadingState()
         if navigation == navigationToHide {
             // wait a sec... just because the first navigation is done,

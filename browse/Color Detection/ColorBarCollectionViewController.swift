@@ -66,8 +66,10 @@ class ColorBarCollectionViewController: UICollectionViewController {
         return cell
     }
     
+    let topExtra: CGFloat = 300
+    
     func update(_ scrollView: UIScrollView) {
-        collectionView?.contentOffset = scrollView.contentOffset
+        collectionView?.contentOffset.y = scrollView.contentOffset.y + topExtra
         let newHeight = scrollView.contentSize.height
         if newHeight != contentHeight {
             contentHeight = newHeight
@@ -77,15 +79,15 @@ class ColorBarCollectionViewController: UICollectionViewController {
     
     var sampleCache: [Int: UIColor] = [:]
     func addSample(_ color: UIColor, offsetY: CGFloat) {
-        let index = Int(offsetY / sliceHeight)
+        let index = Int((offsetY + topExtra) / sliceHeight)
         sampleCache[index] = color
     }
     func findClosestSample(_ index: Int) -> UIColor {
         let closestIndex = sampleCache.keys.sorted{ abs($0 - index) < abs($1 - index) }.first
         if let index = closestIndex {
-            return sampleCache[index] ?? UIColor.red
+            return sampleCache[index] ?? UIColor.white
         }
-        return UIColor.red
+        return UIColor.white
     }
     
     func averageColor() -> UIColor {

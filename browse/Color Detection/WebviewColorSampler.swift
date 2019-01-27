@@ -80,9 +80,9 @@ class WebviewColorSampler: NSObject {
         delegate.sampledWebView.takeSnapshot(with: bottomConfig) { image, _ in
             if didNavigateAfterSample() { return }
 //            image?.getColors(scaleDownSize: bottomConfig.rect.size) { colors in
-            image?.asyncGetEdgeColors { colors in
+            image?.asyncGetEdgeColors { color in
                 if didNavigateAfterSample() { return }
-                self.bottom = colors.background
+                self.bottom = color
                 self.delegate.bottomColorChange(self.bottom, offset: offsetDuringSnapshot)
             }
         }
@@ -96,9 +96,9 @@ class WebviewColorSampler: NSObject {
         )
         delegate.sampledWebView.takeSnapshot(with: topConfig) { image, _ in
             if didNavigateAfterSample() { return }
-            image?.asyncGetEdgeColors { colors in
+            image?.asyncGetEdgeColors { color in
                 if didNavigateAfterSample() { return }
-                self.top = colors.background
+                self.top = color
                 self.delegate.topColorChange(self.top, offset: offsetDuringSnapshot)
             }
         }
