@@ -162,7 +162,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         dismissPanner.addTarget(self, action: #selector(anywherePan(gesture:)))
         dismissPanner.cancelsTouchesInView = false
         dismissPanner.delaysTouchesBegan = false
-//        vc.contentView.addGestureRecognizer(dismissPanner)
+        vc.contentView.addGestureRecognizer(dismissPanner)
 
         let backDismissPan = UIScreenEdgePanGestureRecognizer()
         backDismissPan.delegate = self
@@ -477,11 +477,12 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
 
         let isVerticalDismiss = false //gesturePos.y > dismissPointPreviewY
         let isHorizontalDismiss = false //abs(adjustedX) > 80
-        let newState = (isVerticalDismiss || (cantPage && isHorizontalDismiss))
-            ? SpringTransitionState.start
-            : SpringTransitionState.end
-        dismissSwitch.springState(newState)
-
+//        let newState = (isVerticalDismiss || (cantPage && isHorizontalDismiss))
+//            ? SpringTransitionState.start
+//            : SpringTransitionState.end
+//        dismissSwitch.springState(newState)
+        dismissSwitch.setState(.end)
+        
         updateStatusBar()
     }
 
@@ -810,6 +811,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         swapCardAndPlaceholder(for: action)
 
         var adjustedVel = velocity
+        adjustedVel.x = 0
         adjustedVel.y = 0
 
         mockCardView.positioner.end = self.view.center
@@ -817,10 +819,6 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         if action == .goBack || action == .goToParent {
             mockCardView.positioner.end.x += mockShift
         }
-//        else if action == .goToParent {
-//            mockPositioner.end.x = view.center.x
-//            mockPositioner.end.y = view.center.y + view.bounds.height
-//        }
         else if action == .goForward {
             mockCardView.positioner.end.x -= mockShift * parallaxAmount
         }
@@ -862,7 +860,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
             self.vc.overlay.alpha = 0
         }
     }
-    let parallaxAmount: CGFloat = 0.3
+    let parallaxAmount: CGFloat = 0 //0.3
 
     func commitCancel(velocity: CGPoint) {
         dismissSwitch.cancel()
