@@ -23,8 +23,6 @@ extension BrowserViewController: WKNavigationDelegate {
         didFinish navigation: WKNavigation!) {
 
 //        print("didFinish")
-        statusColorBar.sampleCache.removeAll()
-        toolbarColorBar.sampleCache.removeAll()
         
         updateLoadingState()
         if navigation == navigationToHide {

@@ -20,14 +20,14 @@ public extension UIColor {
         self.init(red: r, green: g, blue: b, alpha: 1)
     }
 
-    func getRGB() -> [ CGFloat ] {
+    func rgbComponents() -> [ CGFloat ] {
         if let name: CFString = self.cgColor.colorSpace?.name {
             let components: [ CGFloat ] = self.cgColor.components
             if components.count == 4 {
                 return components
             } else if name == CGColorSpace.extendedGray && components.count == 2 {
                 let gray = components[0]
-                return [gray, gray, gray, 0]
+                return [gray, gray, gray, 1]
             }
             print("unkonwn name: \(name), components: \(components.count)")
             return [0, 0, 0, 1]
@@ -55,27 +55,15 @@ public extension UIColor {
     }
 
     static func average(_ colors: [ UIColor ]) -> UIColor {
-        let components: [ [ CGFloat ] ] = colors.map { $0.getRGB() }
-
         let count = CGFloat(colors.count)
-        let r = ( components.reduce(0) { $0 + $1[0] }) / count
-        let g = ( components.reduce(0) { $0 + $1[1] }) / count
-        let b = ( components.reduce(0) { $0 + $1[2] }) / count
+        let allComponents: [[ CGFloat ]] = colors.map { $0.rgbComponents() }
+
+        let r = ( allComponents.reduce(0) { $0 + $1[0] }) / count
+        let g = ( allComponents.reduce(0) { $0 + $1[1] }) / count
+        let b = ( allComponents.reduce(0) { $0 + $1[2] }) / count
         
         return UIColor(r: r, g: g, b: b)
     }
-
-//    func withBrightness(_ amount : CGFloat) -> UIColor {
-//        let components : Array<CGFloat> = self.getRGB()
-//
-//        if components.count < 3 { return self }
-//
-//        let r = components[0] * amount
-//        let g = components[1] * amount
-//        let b = components[2] * amount
-//
-//        return UIColor(r: r, g: g, b: b)
-//    }
 
     func withBrightness(_ amount: CGFloat) -> UIColor {
         var h = CGFloat()
@@ -101,8 +89,8 @@ public extension UIColor {
 
     // http://www.sthoughts.com/2015/11/16/swift-2-1-uicolor-calculating-color-and-brightness-difference/
     func difference(from otherColor: UIColor) -> Float {
-        let components1: [ CGFloat ] = self.getRGB()
-        let components2: [ CGFloat ] = otherColor.getRGB()
+        let components1: [ CGFloat ] = self.rgbComponents()
+        let components2: [ CGFloat ] = otherColor.rgbComponents()
         if components1.count < 3 {
             print("Self isn't RGB: \(self)")
             return 0

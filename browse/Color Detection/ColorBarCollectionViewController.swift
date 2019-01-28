@@ -68,7 +68,7 @@ class ColorBarCollectionViewController: UICollectionViewController {
     
     let topExtra: CGFloat = 300
     
-    func update(_ scrollView: UIScrollView) {
+    func synchronizeOffset(_ scrollView: UIScrollView) {
         collectionView?.contentOffset.y = scrollView.contentOffset.y + topExtra
         let newHeight = scrollView.contentSize.height
         if newHeight != contentHeight {
@@ -81,6 +81,16 @@ class ColorBarCollectionViewController: UICollectionViewController {
     func addSample(_ color: UIColor, offsetY: CGFloat) {
         let index = Int((offsetY + topExtra) / sliceHeight)
         sampleCache[index] = color
+        
+        let ip = IndexPath(item: index, section: 0)
+        if collectionView?.indexPathsForVisibleItems.contains(ip) ?? false {
+            UIView.animate(withDuration: 0.2) {
+                for ip in self.collectionView!.indexPathsForVisibleItems {
+                    let cell = self.collectionView?.cellForItem(at: ip)
+                    cell?.backgroundColor = self.findClosestSample(ip.item)
+                }
+            }
+        }
     }
     func findClosestSample(_ index: Int) -> UIColor {
         let closestIndex = sampleCache.keys.sorted{ abs($0 - index) < abs($1 - index) }.first

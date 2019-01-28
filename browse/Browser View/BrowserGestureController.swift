@@ -228,8 +228,8 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
             scrollView.setScrollSilently(pinchController.pinchStartScroll)
         }
         updateToolbar(scrollView)
-        vc.statusColorBar.update(scrollView)
-        vc.toolbarColorBar.update(scrollView)
+        vc.statusColorBar.synchronizeOffset(scrollView)
+        vc.toolbarColorBar.synchronizeOffset(scrollView)
     }
 
     func scrollViewDidZoom(_ scrollView: UIScrollView) {

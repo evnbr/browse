@@ -19,6 +19,11 @@ class PCCountedColor {
     }
 }
 
+struct IntSize {
+    let width: Int
+    let height: Int
+}
+
 extension CGColor {
     var components: [CGFloat] {
         var red = CGFloat()
@@ -87,7 +92,7 @@ extension UIColor {
     }
 }
 
-let edgeWidth: Int = 12
+let edgeWidth: Int = 8
 let veryEdgeWidth: Int = 5
 
 extension UIImage {
@@ -134,6 +139,30 @@ extension UIImage {
      - returns: `UIImageColors` for this image.
      */
     
+    func countedColors(
+        for data: UnsafePointer<UInt8>,
+        at size: IntSize,
+        startX: Int,
+        sampleWidth: Int
+    ) -> NSCountedSet {
+        let countedSet = NSCountedSet(capacity: sampleWidth * size.height)
+        for y in 0..<size.height {
+            for x in startX..<(startX + sampleWidth) {
+                let pixel: Int = ((size.width * y) + x) * 4
+                if data[pixel + 3] >= 127 { // alpha over 0.5
+                    let color = UIColor(
+                        red: CGFloat(data[pixel + 2]) / 255,
+                        green: CGFloat(data[pixel + 1]) / 255,
+                        blue: CGFloat(data[pixel]) / 255,
+                        alpha: 1.0
+                    )
+                    countedSet.add(color)
+                }
+            }
+        }
+        return countedSet
+    }
+    
     public func getEdgeColors(scaleDownSize: CGSize = CGSize.zero) -> UIColor? {
         // TODO: Scale down is not encessary but without it
         // the image gets released(?) and accessing the bytes will fail
@@ -146,69 +175,64 @@ extension UIImage {
         let cgImage = self.resizeForUIImageColors(newSize: scaleDownSize).cgImage!
 //        let cgImage = self.cgImage!
 
-        let width: Int = cgImage.width
-        let height: Int = cgImage.height
+        let imageSize = IntSize(width: cgImage.width, height: cgImage.height)
 
         guard let data = CFDataGetBytePtr(cgImage.dataProvider!.data) else {
             fatalError("UIImageColors.getColors failed: could not get cgImage data")
         }
 
         // Filter out and collect pixels from image
-        let imageColorsLeft = NSCountedSet(capacity: edgeWidth * height)
-        let imageColorsRight = NSCountedSet(capacity: edgeWidth * height)
-
-        for x in 0..<width {
-            for y in 0..<height {
-                // Only count pixels within N of sides
-                if x < edgeWidth {
-                    let pixel: Int = ((width * y) + x) * 4
-                    if 127 <= data[pixel+3] { // alpha over 0.5
-                        let color = UIColor(
-                            red: CGFloat(data[pixel + 2]) / 255,
-                            green: CGFloat(data[pixel + 1]) / 255,
-                            blue: CGFloat(data[pixel]) / 255,
-                            alpha: 1.0
-                        )
-                        imageColorsLeft.add(color)
-                        if x < veryEdgeWidth {
-                            // boost very edges
-                            imageColorsLeft.add(color)
-                            imageColorsLeft.add(color)
-                            imageColorsLeft.add(color)
-                        }
-                    }
-                }
-                if x > width - edgeWidth {
-                    let pixel: Int = ((width * y) + x) * 4
-                    if 127 <= data[pixel+3] { // alpha over 0.5
-                        let color = UIColor(
-                            red: CGFloat(data[pixel + 2]) / 255,
-                            green: CGFloat(data[pixel + 1]) / 255,
-                            blue: CGFloat(data[pixel]) / 255,
-                            alpha: 1.0
-                        )
-                        imageColorsRight.add(color)
-                        if x > width - veryEdgeWidth {
-                            // boost very edges
-                            imageColorsRight.add(color)
-                            imageColorsRight.add(color)
-                            imageColorsRight.add(color)
-                        }
-                    }
-                }
-            }
-        }
+        let imageColorsLeft = countedColors(
+            for: data,
+            at: imageSize,
+            startX: 0,
+            sampleWidth: edgeWidth)
+        let imageColorsRight = countedColors(
+            for: data,
+            at: imageSize,
+            startX: imageSize.width - edgeWidth,
+            sampleWidth: edgeWidth)
 
         // Get background color
         let leftColor = getDominantColor(imageColors: imageColorsLeft)
         let rightColor = getDominantColor(imageColors: imageColorsRight)
 
-        
-        if let l = leftColor, let r = rightColor, l.difference(from: r) < 0.05 {
-            return leftColor
-        } else {
+        guard let left = leftColor, let right = rightColor else {
+            // Sampling failed, bail out
             return nil
         }
+        
+        if left.difference(from: right) < 0.01 {
+            // Colors are very close, reasonable to assume edges are background
+            print("match")
+            return left
+        }
+        
+        // Colors are different. Add a middle sample as a tie breaker.
+        let middleSampleWidth = 30
+        let imageColorsMiddle = countedColors(
+            for: data,
+            at: imageSize,
+            startX: (imageSize.width / 2) - (middleSampleWidth / 2),
+            sampleWidth: middleSampleWidth)
+        let middleColor = getDominantColor(imageColors: imageColorsMiddle)
+        
+        guard let middle = middleColor else { return nil }
+        let leftDiff = left.difference(from: middle)
+        let rightDiff = right.difference(from: middle)
+
+        if leftDiff < rightDiff && leftDiff < 0.05 {
+            // Reasonable to assume left edge is background
+            print("more like left")
+            return left
+        }
+        if rightDiff < leftDiff && rightDiff < 0.05 {
+            // Reasonable to assume right edge is background
+            print("more like right")
+            return right
+        }
+        print("all the colors are different, skipping")
+        return nil
     }
     
     func getDominantColor(imageColors: NSCountedSet) -> UIColor? {

@@ -53,7 +53,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     // MARK: - Derived properties
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        return statusColorBar.averageColor().isLight  ? .lightContent : .default
+        return statusBar.backgroundColor.isLight ? .lightContent : .default
+//        return statusColorBar.averageColor().isLight  ? .lightContent : .default
     }
 
     override var prefersStatusBarHidden: Bool {
@@ -122,13 +123,26 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         if list.currentItem == wkItem { return }
 
         setSnapshot(visit.snapshot)
-        if let color = visit.topColor { statusBar.backgroundColor = color }
-        if let color = visit.bottomColor { toolbar.backgroundColor = color }
+        if let color = visit.topColor {
+            statusColorBar.sampleCache.removeAll()
+            topColorChange(color, offset: webView.scrollView.contentOffset)
+            statusBar.backgroundColor = color
+        }
+        if let color = visit.bottomColor {
+            toolbarColorBar.sampleCache.removeAll()
+            bottomColorChange(color, offset: webView.scrollView.contentOffset)
+            toolbar.backgroundColor = color
+        }
         statusBar.label.text = visit.title
         toolbar.text = visit.url?.displayHost
 
         let nav = webView.go(to: wkItem)
         hideUntilNavigationDone(navigation: nav)
+        
+//        DispatchQueue.main.async {
+        statusColorBar.collectionView?.reloadData()
+        toolbarColorBar.collectionView?.reloadData()
+//        }
     }
     func canNavigateTo(wkItem: WKBackForwardListItem) -> Bool {
         let list = webView.backForwardList
@@ -349,10 +363,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 //            }
         }
         
-        statusBar.addSubview(statusColorBar.view)
-        statusColorBar.view.frame = statusBar.bounds
-        toolbar.insertSubview(toolbarColorBar.view, belowSubview: toolbar.stackView)
-        toolbarColorBar.view.frame = toolbar.bounds
+//        statusBar.addSubview(statusColorBar.view)
+//        statusColorBar.view.frame = statusBar.bounds
+//        toolbar.insertSubview(toolbarColorBar.view, belowSubview: toolbar.stackView)
+//        toolbarColorBar.view.frame = toolbar.bounds
     }
 
     var cardViewDefaultFrame: CGRect {
@@ -707,6 +721,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             tab: currentTab,
             with: webView.backForwardList
         )
+        
+        colorSampler.updateColors()
     }
 }
 
@@ -834,6 +850,8 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
         }
 
         statusColorBar.addSample(newColor, offsetY: offset.y + Const.statusHeight + 6)
+        statusColorBar.synchronizeOffset(webView.scrollView)
+
         if newColor != currentTab.currentVisit?.topColor {
             currentTab.currentVisit?.topColor = newColor
             return
@@ -847,10 +865,7 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
 
     func bottomColorChange(_ newColor: UIColor, offset: CGPoint) {
         toolbarColorBar.addSample(newColor, offsetY: offset.y - 6)
-        
-        UIView.animate(withDuration: 0.2, delay: 0.0, options: .curveEaseInOut, animations: {
-            self.toolbar.tintColor = self.toolbarColorBar.averageColor().isLight ? .white : .darkText
-        }, completion: nil)
+        toolbarColorBar.synchronizeOffset(webView.scrollView)
 
         if newColor != currentTab.currentVisit?.bottomColor {
             currentTab.currentVisit?.bottomColor = newColor
