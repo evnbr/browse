@@ -852,12 +852,10 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
         statusColorBar.addSample(newColor, offsetY: offset.y + Const.statusHeight + 6)
         statusColorBar.synchronizeOffset(webView.scrollView)
 
-        if newColor != currentTab.currentVisit?.topColor {
+        if shouldUpdateSample {
             currentTab.currentVisit?.topColor = newColor
-            return
-        } else if shouldUpdateSample {
             statusBar.transitionBackground(to: newColor, from: .bottomToTop)
-            UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
+            UIView.animate(withDuration: 0.4, delay: 0, options: [.beginFromCurrentState], animations: {
                 self.setNeedsStatusBarAppearanceUpdate()
             })
         }
@@ -867,10 +865,8 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
         toolbarColorBar.addSample(newColor, offsetY: offset.y - 6)
         toolbarColorBar.synchronizeOffset(webView.scrollView)
 
-        if newColor != currentTab.currentVisit?.bottomColor {
+        if shouldUpdateSample {
             currentTab.currentVisit?.bottomColor = newColor
-            return
-        } else if shouldUpdateSample {
             toolbar.transitionBackground(to: newColor, from: .topToBottom)
         }
     }

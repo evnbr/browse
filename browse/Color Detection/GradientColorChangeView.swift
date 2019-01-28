@@ -18,7 +18,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     let gradientLayer2: CAGradientLayer = CAGradientLayer()
     let gradientLayer3: CAGradientLayer = CAGradientLayer()
 
-    let duration: CFTimeInterval = 0.5//0.3
+    let duration: CFTimeInterval = 0.7//0.3
 
     var backgroundView: UIView!
 
@@ -170,7 +170,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         backgroundView.layer.addSublayer(gLayer)
         CATransaction.commit()
 
-        UIView.animate(withDuration: 0.4, delay: 0.0, options: .curveEaseInOut, animations: {
+        UIView.animate(withDuration: 0.3, delay: 0.0, options: .curveEaseInOut, animations: {
             self.tintColor = toColor.isLight ? .white : .darkText
         }, completion: nil)
 
