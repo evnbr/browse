@@ -90,21 +90,16 @@ extension UIImage {
             fatalError("UIImageColors.getColors failed: could not get cgImage data")
         }
 
-        // Filter out and collect pixels from image
-        let imageColorsLeft = countedColorSet(
+        let leftColor = dominantColor(
             for: data,
             at: imageSize,
             startX: 0,
             sampleWidth: edgeWidth)
-        let imageColorsRight = countedColorSet(
+        let rightColor = dominantColor(
             for: data,
             at: imageSize,
             startX: imageSize.width - edgeWidth,
             sampleWidth: edgeWidth)
-
-        // Get background color
-        let leftColor = dominantColor(in: imageColorsLeft)
-        let rightColor = dominantColor(in: imageColorsRight)
 
         guard let left = leftColor, let right = rightColor else {
             // Sampling failed, bail out
@@ -119,12 +114,11 @@ extension UIImage {
         
         // Colors are different. Add a middle sample as a tie breaker.
         let middleSampleWidth = 30
-        let imageColorsMiddle = countedColorSet(
+        let middleColor = dominantColor(
             for: data,
             at: imageSize,
             startX: (imageSize.width / 2) - (middleSampleWidth / 2),
             sampleWidth: middleSampleWidth)
-        let middleColor = dominantColor(in: imageColorsMiddle)
         
         guard let middle = middleColor else { return nil }
         let leftDiff = left.difference(from: middle)
@@ -144,12 +138,12 @@ extension UIImage {
         return nil
     }
     
-    private func countedColorSet(
+    private func dominantColor(
         for imageData: UnsafePointer<UInt8>,
         at imageSize: IntSize,
         startX: Int,
         sampleWidth: Int
-        ) -> NSCountedSet {
+        ) -> UIColor? {
         
         let countedSet = NSCountedSet(capacity: sampleWidth * imageSize.height)
         let endX = startX + sampleWidth
@@ -168,16 +162,14 @@ extension UIImage {
                 }
             }
         }
-        return countedSet
-    }
-    
-    private func dominantColor(in set: NSCountedSet) -> UIColor? {
-        if let first = set.allObjects
+        
+        if let first = countedSet.allObjects
             .compactMap({ $0 as? UIColor})
-            .max(by: { set.count(for: $0) < set.count(for: $1) })  {
+            .max(by: { countedSet.count(for: $0) < countedSet.count(for: $1) })  {
             return first
         }
         
         return nil
     }
+    
 }
