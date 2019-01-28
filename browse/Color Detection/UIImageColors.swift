@@ -49,9 +49,9 @@ extension UIImage {
      - parameter scaleDownSize:     Downscale size of image for sampling, if `CGSize.zero` is provided, the sample image is rescaled to a width of 250px and the aspect ratio height.
      - parameter completionHandler: `UIImageColors` for this image.
      */
-    public func asyncGetEdgeColors(scaleDownSize: CGSize = CGSize.zero, completionHandler: @escaping (UIColor) -> Void) {
+    public func asyncGetEdgeColors(completionHandler: @escaping (UIColor) -> Void) {
         DispatchQueue.global().async {
-            let result = self.getEdgeColors(scaleDownSize: scaleDownSize)
+            let result = self.getEdgeColors()
             
             if let color = result {
                 DispatchQueue.main.async {
@@ -72,17 +72,12 @@ extension UIImage {
      - returns: `UIImageColors` for this image.
      */
     
-    public func getEdgeColors(scaleDownSize: CGSize = CGSize.zero) -> UIColor? {
-        // TODO: Scale down is not encessary but without it
-        // the image gets released(?) and accessing the bytes will fail
-        var scaleDownSize = scaleDownSize
-        if scaleDownSize == CGSize.zero {
-            let ratio = self.size.width / self.size.height
-            let r_width: CGFloat = 320
-            scaleDownSize = CGSize(width: r_width, height: r_width / ratio)
-        }
+    public func getEdgeColors() -> UIColor? {
+        let ratio = self.size.width / self.size.height
+        let maxWidth: CGFloat = 320
+        let scaleDownSize = CGSize(width: maxWidth, height: maxWidth / ratio)
+
         let cgImage = self.resizeForUIImageColors(newSize: scaleDownSize).cgImage!
-//        let cgImage = self.cgImage!
 
         let imageSize = IntSize(width: cgImage.width, height: cgImage.height)
 
@@ -102,7 +97,7 @@ extension UIImage {
             sampleWidth: edgeWidth)
 
         guard let left = leftColor, let right = rightColor else {
-            // Sampling failed, bail out
+            // Dominant color not detected, bail out
             return nil
         }
         
@@ -114,15 +109,17 @@ extension UIImage {
         
         // Colors are different. Add a middle sample as a tie breaker.
         let middleSampleWidth = 30
-        let middleColor = dominantColor(
+        guard let middleColor = dominantColor(
             for: data,
             at: imageSize,
             startX: (imageSize.width / 2) - (middleSampleWidth / 2),
-            sampleWidth: middleSampleWidth)
+            sampleWidth: middleSampleWidth
+        ) else {
+            return nil
+        }
         
-        guard let middle = middleColor else { return nil }
-        let leftDiff = left.difference(from: middle)
-        let rightDiff = right.difference(from: middle)
+        let leftDiff = left.difference(from: middleColor)
+        let rightDiff = right.difference(from: middleColor)
 
         if leftDiff < rightDiff && leftDiff < 0.05 {
             // Reasonable to assume left edge is background
@@ -143,29 +140,29 @@ extension UIImage {
         at imageSize: IntSize,
         startX: Int,
         sampleWidth: Int
-        ) -> UIColor? {
+    ) -> UIColor? {
         
-        let countedSet = NSCountedSet(capacity: sampleWidth * imageSize.height)
+        let set = NSCountedSet(capacity: sampleWidth * imageSize.height)
         let endX = startX + sampleWidth
         
         for y in 0..<imageSize.height {
             for x in startX..<endX {
-                let pixel: Int = ((imageSize.width * y) + x) * 4
-                if imageData[pixel + 3] >= 127 { // alpha over 0.5
-                    let color = UIColor(
-                        red: CGFloat(imageData[pixel + 2]) / 255,
-                        green: CGFloat(imageData[pixel + 1]) / 255,
-                        blue: CGFloat(imageData[pixel]) / 255,
-                        alpha: 1.0
-                    )
-                    countedSet.add(color)
+                let pxIndex: Int = ((imageSize.width * y) + x) * 4
+                guard imageData[pxIndex + 3] >= 127 else {
+                    // alpha over 0.5
+                    continue
                 }
+                set.add(UIColor(
+                    red: CGFloat(imageData[pxIndex + 2]) / 255,
+                    green: CGFloat(imageData[pxIndex + 1]) / 255,
+                    blue: CGFloat(imageData[pxIndex]) / 255,
+                    alpha: 1.0
+                ))
             }
         }
         
-        if let first = countedSet.allObjects
-            .compactMap({ $0 as? UIColor})
-            .max(by: { countedSet.count(for: $0) < countedSet.count(for: $1) })  {
+        if let first = set.allObjects
+            .max(by: { set.count(for: $0) < set.count(for: $1) }) as? UIColor  {
             return first
         }
         
