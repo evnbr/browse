@@ -12,11 +12,6 @@ import UIKit
 let edgeWidth: Int = 8
 let COLOR_DEBUG = false
 
-struct CountedColor {
-    let color: UIColor
-    let count: Int
-}
-
 struct IntSize {
     let width: Int
     let height: Int
@@ -96,12 +91,12 @@ extension UIImage {
         }
 
         // Filter out and collect pixels from image
-        let imageColorsLeft = countedColors(
+        let imageColorsLeft = countedColorSet(
             for: data,
             at: imageSize,
             startX: 0,
             sampleWidth: edgeWidth)
-        let imageColorsRight = countedColors(
+        let imageColorsRight = countedColorSet(
             for: data,
             at: imageSize,
             startX: imageSize.width - edgeWidth,
@@ -124,7 +119,7 @@ extension UIImage {
         
         // Colors are different. Add a middle sample as a tie breaker.
         let middleSampleWidth = 30
-        let imageColorsMiddle = countedColors(
+        let imageColorsMiddle = countedColorSet(
             for: data,
             at: imageSize,
             startX: (imageSize.width / 2) - (middleSampleWidth / 2),
@@ -149,21 +144,24 @@ extension UIImage {
         return nil
     }
     
-    private func countedColors(
-        for data: UnsafePointer<UInt8>,
-        at size: IntSize,
+    private func countedColorSet(
+        for imageData: UnsafePointer<UInt8>,
+        at imageSize: IntSize,
         startX: Int,
         sampleWidth: Int
         ) -> NSCountedSet {
-        let countedSet = NSCountedSet(capacity: sampleWidth * size.height)
-        for y in 0..<size.height {
-            for x in startX..<(startX + sampleWidth) {
-                let pixel: Int = ((size.width * y) + x) * 4
-                if data[pixel + 3] >= 127 { // alpha over 0.5
+        
+        let countedSet = NSCountedSet(capacity: sampleWidth * imageSize.height)
+        let endX = startX + sampleWidth
+        
+        for y in 0..<imageSize.height {
+            for x in startX..<endX {
+                let pixel: Int = ((imageSize.width * y) + x) * 4
+                if imageData[pixel + 3] >= 127 { // alpha over 0.5
                     let color = UIColor(
-                        red: CGFloat(data[pixel + 2]) / 255,
-                        green: CGFloat(data[pixel + 1]) / 255,
-                        blue: CGFloat(data[pixel]) / 255,
+                        red: CGFloat(imageData[pixel + 2]) / 255,
+                        green: CGFloat(imageData[pixel + 1]) / 255,
+                        blue: CGFloat(imageData[pixel]) / 255,
                         alpha: 1.0
                     )
                     countedSet.add(color)
@@ -174,17 +172,12 @@ extension UIImage {
     }
     
     private func dominantColor(in set: NSCountedSet) -> UIColor? {
-        var sortedColors: [CountedColor] = []
-        for color in set.compactMap({ $0 as? UIColor }) {
-            let colorCount = set.count(for: color)
-            if colorCount > 0 {
-                sortedColors.append(CountedColor(color: color, count: colorCount))
-            }
+        if let first = set.allObjects
+            .compactMap({ $0 as? UIColor})
+            .max(by: { set.count(for: $0) < set.count(for: $1) })  {
+            return first
         }
         
-        if let first = sortedColors.max(by: { $0.count < $1.count }) {
-            return first.color
-        }
         return nil
     }
 }
