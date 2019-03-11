@@ -52,6 +52,10 @@ class WebviewColorSampler: NSObject {
         colorUpdateTimer = nil
         delegate.cancelColorChange()
     }
+    
+    var sampledWebviewIsLoading: Bool {
+        return delegate.sampledWebView.isLoading
+    }
 
     @objc func updateColors() {
         guard delegate.shouldUpdateSample else { return }
@@ -82,6 +86,8 @@ class WebviewColorSampler: NSObject {
 //            image?.getColors(scaleDownSize: bottomConfig.rect.size) { colors in
             image?.asyncGetEdgeColors { color in
                 if didNavigateAfterSample() { return }
+                if color == .white && self.sampledWebviewIsLoading { return }
+                
                 self.bottom = color
                 self.delegate.bottomColorChange(self.bottom, offset: offsetDuringSnapshot)
             }
@@ -98,6 +104,8 @@ class WebviewColorSampler: NSObject {
             if didNavigateAfterSample() { return }
             image?.asyncGetEdgeColors { color in
                 if didNavigateAfterSample() { return }
+                if color == .white && self.sampledWebviewIsLoading { return }
+                
                 self.top = color
                 self.delegate.topColorChange(self.top, offset: offsetDuringSnapshot)
             }

@@ -58,7 +58,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     }
 
     override var prefersStatusBarHidden: Bool {
-        return gestureController.isDismissing
+        return false //gestureController.isDismissing
     }
 
     var isShowingToolbar: Bool {
@@ -107,7 +107,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             navigationToHide = nav
         } else {
             // probably a javascript navigation, nav delegate can't track
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 self.finishHiddenNavigation()
             }
         }
@@ -186,8 +186,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         webView = webViewManager.webViewFor(newTab)
 
         snapshotView.image = newTab.currentVisit?.snapshot
-        statusBar.backgroundColor = newTab.currentVisit?.topColor ?? .white
-        toolbar.backgroundColor = newTab.currentVisit?.bottomColor ?? .white
+        statusBar.backgroundColor = newTab.currentVisit?.topColor ?? .black
+        toolbar.backgroundColor = newTab.currentVisit?.bottomColor ?? .black
 
         webView.navigationDelegate = self
         webView.uiDelegate = self
@@ -270,7 +270,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         contentView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         contentView.radius = Const.cardRadius
         contentView.layer.masksToBounds = true
-        contentView.backgroundColor = .white
+        contentView.backgroundColor = .black
 
         overlay = UIView(frame: view.bounds)
         overlay.backgroundColor = UIColor.black
@@ -588,15 +588,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         self.setNeedsStatusBarAppearanceUpdate()
 
         self.colorSampler.startUpdates()
-
-//         disable mysterious delays
-//         https://stackoverflow.com/questions/19799961/
-//        uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen
-        let window = view.window!
-        let gr0 = window.gestureRecognizers![0] as UIGestureRecognizer
-        let gr1 = window.gestureRecognizers![1] as UIGestureRecognizer
-        gr0.delaysTouchesBegan = false
-        gr1.delaysTouchesBegan = false
     }
 
     override func didReceiveMemoryWarning() {
@@ -648,8 +639,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         // Does it feel faster if old page instantle disappears?
         hideUntilNavigationDone(navigation: nav)
         snapshotView.image = nil
-        toolbar.backgroundColor = .white
-        statusBar.backgroundColor = .white
+        
+        toolbar.backgroundColor = .black
+        statusBar.backgroundColor = .black
     }
 
     @objc func hideError() {

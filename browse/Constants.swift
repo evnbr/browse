@@ -37,8 +37,8 @@ class Constants: NSObject {
         let isX = topInset != nil && topInset! > CGFloat(0.0)
         toolbarHeight = isX ? 80 : 40
         statusHeight = isX ? 44 : 22
-        thumbRadius = 0 //isX ? 38 : 16
-        cardRadius = 0// isX ? 38 : 4
+        thumbRadius = isX ? 38 : 16
+        cardRadius = isX ? 38 : 4
 
         super.init()
     }

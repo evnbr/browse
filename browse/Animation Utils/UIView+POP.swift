@@ -17,6 +17,23 @@ let kSpringFrame = "springFrame"
 
 typealias SpringCompletionBlock = (POPAnimation?, Bool) -> Void
 
+extension Array where Element:POPAnimation {
+    func allComplete(completion: @escaping (() -> Void )) {
+        var remaining = self.count
+        
+        func finishIfDone(anim: POPAnimation?, isComplete: Bool) {
+            remaining -= 1
+            if remaining == 0 { completion() }
+        }
+        
+        for anim in self {
+            anim.completionBlock = finishIfDone
+        }
+    }
+
+}
+
+
 extension UIView {
     var isPopAnimating: Bool {
         let anims = self.pop_animationKeys()
