@@ -473,7 +473,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         searchVC.transition.isPreExpanded = instant
         searchVC.transition.animateTransition(searchVC: searchVC, browserVC: self, completion: {
             self.searchVC.transition.isPreExpanded = false
-            self.searchVC.updateKeyboardSnapshot()
         })
     }
 

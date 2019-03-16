@@ -15,6 +15,8 @@ let SEARCHVIEW_MAX_H: CGFloat = 240.0
 let TEXTVIEW_PADDING = UIEdgeInsets(top: 20, left: 20, bottom: 40, right: 20)
 let pageActionHeight: CGFloat = 20 //100
 
+let baseSheetHeight: CGFloat = 500
+
 // https://medium.com/@nguyenminhphuc/how-to-pass-ui-events-through-views-in-ios-c1be9ab1626b
 class PassthroughView: UIView {
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
@@ -31,7 +33,6 @@ class SearchViewController: UIViewController {
     var scrim: UIView!
     var textView: UITextView!
     var suggestionTable: UITableView!
-    var keyboardPlaceholder: UIImageView!
     var dragHandle: UIView!
     var pageActionView: PageActionView!
     var keyboard = KeyboardManager()
@@ -42,8 +43,8 @@ class SearchViewController: UIViewController {
     var transition = SearchTransitionController()
 
     var kbHeightConstraint: NSLayoutConstraint!
+    var sheetHeight: NSLayoutConstraint!
     var suggestionHeightConstraint: NSLayoutConstraint!
-    var contextAreaHeightConstraint: NSLayoutConstraint!
     var textHeightConstraint: NSLayoutConstraint!
     var toolbarBottomMargin: NSLayoutConstraint!
     var actionsHeight: NSLayoutConstraint!
@@ -129,14 +130,19 @@ class SearchViewController: UIViewController {
         
         backgroundView = PlainBlurView(frame: contentView.bounds)
         backgroundView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        backgroundView.overlayAlpha = 0.9//isFakeTab ? 1 : 0.8
+        backgroundView.overlayAlpha = 0.9
         contentView.addSubview(backgroundView)
 
+        sheetHeight = contentView.heightAnchor.constraint(equalToConstant: baseSheetHeight)
         NSLayoutConstraint.activate([
             contentView.leftAnchor.constraint(equalTo: view.leftAnchor),
             contentView.rightAnchor.constraint(equalTo: view.rightAnchor),
-            contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            sheetHeight
         ])
+        
+        kbHeightConstraint = contentView.heightAnchor.constraint(equalToConstant: 400)
+
 
         suggestionTable = createSuggestions()
         textView = createTextView()
@@ -164,65 +170,61 @@ class SearchViewController: UIViewController {
         pageActionView = PageActionView()
         pageActionView.delegate = self
         
-        contextAreaHeightConstraint = textView.topAnchor.constraint(
-            equalTo: contentView.topAnchor,
-            constant: suggestionSpacer)
         suggestionHeightConstraint = suggestionTable.heightAnchor.constraint(
             equalToConstant: suggestionTable.rowHeight * 4)
         actionsHeight = pageActionView.heightAnchor.constraint(equalToConstant: 0)
         contentView.addSubview(suggestionTable, constraints: [
             suggestionHeightConstraint,
-            contextAreaHeightConstraint,
             suggestionTable.leftAnchor.constraint(equalTo: contentView.leftAnchor),
             suggestionTable.rightAnchor.constraint(equalTo: contentView.rightAnchor),
-            suggestionTable.bottomAnchor.constraint(equalTo: textView.topAnchor, constant: -8)
+            suggestionTable.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: 0)
         ])
 
-        contentView.addSubview(pageActionView, constraints: [
-            actionsHeight,
-            pageActionView.bottomAnchor.constraint(equalTo: textView.topAnchor),
-            pageActionView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor),
-            pageActionView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor)
-        ])
+//        contentView.addSubview(pageActionView, constraints: [
+//            actionsHeight,
+//            pageActionView.bottomAnchor.constraint(equalTo: textView.topAnchor),
+//            pageActionView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor),
+//            pageActionView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor)
+//        ])
     }
 
     func setupFakeKeyboard() {
-        keyboardPlaceholder = UIImageView()
-        keyboardPlaceholder.translatesAutoresizingMaskIntoConstraints = false
-        keyboardPlaceholder.contentMode = .top
-
-        kbHeightConstraint = keyboardPlaceholder.heightAnchor.constraint(equalToConstant: 0)
-        contentView.addSubview(keyboardPlaceholder, constraints: [
-            kbHeightConstraint,
-            keyboardPlaceholder.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            keyboardPlaceholder.leftAnchor.constraint(equalTo: contentView.leftAnchor),
-            keyboardPlaceholder.rightAnchor.constraint(equalTo: contentView.rightAnchor)
-            ])
-        toolbarBottomMargin = keyboardPlaceholder.topAnchor.constraint(equalTo: textView.bottomAnchor)
-
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(updateKeyboardHeight),
-            name: NSNotification.Name.UIKeyboardWillShow,
-            object: nil)
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(updateKeyboardHeight),
-            name: NSNotification.Name.UIKeyboardWillChangeFrame,
-            object: nil)
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(maybeAutoHide),
-            name: NSNotification.Name.UIKeyboardWillHide,
-            object: nil)
+//        keyboardPlaceholder = UIImageView()
+//        keyboardPlaceholder.translatesAutoresizingMaskIntoConstraints = false
+//        keyboardPlaceholder.contentMode = .top
+//
+//        kbHeightConstraint = keyboardPlaceholder.heightAnchor.constraint(equalToConstant: 0)
+//        contentView.addSubview(keyboardPlaceholder, constraints: [
+//            kbHeightConstraint,
+//            keyboardPlaceholder.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+//            keyboardPlaceholder.leftAnchor.constraint(equalTo: contentView.leftAnchor),
+//            keyboardPlaceholder.rightAnchor.constraint(equalTo: contentView.rightAnchor)
+//            ])
+//        toolbarBottomMargin = keyboardPlaceholder.topAnchor.constraint(equalTo: textView.bottomAnchor)
+//
+//        NotificationCenter.default.addObserver(
+//            self,
+//            selector: #selector(updateKeyboardHeight),
+//            name: NSNotification.Name.UIKeyboardWillShow,
+//            object: nil)
+//        NotificationCenter.default.addObserver(
+//            self,
+//            selector: #selector(updateKeyboardHeight),
+//            name: NSNotification.Name.UIKeyboardWillChangeFrame,
+//            object: nil)
+//        NotificationCenter.default.addObserver(
+//            self,
+//            selector: #selector(maybeAutoHide),
+//            name: NSNotification.Name.UIKeyboardWillHide,
+//            object: nil)
     }
 
-    @objc func maybeAutoHide() {
-        if keyboardPlaceholder.isHidden {
-            showFakeKeyboard()
-            dismissSelf()
-        }
-    }
+//    @objc func maybeAutoHide() {
+//        if keyboardPlaceholder.isHidden {
+//            showFakeKeyboard()
+//            dismissSelf()
+//        }
+//    }
 
     func setupDrag() {
         let dismissPanner = UIPanGestureRecognizer()
@@ -234,12 +236,12 @@ class SearchViewController: UIViewController {
 
         dragHandle = UIView(frame: .zero)
         dragHandle.radius = 2
-        contentView.addSubview(dragHandle, constraints: [
-            dragHandle.heightAnchor.constraint(equalToConstant: 4),
-            dragHandle.widthAnchor.constraint(equalToConstant: 48),
-            dragHandle.bottomAnchor.constraint(equalTo: keyboardPlaceholder.topAnchor, constant: -8),
-            dragHandle.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
-        ])
+//        contentView.addSubview(dragHandle, constraints: [
+//            dragHandle.heightAnchor.constraint(equalToConstant: 4),
+//            dragHandle.widthAnchor.constraint(equalToConstant: 48),
+//            dragHandle.bottomAnchor.constraint(equalTo: keyboardPlaceholder.topAnchor, constant: -8),
+//            dragHandle.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
+//        ])
     }
 
     func setupPlaceholderIcons() {
@@ -261,7 +263,6 @@ class SearchViewController: UIViewController {
         textView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor).isActive = true
         textHeightConstraint = textView.heightAnchor.constraint(equalToConstant: 36)
         NSLayoutConstraint.activate([
-            toolbarBottomMargin,
             textHeightConstraint,
             textView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor)
         ])
@@ -323,9 +324,7 @@ class SearchViewController: UIViewController {
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         coordinator.animate(alongsideTransition: { _ in
             //
-        }, completion: { _ in
-            self.updateKeyboardSnapshot()
-        })
+        }, completion: nil)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -350,16 +349,12 @@ class SearchViewController: UIViewController {
     func focusTextView() {
         textView.becomeFirstResponder()
         textView.selectAll(nil) // if not nil, will show actions
-        keyboardPlaceholder.isHidden = true
     }
 
-//    override func viewDidAppear(_ animated: Bool) {
-//        updateKeyboardSnapshot()
-//    }
 
     @objc func dismissSelf() {
         if isTransitioning || view.superview == nil { return }
-        showFakeKeyboard()
+//        showFakeKeyboard()
 //        self.dismiss(animated: true)
         transition.direction = .dismiss
         transition.animateTransition(searchVC: self, browserVC: browserVC!, completion: nil)
@@ -382,15 +377,6 @@ class SearchViewController: UIViewController {
         }
 
         keyboard.height = keyboardRectangle.height
-        let isTabTransitioning = browserVC?.tabSwitcher.cardStackTransition.isTransitioning ?? false
-        if textView.isFirstResponder
-            && !kbHeightConstraint.isPopAnimating
-            && !isSwiping
-            && !isTransitioning
-            && !isTabTransitioning {
-            // only apply kbheight if textview focused and not animating
-            kbHeightConstraint.constant = keyboard.height
-        }
     }
 }
 
@@ -446,9 +432,7 @@ extension SearchViewController: UITextViewDelegate {
             return
         }
         if shouldShowActions {
-            contextAreaHeight = pageActionHeight
             actionsHeight.constant = contextAreaHeight
-            contextAreaHeightConstraint.constant = contextAreaHeight
         } else {
             actionsHeight.constant = 0
             var suggestionH: CGFloat = 0
@@ -457,15 +441,10 @@ extension SearchViewController: UITextViewDelegate {
                     suggestionTable,
                     heightForRowAt: IndexPath(row: index, section: 0))
             }
-            contextAreaHeight = suggestionH + suggestionSpacer
-            suggestionHeightConstraint.constant = suggestionH
         }
 //        UIView.animate(withDuration: 0.2) {
 //            self.scrim.backgroundColor = self.shouldShowActions ? .clear : UIColor.black.withAlphaComponent(0.2)
 //        }
-        let anim = contextAreaHeightConstraint.springConstant(to: contextAreaHeight)
-        anim?.springBounciness = 2
-        anim?.springSpeed = 12
         suggestionTable.reloadData()
         suggestionTable.layoutIfNeeded()
     }
@@ -568,18 +547,15 @@ extension SearchViewController: UIGestureRecognizerDelegate {
         }
 
         if gesture.state == .began {
-            showFakeKeyboard()
             isSwiping = true
+            textView.resignFirstResponder()
         } else if gesture.state == .changed {
 //            self.iconProgress = (abs(dist.y) / keyboard.height).reverse().clip()
             if dist.y < 0 {
-                kbHeightConstraint.constant = keyboard.height
                 let elastic = 0.4 * elasticLimit(-dist.y)
-                textHeightConstraint.constant = textHeight + elastic
+                sheetHeight.constant = baseSheetHeight + elastic
             } else {
-                kbHeightConstraint.constant = max(keyboard.height - dist.y, 0)
-                contextAreaHeightConstraint.constant = contextAreaHeight
-                textHeightConstraint.constant = textHeight
+                sheetHeight.constant = max(baseSheetHeight - dist.y, 0)
             }
         } else if gesture.state == .ended || gesture.state == .cancelled {
             isSwiping = false
@@ -593,24 +569,12 @@ extension SearchViewController: UIGestureRecognizerDelegate {
 
     func animateCancel() {
         isTransitioning = true
-        func finish() {
-            isTransitioning = false
-            self.showRealKeyboard()
-            self.updateTextViewSize() // maybe reenable scrolls
-        }
-        let fromBelow = kbHeightConstraint.constant < keyboard.height
-        let anim = kbHeightConstraint.springConstant(to: keyboard.height) {_, _ in
-            if fromBelow { finish() }
+        textView.becomeFirstResponder()
+        let anim = sheetHeight.springConstant(to: baseSheetHeight) {_, _ in
+            self.isTransitioning = false
         }
         anim?.springBounciness = 2
         anim?.springSpeed = 9
-        contextAreaHeightConstraint.springConstant(to: contextAreaHeight)
-        suggestionTable.alpha = 1
-        pageActionView.alpha = 1
-        let ta = textHeightConstraint.springConstant(to: textHeight) { _, _ in
-            if !fromBelow { finish() }
-        }
-        ta?.clampMode = POPAnimationClampFlags.both.rawValue // prevent flickering when textfield too small
     }
 
     @objc func handleDimissPan(_ gesture: UIPanGestureRecognizer) {
@@ -620,37 +584,6 @@ extension SearchViewController: UIGestureRecognizerDelegate {
     func handleEntrancePan(_ gesture: UIPanGestureRecognizer) {
         isSwiping = true
         verticalPan(gesture: gesture, isEntrance: true)
-    }
-
-    func showFakeKeyboard() {
-        updateKeyboardSnapshot()
-        keyboardPlaceholder.isHidden = false
-        keyboardPlaceholder.image = keyboard.snapshot(for: backgroundView.overlayColor!)
-        UIView.setAnimationsEnabled(false)
-        textView.resignFirstResponder()
-        UIView.setAnimationsEnabled(true)
-
-        // shrink height to snapshot (in case was showing emoji etc)
-        if let snapH = keyboardPlaceholder.image?.size.height, snapH < kbHeightConstraint.constant {
-            keyboard.height = snapH
-            kbHeightConstraint.constant = snapH
-        }
-    }
-
-    func showRealKeyboard() {
-        if isTransitioning || isSwiping { return }
-        keyboardPlaceholder.isHidden = true
-        UIView.setAnimationsEnabled(false)
-        textView.becomeFirstResponder()
-        UIView.setAnimationsEnabled(true)
-    }
-
-    @objc func updateKeyboardSnapshot() {
-        if !textView.isFirstResponder
-            || kbHeightConstraint.constant != keyboard.height
-            || isTransitioning
-            || isSwiping { return }
-        keyboard.updateSnapshot(with: backgroundView.overlayColor)
     }
 }
 
@@ -694,19 +627,15 @@ extension SearchViewController: PageActionHandler {
                 BookmarkProvider.shared.removeBookmark(url) { isRemoved in
                     if isRemoved { self.pageActionView.isBookmarked = false }
                 }
-                self.showRealKeyboard()
             }))
             options.addAction(UIAlertAction(title: "Log Out", style: .default, handler: { _ in
                 BookmarkProvider.shared.logOut()
                 self.pageActionView.isBookmarkEnabled = false
                 self.pageActionView.isBookmarked = false
-                self.showRealKeyboard()
             }))
             options.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { _ in
-                self.showRealKeyboard()
             }))
             DispatchQueue.main.async {
-                self.showFakeKeyboard()
                 self.present(options, animated: true)
             }
         }
@@ -714,10 +643,6 @@ extension SearchViewController: PageActionHandler {
 
     func share() {
         browserVC?.makeShareSheet { avc in
-            self.showFakeKeyboard()
-            avc.completionWithItemsHandler = { _, _, _, _ in
-                self.showRealKeyboard()
-            }
             self.present(avc, animated: true, completion: nil)
         }
     }
@@ -726,11 +651,8 @@ extension SearchViewController: PageActionHandler {
         let b = browserVC
         b?.copyURL()
         let alert = UIAlertController(title: "Copied", message: nil, preferredStyle: .alert)
-        self.showFakeKeyboard()
         present(alert, animated: true, completion: {
-            alert.dismiss(animated: true, completion: {
-                self.showRealKeyboard()
-            })
+            alert.dismiss(animated: true)
         })
     }
 }

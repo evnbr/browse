@@ -83,9 +83,9 @@ class SearchTransitionController: NSObject {
         titleEndCenter.y -= searchVC.textHeightConstraint.constant
         titleEndCenter.y += titleExtraYShiftEnd
         if isDismissing {
-            titleEndCenter.y -= max(searchVC.kbHeightConstraint.constant, 0)
+            titleEndCenter.y -= max(searchVC.sheetHeight.constant, 0)
         } else if showKeyboard {
-            titleEndCenter.y -= searchVC.keyboard.height
+            titleEndCenter.y -= baseSheetHeight
         }
 
         titleSnap?.center = isExpanding ? titleStartCenter : titleEndCenter
@@ -96,11 +96,7 @@ class SearchTransitionController: NSObject {
             searchVC.shadowView.alpha = isExpanding ? 0 : 1
         }
 
-        searchVC.kbHeightConstraint.constant = isExpanding
-            ? (showKeyboard ? searchVC.keyboard.height : 0 )
-            : 0
-        searchVC.contextAreaHeightConstraint.springConstant(to: isExpanding
-            ? searchVC.contextAreaHeight : 0)
+        searchVC.sheetHeight.constant = isExpanding ? baseSheetHeight : Const.toolbarHeight
 
         titleSnap?.scale = isExpanding ? 1 : scaledUp
         titleSnap?.alpha = isExpanding ? 1 : 0
@@ -127,9 +123,7 @@ class SearchTransitionController: NSObject {
         func completeTransition() {
             if self.isDismissing { searchVC.view.removeFromSuperview() }
             if self.isExpanding {
-                // We really should catch this earlier and
-                // modify the transition end point on the fly
-                searchVC.kbHeightConstraint.constant = searchVC.keyboard.height
+                //
             }
             searchVC.isTransitioning = false
             titleSnap?.removeFromSuperview()
