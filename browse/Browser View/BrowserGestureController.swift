@@ -80,8 +80,6 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
     var toolbar: UIView!
     var cardView: UIView!
 
-    let pinchController = BrowserPinchController()
-
     var direction: GestureNavigationDirection!
     var dismissVelocity: CGPoint?
 
@@ -125,7 +123,6 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         super.init()
 
         self.vc = vc
-        pinchController.vc = vc
         view = vc.view
         cardView = vc.cardView
         toolbar = vc.toolbar
@@ -220,18 +217,10 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
             scrollView.setScrollSilently(x: 0)
         } else if isDismissing && direction == .rightToLeft {
             scrollView.setScrollSilently(x: scrollView.maxScrollX)
-        } else if pinchController.isPinchDismissing {
-            scrollView.setScrollSilently(pinchController.pinchStartScroll)
         }
         updateToolbar(scrollView)
         vc.statusColorBar.synchronizeOffset(scrollView)
         vc.toolbarColorBar.synchronizeOffset(scrollView)
-    }
-
-    func scrollViewDidZoom(_ scrollView: UIScrollView) {
-        if pinchController.isPinchDismissing {
-            scrollView.zoomScale = scrollView.minimumZoomScale
-        }
     }
 
     var shouldUpdateToolbar: Bool {
@@ -241,7 +230,6 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
             && scrollView.isScrollableY
             && !scrollView.isOverScrolledTop
             && !vc.webView.isLoading
-            && !pinchController.isPinchDismissing
             && !isDismissing
             && !vc.isDisplayingSearch
 //            && !vc.searchVC.isTransitioning
@@ -543,7 +531,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         if isDismissing {
             fatalError("consider starting dismiss when previous dismissal hasn't ended")
         }
-        if pinchController.isPinchDismissing || (vc.isDisplayingSearch && vc.searchVC.isSwiping) {
+        if vc.isDisplayingSearch && vc.searchVC.isSwiping {
             dismissingEndedPossible()
             return
         }
@@ -582,9 +570,10 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
             || (fakeHScrollingPage && scroll.x > scrollView.maxScrollX)
         )
 
-        if triggerDismissTop {
-            startDismiss(gesture, direction: .top)
-        } else if triggerDismissLeft {
+//        if triggerDismissTop {
+//            startDismiss(gesture, direction: .top)
+//        } else
+        if triggerDismissLeft {
             startDismiss(gesture, direction: .leftToRight)
         } else if triggerDismissRight {
             startDismiss(gesture, direction: .rightToLeft)

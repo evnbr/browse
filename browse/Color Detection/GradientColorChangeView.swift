@@ -18,7 +18,7 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     let gradientLayer2: CAGradientLayer = CAGradientLayer()
     let gradientLayer3: CAGradientLayer = CAGradientLayer()
 
-    let duration: CFTimeInterval = 0.8//0.3
+    let duration: CFTimeInterval = 0.4//0.3
 
     var backgroundView: UIView!
 

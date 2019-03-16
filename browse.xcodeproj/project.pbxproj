@@ -39,7 +39,6 @@
 		A95DFF7B2058BEC600D540DD /* Blendable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7A2058BEC600D540DD /* Blendable.swift */; };
 		A95DFF7E205B2FB700D540DD /* HistoryModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = A95DFF7C205B2FB700D540DD /* HistoryModel.xcdatamodeld */; };
 		A95DFFBF205B6A8F00D540DD /* HistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95DFFBE205B6A8F00D540DD /* HistoryManager.swift */; };
-		A95EDB6820D97513001B24CD /* BrowserPinchController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95EDB6720D97513001B24CD /* BrowserPinchController.swift */; };
 		A9667E922051F90400295E76 /* PinboardLoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9667E912051F90400295E76 /* PinboardLoginController.swift */; };
 		A966CA64204003FC00EB2771 /* TypeaheadCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A966CA63204003FC00EB2771 /* TypeaheadCell.swift */; };
 		A969D4A51F1321EC008A7BC6 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A969D4A41F1321EC008A7BC6 /* Constants.swift */; };
@@ -141,7 +140,6 @@
 		A95DFF7A2058BEC600D540DD /* Blendable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Blendable.swift; sourceTree = "<group>"; };
 		A95DFF7D205B2FB700D540DD /* HistoryModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = HistoryModel.xcdatamodel; sourceTree = "<group>"; };
 		A95DFFBE205B6A8F00D540DD /* HistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryManager.swift; sourceTree = "<group>"; };
-		A95EDB6720D97513001B24CD /* BrowserPinchController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserPinchController.swift; sourceTree = "<group>"; };
 		A9667E912051F90400295E76 /* PinboardLoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinboardLoginController.swift; sourceTree = "<group>"; };
 		A966CA63204003FC00EB2771 /* TypeaheadCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeaheadCell.swift; sourceTree = "<group>"; };
 		A969D4A41F1321EC008A7BC6 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -283,7 +281,6 @@
 			children = (
 				A97CB0711EC53DCD005DDBD1 /* BrowserViewController.swift */,
 				A9DEAE3C1F16C15700CF66BA /* BrowserToolbarView.swift */,
-				A95EDB6720D97513001B24CD /* BrowserPinchController.swift */,
 				A92C9C3A1EF8B5E600D8AAA3 /* BrowserGestureController.swift */,
 				A907DBAD205DB7A6009554C9 /* WebViewManager.swift */,
 				A9EF36D41F4A6451005112E2 /* WKWebview+Toolbar.swift */,
@@ -715,7 +712,6 @@
 				A907DBAA205CFAB4009554C9 /* Visit+snapshot.swift in Sources */,
 				A969D4A51F1321EC008A7BC6 /* Constants.swift in Sources */,
 				A92095911EE34CDC009497A2 /* TabSwitcherViewController.swift in Sources */,
-				A95EDB6820D97513001B24CD /* BrowserPinchController.swift in Sources */,
 				A92095841ED90E7B009497A2 /* Blocker.swift in Sources */,
 				A9E4859D1EC8D7BE0021D155 /* WebviewColorSampler.swift in Sources */,
 				A95DFFBF205B6A8F00D540DD /* HistoryManager.swift in Sources */,
