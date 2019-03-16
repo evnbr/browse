@@ -309,7 +309,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         constrainTop3(statusBar, contentView)
         statusHeightConstraint = statusBar.heightAnchor.constraint(equalToConstant: Const.statusHeight)
 
-        snapshotView.isHidden = true
+        snapshotView.alpha = 0
         aspectConstraint = snapshotView.heightAnchor.constraint(equalTo: snapshotView.widthAnchor, multiplier: 1)
         
         NSLayoutConstraint.activate([
@@ -540,7 +540,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     }
 
     func updateSnapshot(then done: @escaping () -> Void = { }) {
-        guard !webView.isHidden else {
+        guard webView.alpha > 0 else {
             done()
             return
         }
