@@ -28,7 +28,7 @@ class TypeaheadCell: UITableViewCell {
         indentationLevel = 0
         
         textLabel?.lineBreakMode = .byWordWrapping
-        textLabel?.numberOfLines = 2
+        textLabel?.numberOfLines = 1
         textLabel?.font = .systemFont(ofSize: 18)
         layoutMargins = UIEdgeInsetsMake(12, 24, 12, 24)
         
@@ -48,22 +48,21 @@ class TypeaheadCell: UITableViewCell {
 //            textLabel?.attributedText = attributedTitle
             
             textLabel?.text = title
-            if let detail = detail {
-                textLabel?.text?.append(" — \(detail)")
-            }
-            
         } else if let detail = detail {
 //            let detailOverlaps = detail.allNSRanges(of: highlight, split: true)
             let attributedDetail = NSMutableAttributedString(string: detail)
 //            detailOverlaps.forEach { attributedDetail.addAttributes([.foregroundColor : tintColor], range: $0) }
             textLabel?.attributedText = attributedDetail
+            
+            // Only detail, put in title slot instead
+            return
         }
         
         if let detail = detail {
             let detailOverlaps = detail.allNSRanges(of: highlight, split: true)
             let attributedDetail = NSMutableAttributedString(string: detail)
-            detailOverlaps.forEach { attributedDetail.addAttributes([.foregroundColor : tintColor], range: $0) }
-//            detailTextLabel?.attributedText = attributedDetail
+//            detailOverlaps.forEach { attributedDetail.addAttributes([.foregroundColor : tintColor], range: $0) }
+            detailTextLabel?.attributedText = attributedDetail
         }
     }
     
