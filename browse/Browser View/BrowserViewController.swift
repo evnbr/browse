@@ -27,8 +27,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     var statusHeightConstraint: NSLayoutConstraint!
 
     let colorSampler = WebviewColorSampler()
-    let statusColorBar = ColorBarCollectionViewController()
-    let toolbarColorBar = ColorBarCollectionViewController()
 
     lazy var searchVC = SearchViewController()
 
@@ -98,9 +96,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     }
 
     func hideUntilNavigationDone(navigation: WKNavigation? ) {
-        statusColorBar.sampleCache.removeAll()
-        toolbarColorBar.sampleCache.removeAll()
-        
         isSnapshotMode = true
         if let nav = navigation {
             // nav delegate will track and alert when done
@@ -114,8 +109,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     }
     @objc func finishHiddenNavigation() {
         self.navigationToHide = nil //false
-        self.isSnapshotMode = false
         colorSampler.updateColors()
+        
+        UIView.animate(withDuration: 0.15, delay: 0, options: [.beginFromCurrentState], animations: {
+            self.isSnapshotMode = false
+        })
     }
 
     func setVisit(_ visit: Visit, wkItem: WKBackForwardListItem) {
@@ -124,12 +122,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
         setSnapshot(visit.snapshot)
         if let color = visit.topColor {
-            statusColorBar.sampleCache.removeAll()
             topColorChange(color, offset: webView.scrollView.contentOffset)
             statusBar.backgroundColor = color
         }
         if let color = visit.bottomColor {
-            toolbarColorBar.sampleCache.removeAll()
             bottomColorChange(color, offset: webView.scrollView.contentOffset)
             toolbar.backgroundColor = color
         }
@@ -139,10 +135,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         let nav = webView.go(to: wkItem)
         hideUntilNavigationDone(navigation: nav)
         
-//        DispatchQueue.main.async {
-        statusColorBar.collectionView?.reloadData()
-        toolbarColorBar.collectionView?.reloadData()
-//        }
     }
     func canNavigateTo(wkItem: WKBackForwardListItem) -> Bool {
         let list = webView.backForwardList
@@ -537,11 +529,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
     var isSnapshotMode: Bool {
         get {
-            return !snapshotView.isHidden
+            return snapshotView.alpha > 0
         }
         set {
-            snapshotView.isHidden = !newValue
-            webView.isHidden = newValue
+//            self.snapshotView.isHidden = !newValue
+            
+            self.snapshotView.alpha = newValue ? 1 : 0
+            self.webView.alpha = newValue ? 0 : 1
         }
     }
 
@@ -641,6 +635,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         
         toolbar.backgroundColor = .black
         statusBar.backgroundColor = .black
+        setNeedsStatusBarAppearanceUpdate()
     }
 
     @objc func hideError() {
@@ -840,22 +835,16 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
             return
         }
 
-        statusColorBar.addSample(newColor, offsetY: offset.y + Const.statusHeight + 6)
-        statusColorBar.synchronizeOffset(webView.scrollView)
-
         if shouldUpdateSample {
             currentTab.currentVisit?.topColor = newColor
             statusBar.transitionBackground(to: newColor, from: .bottomToTop)
-            UIView.animate(withDuration: 0.4, delay: 0, options: [.beginFromCurrentState], animations: {
+            UIView.animate(withDuration: 0.3, delay: 0, options: [.beginFromCurrentState], animations: {
                 self.setNeedsStatusBarAppearanceUpdate()
             })
         }
     }
 
     func bottomColorChange(_ newColor: UIColor, offset: CGPoint) {
-        toolbarColorBar.addSample(newColor, offsetY: offset.y - 6)
-        toolbarColorBar.synchronizeOffset(webView.scrollView)
-
         if shouldUpdateSample {
             currentTab.currentVisit?.bottomColor = newColor
             toolbar.transitionBackground(to: newColor, from: .topToBottom)

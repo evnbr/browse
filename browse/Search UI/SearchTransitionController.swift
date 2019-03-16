@@ -83,7 +83,7 @@ class SearchTransitionController: NSObject {
         titleEndCenter.y -= searchVC.textHeightConstraint.constant
         titleEndCenter.y += titleExtraYShiftEnd
         if isDismissing {
-            titleEndCenter.y -= max(searchVC.sheetHeight.constant, 0)
+            titleEndCenter.y -= max(searchVC.sheetHeight.constant - Const.toolbarHeight, 0)
         } else if showKeyboard {
             titleEndCenter.y -= baseSheetHeight
         }
@@ -117,8 +117,6 @@ class SearchTransitionController: NSObject {
         if showKeyboard && isExpanding {
             searchVC.focusTextView()
         }
-
-        searchVC.textHeightConstraint.constant = isExpanding ? searchVC.textHeight : Const.toolbarHeight
 
         func completeTransition() {
             if self.isDismissing { searchVC.view.removeFromSuperview() }

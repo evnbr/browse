@@ -17,8 +17,6 @@ class ToolbarSearchField: ToolbarTouchView {
     let maskLayer = CAGradientLayer()
     var stopButton: ToolbarIconButton!
     
-    var centerConstraint : NSLayoutConstraint!
-    
     private var shouldShowLock : Bool = false
 
     var text : String? {
@@ -122,8 +120,6 @@ class ToolbarSearchField: ToolbarTouchView {
             labelHolder.widthAnchor.constraint(equalTo: labelContent.widthAnchor),
             labelHolder.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor),
             labelHolder.heightAnchor.constraint(equalTo: heightAnchor),
-            labelHolder.centerXAnchor.constraint(equalTo: centerXAnchor),
-            labelHolder.centerXAnchor.constraint(equalTo: labelContent.centerXAnchor)
         ])
         
         maskLayer.frame = labelHolder.frame

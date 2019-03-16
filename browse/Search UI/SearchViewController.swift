@@ -10,8 +10,8 @@ import UIKit
 import pop
 
 let typeaheadReuseID = "TypeaheadRow"
-let MAX_ROWS: Int = 4
-let SEARCHVIEW_MAX_H: CGFloat = 240.0
+let maxTypeaheadSuggestions: Int = 8
+let maxTextFieldHeight: CGFloat = 240.0
 let TEXTVIEW_PADDING = UIEdgeInsets(top: 20, left: 20, bottom: 40, right: 20)
 let pageActionHeight: CGFloat = 20 //100
 
@@ -44,17 +44,13 @@ class SearchViewController: UIViewController {
 
     var kbHeightConstraint: NSLayoutConstraint!
     var sheetHeight: NSLayoutConstraint!
-    var suggestionHeightConstraint: NSLayoutConstraint!
     var textHeightConstraint: NSLayoutConstraint!
     var toolbarBottomMargin: NSLayoutConstraint!
-    var actionsHeight: NSLayoutConstraint!
 
     private var leftIconConstraint: NSLayoutConstraint!
     private var rightIconConstraint: NSLayoutConstraint!
 
-    var textHeight: CGFloat = 12
-    var suggestionSpacer: CGFloat = 24
-    var contextAreaHeight: CGFloat = 120
+    var textHeight: CGFloat = 40
 
     var iconEntranceProgress: CGFloat {
         get {
@@ -97,7 +93,7 @@ class SearchViewController: UIViewController {
         view.clipsToBounds = true
 
         scrim = UIView(frame: view.bounds)
-        scrim.backgroundColor = UIColor.black.withAlphaComponent(0.2)
+        scrim.backgroundColor = UIColor.black.withAlphaComponent(0.4)
         view.addSubview(scrim, constraints: [
             scrim.topAnchor.constraint(equalTo: view.topAnchor),
             scrim.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -Const.toolbarHeight),
@@ -111,7 +107,7 @@ class SearchViewController: UIViewController {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.tintColor = .darkText
         contentView.clipsToBounds = true
-        contentView.radius = 12
+        contentView.radius = 16
         view.addSubview(contentView)
         
         shadowView = UIView(frame: view.bounds)
@@ -155,7 +151,6 @@ class SearchViewController: UIViewController {
         maskView.frame.size.height = 500 // TODO Large number because mask is scrollable :(
         textView.mask = maskView
 
-        setupFakeKeyboard()
         setupActions()
         setupTextView()
         setupDrag()
@@ -170,61 +165,15 @@ class SearchViewController: UIViewController {
         pageActionView = PageActionView()
         pageActionView.delegate = self
         
-        suggestionHeightConstraint = suggestionTable.heightAnchor.constraint(
-            equalToConstant: suggestionTable.rowHeight * 4)
-        actionsHeight = pageActionView.heightAnchor.constraint(equalToConstant: 0)
+        let suggestionHeightConstraint = suggestionTable.heightAnchor.constraint(
+            equalToConstant: 500)
         contentView.addSubview(suggestionTable, constraints: [
             suggestionHeightConstraint,
             suggestionTable.leftAnchor.constraint(equalTo: contentView.leftAnchor),
             suggestionTable.rightAnchor.constraint(equalTo: contentView.rightAnchor),
             suggestionTable.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: 0)
         ])
-
-//        contentView.addSubview(pageActionView, constraints: [
-//            actionsHeight,
-//            pageActionView.bottomAnchor.constraint(equalTo: textView.topAnchor),
-//            pageActionView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor),
-//            pageActionView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor)
-//        ])
     }
-
-    func setupFakeKeyboard() {
-//        keyboardPlaceholder = UIImageView()
-//        keyboardPlaceholder.translatesAutoresizingMaskIntoConstraints = false
-//        keyboardPlaceholder.contentMode = .top
-//
-//        kbHeightConstraint = keyboardPlaceholder.heightAnchor.constraint(equalToConstant: 0)
-//        contentView.addSubview(keyboardPlaceholder, constraints: [
-//            kbHeightConstraint,
-//            keyboardPlaceholder.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-//            keyboardPlaceholder.leftAnchor.constraint(equalTo: contentView.leftAnchor),
-//            keyboardPlaceholder.rightAnchor.constraint(equalTo: contentView.rightAnchor)
-//            ])
-//        toolbarBottomMargin = keyboardPlaceholder.topAnchor.constraint(equalTo: textView.bottomAnchor)
-//
-//        NotificationCenter.default.addObserver(
-//            self,
-//            selector: #selector(updateKeyboardHeight),
-//            name: NSNotification.Name.UIKeyboardWillShow,
-//            object: nil)
-//        NotificationCenter.default.addObserver(
-//            self,
-//            selector: #selector(updateKeyboardHeight),
-//            name: NSNotification.Name.UIKeyboardWillChangeFrame,
-//            object: nil)
-//        NotificationCenter.default.addObserver(
-//            self,
-//            selector: #selector(maybeAutoHide),
-//            name: NSNotification.Name.UIKeyboardWillHide,
-//            object: nil)
-    }
-
-//    @objc func maybeAutoHide() {
-//        if keyboardPlaceholder.isHidden {
-//            showFakeKeyboard()
-//            dismissSelf()
-//        }
-//    }
 
     func setupDrag() {
         let dismissPanner = UIPanGestureRecognizer()
@@ -236,12 +185,12 @@ class SearchViewController: UIViewController {
 
         dragHandle = UIView(frame: .zero)
         dragHandle.radius = 2
-//        contentView.addSubview(dragHandle, constraints: [
-//            dragHandle.heightAnchor.constraint(equalToConstant: 4),
-//            dragHandle.widthAnchor.constraint(equalToConstant: 48),
-//            dragHandle.bottomAnchor.constraint(equalTo: keyboardPlaceholder.topAnchor, constant: -8),
-//            dragHandle.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
-//        ])
+        contentView.addSubview(dragHandle, constraints: [
+            dragHandle.heightAnchor.constraint(equalToConstant: 4),
+            dragHandle.widthAnchor.constraint(equalToConstant: 48),
+            dragHandle.topAnchor.constraint(equalTo: textView.topAnchor, constant: -8),
+            dragHandle.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
+        ])
     }
 
     func setupPlaceholderIcons() {
@@ -308,17 +257,17 @@ class SearchViewController: UIViewController {
             return
         }
 
-        let darkContent = !newColor.isLight
+        let isBackgroundLight = !newColor.isLight
         backgroundView.overlayColor = newColor
-        view.tintColor = darkContent ? .darkText : .white
+        view.tintColor = isBackgroundLight ? .darkText : .white
         contentView.tintColor = view.tintColor
         textView.textColor = view.tintColor
         dragHandle.backgroundColor = view.tintColor.withAlphaComponent(0.2)
 
-        textView.placeholderColor = darkContent
+        textView.placeholderColor = isBackgroundLight
             ? UIColor.black.withAlphaComponent(0.4)
             : UIColor.white.withAlphaComponent(0.4)
-        textView.keyboardAppearance = darkContent ? .light : .dark
+        textView.keyboardAppearance = isBackgroundLight ? .light : .dark
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -413,10 +362,13 @@ extension SearchViewController: UITextViewDelegate {
         }
 
         let suggestionsForText = textView.text
-        TypeaheadProvider.shared.suggestions(for: textView.text, maxCount: 4) { arr in
-            // If text has changed since return, don't bother
+        TypeaheadProvider.shared.suggestions(
+            for: textView.text,
+            maxCount: maxTypeaheadSuggestions
+        ) { newList in
+            // If text has changed since return, bail early
             if self.textView.text != suggestionsForText { return }
-            self.suggestions = arr.reversed()
+            self.suggestions = newList
             self.renderSuggestions()
         }
     }
@@ -431,20 +383,6 @@ extension SearchViewController: UITextViewDelegate {
             suggestionTable.layoutIfNeeded()
             return
         }
-        if shouldShowActions {
-            actionsHeight.constant = contextAreaHeight
-        } else {
-            actionsHeight.constant = 0
-            var suggestionH: CGFloat = 0
-            for index in 0..<suggestions.count {
-                suggestionH += tableView(
-                    suggestionTable,
-                    heightForRowAt: IndexPath(row: index, section: 0))
-            }
-        }
-//        UIView.animate(withDuration: 0.2) {
-//            self.scrim.backgroundColor = self.shouldShowActions ? .clear : UIColor.black.withAlphaComponent(0.2)
-//        }
         suggestionTable.reloadData()
         suggestionTable.layoutIfNeeded()
     }
@@ -453,8 +391,8 @@ extension SearchViewController: UITextViewDelegate {
         let fixedWidth = textView.bounds.size.width
         textView.textContainerInset = TEXTVIEW_PADDING
         let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
-        textView.isScrollEnabled = fullTextSize.height > SEARCHVIEW_MAX_H
-        textHeight = max(20, min(fullTextSize.height, SEARCHVIEW_MAX_H))
+        textView.isScrollEnabled = fullTextSize.height > maxTextFieldHeight
+        textHeight = max(20, min(fullTextSize.height, maxTextFieldHeight))
         textHeightConstraint.constant = textHeight
         textView.mask?.frame.size.width = textView.bounds.width
     }
@@ -483,7 +421,7 @@ extension SearchViewController: UITextViewDelegate {
     func navigateTo(_ url: URL) {
         if let browser = self.browserVC {
             browser.navigateTo(url)
-            setBackground(.white) // since navigate insta-hides
+            setBackground(.black) // since navigate insta-hides
             dismissSelf()
             return
         }
@@ -504,7 +442,7 @@ extension SearchViewController: UITableViewDelegate {
 
 extension SearchViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return min(MAX_ROWS, suggestions.count)
+        return min(maxTypeaheadSuggestions, suggestions.count)
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -522,7 +460,7 @@ extension SearchViewController: UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let item = suggestions[indexPath.item]
-        var h: CGFloat = 48.0
+        var h: CGFloat = 60.0
         if let t = item.title, t.count > 60 { h += 20 }
         return h
     }
@@ -539,7 +477,7 @@ extension SearchViewController: UIGestureRecognizerDelegate {
         let vel = gesture.velocity(in: view)
 
         if isEntrance {
-            dist.y += keyboard.height
+            dist.y += baseSheetHeight - Const.toolbarHeight
         }
         if browserVC?.gestureController.isDismissing == true {
             dismissSelf()
@@ -562,19 +500,20 @@ extension SearchViewController: UIGestureRecognizerDelegate {
             if vel.y > 100 || kbHeightConstraint.constant < 50 {
                 dismissSelf()
             } else {
-                animateCancel()
+                animateCancel(at: gesture.velocity(in: view))
             }
         }
     }
 
-    func animateCancel() {
+    func animateCancel(at velocity: CGPoint) {
         isTransitioning = true
-        textView.becomeFirstResponder()
-        let anim = sheetHeight.springConstant(to: baseSheetHeight) {_, _ in
+//        textView.becomeFirstResponder()
+        
+        let anim = sheetHeight.springConstant(to: baseSheetHeight, at: -velocity.y) {_, _ in
             self.isTransitioning = false
         }
-        anim?.springBounciness = 2
-        anim?.springSpeed = 9
+        anim?.springBounciness = 1
+        anim?.springSpeed = 8
     }
 
     @objc func handleDimissPan(_ gesture: UIPanGestureRecognizer) {

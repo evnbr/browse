@@ -219,8 +219,6 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
             scrollView.setScrollSilently(x: scrollView.maxScrollX)
         }
         updateToolbar(scrollView)
-        vc.statusColorBar.synchronizeOffset(scrollView)
-        vc.toolbarColorBar.synchronizeOffset(scrollView)
     }
 
     var shouldUpdateToolbar: Bool {
