@@ -460,9 +460,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         return searchVC.view.superview == cardView
     }
 
-    func displaySearch(instant: Bool = false) {
+    func displaySearch(isInstant: Bool = false) {
         prepareToShowSearch()
-        searchVC.transition.isPreExpanded = instant
+        searchVC.transition.isPreExpanded = isInstant
         searchVC.transition.animateTransition(searchVC: searchVC, browserVC: self, completion: {
             self.searchVC.transition.isPreExpanded = false
         })
@@ -690,6 +690,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         guard isViewLoaded else { return }
         assert(webView != nil, "nil webview")
 
+        searchVC.hasDraft = false
         toolbar.text = self.displayLocation
         statusBar.label.text = webView.title
 

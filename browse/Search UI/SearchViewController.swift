@@ -280,7 +280,7 @@ class SearchViewController: UIViewController {
         // TODO: Why?
         view.frame = UIScreen.main.bounds
 
-        if let browser = self.browserVC {
+        if let browser = browserVC, !hasDraft {
             textView.text = browser.editableLocation
             pageActionView.title = browser.webView.title
             pageActionView.isBookmarked = false

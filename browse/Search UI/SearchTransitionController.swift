@@ -35,11 +35,30 @@ class SearchTransitionController: NSObject {
         browserVC: BrowserViewController,
         completion: SearchTransitionCompletionBlock? ) {
         
+        if isDismissing {
+            if let newText = searchVC.textView.text,
+                newText.count > 0,
+                newText != browserVC.displayLocation,
+                newText != browserVC.editableLocation {
+                // Keep draft
+                searchVC.hasDraft = true
+                browserVC.toolbar.text = newText
+                browserVC.toolbar.isSearch = false
+                browserVC.toolbar.isSecure = false
+            } else {
+                searchVC.hasDraft = false
+                browserVC.updateLoadingState()
+            }
+            browserVC.toolbar.layoutIfNeeded()
+        } else {
+            searchVC.hasDraft = false
+        }
+        
         browserVC.toolbar.backgroundView.alpha = 1
         // TODO snapshot doesnt work if hidden
-        let titleSnap = browserVC.toolbar.searchField.labelHolder.snapshotView(afterScreenUpdates: false)
+        let titleSnap = browserVC.toolbar.searchField.labelHolder.snapshotView(afterScreenUpdates: true)
         browserVC.toolbar.searchField.labelHolder.isHidden = true
-
+        
         searchVC.isTransitioning = true
         if !searchVC.isViewLoaded {
             print("no view")
