@@ -12,7 +12,7 @@ import pop
 let typeaheadReuseID = "TypeaheadRow"
 let maxTypeaheadSuggestions: Int = 8
 let maxTextFieldHeight: CGFloat = 240.0
-let TEXTVIEW_PADDING = UIEdgeInsets(top: 16, left: 20, bottom: 20, right: 20)
+let textFieldInsets = UIEdgeInsets(top: 11, left: 16, bottom: 12, right: 16)
 let pageActionHeight: CGFloat = 20 //100
 
 let baseSheetHeight: CGFloat = 500
@@ -173,7 +173,7 @@ class SearchViewController: UIViewController {
             suggestionHeightConstraint,
             suggestionTable.leftAnchor.constraint(equalTo: contentView.leftAnchor),
             suggestionTable.rightAnchor.constraint(equalTo: contentView.rightAnchor),
-            suggestionTable.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: 0)
+            suggestionTable.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: 8)
         ])
     }
 
@@ -190,7 +190,7 @@ class SearchViewController: UIViewController {
         contentView.addSubview(dragHandle, constraints: [
             dragHandle.heightAnchor.constraint(equalToConstant: 4),
             dragHandle.widthAnchor.constraint(equalToConstant: 48),
-            dragHandle.topAnchor.constraint(equalTo: textView.topAnchor, constant: 8),
+            dragHandle.topAnchor.constraint(equalTo: textView.topAnchor, constant: -8),
             dragHandle.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
         ])
     }
@@ -202,20 +202,24 @@ class SearchViewController: UIViewController {
         rightIconConstraint = tabButton.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -8)
         contentView.addSubview(backButton, constraints: [
             leftIconConstraint,
-            backButton.topAnchor.constraint(equalTo: textView.topAnchor, constant: 8)
+            backButton.topAnchor.constraint(equalTo: textView.topAnchor, constant: -4)
             ])
         contentView.addSubview(tabButton, constraints: [
             rightIconConstraint,
-            tabButton.topAnchor.constraint(equalTo: textView.topAnchor, constant: 8)
+            tabButton.topAnchor.constraint(equalTo: textView.topAnchor, constant: -4)
         ])
     }
 
     func setupTextView() {
-        textView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor).isActive = true
         textHeightConstraint = textView.heightAnchor.constraint(equalToConstant: 36)
         NSLayoutConstraint.activate([
             textHeightConstraint,
-            textView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor)
+            textView.topAnchor.constraint(
+                equalTo: contentView.topAnchor, constant: 16),
+            textView.leadingAnchor.constraint(
+                equalTo: contentView.safeAreaLayoutGuide.leadingAnchor, constant: 12),
+            textView.trailingAnchor.constraint(
+                equalTo: contentView.safeAreaLayoutGuide.trailingAnchor, constant: -12)
         ])
     }
 
@@ -397,7 +401,7 @@ extension SearchViewController: UITextViewDelegate {
 
     func updateTextViewSize() {
         let fixedWidth = textView.bounds.size.width
-        textView.textContainerInset = TEXTVIEW_PADDING
+        textView.textContainerInset = textFieldInsets
         let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
         textView.isScrollEnabled = fullTextSize.height > maxTextFieldHeight
         textHeight = max(20, min(fullTextSize.height, maxTextFieldHeight))
