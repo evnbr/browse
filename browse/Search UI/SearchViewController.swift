@@ -12,7 +12,7 @@ import pop
 let typeaheadReuseID = "TypeaheadRow"
 let maxTypeaheadSuggestions: Int = 8
 let maxTextFieldHeight: CGFloat = 240.0
-let TEXTVIEW_PADDING = UIEdgeInsets(top: 20, left: 20, bottom: 40, right: 20)
+let TEXTVIEW_PADDING = UIEdgeInsets(top: 16, left: 20, bottom: 20, right: 20)
 let pageActionHeight: CGFloat = 20 //100
 
 let baseSheetHeight: CGFloat = 500
@@ -39,6 +39,8 @@ class SearchViewController: UIViewController {
 
     var isTransitioning = false
     var isSwiping = false
+    
+    var hasDraft = false
 
     var transition = SearchTransitionController()
 
@@ -188,7 +190,7 @@ class SearchViewController: UIViewController {
         contentView.addSubview(dragHandle, constraints: [
             dragHandle.heightAnchor.constraint(equalToConstant: 4),
             dragHandle.widthAnchor.constraint(equalToConstant: 48),
-            dragHandle.topAnchor.constraint(equalTo: textView.topAnchor, constant: -8),
+            dragHandle.topAnchor.constraint(equalTo: textView.topAnchor, constant: 8),
             dragHandle.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
         ])
     }
@@ -220,20 +222,25 @@ class SearchViewController: UIViewController {
     func createTextView() -> UITextView {
         let txt = UITextView()
         txt.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 48)
+        txt.translatesAutoresizingMaskIntoConstraints = false
+        
         txt.font = Const.textFieldFont
         txt.text = ""
         txt.placeholder = "Where to?"
+        
         txt.delegate = self
         txt.isScrollEnabled = true
-        txt.backgroundColor = .clear
+        
+        txt.backgroundColor = .darkTouch
         txt.textColor = .darkText
         txt.placeholderColor = UIColor.white.withAlphaComponent(0.4)
         txt.keyboardAppearance = .light
+        
         txt.enablesReturnKeyAutomatically = true
         txt.keyboardType = .webSearch
         txt.returnKeyType = .go
         txt.autocorrectionType = .no
-        txt.translatesAutoresizingMaskIntoConstraints = false
+        
         return txt
     }
 
@@ -282,6 +289,7 @@ class SearchViewController: UIViewController {
 
         if let browser = browserVC, !hasDraft {
             textView.text = browser.editableLocation
+            
             pageActionView.title = browser.webView.title
             pageActionView.isBookmarked = false
             pageActionView.isBookmarkEnabled = BookmarkProvider.shared.isLoggedIn
@@ -461,7 +469,7 @@ extension SearchViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let item = suggestions[indexPath.item]
         var h: CGFloat = 60.0
-        if let t = item.title, t.count > 60 { h += 20 }
+//        if let t = item.title, t.count > 60 { h += 20 }
         return h
     }
 }
@@ -490,7 +498,7 @@ extension SearchViewController: UIGestureRecognizerDelegate {
         } else if gesture.state == .changed {
 //            self.iconProgress = (abs(dist.y) / keyboard.height).reverse().clip()
             if dist.y < 0 {
-                let elastic = 0.4 * elasticLimit(-dist.y)
+                let elastic = 1 * elasticLimit(-dist.y)
                 sheetHeight.constant = baseSheetHeight + elastic
             } else {
                 sheetHeight.constant = max(baseSheetHeight - dist.y, 0)

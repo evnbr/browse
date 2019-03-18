@@ -79,6 +79,7 @@ class ToolbarSearchField: ToolbarTouchView {
     
     init(onTap: ToolbarButtonAction? = nil) {
         super.init(frame: CGRect(x: 0, y: 0, width: 180, height: Const.buttonHeight), onTap: onTap)
+        baseColor = UIColor.black.withAlphaComponent(0.05)
         
         let lockImage = UIImage(named: "lock")!.withRenderingMode(.alwaysTemplate)
         lock = UIImageView(image: lockImage)
@@ -93,7 +94,6 @@ class ToolbarSearchField: ToolbarTouchView {
 
         labelHolder = UIView(frame: bounds)
         labelHolder.translatesAutoresizingMaskIntoConstraints = false
-//        labelHolder.backgroundColor = .cyan
         addSubview(labelHolder)
         
         stopButton = ToolbarIconButton(icon: UIImage(named: "stop"))

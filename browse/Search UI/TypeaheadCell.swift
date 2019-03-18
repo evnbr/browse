@@ -32,7 +32,7 @@ class TypeaheadCell: UITableViewCell {
         textLabel?.font = .systemFont(ofSize: 18)
         layoutMargins = UIEdgeInsetsMake(12, 24, 12, 24)
         
-        detailTextLabel?.font = .systemFont(ofSize: 14)
+        detailTextLabel?.font = .systemFont(ofSize: 13)
         detailTextLabel?.numberOfLines = 1
         
         contentView.clipsToBounds = true
@@ -77,7 +77,7 @@ class TypeaheadCell: UITableViewCell {
     
     override func tintColorDidChange() {
         textLabel?.textColor = tintColor //.withSecondaryAlpha
-        detailTextLabel?.textColor = tintColor //.withSecondaryAlpha
+        detailTextLabel?.textColor = tintColor.withSecondaryAlpha
         selectedBackgroundView?.backgroundColor = tintColor.isLight ? .darkTouch : .lightTouch
     }
 }
