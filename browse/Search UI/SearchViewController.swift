@@ -15,8 +15,6 @@ let maxTextFieldHeight: CGFloat = 240.0
 let textFieldInsets = UIEdgeInsets(top: 11, left: 16, bottom: 12, right: 16)
 let pageActionHeight: CGFloat = 20 //100
 
-let baseSheetHeight: CGFloat = 500
-
 // https://medium.com/@nguyenminhphuc/how-to-pass-ui-events-through-views-in-ios-c1be9ab1626b
 class PassthroughView: UIView {
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
@@ -37,6 +35,11 @@ class SearchViewController: UIViewController {
     var pageActionView: PageActionView!
     var keyboard = KeyboardManager()
 
+    var baseSheetHeight: CGFloat {
+        return min(UIScreen.main.bounds.height - 20, keyboard.height + 240)
+    }
+
+    
     var isTransitioning = false
     var isSwiping = false
     
@@ -157,6 +160,17 @@ class SearchViewController: UIViewController {
         setupTextView()
         setupDrag()
         setupPlaceholderIcons()
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(updateKeyboardHeight),
+            name: NSNotification.Name.UIKeyboardWillShow,
+            object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(updateKeyboardHeight),
+            name: NSNotification.Name.UIKeyboardWillChangeFrame,
+            object: nil)
 
         setBackground(defaultBackground)
         updateTextViewSize()

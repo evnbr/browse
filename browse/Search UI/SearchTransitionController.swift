@@ -104,7 +104,7 @@ class SearchTransitionController: NSObject {
         if isDismissing {
             titleEndCenter.y -= max(searchVC.sheetHeight.constant - Const.toolbarHeight, 0)
         } else if showKeyboard {
-            titleEndCenter.y -= baseSheetHeight
+            titleEndCenter.y -= searchVC.baseSheetHeight
         }
 
         titleSnap?.center = isExpanding ? titleStartCenter : titleEndCenter
@@ -115,7 +115,7 @@ class SearchTransitionController: NSObject {
             searchVC.shadowView.alpha = isExpanding ? 0 : 1
         }
 
-        searchVC.sheetHeight.constant = isExpanding ? baseSheetHeight : Const.toolbarHeight
+        searchVC.sheetHeight.constant = isExpanding ? searchVC.baseSheetHeight : Const.toolbarHeight
 
         titleSnap?.scale = isExpanding ? 1 : scaledUp
         titleSnap?.alpha = isExpanding ? 1 : 0
