@@ -108,7 +108,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         }
     }
     @objc func finishHiddenNavigation() {
-        self.navigationToHide = nil //false
+        guard isSnapshotMode else { return }
+        
+        navigationToHide = nil //false
         colorSampler.updateColors()
         
         UIView.animate(withDuration: 0.15, delay: 0, options: [.beginFromCurrentState], animations: {
@@ -221,8 +223,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
     func observeLoadingChanges(for webView: WKWebView) {
         progressObserver = webView.observe(\.estimatedProgress) { _, _ in
-            self.toolbar.progress = CGFloat(webView.estimatedProgress)
-            self.updateLoadingState()
+            let progress = CGFloat(webView.estimatedProgress)
+            self.updateLoadingState(estimatedProgress: progress)
         }
         titleObserver = webView.observe(\.title) { _, _ in
             self.updateLoadingState()
@@ -686,16 +688,24 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         cardView.center = view.center
     }
 
-    func updateLoadingState() {
+    func updateLoadingState(estimatedProgress: CGFloat? = nil) {
         guard isViewLoaded else { return }
         assert(webView != nil, "nil webview")
 
-        searchVC.hasDraft = false
+        searchVC.hasDraftLocation = false
         toolbar.text = self.displayLocation
         statusBar.label.text = webView.title
 
         if self.webView.isLoading {
             showToolbar()
+        }
+        
+        if let progress = estimatedProgress {
+            toolbar.progress = progress
+            
+            if progress == 1 {
+                finishHiddenNavigation()
+            }
         }
 
         toolbar.isLoading = webView.isLoading

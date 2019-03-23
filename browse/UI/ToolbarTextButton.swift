@@ -32,13 +32,13 @@ class ToolbarTextButton: ToolbarTouchView {
 
                 if _size == .small {
                     label.font = .systemFont(ofSize: 13.0)
-                    frame.size.height = Const.buttonHeight
+                    frame.size.height = BUTTON_HEIGHT
                 } else if _size == .medium {
                     label.font = .systemFont(ofSize: 15.0)
-                    frame.size.height = Const.buttonHeight + 4
+                    frame.size.height = BUTTON_HEIGHT + 4
                 } else if _size == .large {
                     label.font = .systemFont(ofSize: 17.0)
-                    frame.size.height = Const.buttonHeight + 6
+                    frame.size.height = BUTTON_HEIGHT + 6
                 }
 
                 label.sizeToFit()
@@ -66,7 +66,7 @@ class ToolbarTextButton: ToolbarTouchView {
     }
 
     init(title: String, withIcon image: UIImage?, onTap: @escaping () -> Void) {
-        super.init(frame: CGRect(x: 0, y: 0, width: 180, height: Const.buttonHeight), onTap: onTap)
+        super.init(frame: CGRect(x: 0, y: 0, width: 180, height: BUTTON_HEIGHT), onTap: onTap)
 
         label.text = title
         label.font = .systemFont(ofSize: 13.0)

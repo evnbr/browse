@@ -64,12 +64,12 @@ class ToolbarSearchField: ToolbarTouchView {
             return labelHolder.layer.mask == nil
         }
         set {
-            labelHolder.layer.mask = newValue ? maskLayer : nil
+//            labelHolder.layer.mask = newValue ? maskLayer : nil
         }
     }
     
     override var intrinsicContentSize: CGSize {
-        return CGSize(width: 180.0, height: Const.buttonHeight)
+        return CGSize(width: 180.0, height: BUTTON_HEIGHT)
     }
     
     override func layoutSubviews() {
@@ -78,7 +78,7 @@ class ToolbarSearchField: ToolbarTouchView {
     }
     
     init(onTap: ToolbarButtonAction? = nil) {
-        super.init(frame: CGRect(x: 0, y: 0, width: 180, height: Const.buttonHeight), onTap: onTap)
+        super.init(frame: CGRect(x: 0, y: 0, width: 180, height: BUTTON_HEIGHT), onTap: onTap)
         baseColor = UIColor.black.withAlphaComponent(0.05)
         
         let lockImage = UIImage(named: "lock")!.withRenderingMode(.alwaysTemplate)
@@ -171,6 +171,7 @@ class ToolbarSearchField: ToolbarTouchView {
     override func tintColorDidChange() {
         super.tintColorDidChange()
         label.textColor = tintColor
+        
+        baseColor = tintColor.isLight ? .darkField : .lightField
     }
-
 }

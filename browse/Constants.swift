@@ -16,6 +16,8 @@ let PRESENT_TAB_BACK_SCALE: CGFloat = 1//0.97
 
 let TAP_SCALE: CGFloat = 1.0 //0.97
 
+let BUTTON_HEIGHT: CGFloat = 44
+
 class Constants: NSObject {
 
     let toolbarHeight: CGFloat
@@ -30,7 +32,6 @@ class Constants: NSObject {
 
     let shadowRadius: CGFloat = 32
     let shadowOpacity: Float = 0.4
-    let buttonHeight: CGFloat = 40
 
     override init() {
         let topInset = UIApplication.shared.keyWindow?.safeAreaInsets.top

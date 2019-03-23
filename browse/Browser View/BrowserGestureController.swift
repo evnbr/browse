@@ -539,7 +539,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         if scrollView.isZooming || scrollView.isZoomBouncing { return }
 
         if vc.isDisplayingSearch {
-            vc.searchVC.dismissSelf()
+            vc.searchVC.animateToSheetHidden()
         }
 
         // let gestureVel = gesture.velocity(in: view)
@@ -590,7 +590,7 @@ class BrowserGestureController: NSObject, UIGestureRecognizerDelegate, UIScrollV
         dismissingEndedPossible()
         if GESTURE_DEBUG { vc.toolbar.text = "Started" }
 
-        vc.searchVC.dismissSelf()
+        vc.searchVC.animateToSheetHidden()
 
         vc.tabSwitcher.moveTabToEnd(vc.currentTab)
         vc.tabSwitcher.scrollToBottom()

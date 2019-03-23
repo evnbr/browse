@@ -23,6 +23,7 @@ typealias SearchTransitionCompletionBlock = () -> Void
 class SearchTransitionController: NSObject {
     
     var direction: CustomAnimationDirection!
+    var velocity: CGPoint = .zero
     var isExpanding: Bool { return direction == .present }
     var isDismissing: Bool { return direction == .dismiss }
     
@@ -41,23 +42,22 @@ class SearchTransitionController: NSObject {
                 newText != browserVC.displayLocation,
                 newText != browserVC.editableLocation {
                 // Keep draft
-                searchVC.hasDraft = true
+                searchVC.hasDraftLocation = true
                 browserVC.toolbar.text = newText
                 browserVC.toolbar.isSearch = false
                 browserVC.toolbar.isSecure = false
             } else {
-                searchVC.hasDraft = false
+                searchVC.hasDraftLocation = false
                 browserVC.updateLoadingState()
             }
             browserVC.toolbar.layoutIfNeeded()
         } else {
-            searchVC.hasDraft = false
+            searchVC.hasDraftLocation = false
         }
         
         browserVC.toolbar.backgroundView.alpha = 1
         // TODO snapshot doesnt work if hidden
-        let titleSnap = browserVC.toolbar.searchField.labelHolder.snapshotView(afterScreenUpdates: true)
-        browserVC.toolbar.searchField.labelHolder.isHidden = true
+        let titleSnap = browserVC.toolbar.searchField.labelHolder.snapshotView(afterScreenUpdates: false)
         
         searchVC.isTransitioning = true
         if !searchVC.isViewLoaded {
@@ -68,7 +68,7 @@ class SearchTransitionController: NSObject {
         let smallSize = Const.thumbTitleFont.pointSize
         let largeSize = Const.textFieldFont.pointSize
         let scaledUp: CGFloat = largeSize / smallSize
-        let scaledDown: CGFloat = smallSize / largeSize
+        let scaledDown: CGFloat = 1 //smallSize / largeSize
 
         let prefix = searchVC.textView.text.urlPrefix
         let prefixSize = prefix?.boundingRect(
@@ -85,11 +85,12 @@ class SearchTransitionController: NSObject {
         let maskEndFrame = CGRect(origin: .zero, size: maskEndSize)
 
         if let title = titleSnap {
-            searchVC.view.addSubview(title)
+            searchVC.textViewFill.addSubview(title)
         }
-        var titleStartCenter = browserVC.toolbar.center
+        var titleStartCenter = searchVC.textView.center
         var titleEndCenter = titleStartCenter
-        titleStartCenter.y += titleExtraYShift
+        titleStartCenter.y += 0
+        titleStartCenter.x -= 40
         
         let hasSearch = browserVC.toolbar.isSearch
         let hasLock = (browserVC.toolbar.isSecure) && !hasSearch
@@ -99,26 +100,41 @@ class SearchTransitionController: NSObject {
         let roomForLockShift: CGFloat = (hasLock ? lockWidth : 0) + (hasSearch ? searchWidth : 0)
         let titleHorizontalShift: CGFloat = titleToTextDist + roomForLockShift - prefixWidth + extraXShift
         titleEndCenter.x -= titleHorizontalShift
-        titleEndCenter.y -= searchVC.textHeightConstraint.constant
-        titleEndCenter.y += titleExtraYShiftEnd
-        if isDismissing {
-            titleEndCenter.y -= max(searchVC.sheetHeight.constant - Const.toolbarHeight, 0)
-        } else if showKeyboard {
-            titleEndCenter.y -= searchVC.baseSheetHeight
-        }
 
         titleSnap?.center = isExpanding ? titleStartCenter : titleEndCenter
 
         browserVC.toolbar.backgroundView.alpha = 1
+        browserVC.toolbar.contentsAlpha = 0
 //        searchVC.scrim.alpha = isExpanding ? 0 : 1
         if !self.isPreExpanded {
             searchVC.shadowView.alpha = isExpanding ? 0 : 1
         }
 
-        searchVC.sheetHeight.constant = isExpanding ? searchVC.baseSheetHeight : Const.toolbarHeight
+        let heightAnim = searchVC.sheetHeight.springConstant(
+            to: isExpanding ? searchVC.baseSheetHeight : searchVC.minSheetHeight,
+            at: -velocity.y)
+        let handleAnim = searchVC.textTopMarginConstraint.springConstant(
+            to: isExpanding ? SHEET_TOP_HANDLE_MARGIN : SHEET_TOP_MARGIN)
+        let fieldAnim = searchVC.textHeightConstraint.springConstant(
+            to: isExpanding ? searchVC.textHeight: BUTTON_HEIGHT )
+        heightAnim?.springBounciness = 2
+        handleAnim?.springBounciness = 2
 
+        if isDismissing || showKeyboard {
+            heightAnim?.animationDidApplyBlock = { _ in
+                searchVC.updateIconInset()
+            }
+        } else {
+            handleAnim?.animationDidApplyBlock = { _ in
+                let pct = searchVC.textTopMarginConstraint.constant.progress(
+                    SHEET_TOP_MARGIN,
+                    SHEET_TOP_HANDLE_MARGIN)
+                searchVC.iconEntranceProgress = pct
+            }
+        }
+        
         titleSnap?.scale = isExpanding ? 1 : scaledUp
-        titleSnap?.alpha = isExpanding ? 1 : 0
+//        titleSnap?.alpha = isExpanding ? 1 : 0
         searchVC.textView.alpha = isExpanding ? 0 : 1
 
         searchVC.textView.transform = CGAffineTransform(scale: isExpanding ? scaledDown : 1)
@@ -144,7 +160,7 @@ class SearchTransitionController: NSObject {
             }
             searchVC.isTransitioning = false
             titleSnap?.removeFromSuperview()
-            browserVC.toolbar.searchField.labelHolder.isHidden = false
+            browserVC.toolbar.contentsAlpha = 1
             browserVC.toolbar.backgroundView.alpha = 1
             completion?()
         }
@@ -152,11 +168,11 @@ class SearchTransitionController: NSObject {
         let completeEarly = !showKeyboard && isExpanding && !isPreExpanded
         if completeEarly { completeTransition() }
 
-        searchVC.iconEntranceProgress = isExpanding ? 1 : 0
+//        searchVC.iconEntranceProgress = isExpanding ? 1 : 0
         searchVC.view.center = browserVC.view.center
 
         // Don't block touches when dismissing
-        searchVC.scrim.isUserInteractionEnabled = isExpanding
+//        searchVC.scrim.isUserInteractionEnabled = isExpanding
         
         UIView.animate(
             withDuration: 0.5,
@@ -165,7 +181,7 @@ class SearchTransitionController: NSObject {
             initialSpringVelocity: 0.0,
             options: [.curveLinear],
             animations: {
-                searchVC.view.layoutIfNeeded()
+//                searchVC.view.layoutIfNeeded()
                 searchVC.pageActionView.alpha = self.isExpanding ? 1 : 0
                 
                 if !self.isPreExpanded {
@@ -175,7 +191,6 @@ class SearchTransitionController: NSObject {
                 searchVC.scrim.alpha = self.isExpanding ? 1 : 0
                 searchVC.textView.alpha = self.isExpanding ? 1 : 0
                 titleSnap?.alpha = self.isExpanding ? 0 : 1
-
                 titleSnap?.scale = self.isExpanding ? scaledUp : 1
                 titleSnap?.center = self.isExpanding ? titleEndCenter : titleStartCenter
 
@@ -186,7 +201,9 @@ class SearchTransitionController: NSObject {
 
                 searchVC.textView.mask?.frame = self.isExpanding ? maskEndFrame : maskStartFrame
 
-                if self.isDismissing { searchVC.textView.resignFirstResponder() }
+                if self.isDismissing {
+                    searchVC.textView.resignFirstResponder()
+                }
         }, completion: { _ in
             if !completeEarly { completeTransition() }
         })

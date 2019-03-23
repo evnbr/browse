@@ -12,8 +12,15 @@ import pop
 let typeaheadReuseID = "TypeaheadRow"
 let maxTypeaheadSuggestions: Int = 8
 let maxTextFieldHeight: CGFloat = 240.0
-let textFieldInsets = UIEdgeInsets(top: 11, left: 16, bottom: 12, right: 16)
-let pageActionHeight: CGFloat = 20 //100
+let textFieldInsets = UIEdgeInsets(top: 11, left: 14, bottom: 12, right: 14)
+let pageActionHeight: CGFloat = 100 //100
+
+let textFieldInnerMargin: CGFloat = 12
+let textFieldRoomForIcons: CGFloat = 56
+
+let SHEET_TOP_HANDLE_MARGIN: CGFloat = 28
+let SHEET_TOP_MARGIN: CGFloat = 8
+
 
 // https://medium.com/@nguyenminhphuc/how-to-pass-ui-events-through-views-in-ios-c1be9ab1626b
 class PassthroughView: UIView {
@@ -28,45 +35,62 @@ class SearchViewController: UIViewController {
     var contentView: UIView!
     var backgroundView: PlainBlurView!
     var shadowView: UIView!
+    
     var scrim: UIView!
     var textView: UITextView!
+    var textViewFill: UIView!
+    
     var suggestionTable: UITableView!
     var dragHandle: UIView!
     var pageActionView: PageActionView!
     var keyboard = KeyboardManager()
 
     var baseSheetHeight: CGFloat {
-        return min(UIScreen.main.bounds.height - 20, keyboard.height + 240)
+        return min(UIScreen.main.bounds.height - 20, keyboard.height + 280)
+    }
+    var minSheetHeight: CGFloat {
+        return Const.toolbarHeight
+    }
+    var minSheetHeightDragging: CGFloat {
+        return Const.toolbarHeight + SHEET_TOP_HANDLE_MARGIN
     }
 
     
     var isTransitioning = false
     var isSwiping = false
     
-    var hasDraft = false
+    var hasDraftLocation = false
 
     var transition = SearchTransitionController()
 
-    var kbHeightConstraint: NSLayoutConstraint!
     var sheetHeight: NSLayoutConstraint!
     var textHeightConstraint: NSLayoutConstraint!
+    var textTopMarginConstraint: NSLayoutConstraint!
     var toolbarBottomMargin: NSLayoutConstraint!
 
-    private var leftIconConstraint: NSLayoutConstraint!
-    private var rightIconConstraint: NSLayoutConstraint!
+    private var leftInsetConstraint: NSLayoutConstraint!
+    private var rightInsetConstraint: NSLayoutConstraint!
 
     var textHeight: CGFloat = 40
-
+    
     var iconEntranceProgress: CGFloat {
         get {
-            return leftIconConstraint.constant.progress(8, -36)
+            return leftInsetConstraint.constant.progress(textFieldRoomForIcons, textFieldInnerMargin)
         }
         set {
-            let margin = newValue.lerp(8, -36)
-            leftIconConstraint.constant = margin
-            rightIconConstraint.constant = -margin
+            let margin = newValue.lerp(textFieldRoomForIcons, textFieldInnerMargin)
+            leftInsetConstraint.constant = margin
+            rightInsetConstraint.constant = -margin
         }
     }
+    
+//    func springTextWidth(isFullWidth: Bool) {
+//        let margin = isFullWidth ? textFieldInnerMargin : textFieldRoomForIcons
+//        let anim1 = leftInsetConstraint.springConstant(to: margin)
+//        let anim2 = rightInsetConstraint.springConstant(to: -margin)
+//        anim1?.springBounciness = 1
+//        anim2?.springBounciness = 1
+//    }
 
     var suggestions: [TypeaheadSuggestion] = []
 
@@ -101,11 +125,11 @@ class SearchViewController: UIViewController {
         scrim.backgroundColor = UIColor.black.withAlphaComponent(0.4)
         view.addSubview(scrim, constraints: [
             scrim.topAnchor.constraint(equalTo: view.topAnchor),
-            scrim.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -Const.toolbarHeight),
+            scrim.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             scrim.leftAnchor.constraint(equalTo: view.leftAnchor),
             scrim.rightAnchor.constraint(equalTo: view.rightAnchor)
         ])
-        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissSelf))
+        let tap = UITapGestureRecognizer(target: self, action: #selector(animateToSheetHidden))
         scrim.addGestureRecognizer(tap)
 
         contentView = UIView(frame: view.bounds)
@@ -141,20 +165,21 @@ class SearchViewController: UIViewController {
             contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             sheetHeight
         ])
-        
-        kbHeightConstraint = contentView.heightAnchor.constraint(equalToConstant: 400)
-
 
         suggestionTable = createSuggestions()
+        
+        textViewFill = createTextViewFill()
         textView = createTextView()
-        contentView.addSubview(textView)
+        
+        textViewFill.addSubview(textView)
+        contentView.addSubview(textViewFill)
 
         let maskView = UIView(frame: textView.bounds)
         maskView.backgroundColor = .red
         maskView.frame = textView.bounds
-        maskView.radius = 24
+        maskView.radius = 0
         maskView.frame.size.height = 500 // TODO Large number because mask is scrollable :(
-        textView.mask = maskView
+//        textView.mask = maskView
 
         setupActions()
         setupTextView()
@@ -203,63 +228,92 @@ class SearchViewController: UIViewController {
         dragHandle.radius = 2
         contentView.addSubview(dragHandle, constraints: [
             dragHandle.heightAnchor.constraint(equalToConstant: 4),
-            dragHandle.widthAnchor.constraint(equalToConstant: 48),
-            dragHandle.topAnchor.constraint(equalTo: textView.topAnchor, constant: -8),
+            dragHandle.widthAnchor.constraint(equalToConstant: 32),
+            dragHandle.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
             dragHandle.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
         ])
     }
 
     func setupPlaceholderIcons() {
-        let backButton = ToolbarIconButton(icon: UIImage(named: "back"))
-        let tabButton = ToolbarIconButton(icon: UIImage(named: "action"))
-        leftIconConstraint = backButton.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 8)
-        rightIconConstraint = tabButton.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -8)
-        contentView.addSubview(backButton, constraints: [
-            leftIconConstraint,
-            backButton.topAnchor.constraint(equalTo: textView.topAnchor, constant: -4)
-            ])
-        contentView.addSubview(tabButton, constraints: [
-            rightIconConstraint,
-            tabButton.topAnchor.constraint(equalTo: textView.topAnchor, constant: -4)
+        let leftIcon = ToolbarIconButton(icon: UIImage(named: "back"))
+        let rightIcon = ToolbarIconButton(icon: UIImage(named: "action"))
+        
+        contentView.addSubview(leftIcon, constraints: [
+            leftIcon.rightAnchor.constraint(equalTo: textViewFill.leftAnchor),
+            leftIcon.topAnchor.constraint(equalTo: textViewFill.topAnchor, constant: 0)
+        ])
+        contentView.addSubview(rightIcon, constraints: [
+            rightIcon.leftAnchor.constraint(equalTo: textViewFill.rightAnchor),
+            rightIcon.topAnchor.constraint(equalTo: textViewFill.topAnchor, constant: 0)
         ])
     }
 
     func setupTextView() {
-        textHeightConstraint = textView.heightAnchor.constraint(equalToConstant: 36)
+        textHeightConstraint = textViewFill.heightAnchor.constraint(equalToConstant: 36)
+        textTopMarginConstraint = textViewFill.topAnchor.constraint(
+            equalTo: contentView.topAnchor, constant: SHEET_TOP_HANDLE_MARGIN)
+        
+        leftInsetConstraint = textViewFill.leadingAnchor.constraint(
+            equalTo: contentView.safeAreaLayoutGuide.leadingAnchor, constant: 12)
+        rightInsetConstraint = textViewFill.trailingAnchor.constraint(
+            equalTo: contentView.safeAreaLayoutGuide.trailingAnchor, constant: -12)
+
+        
         NSLayoutConstraint.activate([
             textHeightConstraint,
-            textView.topAnchor.constraint(
-                equalTo: contentView.topAnchor, constant: 16),
-            textView.leadingAnchor.constraint(
-                equalTo: contentView.safeAreaLayoutGuide.leadingAnchor, constant: 12),
-            textView.trailingAnchor.constraint(
-                equalTo: contentView.safeAreaLayoutGuide.trailingAnchor, constant: -12)
+            textTopMarginConstraint,
+            leftInsetConstraint,
+            rightInsetConstraint
         ])
+        NSLayoutConstraint.activate([
+            textView.topAnchor.constraint(equalTo: textViewFill.topAnchor),
+            textView.bottomAnchor.constraint(equalTo: textViewFill.bottomAnchor),
+            textView.leadingAnchor.constraint(
+                equalTo: contentView.leadingAnchor, constant: textFieldInnerMargin),
+            textView.trailingAnchor.constraint(
+                equalTo: contentView.trailingAnchor, constant: -textFieldInnerMargin)
+        ])
+    }
+    
+    func updateIconInset() {
+        let pct = sheetHeight.constant.progress(Const.toolbarHeight, baseSheetHeight)
+        iconEntranceProgress = pct
+    }
+    
+    func createTextViewFill() -> UIView {
+        let view = UIView()
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .darkTouch
+        view.radius = 24
+        view.clipsToBounds = true
+        
+        return view
     }
 
     func createTextView() -> UITextView {
-        let txt = UITextView()
-        txt.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 48)
-        txt.translatesAutoresizingMaskIntoConstraints = false
+        let textView = UITextView()
+        textView.frame = CGRect(x: 4, y: 4, width: UIScreen.main.bounds.width - 8, height: 48)
+        textView.translatesAutoresizingMaskIntoConstraints = false
         
-        txt.font = Const.textFieldFont
-        txt.text = ""
-        txt.placeholder = "Where to?"
+        textView.font = Const.textFieldFont
+        textView.text = ""
+        textView.placeholder = "Where to?"
         
-        txt.delegate = self
-        txt.isScrollEnabled = true
+        textView.delegate = self
+        textView.isScrollEnabled = true
         
-        txt.backgroundColor = .darkTouch
-        txt.textColor = .darkText
-        txt.placeholderColor = UIColor.white.withAlphaComponent(0.4)
-        txt.keyboardAppearance = .light
+        textView.backgroundColor = .clear
+        textView.textColor = .darkText
+        textView.placeholderColor = UIColor.white.withAlphaComponent(0.4)
+        textView.keyboardAppearance = .light
         
-        txt.enablesReturnKeyAutomatically = true
-        txt.keyboardType = .webSearch
-        txt.returnKeyType = .go
-        txt.autocorrectionType = .no
+        textView.enablesReturnKeyAutomatically = true
+        textView.keyboardType = .webSearch
+        textView.returnKeyType = .go
+        textView.autocorrectionType = .no
         
-        return txt
+        return textView
     }
 
     func createSuggestions() -> UITableView {
@@ -285,6 +339,7 @@ class SearchViewController: UIViewController {
         let isBackgroundLight = !newColor.isLight
         backgroundView.overlayColor = newColor
         view.tintColor = isBackgroundLight ? .darkText : .white
+        
         contentView.tintColor = view.tintColor
         textView.textColor = view.tintColor
         dragHandle.backgroundColor = view.tintColor.withAlphaComponent(0.2)
@@ -292,6 +347,11 @@ class SearchViewController: UIViewController {
         textView.placeholderColor = isBackgroundLight
             ? UIColor.black.withAlphaComponent(0.4)
             : UIColor.white.withAlphaComponent(0.4)
+        
+        textViewFill.backgroundColor = isBackgroundLight
+            ? .darkField
+            : .lightField
+
         textView.keyboardAppearance = isBackgroundLight ? .light : .dark
     }
 
@@ -305,7 +365,7 @@ class SearchViewController: UIViewController {
         // TODO: Why?
         view.frame = UIScreen.main.bounds
 
-        if let browser = browserVC, !hasDraft {
+        if let browser = browserVC, !hasDraftLocation {
             textView.text = browser.editableLocation
             
             pageActionView.title = browser.webView.title
@@ -324,15 +384,6 @@ class SearchViewController: UIViewController {
     func focusTextView() {
         textView.becomeFirstResponder()
         textView.selectAll(nil) // if not nil, will show actions
-    }
-
-
-    @objc func dismissSelf() {
-        if isTransitioning || view.superview == nil { return }
-//        showFakeKeyboard()
-//        self.dismiss(animated: true)
-        transition.direction = .dismiss
-        transition.animateTransition(searchVC: self, browserVC: browserVC!, completion: nil)
     }
 
     override func didReceiveMemoryWarning() {
@@ -404,11 +455,6 @@ extension SearchViewController: UITextViewDelegate {
     }
 
     func renderSuggestions() {
-        if isFakeTab {
-            suggestionTable.reloadData()
-            suggestionTable.layoutIfNeeded()
-            return
-        }
         suggestionTable.reloadData()
         suggestionTable.layoutIfNeeded()
     }
@@ -420,7 +466,6 @@ extension SearchViewController: UITextViewDelegate {
         textView.isScrollEnabled = fullTextSize.height > maxTextFieldHeight
         textHeight = max(20, min(fullTextSize.height, maxTextFieldHeight))
         textHeightConstraint.constant = textHeight
-        textView.mask?.frame.size.width = textView.bounds.width
     }
 
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
@@ -448,7 +493,7 @@ extension SearchViewController: UITextViewDelegate {
         if let browser = self.browserVC {
             browser.navigateTo(url)
             setBackground(.black) // since navigate insta-hides
-            dismissSelf()
+            animateToSheetHidden()
             return
         }
     }
@@ -485,6 +530,9 @@ extension SearchViewController: UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        if indexPath.item > suggestions.count {
+            fatalError("asked for invalid row")
+        }
         let item = suggestions[indexPath.item]
         var h: CGFloat = 60.0
 //        if let t = item.title, t.count > 60 { h += 20 }
@@ -506,32 +554,35 @@ extension SearchViewController: UIGestureRecognizerDelegate {
             dist.y += baseSheetHeight - Const.toolbarHeight
         }
         if browserVC?.gestureController.isDismissing == true {
-            dismissSelf()
+            animateToSheetHidden()
             return
         }
 
         if gesture.state == .began {
             isSwiping = true
             textView.resignFirstResponder()
+            sheetHeight.pop_removeAllAnimations()
         } else if gesture.state == .changed {
 //            self.iconProgress = (abs(dist.y) / keyboard.height).reverse().clip()
             if dist.y < 0 {
                 let elastic = 1 * elasticLimit(-dist.y)
                 sheetHeight.constant = baseSheetHeight + elastic
             } else {
-                sheetHeight.constant = max(baseSheetHeight - dist.y, 0)
+                sheetHeight.constant = max(baseSheetHeight - dist.y, Const.toolbarHeight)
             }
         } else if gesture.state == .ended || gesture.state == .cancelled {
             isSwiping = false
-            if vel.y > 100 || kbHeightConstraint.constant < 50 {
-                dismissSelf()
+            if vel.y > 100 || sheetHeight.constant < 50 {
+                transition.velocity = gesture.velocity(in: view)
+                animateToSheetHidden()
             } else {
-                animateCancel(at: gesture.velocity(in: view))
+                animateToSheetVisible(at: gesture.velocity(in: view))
+                textView.becomeFirstResponder()
             }
         }
     }
 
-    func animateCancel(at velocity: CGPoint) {
+    func animateToSheetVisible(at velocity: CGPoint) {
         isTransitioning = true
 //        textView.becomeFirstResponder()
         
@@ -541,6 +592,15 @@ extension SearchViewController: UIGestureRecognizerDelegate {
         anim?.springBounciness = 1
         anim?.springSpeed = 8
     }
+    
+    @objc func animateToSheetHidden() {
+        if isTransitioning || view.superview == nil { return }
+        //        showFakeKeyboard()
+        //        self.dismiss(animated: true)
+        transition.direction = .dismiss
+        transition.animateTransition(searchVC: self, browserVC: browserVC!, completion: nil)
+    }
+
 
     @objc func handleDimissPan(_ gesture: UIPanGestureRecognizer) {
         verticalPan(gesture: gesture, isEntrance: false)
