@@ -212,7 +212,7 @@ class SearchViewController: UIViewController {
         let dismissPanner = UIPanGestureRecognizer()
         dismissPanner.delegate = self
         dismissPanner.addTarget(self, action: #selector(handleDimissPan(_:)))
-        dismissPanner.cancelsTouchesInView = false
+        dismissPanner.cancelsTouchesInView = true
         dismissPanner.delaysTouchesBegan = false
         contentView.addGestureRecognizer(dismissPanner)
 
