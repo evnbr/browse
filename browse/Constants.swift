@@ -24,7 +24,7 @@ class Constants: NSObject {
     let statusHeight: CGFloat
 
     var thumbRadius: CGFloat
-    let textFieldFont: UIFont = .systemFont(ofSize: 18)
+    let textFieldFont: UIFont = .systemFont(ofSize: 17)
     let thumbTitleFont: UIFont = .systemFont(ofSize: 17)
 //    let thumbTitleFont : UIFont = .systemFont(ofSize: 14.0, weight: .medium)
 

@@ -35,6 +35,7 @@ class LocationLabel: UIView {
             var size = label.sizeThatFits(bounds.size)
             size.width = min(size.width, bounds.width - searchIcon.bounds.width) // room for decorations
             label.bounds.size = size
+            self.sizeToFit()
         }
     }
     

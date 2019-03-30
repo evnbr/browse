@@ -50,7 +50,7 @@ class SearchViewController: UIViewController {
         return min(UIScreen.main.bounds.height - 20, keyboard.height + 280)
     }
     var minSheetHeight: CGFloat {
-        return Const.toolbarHeight
+        return Const.toolbarHeight + SHEET_TOP_HANDLE_MARGIN
     }
     var minSheetHeightDragging: CGFloat {
         return Const.toolbarHeight + SHEET_TOP_HANDLE_MARGIN
@@ -67,7 +67,8 @@ class SearchViewController: UIViewController {
     var sheetHeight: NSLayoutConstraint!
     var textHeightConstraint: NSLayoutConstraint!
     var textTopMarginConstraint: NSLayoutConstraint!
-    
+    var bottomAttachment: NSLayoutConstraint!
+
     var labelCenterConstraint: NSLayoutConstraint!
     var textCenterConstraint: NSLayoutConstraint!
     
@@ -151,14 +152,15 @@ class SearchViewController: UIViewController {
         
         backgroundView = PlainBlurView(frame: contentView.bounds)
         backgroundView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        backgroundView.overlayAlpha = 0.9
+        backgroundView.overlayAlpha = 1//0.9
         contentView.addSubview(backgroundView)
 
+        bottomAttachment = contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: SHEET_TOP_HANDLE_MARGIN)
         sheetHeight = contentView.heightAnchor.constraint(equalToConstant: baseSheetHeight)
         NSLayoutConstraint.activate([
             contentView.leftAnchor.constraint(equalTo: view.leftAnchor),
             contentView.rightAnchor.constraint(equalTo: view.rightAnchor),
-            contentView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            bottomAttachment,
             sheetHeight
         ])
 
@@ -310,6 +312,12 @@ class SearchViewController: UIViewController {
         textView.keyboardType = .webSearch
         textView.returnKeyType = .go
         textView.autocorrectionType = .no
+        
+        let maskView = UIView(frame: textView.bounds)
+        maskView.backgroundColor = .red
+        maskView.frame = textView.bounds
+        maskView.frame.size.height = 500 // TODO Large number because mask is scrollable :(
+        textView.mask = maskView
         
         return textView
     }
@@ -489,7 +497,6 @@ extension SearchViewController: UITextViewDelegate {
             locationLabel.showSearch = true
         }
         locationLabel.showLock = false
-        locationLabel.sizeToFit()
         locationLabel.layoutIfNeeded()
         let shift = calculateHorizontalOffset().shift
         labelCenterConstraint.constant = -shift
@@ -508,16 +515,25 @@ extension SearchViewController: UITextViewDelegate {
         let hasSearch = locationLabel.showSearch
         let hasLock = locationLabel.showLock && !hasSearch
         
-        let labelWidth = locationLabel.bounds.width * transition.fontScaledUp
+        let labelWidthScaledUp = locationLabel.bounds.width * transition.fontScaledUp
         let textFieldWidth = textView.bounds.width
         
-        let titleToTextDist = (textFieldWidth - labelWidth ) / 2
+        let titleToTextDist = (textFieldWidth - labelWidthScaledUp ) / 2
         let roomForLockShift: CGFloat = (hasLock ? lockWidth : 0) + (hasSearch ? searchWidth : 0)
         
         let titleHorizontalShift: CGFloat = titleToTextDist + roomForLockShift - prefixWidth + extraXShift
         
+        let anchorPos = prefixWidth + labelWidthScaledUp * 0.5
+        
+        let anchor = CGPoint(
+            x: anchorPos / textFieldWidth,
+            y: 0.5
+        )
+        
         return SearchTransitionOffsets(
-            shift: titleHorizontalShift
+            shift: titleHorizontalShift,
+            anchor: anchor,
+            prefixWidth: prefixWidth
         )
     }
     
@@ -564,6 +580,8 @@ extension SearchViewController: UITableViewDelegate {
 
 struct SearchTransitionOffsets {
     let shift: CGFloat
+    let anchor: CGPoint
+    let prefixWidth: CGFloat
 }
 
 extension SearchViewController: UITableViewDataSource {
@@ -585,13 +603,13 @@ extension SearchViewController: UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        if indexPath.item > suggestions.count {
-            fatalError("asked for invalid row")
-        }
-        let item = suggestions[indexPath.item]
-        var h: CGFloat = 60.0
+//        if indexPath.item > suggestions.count {
+//            fatalError("asked for invalid row")
+//        }
+//        let item = suggestions[indexPath.item]
+//        var h: CGFloat = 60.0
 //        if let t = item.title, t.count > 60 { h += 20 }
-        return h
+        return 60
     }
 }
 
@@ -623,7 +641,7 @@ extension SearchViewController: UIGestureRecognizerDelegate {
                 let elastic = 1 * elasticLimit(-dist.y)
                 sheetHeight.constant = baseSheetHeight + elastic
             } else {
-                sheetHeight.constant = max(baseSheetHeight - dist.y, Const.toolbarHeight)
+                sheetHeight.constant = max(baseSheetHeight - dist.y, minSheetHeight)
             }
         } else if gesture.state == .ended || gesture.state == .cancelled {
             isSwiping = false
