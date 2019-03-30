@@ -10,55 +10,28 @@ import UIKit
 
 class ToolbarSearchField: ToolbarTouchView {
     
-    var label = UILabel()
-    var lock: UIImageView!
-    var magnify: UIImageView!
     var labelHolder : UIView!
     let maskLayer = CAGradientLayer()
     var stopButton: ToolbarIconButton!
     
-    var centerConstraint : NSLayoutConstraint!
+    var locationLabel = LocationLabel()
     
-    private var shouldShowLock : Bool = false
-
     var text : String? {
-        get {
-            return label.text
-        }
+        get { return locationLabel.text }
         set {
-            if newValue == "" {
-                label.text = "Where to?"
-                progress = 0
-            }
-            else if label.text != newValue {
-                label.text = newValue
-            }
-//            label.sizeToFit()
-            var size = label.sizeThatFits(labelHolder.bounds.size)
-            size.width = min(size.width, bounds.width - lock.bounds.width) // room for decorations
-            label.bounds.size = size
+            locationLabel.text = newValue
             renderProgress(animated: false)
         }
     }
     
     var isSecure : Bool {
-        get {
-            return shouldShowLock
-        }
-        set {
-            shouldShowLock = newValue
-            lock.isHidden = !shouldShowLock || isSearch
-        }
+        get { return locationLabel.showLock }
+        set { locationLabel.showLock = newValue }
     }
     
     var isSearch : Bool {
-        get {
-            return !magnify.isHidden
-        }
-        set {
-            magnify.isHidden = !newValue
-//            lock.isHidden = !shouldShowLock || isSearch
-        }
+        get { return locationLabel.showSearch }
+        set { locationLabel.showSearch = newValue }
     }
     
     var isLoading : Bool {
@@ -66,12 +39,12 @@ class ToolbarSearchField: ToolbarTouchView {
             return labelHolder.layer.mask == nil
         }
         set {
-            labelHolder.layer.mask = newValue ? maskLayer : nil
+//            labelHolder.layer.mask = newValue ? maskLayer : nil
         }
     }
     
     override var intrinsicContentSize: CGSize {
-        return CGSize(width: 180.0, height: Const.buttonHeight)
+        return CGSize(width: 180.0, height: BUTTON_HEIGHT)
     }
     
     override func layoutSubviews() {
@@ -80,22 +53,12 @@ class ToolbarSearchField: ToolbarTouchView {
     }
     
     init(onTap: ToolbarButtonAction? = nil) {
-        super.init(frame: CGRect(x: 0, y: 0, width: 180, height: Const.buttonHeight), onTap: onTap)
+        super.init(frame: CGRect(x: 0, y: 0, width: 180, height: BUTTON_HEIGHT), onTap: onTap)
+        baseColor = .clear
         
-        let lockImage = UIImage(named: "lock")!.withRenderingMode(.alwaysTemplate)
-        lock = UIImageView(image: lockImage)
-        
-        let magnifyImage = UIImage(named: "magnify")!.withRenderingMode(.alwaysTemplate)
-        magnify = UIImageView(image: magnifyImage)
-        
-        label.text = "Where to?"
-        label.font = Const.thumbTitleFont
-        label.adjustsFontSizeToFitWidth = false
-        label.setContentHuggingPriority(UILayoutPriority(rawValue: 0), for: .horizontal)
 
         labelHolder = UIView(frame: bounds)
         labelHolder.translatesAutoresizingMaskIntoConstraints = false
-//        labelHolder.backgroundColor = .cyan
         addSubview(labelHolder)
         
         stopButton = ToolbarIconButton(icon: UIImage(named: "stop"))
@@ -103,27 +66,15 @@ class ToolbarSearchField: ToolbarTouchView {
         stopButton.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
         stopButton.frame.origin.x = frame.width - stopButton.frame.width
 
-        let labelContent = UIStackView()
-        labelContent.axis = .horizontal
-        labelContent.distribution = .fill
-        labelContent.alignment = .center
-        labelContent.spacing = 4.0
         
-        labelContent.addArrangedSubview(lock)
-        labelContent.addArrangedSubview(magnify)
-        labelContent.addArrangedSubview(label)
-        labelContent.translatesAutoresizingMaskIntoConstraints = false
-        
-        labelHolder.addSubview(labelContent, constraints: [
+        labelHolder.addSubview(locationLabel, constraints: [
             labelHolder.centerYAnchor.constraint(equalTo: centerYAnchor),
             labelHolder.centerXAnchor.constraint(equalTo: centerXAnchor),
-            labelHolder.centerYAnchor.constraint(equalTo: labelContent.centerYAnchor),
-            labelHolder.centerXAnchor.constraint(equalTo: labelContent.centerXAnchor),
-            labelHolder.widthAnchor.constraint(equalTo: labelContent.widthAnchor),
+            labelHolder.centerYAnchor.constraint(equalTo: locationLabel.centerYAnchor),
+            labelHolder.centerXAnchor.constraint(equalTo: locationLabel.centerXAnchor),
+            labelHolder.widthAnchor.constraint(equalTo: locationLabel.widthAnchor, constant: 30),
             labelHolder.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor),
             labelHolder.heightAnchor.constraint(equalTo: heightAnchor),
-            labelHolder.centerXAnchor.constraint(equalTo: centerXAnchor),
-            labelHolder.centerXAnchor.constraint(equalTo: labelContent.centerXAnchor)
         ])
         
         maskLayer.frame = labelHolder.frame
@@ -174,7 +125,7 @@ class ToolbarSearchField: ToolbarTouchView {
     
     override func tintColorDidChange() {
         super.tintColorDidChange()
-        label.textColor = tintColor
+        locationLabel.tintColor = tintColor
+//        baseColor = tintColor.isLight ? .darkField : .lightField
     }
-
 }

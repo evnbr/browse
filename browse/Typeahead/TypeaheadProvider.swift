@@ -90,7 +90,7 @@ class TypeaheadProvider: NSObject {
                     if let query = item.url.searchQuery {
                         suggestion = TypeaheadSuggestion(title: item.title, detail: query, url: item.url)
                     } else {
-                        suggestion = TypeaheadSuggestion(title: item.title, detail: item.url.cleanString, url: item.url)
+                        suggestion = TypeaheadSuggestion(title: item.title, detail: item.url.displayHost, url: item.url)
                     }
 
                     suggestionScore[suggestion] = score

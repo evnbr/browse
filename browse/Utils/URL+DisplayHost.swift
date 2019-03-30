@@ -9,8 +9,8 @@
 import Foundation
 
 extension URL {
-    var displayHost: String {
-        guard let host: String = self.host else { return "No host"}
+    var displayHost: String? {
+        guard let host = host else { return nil}
         if host.hasPrefix("www.") {
             let index = host.index(host.startIndex, offsetBy: 4)
             return String(host[index..<host.endIndex]) //  .substring(from: index)
@@ -36,6 +36,15 @@ extension URL {
         if clean.last == "/" { clean.removeLast() }
         return clean
     }
+    
+    static func coercedFrom(_ text: String) -> URL? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.isProbablyURL else { return nil }
+        if trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") {
+            return URL(string: trimmed)
+        }
+        return URL(string: "http://\(trimmed)")
+    }
 }
 
 fileprivate let potentialPrefixes = [
@@ -52,6 +61,7 @@ extension String {
     }
 
     var urlPrefix: String? {
+        guard URL.coercedFrom(self) != nil else { return nil }
         return potentialPrefixes.first(where: { self.hasPrefix($0) })
     }
 }

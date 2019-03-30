@@ -27,8 +27,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     var statusHeightConstraint: NSLayoutConstraint!
 
     let colorSampler = WebviewColorSampler()
-    let statusColorBar = ColorBarCollectionViewController()
-    let toolbarColorBar = ColorBarCollectionViewController()
 
     lazy var searchVC = SearchViewController()
 
@@ -69,12 +67,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         guard let url = webView?.url else { return "" }
         if let query = url.searchQuery {
             return query
-        } else {
-            return displayURL
         }
+        return displayURL ?? "No Location"
     }
 
-    var displayURL: String {
+    var displayURL: String? {
         let url = webView.url!
         return url.displayHost
     }
@@ -98,9 +95,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     }
 
     func hideUntilNavigationDone(navigation: WKNavigation? ) {
-        statusColorBar.sampleCache.removeAll()
-        toolbarColorBar.sampleCache.removeAll()
-        
         isSnapshotMode = true
         if let nav = navigation {
             // nav delegate will track and alert when done
@@ -113,9 +107,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         }
     }
     @objc func finishHiddenNavigation() {
-        self.navigationToHide = nil //false
-        self.isSnapshotMode = false
+        guard isSnapshotMode else { return }
+        
+        navigationToHide = nil //false
         colorSampler.updateColors()
+        
+        UIView.animate(withDuration: 0.15, delay: 0, options: [.beginFromCurrentState], animations: {
+            self.isSnapshotMode = false
+        })
     }
 
     func setVisit(_ visit: Visit, wkItem: WKBackForwardListItem) {
@@ -124,12 +123,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
         setSnapshot(visit.snapshot)
         if let color = visit.topColor {
-            statusColorBar.sampleCache.removeAll()
             topColorChange(color, offset: webView.scrollView.contentOffset)
             statusBar.backgroundColor = color
         }
         if let color = visit.bottomColor {
-            toolbarColorBar.sampleCache.removeAll()
             bottomColorChange(color, offset: webView.scrollView.contentOffset)
             toolbar.backgroundColor = color
         }
@@ -139,10 +136,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         let nav = webView.go(to: wkItem)
         hideUntilNavigationDone(navigation: nav)
         
-//        DispatchQueue.main.async {
-        statusColorBar.collectionView?.reloadData()
-        toolbarColorBar.collectionView?.reloadData()
-//        }
     }
     func canNavigateTo(wkItem: WKBackForwardListItem) -> Bool {
         let list = webView.backForwardList
@@ -229,8 +222,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
     func observeLoadingChanges(for webView: WKWebView) {
         progressObserver = webView.observe(\.estimatedProgress) { _, _ in
-            self.toolbar.progress = CGFloat(webView.estimatedProgress)
-            self.updateLoadingState()
+            let progress = CGFloat(webView.estimatedProgress)
+            self.updateLoadingState(estimatedProgress: progress)
         }
         titleObserver = webView.observe(\.title) { _, _ in
             self.updateLoadingState()
@@ -317,7 +310,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         constrainTop3(statusBar, contentView)
         statusHeightConstraint = statusBar.heightAnchor.constraint(equalToConstant: Const.statusHeight)
 
-        snapshotView.isHidden = true
+        snapshotView.alpha = 0
         aspectConstraint = snapshotView.heightAnchor.constraint(equalTo: snapshotView.widthAnchor, multiplier: 1)
         
         NSLayoutConstraint.activate([
@@ -468,12 +461,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         return searchVC.view.superview == cardView
     }
 
-    func displaySearch(instant: Bool = false) {
+    func displaySearch(isInstant: Bool = false) {
         prepareToShowSearch()
-        searchVC.transition.isPreExpanded = instant
+        searchVC.transition.isPreExpanded = isInstant
         searchVC.transition.animateTransition(searchVC: searchVC, browserVC: self, completion: {
             self.searchVC.transition.isPreExpanded = false
-            self.searchVC.updateKeyboardSnapshot()
         })
     }
 
@@ -538,16 +530,18 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
     var isSnapshotMode: Bool {
         get {
-            return !snapshotView.isHidden
+            return snapshotView.alpha > 0
         }
         set {
-            snapshotView.isHidden = !newValue
-            webView.isHidden = newValue
+//            self.snapshotView.isHidden = !newValue
+            
+            self.snapshotView.alpha = newValue ? 1 : 0
+            self.webView.alpha = newValue ? 0 : 1
         }
     }
 
     func updateSnapshot(then done: @escaping () -> Void = { }) {
-        guard !webView.isHidden else {
+        guard webView.alpha > 0 else {
             done()
             return
         }
@@ -642,6 +636,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         
         toolbar.backgroundColor = .black
         statusBar.backgroundColor = .black
+        setNeedsStatusBarAppearanceUpdate()
     }
 
     @objc func hideError() {
@@ -692,15 +687,24 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         cardView.center = view.center
     }
 
-    func updateLoadingState() {
+    func updateLoadingState(estimatedProgress: CGFloat? = nil) {
         guard isViewLoaded else { return }
         assert(webView != nil, "nil webview")
 
+        searchVC.hasDraftLocation = false
         toolbar.text = self.displayLocation
         statusBar.label.text = webView.title
 
         if self.webView.isLoading {
             showToolbar()
+        }
+        
+        if let progress = estimatedProgress {
+            toolbar.progress = progress
+            
+            if progress == 1 {
+                finishHiddenNavigation()
+            }
         }
 
         toolbar.isLoading = webView.isLoading
@@ -841,22 +845,16 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
             return
         }
 
-        statusColorBar.addSample(newColor, offsetY: offset.y + Const.statusHeight + 6)
-        statusColorBar.synchronizeOffset(webView.scrollView)
-
         if shouldUpdateSample {
             currentTab.currentVisit?.topColor = newColor
             statusBar.transitionBackground(to: newColor, from: .bottomToTop)
-            UIView.animate(withDuration: 0.4, delay: 0, options: [.beginFromCurrentState], animations: {
+            UIView.animate(withDuration: 0.3, delay: 0, options: [.beginFromCurrentState], animations: {
                 self.setNeedsStatusBarAppearanceUpdate()
             })
         }
     }
 
     func bottomColorChange(_ newColor: UIColor, offset: CGPoint) {
-        toolbarColorBar.addSample(newColor, offsetY: offset.y - 6)
-        toolbarColorBar.synchronizeOffset(webView.scrollView)
-
         if shouldUpdateSample {
             currentTab.currentVisit?.bottomColor = newColor
             toolbar.transitionBackground(to: newColor, from: .topToBottom)

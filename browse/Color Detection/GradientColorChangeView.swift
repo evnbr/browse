@@ -14,11 +14,7 @@ enum GradientColorChangeDirection {
 }
 
 class GradientColorChangeView: UIView, CAAnimationDelegate {
-    let gradientLayer: CAGradientLayer = CAGradientLayer()
-    let gradientLayer2: CAGradientLayer = CAGradientLayer()
-    let gradientLayer3: CAGradientLayer = CAGradientLayer()
-
-    let duration: CFTimeInterval = 0.4//0.3
+    let duration: CFTimeInterval = 0.33
 
     var backgroundView: UIView!
 
@@ -43,17 +39,6 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
 
     var initialHeight = Const.toolbarHeight
 
-    override func layoutSubviews() {
-        super.layoutSubviews()
-
-        var newFrame = bounds
-        newFrame.size.height = initialHeight
-
-        gradientLayer.frame = newFrame
-        gradientLayer2.frame = newFrame
-        gradientLayer3.frame = newFrame
-    }
-
     override init(frame: CGRect) {
         super.init(frame: frame)
 
@@ -69,11 +54,6 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
             backgroundView.leftAnchor.constraint(equalTo: leftAnchor),
             backgroundView.rightAnchor.constraint(equalTo: rightAnchor)
         ])
-
-        for layer in [gradientLayer, gradientLayer2, gradientLayer3] {
-            layer.frame = bounds
-            layer.colors = [UIColor.clear.cgColor, UIColor.clear.cgColor]
-        }
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -81,32 +61,14 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
     }
 
     func cancelColorChange() {
-        backgroundView.layer.sublayers?.forEach {
-            $0.removeFromSuperlayer()
-            $0.removeAllAnimations()
-        }
         backgroundView.backgroundColor = lastColor
     }
 
-    func getGradientLayer() -> CAGradientLayer {
-        if gradientLayer.superlayer == nil {
-            return gradientLayer
-        } else if gradientLayer2.superlayer == nil {
-            return gradientLayer2
-        } else if gradientLayer3.superlayer == nil {
-            return gradientLayer3
-        } else {
-            let newLayer = CAGradientLayer()
-            newLayer.frame = bounds
-            newLayer.frame.size.height = initialHeight
-            return newLayer
-        }
-    }
 
     func animateSimply(toColor: UIColor, direction: GradientColorChangeDirection ) -> Bool {
         if toColor.isEqual(lastColor) { return false }
 
-        UIView.animate(withDuration: 0.5, delay: 0, options: .beginFromCurrentState, animations: {
+        UIView.animate(withDuration: duration, delay: 0, options: .beginFromCurrentState, animations: {
             self.backgroundView.backgroundColor = toColor
             self.tintColor = toColor.isLight ? .white : .darkText
         })
@@ -126,60 +88,6 @@ class GradientColorChangeView: UIView, CAAnimationDelegate {
         if toColor.isEqual(lastColor) { return false }
 
         return animateSimply(toColor: toColor, direction: direction)
-        
-        let gLayer = getGradientLayer()
-
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-
-        var endLoc: [NSNumber]
-        var beginLoc: [NSNumber]
-        if direction == .topToBottom {
-            gLayer.colors = [
-                toColor.cgColor,
-                toColor.withAlphaComponent(0).cgColor
-            ]
-            beginLoc = [-1, 0]
-            endLoc = [1, 31]
-//            beginLoc = [0, 0.05]
-//            endLoc = [1, 1.05]
-        } else {
-            gLayer.colors = [
-                toColor.withAlphaComponent(0).cgColor,
-                toColor.cgColor
-            ]
-            beginLoc = [1, 2]
-            endLoc = [-30, 0]
-//            beginLoc = [0.95, 1]
-//            endLoc = [-0.05, 0]
-        }
-        gLayer.locations = beginLoc
-        lastColor = toColor
-
-        let colorChangeAnimation = CABasicAnimation(keyPath: "locations")
-        colorChangeAnimation.duration = duration
-        colorChangeAnimation.fromValue = beginLoc
-        colorChangeAnimation.toValue = endLoc
-//        colorChangeAnimation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
-        colorChangeAnimation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseIn)
-        colorChangeAnimation.fillMode = kCAFillModeForwards
-        colorChangeAnimation.isRemovedOnCompletion = false
-//        colorChangeAnimation.delegate = self
-
-        CATransaction.setCompletionBlock({ [weak self] in
-            self?.backgroundView.backgroundColor = toColor
-            gLayer.removeAnimation(forKey: "gradientChange")
-            gLayer.removeFromSuperlayer()
-        })
-        gLayer.add(colorChangeAnimation, forKey: "gradientChange")
-        backgroundView.layer.addSublayer(gLayer)
-        CATransaction.commit()
-
-        UIView.animate(withDuration: 0.3, delay: 0.0, options: .curveEaseInOut, animations: {
-            self.tintColor = toColor.isLight ? .white : .darkText
-        }, completion: nil)
-
-        return true
     }
 
 }

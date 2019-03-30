@@ -279,7 +279,7 @@ class TabSwitcherViewController: UICollectionViewController {
         cardStackLayout.selectedIndexPath = currentIndexPath!
         if tab.currentVisit == nil {
             cardStackTransition.useArc = false
-            browser.displaySearch(instant: true)
+            browser.displaySearch(isInstant: true)
         }
         present(browser, animated: animated, completion: {
             if let thumb = self.thumb(forTab: tab) {

@@ -19,7 +19,7 @@ class GoogleSearchProvider: SearchProvider {
     
     func parseSuggestions(from data: NSArray, maxCount: Int) -> [String] {
         var phrases: [String] = []
-        
+                
         guard let suggestions = data[1] as? NSArray else { return phrases }
         for item in suggestions {
             if let phrase = item as? String, phrases.count < maxCount {

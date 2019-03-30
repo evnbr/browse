@@ -14,6 +14,11 @@ class ToolbarTouchView: UIView {
     private var action: ToolbarButtonAction?
     private var tapColor: UIColor = .lightTouch
     private var tap: UITapGestureRecognizer?
+    var baseColor: UIColor = .clear {
+        didSet {
+            backgroundColor = baseColor
+        }
+    }
 
     override var intrinsicContentSize: CGSize {
         return frame.size
@@ -27,7 +32,7 @@ class ToolbarTouchView: UIView {
     init(frame: CGRect, onTap: ToolbarButtonAction? ) {
         super.init(frame: frame)
         if let action = onTap { setAction(action) }
-        backgroundColor = .clear
+        backgroundColor = baseColor
         layer.masksToBounds = true
         radius = frame.height / 2
     }
@@ -83,7 +88,7 @@ class ToolbarTouchView: UIView {
 
     func deSelect() {
         UIView.animate(withDuration: 0.6, delay: 0.0, options: .curveEaseInOut, animations: {
-            self.backgroundColor = .clear
+            self.backgroundColor = self.baseColor
         })
     }
     func select() {

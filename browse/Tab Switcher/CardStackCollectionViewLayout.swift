@@ -180,7 +180,7 @@ class CardStackCollectionViewLayout: UICollectionViewFlowLayout {
             if withYOffsetAndTransitioning {
                 newCenter.y -= stackOffsetY(baseCenter: baseCenter, endCenter: endCenter, scrollY: scrollY)
             }
-            attributes.transform = CGAffineTransform(scale: perspectiveScale * baseScale)
+//            attributes.transform = CGAffineTransform(scale: perspectiveScale * baseScale)
         } else {
             if indexPath != selectedIndexPath {
                 let endDistFromTop = endCenter.y - scrollY - cardSize.height / 2

@@ -18,11 +18,11 @@ class ToolbarIconButton: ToolbarTouchView {
     }
 
     override var intrinsicContentSize: CGSize {
-        return CGSize(width: 48, height: Const.buttonHeight)
+        return CGSize(width: 48, height: BUTTON_HEIGHT)
     }
 
     init(icon: UIImage?, onTap: ToolbarButtonAction? = nil) {
-        super.init(frame: CGRect(x: 0, y: 0, width: 48, height: Const.buttonHeight), onTap: onTap)
+        super.init(frame: CGRect(x: 0, y: 0, width: 48, height: BUTTON_HEIGHT), onTap: onTap)
 
         let iconTemplate = icon?.withRenderingMode(.alwaysTemplate)
         iconView = UIImageView(image: iconTemplate)

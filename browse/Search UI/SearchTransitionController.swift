@@ -8,9 +8,8 @@
 
 import UIKit
 
-let textFieldExtraYShift: CGFloat = -4
 let maskExtraXShift: CGFloat = 24
-let extraXShift: CGFloat = -4
+let extraXShift: CGFloat = -20
 
 let titleExtraYShift: CGFloat = -12
 let titleExtraYShiftEnd: CGFloat = 71
@@ -23,11 +22,19 @@ typealias SearchTransitionCompletionBlock = () -> Void
 class SearchTransitionController: NSObject {
     
     var direction: CustomAnimationDirection!
+    var velocity: CGPoint = .zero
     var isExpanding: Bool { return direction == .present }
     var isDismissing: Bool { return direction == .dismiss }
     
     var showKeyboard: Bool = true
     var isPreExpanded: Bool = false
+    
+    var fontScaledUp: CGFloat {
+        return Const.textFieldFont.pointSize / Const.thumbTitleFont.pointSize
+    }
+    var fontScaledDown: CGFloat {
+        return Const.thumbTitleFont.pointSize / Const.textFieldFont.pointSize
+    }
     
     // swiftlint:disable:next function_body_length
     func animateTransition(
@@ -35,105 +42,111 @@ class SearchTransitionController: NSObject {
         browserVC: BrowserViewController,
         completion: SearchTransitionCompletionBlock? ) {
         
+        if isDismissing {
+            if let newText = searchVC.textView.text,
+                newText.count > 0,
+                newText != browserVC.displayLocation,
+                newText != browserVC.editableLocation {
+                // Keep draft
+                searchVC.hasDraftLocation = true
+                
+                if let url = URL.coercedFrom(newText) {
+                    searchVC.locationLabel.text = url.displayHost
+                    browserVC.toolbar.text = url.displayHost
+                    browserVC.toolbar.isSearch = false
+                } else {
+                    searchVC.locationLabel.text = newText
+                    browserVC.toolbar.text = newText
+                    browserVC.toolbar.isSearch = true
+                }
+                browserVC.toolbar.isSecure = false
+            } else {
+                searchVC.hasDraftLocation = false
+                browserVC.updateLoadingState()
+            }
+            browserVC.toolbar.layoutIfNeeded()
+        } else {
+            searchVC.hasDraftLocation = false
+        }
+        
         browserVC.toolbar.backgroundView.alpha = 1
         // TODO snapshot doesnt work if hidden
-        let titleSnap = browserVC.toolbar.searchField.labelHolder.snapshotView(afterScreenUpdates: false)
-        browserVC.toolbar.searchField.labelHolder.isHidden = true
-
+        
         searchVC.isTransitioning = true
         if !searchVC.isViewLoaded {
             print("no view")
             searchVC.loadViewIfNeeded()
         }
 
-        let smallSize = Const.thumbTitleFont.pointSize
-        let largeSize = Const.textFieldFont.pointSize
-        let scaledUp: CGFloat = largeSize / smallSize
-        let scaledDown: CGFloat = smallSize / largeSize
+        let offsets = searchVC.calculateHorizontalOffset()
 
-        let prefix = searchVC.textView.text.urlPrefix
-        let prefixSize = prefix?.boundingRect(
-            with: searchVC.textView.bounds.size,
-            options: [.usesLineFragmentOrigin, .usesFontLeading],
-            attributes: [NSAttributedStringKey.font: searchVC.textView.font!],
-            context: nil)
-        let prefixWidth: CGFloat = (prefixSize?.width ?? 0)
-
-        var maskStartSize: CGSize = titleSnap?.bounds.size ?? .zero
-        maskStartSize.height = 48
-        let maskStartFrame = CGRect(origin: CGPoint(x: prefixWidth + maskExtraXShift, y: 0), size: maskStartSize)
+        var maskStartSize: CGSize = CGSize(
+            width: searchVC.locationLabel.bounds.width * 0.9,
+            height: 40)
+        let maskStartFrame = CGRect(origin: CGPoint(x: offsets.prefixWidth + maskExtraXShift, y: 0), size: maskStartSize)
         let maskEndSize: CGSize = CGSize(width: searchVC.textView.bounds.size.width, height: searchVC.textHeight)
         let maskEndFrame = CGRect(origin: .zero, size: maskEndSize)
 
-        if let title = titleSnap {
-            searchVC.view.addSubview(title)
-        }
-        var titleStartCenter = browserVC.toolbar.center
+        var titleStartCenter = searchVC.textView.center
         var titleEndCenter = titleStartCenter
-        titleStartCenter.y += titleExtraYShift
+        titleStartCenter.y += 0
+        titleStartCenter.x -= 40
         
-        let hasSearch = browserVC.toolbar.isSearch
-        let hasLock = (browserVC.toolbar.isSecure) && !hasSearch
-        let titleWidth = (titleSnap?.bounds.width ?? 0) * scaledUp
-        let textFieldWidth = (browserVC.toolbar.bounds.width) - textFieldMargin
-        let titleToTextDist = (textFieldWidth - titleWidth ) / 2
-        let roomForLockShift: CGFloat = (hasLock ? lockWidth : 0) + (hasSearch ? searchWidth : 0)
-        let titleHorizontalShift: CGFloat = titleToTextDist + roomForLockShift - prefixWidth + extraXShift
+        let titleHorizontalShift = offsets.shift
         titleEndCenter.x -= titleHorizontalShift
-        titleEndCenter.y -= searchVC.textHeightConstraint.constant
-        titleEndCenter.y += titleExtraYShiftEnd
-        if isDismissing {
-            titleEndCenter.y -= max(searchVC.kbHeightConstraint.constant, 0)
-        } else if showKeyboard {
-            titleEndCenter.y -= searchVC.keyboard.height
-        }
-
-        titleSnap?.center = isExpanding ? titleStartCenter : titleEndCenter
-
+        
         browserVC.toolbar.backgroundView.alpha = 1
+        browserVC.toolbar.contentsAlpha = 0
 //        searchVC.scrim.alpha = isExpanding ? 0 : 1
         if !self.isPreExpanded {
             searchVC.shadowView.alpha = isExpanding ? 0 : 1
         }
 
-        searchVC.kbHeightConstraint.constant = isExpanding
-            ? (showKeyboard ? searchVC.keyboard.height : 0 )
-            : 0
-        searchVC.contextAreaHeightConstraint.springConstant(to: isExpanding
-            ? searchVC.contextAreaHeight : 0)
+        let heightAnim = searchVC.sheetHeight.springConstant(
+            to: isExpanding ? searchVC.baseSheetHeight : searchVC.minSheetHeight,
+            at: -velocity.y)
+        let handleAnim = searchVC.textTopMarginConstraint.springConstant(
+            to: isExpanding ? SHEET_TOP_HANDLE_MARGIN : SHEET_TOP_MARGIN)
+        let fieldAnim = searchVC.textViewContainerHeightConstraint.springConstant(
+            to: isExpanding ? searchVC.textHeight: BUTTON_HEIGHT )
+        heightAnim?.springBounciness = 2
+        handleAnim?.springBounciness = 2
+        fieldAnim?.springBounciness = 2
+        
+        heightAnim?.springSpeed = 14
 
-        titleSnap?.scale = isExpanding ? 1 : scaledUp
-        titleSnap?.alpha = isExpanding ? 1 : 0
-        searchVC.textView.alpha = isExpanding ? 0 : 1
+        handleAnim?.animationDidApplyBlock = { _ in
+            let pct = searchVC.textTopMarginConstraint.constant.progress(
+                SHEET_TOP_MARGIN,
+                SHEET_TOP_HANDLE_MARGIN)
+            searchVC.iconEntranceProgress = pct
+            searchVC.dragHandle.alpha = pct
+            searchVC.suggestionTable.alpha = pct
+            
+            searchVC.bottomAttachment.constant = pct.lerp(SHEET_TOP_HANDLE_MARGIN, 0)
+            
+            searchVC.labelCenterConstraint.constant = pct.lerp(0, -titleHorizontalShift)
+            searchVC.locationLabel.scale = pct.lerp(1, self.fontScaledUp)
+            searchVC.locationLabel.alpha = pct.lerp(1, 0)
 
-        searchVC.textView.transform = CGAffineTransform(scale: isExpanding ? scaledDown : 1)
-            .translatedBy(
-                x: isExpanding ? titleHorizontalShift : 0,
-                y: isExpanding ? textFieldExtraYShift : 0)
-
-        UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: {
-            searchVC.dragHandle.alpha = self.isExpanding ? 1 : 0
-            searchVC.suggestionTable.alpha = self.isExpanding ? 1 : 0
-        })
-
-        searchVC.textView.mask?.frame = isExpanding ? maskStartFrame : maskEndFrame
+            searchVC.textCenterConstraint.constant = pct.lerp(titleHorizontalShift, 0)
+            searchVC.textView.setScale(
+                pct.lerp(self.fontScaledDown, 1),
+                anchorPoint: offsets.anchor)
+            searchVC.textView.alpha = pct.lerp(0, 1)
+        }
 
         if showKeyboard && isExpanding {
             searchVC.focusTextView()
         }
 
-        searchVC.textHeightConstraint.constant = isExpanding ? searchVC.textHeight : Const.toolbarHeight
-
         func completeTransition() {
             if self.isDismissing { searchVC.view.removeFromSuperview() }
             if self.isExpanding {
-                // We really should catch this earlier and
-                // modify the transition end point on the fly
-                searchVC.kbHeightConstraint.constant = searchVC.keyboard.height
+                //
             }
             searchVC.isTransitioning = false
-            titleSnap?.removeFromSuperview()
-            browserVC.toolbar.searchField.labelHolder.isHidden = false
+            browserVC.toolbar.contentsAlpha = 1
             browserVC.toolbar.backgroundView.alpha = 1
             completion?()
         }
@@ -141,11 +154,9 @@ class SearchTransitionController: NSObject {
         let completeEarly = !showKeyboard && isExpanding && !isPreExpanded
         if completeEarly { completeTransition() }
 
-        searchVC.iconEntranceProgress = isExpanding ? 1 : 0
         searchVC.view.center = browserVC.view.center
-
-        // Don't block touches when dismissing
-        searchVC.scrim.isUserInteractionEnabled = isExpanding
+        
+        let fieldColor = searchVC.contentView.tintColor!.isLight ? UIColor.darkField : UIColor.lightField
         
         UIView.animate(
             withDuration: 0.5,
@@ -154,32 +165,27 @@ class SearchTransitionController: NSObject {
             initialSpringVelocity: 0.0,
             options: [.curveLinear],
             animations: {
-                searchVC.view.layoutIfNeeded()
+//                searchVC.view.layoutIfNeeded()
                 searchVC.pageActionView.alpha = self.isExpanding ? 1 : 0
+                searchVC.shadowView.alpha = self.isExpanding ? 1 : 0
                 
-                if !self.isPreExpanded {
-                    searchVC.shadowView.alpha = self.isExpanding ? 1 : 0
-                }
-                
+                searchVC.textViewFill.backgroundColor = self.isExpanding ? fieldColor : .clear
                 searchVC.scrim.alpha = self.isExpanding ? 1 : 0
-                searchVC.textView.alpha = self.isExpanding ? 1 : 0
-                titleSnap?.alpha = self.isExpanding ? 0 : 1
-
-                titleSnap?.scale = self.isExpanding ? scaledUp : 1
-                titleSnap?.center = self.isExpanding ? titleEndCenter : titleStartCenter
-
-                searchVC.textView.transform = CGAffineTransform(scale: self.isExpanding ? 1 : scaledDown )
-                    .translatedBy(
-                        x: self.isExpanding ? 0 : titleHorizontalShift,
-                        y: self.isExpanding ? 0 : textFieldExtraYShift)
+//                searchVC.textView.alpha = self.isExpanding ? 1 : 0
+//                searchVC.locationLabel.alpha = self.isExpanding ? 0 : 1
+//                searchVC.locationLabel.scale = self.isExpanding ? self.fontScaledUp : 1
+//                searchVC.textView.scale = self.isExpanding ? 1 : self.fontScaledDown
 
                 searchVC.textView.mask?.frame = self.isExpanding ? maskEndFrame : maskStartFrame
 
-                if self.isDismissing { searchVC.textView.resignFirstResponder() }
+                if self.isDismissing {
+                    searchVC.textView.resignFirstResponder()
+                }
         }, completion: { _ in
             if !completeEarly { completeTransition() }
         })
     }
+    
 }
 
 extension SearchTransitionController: UIViewControllerAnimatedTransitioning {
@@ -203,5 +209,15 @@ extension SearchTransitionController: UIViewControllerAnimatedTransitioning {
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
         }
 
+    }
+}
+
+extension UIView {
+    func setScale(_ scale: CGFloat, anchorPoint: CGPoint) {
+        layer.anchorPoint = anchorPoint
+        let scale = scale != 0 ? scale : CGFloat.leastNonzeroMagnitude
+        let xPadding = 1 / scale * (anchorPoint.x - 0.5) * bounds.width
+        let yPadding = 1 / scale * (anchorPoint.y - 0.5) * bounds.height
+        transform = CGAffineTransform(scaleX: scale, y: scale).translatedBy(x: xPadding, y: yPadding)
     }
 }

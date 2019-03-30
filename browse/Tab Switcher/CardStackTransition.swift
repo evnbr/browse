@@ -275,7 +275,6 @@ class CardStackTransition: NSObject, UIViewControllerAnimatedTransitioning {
             if browserVC.isDisplayingSearch {
                 let search = browserVC.searchVC
                 let offsetTextField = (cardCenter.y - newCenter.y) * 0.8
-                search.kbHeightConstraint?.constant = search.keyboard.height + offsetTextField
             }
         }
 

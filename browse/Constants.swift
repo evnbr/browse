@@ -16,21 +16,22 @@ let PRESENT_TAB_BACK_SCALE: CGFloat = 1//0.97
 
 let TAP_SCALE: CGFloat = 1.0 //0.97
 
+let BUTTON_HEIGHT: CGFloat = 44
+
 class Constants: NSObject {
 
     let toolbarHeight: CGFloat
     let statusHeight: CGFloat
 
     var thumbRadius: CGFloat
-    let textFieldFont: UIFont = .systemFont(ofSize: 18)
-    let thumbTitleFont: UIFont = .systemFont(ofSize: 16)
+    let textFieldFont: UIFont = .systemFont(ofSize: 17)
+    let thumbTitleFont: UIFont = .systemFont(ofSize: 17)
 //    let thumbTitleFont : UIFont = .systemFont(ofSize: 14.0, weight: .medium)
 
     var cardRadius: CGFloat
 
     let shadowRadius: CGFloat = 32
     let shadowOpacity: Float = 0.4
-    let buttonHeight: CGFloat = 40
 
     override init() {
         let topInset = UIApplication.shared.keyWindow?.safeAreaInsets.top
