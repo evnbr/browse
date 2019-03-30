@@ -24,15 +24,15 @@ class TypeaheadCell: UITableViewCell {
         bg.backgroundColor = .darkTouch
         selectedBackgroundView = bg
         
-        indentationWidth = 12.0
+        indentationWidth = 16.0
         indentationLevel = 0
         
-        textLabel?.lineBreakMode = .byWordWrapping
+        textLabel?.lineBreakMode = .byTruncatingTail
         textLabel?.numberOfLines = 1
-        textLabel?.font = .systemFont(ofSize: 18)
+        textLabel?.font = .systemFont(ofSize: 17)
         layoutMargins = UIEdgeInsetsMake(12, 24, 12, 24)
         
-        detailTextLabel?.font = .systemFont(ofSize: 13)
+        detailTextLabel?.font = .systemFont(ofSize: 12)
         detailTextLabel?.numberOfLines = 1
         
         contentView.clipsToBounds = true
@@ -77,7 +77,7 @@ class TypeaheadCell: UITableViewCell {
     
     override func tintColorDidChange() {
         textLabel?.textColor = tintColor //.withSecondaryAlpha
-        detailTextLabel?.textColor = tintColor.withSecondaryAlpha
+        detailTextLabel?.textColor = tintColor//.withSecondaryAlpha
         selectedBackgroundView?.backgroundColor = tintColor.isLight ? .darkTouch : .lightTouch
     }
 }
