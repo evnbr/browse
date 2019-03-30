@@ -656,14 +656,16 @@ extension SearchViewController: UIGestureRecognizerDelegate {
 
     func animateToSheetVisible(at velocity: CGPoint) {
         isTransitioning = true
-//        textView.becomeFirstResponder()
         
-        let anim = sheetHeight.springConstant(to: baseSheetHeight, at: -velocity.y) {_, _ in
-            self.isTransitioning = false
-            self.textView.tintColor = self.view.tintColor
-        }
+        let anim = sheetHeight.springConstant(to: baseSheetHeight, at: -velocity.y)
         anim?.springBounciness = 1
         anim?.springSpeed = 8
+        anim?.completionBlock = {_, _ in
+            self.isTransitioning = false
+            if !self.isSwiping {
+                self.focusTextView()
+            }
+        }
     }
     
     @objc func animateToSheetHidden() {
