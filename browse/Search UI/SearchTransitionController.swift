@@ -107,7 +107,7 @@ class SearchTransitionController: NSObject {
             at: -velocity.y)
         let handleAnim = searchVC.textTopMarginConstraint.springConstant(
             to: isExpanding ? SHEET_TOP_HANDLE_MARGIN : SHEET_TOP_MARGIN)
-        let fieldAnim = searchVC.textHeightConstraint.springConstant(
+        let fieldAnim = searchVC.textViewContainerHeightConstraint.springConstant(
             to: isExpanding ? searchVC.textHeight: BUTTON_HEIGHT )
         heightAnim?.springBounciness = 2
         handleAnim?.springBounciness = 2

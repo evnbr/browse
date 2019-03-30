@@ -66,6 +66,7 @@ class SearchViewController: UIViewController {
 
     var sheetHeight: NSLayoutConstraint!
     var textHeightConstraint: NSLayoutConstraint!
+    var textViewContainerHeightConstraint: NSLayoutConstraint!
     var textTopMarginConstraint: NSLayoutConstraint!
     var bottomAttachment: NSLayoutConstraint!
 
@@ -240,7 +241,8 @@ class SearchViewController: UIViewController {
     }
 
     func setupTextViewConstraints() {
-        textHeightConstraint = textViewFill.heightAnchor.constraint(equalToConstant: 36)
+        textViewContainerHeightConstraint = textViewFill.heightAnchor.constraint(equalToConstant: 36)
+        textHeightConstraint = textView.heightAnchor.constraint(equalToConstant: 36)
         textTopMarginConstraint = textViewFill.topAnchor.constraint(
             equalTo: contentView.topAnchor, constant: SHEET_TOP_HANDLE_MARGIN)
         
@@ -261,13 +263,13 @@ class SearchViewController: UIViewController {
         
         NSLayoutConstraint.activate([
             textHeightConstraint,
+            textViewContainerHeightConstraint,
             textTopMarginConstraint,
             leftInsetConstraint,
             rightInsetConstraint
         ])
         NSLayoutConstraint.activate([
             textView.topAnchor.constraint(equalTo: textViewFill.topAnchor),
-            textView.bottomAnchor.constraint(equalTo: textViewFill.bottomAnchor),
             textView.widthAnchor.constraint(
                 equalTo: contentView.safeAreaLayoutGuide.widthAnchor,
                 constant: -2 * textFieldInnerMargin),
@@ -485,6 +487,7 @@ extension SearchViewController: UITextViewDelegate {
     func updateTextViewSize() {
         textHeight = calculateTextHeight()
         textHeightConstraint.constant = textHeight
+        textViewContainerHeightConstraint.constant = textHeight
     }
     
     func updateLabel() {
