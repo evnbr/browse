@@ -80,7 +80,7 @@ class BrowserToolbarView: ColorToolbarView {
         tabButton = ToolbarIconButton(icon: UIImage(named: "action"))
 
         stopButton = searchField.stopButton
-        items = [backButton, searchField, tabButton]
+        toolbarItems = [backButton, searchField, tabButton]
 
         // Initial values
         isLoading = false

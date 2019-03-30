@@ -67,12 +67,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         guard let url = webView?.url else { return "" }
         if let query = url.searchQuery {
             return query
-        } else {
-            return displayURL
         }
+        return displayURL ?? "No Location"
     }
 
-    var displayURL: String {
+    var displayURL: String? {
         let url = webView.url!
         return url.displayHost
     }

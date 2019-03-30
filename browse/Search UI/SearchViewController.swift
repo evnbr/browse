@@ -39,6 +39,7 @@ class SearchViewController: UIViewController {
     var scrim: UIView!
     var textView: UITextView!
     var textViewFill: UIView!
+    let locationLabel = LocationLabel()
     
     var suggestionTable: UITableView!
     var dragHandle: UIView!
@@ -66,8 +67,10 @@ class SearchViewController: UIViewController {
     var sheetHeight: NSLayoutConstraint!
     var textHeightConstraint: NSLayoutConstraint!
     var textTopMarginConstraint: NSLayoutConstraint!
-    var toolbarBottomMargin: NSLayoutConstraint!
-
+    
+    var labelCenterConstraint: NSLayoutConstraint!
+    var textCenterConstraint: NSLayoutConstraint!
+    
     private var leftInsetConstraint: NSLayoutConstraint!
     private var rightInsetConstraint: NSLayoutConstraint!
 
@@ -82,15 +85,8 @@ class SearchViewController: UIViewController {
             leftInsetConstraint.constant = margin
             rightInsetConstraint.constant = -margin
         }
+        
     }
-    
-//    func springTextWidth(isFullWidth: Bool) {
-//        let margin = isFullWidth ? textFieldInnerMargin : textFieldRoomForIcons
-//        let anim1 = leftInsetConstraint.springConstant(to: margin)
-//        let anim2 = rightInsetConstraint.springConstant(to: -margin)
-//        anim1?.springBounciness = 1
-//        anim2?.springBounciness = 1
-//    }
 
     var suggestions: [TypeaheadSuggestion] = []
 
@@ -136,14 +132,14 @@ class SearchViewController: UIViewController {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.tintColor = .darkText
         contentView.clipsToBounds = true
-        contentView.radius = 16
+        contentView.radius = 8
         view.addSubview(contentView)
         
         shadowView = UIView(frame: view.bounds)
         shadowView.translatesAutoresizingMaskIntoConstraints = false
         let path = UIBezierPath(roundedRect: contentView.bounds, cornerRadius: 12)
         shadowView.layer.shadowPath = path.cgPath
-        shadowView.layer.shadowOpacity = 0.1
+        shadowView.layer.shadowOpacity = 0.12
         shadowView.layer.shadowRadius = 24
         view.insertSubview(shadowView, belowSubview: contentView)
         NSLayoutConstraint.activate([
@@ -174,15 +170,8 @@ class SearchViewController: UIViewController {
         textViewFill.addSubview(textView)
         contentView.addSubview(textViewFill)
 
-        let maskView = UIView(frame: textView.bounds)
-        maskView.backgroundColor = .red
-        maskView.frame = textView.bounds
-        maskView.radius = 0
-        maskView.frame.size.height = 500 // TODO Large number because mask is scrollable :(
-//        textView.mask = maskView
-
         setupActions()
-        setupTextView()
+        setupTextViewConstraints()
         setupDrag()
         setupPlaceholderIcons()
         
@@ -248,7 +237,7 @@ class SearchViewController: UIViewController {
         ])
     }
 
-    func setupTextView() {
+    func setupTextViewConstraints() {
         textHeightConstraint = textViewFill.heightAnchor.constraint(equalToConstant: 36)
         textTopMarginConstraint = textViewFill.topAnchor.constraint(
             equalTo: contentView.topAnchor, constant: SHEET_TOP_HANDLE_MARGIN)
@@ -258,6 +247,15 @@ class SearchViewController: UIViewController {
         rightInsetConstraint = textViewFill.trailingAnchor.constraint(
             equalTo: contentView.safeAreaLayoutGuide.trailingAnchor, constant: -12)
 
+        labelCenterConstraint = locationLabel.centerXAnchor.constraint(equalTo: textViewFill.centerXAnchor)
+        textCenterConstraint = textView.centerXAnchor.constraint(equalTo: textViewFill.centerXAnchor)
+        
+        textViewFill.addSubview(locationLabel, constraints: [
+            labelCenterConstraint,
+            locationLabel.topAnchor.constraint(equalTo: textViewFill.topAnchor, constant: 12),
+            locationLabel.widthAnchor.constraint(lessThanOrEqualTo: textViewFill.widthAnchor, constant: -24)
+        ])
+        locationLabel.isUserInteractionEnabled = false
         
         NSLayoutConstraint.activate([
             textHeightConstraint,
@@ -268,10 +266,10 @@ class SearchViewController: UIViewController {
         NSLayoutConstraint.activate([
             textView.topAnchor.constraint(equalTo: textViewFill.topAnchor),
             textView.bottomAnchor.constraint(equalTo: textViewFill.bottomAnchor),
-            textView.leadingAnchor.constraint(
-                equalTo: contentView.leadingAnchor, constant: textFieldInnerMargin),
-            textView.trailingAnchor.constraint(
-                equalTo: contentView.trailingAnchor, constant: -textFieldInnerMargin)
+            textView.widthAnchor.constraint(
+                equalTo: contentView.safeAreaLayoutGuide.widthAnchor,
+                constant: -2 * textFieldInnerMargin),
+            textCenterConstraint
         ])
     }
     
@@ -368,6 +366,10 @@ class SearchViewController: UIViewController {
         if let browser = browserVC, !hasDraftLocation {
             textView.text = browser.editableLocation
             
+            locationLabel.text = browser.displayLocation
+            locationLabel.showLock = browser.toolbar.searchField.isSecure
+            locationLabel.showSearch = browser.toolbar.searchField.isSearch
+
             pageActionView.title = browser.webView.title
             pageActionView.isBookmarked = false
             pageActionView.isBookmarkEnabled = BookmarkProvider.shared.isLoggedIn
@@ -410,15 +412,18 @@ extension SearchViewController: UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
         updateHighlight(textView)
         updateTextViewSize()
+        updateLabel()
         updateSuggestion(for: textView.text)
 //        updateBrowserOffset()
     }
 
     func updateHighlight(_ textView: UITextView) {
-        let txt = textView.text!
-        if txt.isProbablyURL, let url = URL(string: txt),
-            let highlightRange = txt.allNSRanges(of: url.displayHost).first {
-            let attrTxt = NSMutableAttributedString(string: txt, attributes: [
+        let text = textView.text!
+        let selectedRange = textView.selectedTextRange!
+        
+        if let host = URL.coercedFrom(text)?.displayHost,
+            let highlightRange = text.allNSRanges(of: host).first {
+            let attrTxt = NSMutableAttributedString(string: text, attributes: [
                 NSAttributedStringKey.foregroundColor: textView.textColor!.withSecondaryAlpha,
                 NSAttributedStringKey.font: textView.font!
                 ])
@@ -427,8 +432,10 @@ extension SearchViewController: UITextViewDelegate {
             textView.attributedText = attrTxt
         } else {
             setBackground(backgroundView.overlayColor!)
-            textView.text = txt
+            textView.text = text
         }
+        
+        textView.selectedTextRange = selectedRange
     }
 
     func updateSuggestion(for text: String) {
@@ -458,29 +465,67 @@ extension SearchViewController: UITextViewDelegate {
         suggestionTable.reloadData()
         suggestionTable.layoutIfNeeded()
     }
-
-    func updateTextViewSize() {
+    
+    func calculateTextHeight() -> CGFloat {
         let fixedWidth = textView.bounds.size.width
         textView.textContainerInset = textFieldInsets
         let fullTextSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
         textView.isScrollEnabled = fullTextSize.height > maxTextFieldHeight
-        textHeight = max(20, min(fullTextSize.height, maxTextFieldHeight))
-        textHeightConstraint.constant = textHeight
+        return max(20, min(fullTextSize.height, maxTextFieldHeight))
     }
 
+    func updateTextViewSize() {
+        textHeight = calculateTextHeight()
+        textHeightConstraint.constant = textHeight
+    }
+    
+    func updateLabel() {
+        guard let text = textView.text else { return }
+        if let url = URL.coercedFrom(text) {
+            locationLabel.text = url.displayHost
+            locationLabel.showSearch = false
+        } else {
+            locationLabel.text = text
+            locationLabel.showSearch = true
+        }
+        locationLabel.showLock = false
+        locationLabel.sizeToFit()
+        locationLabel.layoutIfNeeded()
+        let shift = calculateHorizontalOffset().shift
+        labelCenterConstraint.constant = -shift
+    }
+    
+    func calculateHorizontalOffset() -> SearchTransitionOffsets {
+        
+        let prefix = textView.text.urlPrefix
+        let prefixSize = prefix?.boundingRect(
+            with: textView.bounds.size,
+            options: [.usesLineFragmentOrigin, .usesFontLeading],
+            attributes: [NSAttributedStringKey.font: textView.font!],
+            context: nil)
+        let prefixWidth: CGFloat = prefixSize?.width ?? 0
+        
+        let hasSearch = locationLabel.showSearch
+        let hasLock = locationLabel.showLock && !hasSearch
+        
+        let labelWidth = locationLabel.bounds.width * transition.fontScaledUp
+        let textFieldWidth = textView.bounds.width
+        
+        let titleToTextDist = (textFieldWidth - labelWidth ) / 2
+        let roomForLockShift: CGFloat = (hasLock ? lockWidth : 0) + (hasSearch ? searchWidth : 0)
+        
+        let titleHorizontalShift: CGFloat = titleToTextDist + roomForLockShift - prefixWidth + extraXShift
+        
+        return SearchTransitionOffsets(
+            shift: titleHorizontalShift
+        )
+    }
+    
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
         if text == "\n", let entry = textView.text {
-            if entry.isProbablyURL {
-                var url: URL?
-                if entry.hasPrefix("http://") || entry.hasPrefix("https://") {
-                    url = URL(string: entry)
-                } else {
-                    url = URL(string: "http://" + entry)
-                }
-                if let url = url {
-                    navigateTo(url)
-                    return false
-                }
+            if let url = URL.coercedFrom(entry) {
+                navigateTo(url)
+                return false
             }
             let url = TypeaheadProvider.shared.serpURLfor(entry)!
             navigateTo(url)
@@ -492,6 +537,7 @@ extension SearchViewController: UITextViewDelegate {
     func navigateTo(_ url: URL) {
         if let browser = self.browserVC {
             browser.navigateTo(url)
+            locationLabel.text = browser.displayLocation
             setBackground(.black) // since navigate insta-hides
             animateToSheetHidden()
             return
@@ -502,6 +548,11 @@ extension SearchViewController: UITextViewDelegate {
 extension SearchViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let row = suggestions[indexPath.item]
+        
+//        textView.text = row.title
+//        label.text = row.title
+//        label.showSearch = false
+//        label.showLock = false
         if let url = row.url { navigateTo(url) }
     }
 
@@ -509,6 +560,10 @@ extension SearchViewController: UITableViewDelegate {
         let row = suggestions[indexPath.item]
         return row.url != nil
     }
+}
+
+struct SearchTransitionOffsets {
+    let shift: CGFloat
 }
 
 extension SearchViewController: UITableViewDataSource {
@@ -560,10 +615,10 @@ extension SearchViewController: UIGestureRecognizerDelegate {
 
         if gesture.state == .began {
             isSwiping = true
+//            textView.tintColor = .clear
             textView.resignFirstResponder()
             sheetHeight.pop_removeAllAnimations()
         } else if gesture.state == .changed {
-//            self.iconProgress = (abs(dist.y) / keyboard.height).reverse().clip()
             if dist.y < 0 {
                 let elastic = 1 * elasticLimit(-dist.y)
                 sheetHeight.constant = baseSheetHeight + elastic
@@ -572,12 +627,11 @@ extension SearchViewController: UIGestureRecognizerDelegate {
             }
         } else if gesture.state == .ended || gesture.state == .cancelled {
             isSwiping = false
-            if vel.y > 100 || sheetHeight.constant < 50 {
+            if vel.y > 100 || sheetHeight.constant < 100 {
                 transition.velocity = gesture.velocity(in: view)
                 animateToSheetHidden()
             } else {
                 animateToSheetVisible(at: gesture.velocity(in: view))
-                textView.becomeFirstResponder()
             }
         }
     }
@@ -588,6 +642,7 @@ extension SearchViewController: UIGestureRecognizerDelegate {
         
         let anim = sheetHeight.springConstant(to: baseSheetHeight, at: -velocity.y) {_, _ in
             self.isTransitioning = false
+            self.textView.tintColor = self.view.tintColor
         }
         anim?.springBounciness = 1
         anim?.springSpeed = 8
