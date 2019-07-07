@@ -93,7 +93,7 @@ class BrowserToolbarView: ColorToolbarView {
             v.tintColor = tintColor
         }
     }
-
+    
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

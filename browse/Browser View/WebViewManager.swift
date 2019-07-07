@@ -86,9 +86,10 @@ class WebViewManager: NSObject {
     private func createWebView(with config: WKWebViewConfiguration) -> WKWebView {
         let webView = WKWebView(frame: UIScreen.main.bounds, configuration: config)
         webView.translatesAutoresizingMaskIntoConstraints = false
+        webView.allowsBackForwardNavigationGestures = true
         webView.scrollView.contentInset = .zero
         webView.scrollView.contentInsetAdjustmentBehavior = .never
-//        webView.scrollView.clipsToBounds = false
+        webView.scrollView.clipsToBounds = false
 //        webView.scrollView.alwaysBounceHorizontal = true
         webView.allowsLinkPreview = false
         webView.customUserAgent = USER_AGENT
