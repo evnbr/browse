@@ -420,11 +420,15 @@ class SearchViewController: UIViewController {
 
 extension SearchViewController: UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
+        updateFieldForNewText()
+        updateSuggestion(for: textView.text)
+//        updateBrowserOffset()
+    }
+    
+    func updateFieldForNewText() {
         updateHighlight(textView)
         updateTextViewSize()
         updateLabel()
-        updateSuggestion(for: textView.text)
-//        updateBrowserOffset()
     }
 
     func updateHighlight(_ textView: UITextView) {
@@ -572,7 +576,11 @@ extension SearchViewController: UITableViewDelegate {
 //        label.text = row.title
 //        label.showSearch = false
 //        label.showLock = false
-        if let url = row.url { navigateTo(url) }
+        if let url = row.url {
+            textView.text = row.url?.absoluteString
+            updateFieldForNewText()
+            navigateTo(url)
+        }
     }
 
     func tableView(_ tableView: UITableView, shouldHighlightRowAt indexPath: IndexPath) -> Bool {
