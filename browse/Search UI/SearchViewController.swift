@@ -7,7 +7,6 @@
 //
 
 import UIKit
-import pop
 
 let typeaheadReuseID = "TypeaheadRow"
 let maxTypeaheadSuggestions: Int = 8
@@ -300,14 +299,14 @@ class SearchViewController: UIViewController {
         
         textView.font = Const.textFieldFont
         textView.text = ""
-        textView.placeholder = "Where to?"
+//        textView.placeholder = "Where to?"
         
         textView.delegate = self
         textView.isScrollEnabled = true
         
         textView.backgroundColor = .clear
         textView.textColor = .darkText
-        textView.placeholderColor = UIColor.white.withAlphaComponent(0.4)
+//        textView.placeholderColor = UIColor.white.withAlphaComponent(0.4)
         textView.keyboardAppearance = .light
         
         textView.enablesReturnKeyAutomatically = true
@@ -352,9 +351,9 @@ class SearchViewController: UIViewController {
         textView.textColor = view.tintColor
         dragHandle.backgroundColor = view.tintColor.withAlphaComponent(0.2)
 
-        textView.placeholderColor = isBackgroundLight
-            ? UIColor.black.withAlphaComponent(0.4)
-            : UIColor.white.withAlphaComponent(0.4)
+//        textView.placeholderColor = isBackgroundLight
+//            ? UIColor.black.withAlphaComponent(0.4)
+//            : UIColor.white.withAlphaComponent(0.4)
         
         textViewFill.backgroundColor = isBackgroundLight
             ? .darkField
@@ -637,16 +636,11 @@ extension SearchViewController: UIGestureRecognizerDelegate {
         if isEntrance {
             dist.y += baseSheetHeight - Const.toolbarHeight
         }
-        if browserVC?.gestureController.isDismissing == true {
-            animateToSheetHidden()
-            return
-        }
 
         if gesture.state == .began {
             isSwiping = true
 //            textView.tintColor = .clear
             textView.resignFirstResponder()
-            sheetHeight.pop_removeAllAnimations()
         } else if gesture.state == .changed {
             if dist.y < 0 {
                 let elastic = 1 * elasticLimit(-dist.y)
@@ -668,21 +662,13 @@ extension SearchViewController: UIGestureRecognizerDelegate {
     func animateToSheetVisible(at velocity: CGPoint) {
         isTransitioning = true
         
-        let anim = sheetHeight.springConstant(to: baseSheetHeight, at: -velocity.y)
-        anim?.springBounciness = 1
-        anim?.springSpeed = 8
-        anim?.completionBlock = {_, _ in
-            self.isTransitioning = false
-            if !self.isSwiping {
-                self.focusTextView()
-            }
-        }
+        sheetHeight.constant = baseSheetHeight
+        isTransitioning = false
+        focusTextView()
     }
     
     @objc func animateToSheetHidden() {
         if isTransitioning || view.superview == nil { return }
-        //        showFakeKeyboard()
-        //        self.dismiss(animated: true)
         transition.direction = .dismiss
         transition.animateTransition(searchVC: self, browserVC: browserVC!, completion: nil)
     }

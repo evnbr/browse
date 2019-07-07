@@ -9,21 +9,18 @@
 import UIKit
 import WebKit
 import OnePasswordExtension
-import pop
 
 // swiftlint:disable:next type_body_length
 class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
-    var tabSwitcher: TabSwitcherViewController
+    let tabManager = TabManager()
 
     let webViewManager = WebViewManager()
     var webView: WKWebView!
-    var snapshotView: UIImageView = UIImageView()
-    var currentTab: Tab
-
+    var currentTab: Tab?
+    
     var topConstraint: NSLayoutConstraint!
     var accessoryHeightConstraint: NSLayoutConstraint!
-    var aspectConstraint: NSLayoutConstraint!
     var statusHeightConstraint: NSLayoutConstraint!
 
     let colorSampler = WebviewColorSampler()
@@ -44,7 +41,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
     var overflowController: UIAlertController!
     var onePasswordExtensionItem: NSExtensionItem!
-    var gestureController: BrowserGestureController!
 
     var navigationToHide: WKNavigation?
 
@@ -94,34 +90,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         }
     }
 
-    func hideUntilNavigationDone(navigation: WKNavigation? ) {
-        isSnapshotMode = true
-        if let nav = navigation {
-            // nav delegate will track and alert when done
-            navigationToHide = nav
-        } else {
-            // probably a javascript navigation, nav delegate can't track
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                self.finishHiddenNavigation()
-            }
-        }
-    }
-    @objc func finishHiddenNavigation() {
-        guard isSnapshotMode else { return }
-        
-        navigationToHide = nil //false
-        colorSampler.updateColors()
-        
-        UIView.animate(withDuration: 0.15, delay: 0, options: [.beginFromCurrentState], animations: {
-            self.isSnapshotMode = false
-        })
-    }
-
     func setVisit(_ visit: Visit, wkItem: WKBackForwardListItem) {
         let list = webView.backForwardList
         if list.currentItem == wkItem { return }
 
-        setSnapshot(visit.snapshot)
         if let color = visit.topColor {
             topColorChange(color, offset: webView.scrollView.contentOffset)
             statusBar.backgroundColor = color
@@ -134,9 +106,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         toolbar.text = visit.url?.displayHost
 
         let nav = webView.go(to: wkItem)
-        hideUntilNavigationDone(navigation: nav)
-        
     }
+
     func canNavigateTo(wkItem: WKBackForwardListItem) -> Bool {
         let list = webView.backForwardList
         return list.currentItem == wkItem
@@ -145,17 +116,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     }
 
     // MARK: - Lifecycle
-
-    init(tabSwitcher: TabSwitcherViewController, tab: Tab) {
-        self.currentTab = tab
-        self.tabSwitcher = tabSwitcher
-        super.init(nibName: nil, bundle: nil)
-        setTab(tab)
-    }
-
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
 
     var progressObserver: NSKeyValueObservation?
     var titleObserver: NSKeyValueObservation?
@@ -178,16 +138,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         currentTab = newTab
         webView = webViewManager.webViewFor(newTab)
 
-        snapshotView.image = newTab.currentVisit?.snapshot
         statusBar.backgroundColor = newTab.currentVisit?.topColor ?? .black
         toolbar.backgroundColor = newTab.currentVisit?.bottomColor ?? .black
 
         webView.navigationDelegate = self
         webView.uiDelegate = self
-        webView.scrollView.delegate = gestureController
         webView.scrollView.isScrollEnabled = true
 
-        contentView.insertSubview(webView, belowSubview: snapshotView)
+        contentView.addSubview(webView)
         topConstraint = webView.topAnchor.constraint(equalTo: statusBar.bottomAnchor)
         topConstraint.isActive = true
 
@@ -204,7 +162,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
         showToolbar(animated: true)
 
-        if let startLocation = currentTab.currentVisit?.url, self.isBlank {
+        if let startLocation = currentTab?.currentVisit?.url, self.isBlank {
             navigateTo(startLocation)
         }
     }
@@ -233,7 +191,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         }
         canGoBackObserver = webView.observe(\.canGoBack) { _, _ in
             UIView.animate(withDuration: 0.25) {
-                self.toolbar.backButton.isEnabled = self.webView.canGoBack || self.currentTab.hasParent
+                self.toolbar.backButton.isEnabled = self.webView.canGoBack || self.currentTab!.hasParent
             }
         }
     }
@@ -254,7 +212,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         let shadowView = UIView(frame: view.bounds)
         shadowView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         shadowView.layer.shadowRadius = Const.shadowRadius
-        shadowView.layer.shadowOpacity = shadowAlpha
+        shadowView.layer.shadowOpacity = 1
 //        shadowView.layer.shouldRasterize = true
         let path = UIBezierPath(roundedRect: view.bounds, cornerRadius: Const.thumbRadius)
         shadowView.layer.shadowPath = path.cgPath
@@ -287,16 +245,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
         contentView.addSubview(toolbarPlaceholder)
 
-        snapshotView.contentMode = .scaleAspectFill
-        snapshotView.translatesAutoresizingMaskIntoConstraints = false
-        snapshotView.frame.size = CGSize(
-            width: cardView.bounds.width,
-            height: cardView.bounds.height - Const.statusHeight - Const.toolbarHeight
-        )
-        let tapSnap = UITapGestureRecognizer(target: self, action: #selector(self.finishHiddenNavigation))
-        snapshotView.addGestureRecognizer(tapSnap)
-
-        contentView.addSubview(snapshotView)
         contentView.addSubview(toolbar)
         contentView.addSubview(statusBar)
         contentView.bringSubview(toFront: statusBar)
@@ -310,15 +258,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         constrainTop3(statusBar, contentView)
         statusHeightConstraint = statusBar.heightAnchor.constraint(equalToConstant: Const.statusHeight)
 
-        snapshotView.alpha = 0
-        aspectConstraint = snapshotView.heightAnchor.constraint(equalTo: snapshotView.widthAnchor, multiplier: 1)
         
         NSLayoutConstraint.activate([
             statusHeightConstraint,
-            aspectConstraint,
-            snapshotView.topAnchor.constraint(equalTo: statusBar.bottomAnchor),
-            snapshotView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            snapshotView.widthAnchor.constraint(equalTo: contentView.widthAnchor),
             toolbar.centerXAnchor.constraint(equalTo: cardView.centerXAnchor),
             toolbar.widthAnchor.constraint(equalTo: cardView.widthAnchor),
             toolbar.bottomAnchor.constraint(equalTo: toolbarPlaceholder.bottomAnchor),
@@ -330,8 +272,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         accessoryView = setupAccessoryView()
 
         colorSampler.delegate = self
-
-        gestureController = BrowserGestureController(for: self)
 
         let searchSwipe = UIPanGestureRecognizer(target: self, action: #selector(showSearchGesture(_:)))
         toolbar.searchField.addGestureRecognizer(searchSwipe)
@@ -347,19 +287,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             name: NSNotification.Name.UIKeyboardWillShow,
             object: nil)
 
-        webViewManager.loadingHandler = { msg in
-//            if msg.webView == self.webView {
-//                print("int")
-//                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-//                    self.finishHiddenNavigation()
-//                }
-//            }
-        }
-        
-//        statusBar.addSubview(statusColorBar.view)
-//        statusColorBar.view.frame = statusBar.bounds
-//        toolbar.insertSubview(toolbarColorBar.view, belowSubview: toolbar.stackView)
-//        toolbarColorBar.view.frame = toolbar.bounds
+        setTab(tabManager.lastTab())
     }
 
     var cardViewDefaultFrame: CGRect {
@@ -387,7 +315,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
                 self.toolbar.contentsAlpha = 0
             }
         )
-        toolbar.heightConstraint.springConstant(to: 0)
+        toolbar.heightConstraint.constant = 0
 //        webView.scrollView.springBottomInset(to: Const.toolbarHeight)
     }
     @objc func tapToolbarPlaceholder() {
@@ -409,13 +337,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 //                    self.webView.scrollView.scrollIndicatorInsets.bottom = 0
                     self.toolbar.contentsAlpha = 1
             })
-            toolbar.heightConstraint.springConstant(to: Const.toolbarHeight)
+            toolbar.heightConstraint.constant = Const.toolbarHeight
 //            webView.scrollView.springBottomInset(to: 0)
             if adjustScroll {
                 let scroll = webView.scrollView
                 var newOffset = scroll.contentOffset
                 newOffset.y = min(scroll.maxScrollY, scroll.contentOffset.y + dist)
-                scroll.springContentOffset(to: newOffset)
+                scroll.setContentOffset(newOffset, animated: true)
             }
         } else {
             toolbar.heightConstraint.constant = Const.toolbarHeight
@@ -437,16 +365,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         toolbar.tabButton.setAction(displayShareSheet)
         toolbar.tintColor = .darkText
         return toolbar
-    }
-
-    func displayHistory() {
-        let historyVC = HistoryTreeViewController()
-        updateSnapshot {
-            historyVC.loadViewIfNeeded() // to set up scrollpos
-            historyVC.treeMaker.loadTabs(selectedTabID: self.currentTab.objectID) {
-                self.present(historyVC, animated: true, completion: nil)
-            }
-        }
     }
 
     func prepareToShowSearch() {
@@ -482,14 +400,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
     func stop() {
         webView.stopLoading()
-        finishHiddenNavigation()
     }
 
     func goBack() {
         if webView.canGoBack {
             webView.goBack()
-        } else if let parent = currentTab.parentTab {
-            gestureController.swapTo(parentTab: parent)
+        } else if let parent = currentTab?.parentTab {
+            setTab(parent)
         }
     }
 
@@ -526,45 +443,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         acc.addSubview(passButton)
 
         return acc
-    }
-
-    var isSnapshotMode: Bool {
-        get {
-            return snapshotView.alpha > 0
-        }
-        set {
-//            self.snapshotView.isHidden = !newValue
-            
-            self.snapshotView.alpha = newValue ? 1 : 0
-            self.webView.alpha = newValue ? 0 : 1
-        }
-    }
-
-    func updateSnapshot(then done: @escaping () -> Void = { }) {
-        guard webView.alpha > 0 else {
-            done()
-            return
-        }
-        // Image snapshot
-        currentTab.updateSnapshot(from: webView) { [weak self] img in
-            self?.setSnapshot(img)
-            done()
-        }
-    }
-
-    func setSnapshot(_ image: UIImage?) {
-        guard let image = image else { return }
-        snapshotView.image = image
-
-        let newAspect = image.size.height / image.size.width
-        if newAspect != aspectConstraint.multiplier {
-            snapshotView.removeConstraint(aspectConstraint)
-            aspectConstraint = snapshotView.heightAnchor.constraint(
-                equalTo: snapshotView.widthAnchor,
-                multiplier: newAspect,
-                constant: 0)
-            aspectConstraint.isActive = true
-        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -629,10 +507,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         toolbar.progress = 0
 
         let nav = webView.load(URLRequest(url: url))
-
-        // Does it feel faster if old page instantle disappears?
-        hideUntilNavigationDone(navigation: nav)
-        snapshotView.image = nil
         
         toolbar.backgroundColor = .black
         statusBar.backgroundColor = .black
@@ -701,10 +575,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         
         if let progress = estimatedProgress {
             toolbar.progress = progress
-            
-            if progress == 1 {
-                finishHiddenNavigation()
-            }
         }
 
         toolbar.isLoading = webView.isLoading
@@ -714,7 +584,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         UIApplication.shared.isNetworkActivityIndicatorVisible = webView.isLoading
 
         HistoryManager.shared.sync(
-            tab: currentTab,
+            tab: currentTab!,
             with: webView.backForwardList
         )
         
@@ -814,10 +684,8 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
     var shouldUpdateSample: Bool {
         return isViewLoaded
             && view.window != nil
-            && !gestureController.isDismissing
             && UIApplication.shared.applicationState == .active
             && webView != nil
-            && !isSnapshotMode
     }
 
     var bottomSamplePosition: CGFloat {
@@ -846,7 +714,7 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
         }
 
         if shouldUpdateSample {
-            currentTab.currentVisit?.topColor = newColor
+            currentTab?.currentVisit?.topColor = newColor
             statusBar.transitionBackground(to: newColor, from: .bottomToTop)
             UIView.animate(withDuration: 0.3, delay: 0, options: [.beginFromCurrentState], animations: {
                 self.setNeedsStatusBarAppearanceUpdate()
@@ -856,7 +724,7 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
 
     func bottomColorChange(_ newColor: UIColor, offset: CGPoint) {
         if shouldUpdateSample {
-            currentTab.currentVisit?.bottomColor = newColor
+            currentTab?.currentVisit?.bottomColor = newColor
             toolbar.transitionBackground(to: newColor, from: .topToBottom)
         }
     }

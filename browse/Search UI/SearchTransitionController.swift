@@ -19,6 +19,11 @@ let textFieldMargin: CGFloat = 40
 
 typealias SearchTransitionCompletionBlock = () -> Void
 
+enum CustomAnimationDirection {
+    case present
+    case dismiss
+}
+
 class SearchTransitionController: NSObject {
     
     var direction: CustomAnimationDirection!
@@ -102,39 +107,29 @@ class SearchTransitionController: NSObject {
             searchVC.shadowView.alpha = isExpanding ? 0 : 1
         }
 
-        let heightAnim = searchVC.sheetHeight.springConstant(
-            to: isExpanding ? searchVC.baseSheetHeight : searchVC.minSheetHeight,
-            at: -velocity.y)
-        let handleAnim = searchVC.textTopMarginConstraint.springConstant(
-            to: isExpanding ? SHEET_TOP_HANDLE_MARGIN : SHEET_TOP_MARGIN)
-        let fieldAnim = searchVC.textViewContainerHeightConstraint.springConstant(
-            to: isExpanding ? searchVC.textHeight: BUTTON_HEIGHT )
-        heightAnim?.springBounciness = 2
-        handleAnim?.springBounciness = 2
-        fieldAnim?.springBounciness = 2
-        
-        heightAnim?.springSpeed = 14
+        searchVC.sheetHeight.constant = isExpanding ? searchVC.baseSheetHeight : searchVC.minSheetHeight
+        searchVC.textTopMarginConstraint.constant = isExpanding ? SHEET_TOP_HANDLE_MARGIN : SHEET_TOP_MARGIN
+        searchVC.textViewContainerHeightConstraint.constant =
+            isExpanding ? searchVC.textHeight: BUTTON_HEIGHT
 
-        handleAnim?.animationDidApplyBlock = { _ in
-            let pct = searchVC.textTopMarginConstraint.constant.progress(
+        let pct = searchVC.textTopMarginConstraint.constant.progress(
                 SHEET_TOP_MARGIN,
                 SHEET_TOP_HANDLE_MARGIN)
-            searchVC.iconEntranceProgress = pct
-            searchVC.dragHandle.alpha = pct
-            searchVC.suggestionTable.alpha = pct
+        searchVC.iconEntranceProgress = pct
+        searchVC.dragHandle.alpha = pct
+        searchVC.suggestionTable.alpha = pct
             
-            searchVC.bottomAttachment.constant = pct.lerp(SHEET_TOP_HANDLE_MARGIN, 0)
+        searchVC.bottomAttachment.constant = pct.lerp(SHEET_TOP_HANDLE_MARGIN, 0)
             
-            searchVC.labelCenterConstraint.constant = pct.lerp(0, -titleHorizontalShift)
-            searchVC.locationLabel.scale = pct.lerp(1, self.fontScaledUp)
-            searchVC.locationLabel.alpha = pct.lerp(1, 0)
+        searchVC.labelCenterConstraint.constant = pct.lerp(0, -titleHorizontalShift)
+        searchVC.locationLabel.scale = pct.lerp(1, self.fontScaledUp)
+        searchVC.locationLabel.alpha = pct.lerp(1, 0)
 
-            searchVC.textCenterConstraint.constant = pct.lerp(titleHorizontalShift, 0)
-            searchVC.textView.setScale(
+        searchVC.textCenterConstraint.constant = pct.lerp(titleHorizontalShift, 0)
+        searchVC.textView.setScale(
                 pct.lerp(self.fontScaledDown, 1),
                 anchorPoint: offsets.anchor)
-            searchVC.textView.alpha = pct.lerp(0, 1)
-        }
+        searchVC.textView.alpha = pct.lerp(0, 1)
 
         if showKeyboard && isExpanding {
             searchVC.focusTextView()

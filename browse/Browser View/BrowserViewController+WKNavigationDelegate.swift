@@ -25,17 +25,6 @@ extension BrowserViewController: WKNavigationDelegate {
 //        print("didFinish")
         
         updateLoadingState()
-        if navigation == navigationToHide {
-            // wait a sec... just because the first navigation is done,
-            // doesnt mean the first paint is done
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                self.finishHiddenNavigation()
-            }
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.updateSnapshot()
-        }
     }
 
     func webView(
@@ -77,9 +66,7 @@ extension BrowserViewController: WKNavigationDelegate {
                 return
             }
             if url.scheme == "http" || url.scheme == "https" || url.scheme == "about" || url.scheme == "data" {
-                self.updateSnapshot {
-                    decisionHandler(.allow)
-                }
+                decisionHandler(.allow)
                 return
             }
 //            if url.scheme == "tel" || url.scheme == "mailto" {
