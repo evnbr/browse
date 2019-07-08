@@ -23,6 +23,9 @@ class ToolbarManager: NSObject, UIScrollViewDelegate {
     var scrollDelta: CGFloat = 0
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         updateToolbar(scrollView)
+        
+        let blockerH = max(0, Const.statusHeight - scrollView.contentOffset.y)
+        vc.overscrollCoverHeightConstraint.constant = blockerH
     }
     
     var shouldUpdateToolbar: Bool {
@@ -31,7 +34,7 @@ class ToolbarManager: NSObject, UIScrollViewDelegate {
             && scrollView.isTracking
             && scrollView.isScrollableY
             && !scrollView.isOverScrolledTop
-            && !vc.webView.isLoading
+//            && !vc.webView.isLoading
             && !vc.isDisplayingSearch
     }
     
@@ -45,6 +48,14 @@ class ToolbarManager: NSObject, UIScrollViewDelegate {
             vc.showToolbar(animated: false)
             return
         }
+        
+        // don't leave a gap below bottom nav
+        if vc.colorSampler.lastFixedResult?.hasBottomNav == true
+            && !vc.isShowingToolbar{
+            vc.showToolbar(animated: false)
+            return
+        }
+        
         if vc.isDisplayingSearch {
             scrollDelta = 0
             prevScrollY = scrollView.contentOffset.y
@@ -55,6 +66,11 @@ class ToolbarManager: NSObject, UIScrollViewDelegate {
         scrollDelta = scrollView.contentOffset.y - prevScrollY
         prevScrollY = scrollView.contentOffset.y
         
+        // only reshow toolbar after swipe up
+//        if vc.toolbar.heightConstraint.constant == 0 {
+//            return
+//        }
+        
         if self.shouldUpdateToolbar {
             var newH: CGFloat
             if scrollView.isOverScrolledBottomWithInset {
@@ -63,7 +79,7 @@ class ToolbarManager: NSObject, UIScrollViewDelegate {
                 newH = Const.toolbarHeight - amtOver
             } else {
                 // Hide on scroll down / show on scroll up
-                newH = vc.toolbar.bounds.height - scrollDelta
+                newH = vc.toolbar.bounds.height - scrollDelta * 2
                 if scrollView.contentOffset.y + Const.toolbarHeight > scrollView.maxScrollY {
                     // print("wouldn't be able to hide in time")
                 }

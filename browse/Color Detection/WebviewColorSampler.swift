@@ -9,7 +9,8 @@
 import Foundation
 import WebKit
 
-let MIN_TIME_BETWEEN_UPDATES = 0.1 //0.15
+let MIN_TIME_BETWEEN_SAMPLE = 0.1 //0.15
+let MIN_TIME_BETWEEN_FIXED = 0.3 //0.15
 
 protocol WebviewColorSamplerDelegate: class {
     var sampledWebView: WKWebView { get }
@@ -20,6 +21,8 @@ protocol WebviewColorSamplerDelegate: class {
     func topColorChange(_ newColor: UIColor, offset: CGPoint)
     func bottomColorChange(_ newColor: UIColor, offset: CGPoint)
     func cancelColorChange()
+    
+    func fixedPositionDidChange(_ result: FixedNavResult)
 }
 
 class WebviewColorSampler: NSObject {
@@ -27,18 +30,33 @@ class WebviewColorSampler: NSObject {
     weak var delegate: WebviewColorSamplerDelegate!
 
     private var colorUpdateTimer: Timer?
+    private var fixedUpdateTimer: Timer?
 
     var top: UIColor = UIColor.clear
     var bottom: UIColor = UIColor.clear
+    
+    var lastFixedResult: FixedNavResult?
 
     var lastSampledColorsTime: CFTimeInterval = 0.0
+    var lastSampledFixedTime: CFTimeInterval = 0.0
 
     func startUpdates() {
         if colorUpdateTimer == nil {
             colorUpdateTimer = Timer.scheduledTimer(
-                timeInterval: MIN_TIME_BETWEEN_UPDATES,
+                timeInterval: MIN_TIME_BETWEEN_SAMPLE,
                 target: self,
                 selector: #selector(self.updateColors),
+                userInfo: nil,
+                repeats: true
+            )
+            colorUpdateTimer?.tolerance = 0.2
+            RunLoop.main.add(colorUpdateTimer!, forMode: RunLoopMode.commonModes)
+        }
+        if fixedUpdateTimer == nil {
+            fixedUpdateTimer = Timer.scheduledTimer(
+                timeInterval: MIN_TIME_BETWEEN_FIXED,
+                target: self,
+                selector: #selector(self.updateFixed),
                 userInfo: nil,
                 repeats: true
             )
@@ -49,19 +67,34 @@ class WebviewColorSampler: NSObject {
 
     func stopUpdates() {
         colorUpdateTimer?.invalidate()
+        fixedUpdateTimer?.invalidate()
+        
         colorUpdateTimer = nil
+        fixedUpdateTimer = nil
+        
         delegate.cancelColorChange()
     }
     
     var sampledWebviewIsLoading: Bool {
         return delegate.sampledWebView.isLoading
     }
+    
+    @objc func updateFixed() {
+        let now = CACurrentMediaTime()
+        guard (now - lastSampledFixedTime) > MIN_TIME_BETWEEN_FIXED else { return }
+        lastSampledFixedTime = now
+
+        delegate.sampledWebView.evaluateFixedNav { (result) in
+            self.lastFixedResult = result
+            self.delegate.fixedPositionDidChange(result)
+        }
+    }
 
     @objc func updateColors() {
         guard delegate.shouldUpdateSample else { return }
 
         let now = CACurrentMediaTime()
-        guard (now - lastSampledColorsTime) > MIN_TIME_BETWEEN_UPDATES else { return }
+        guard (now - lastSampledColorsTime) > MIN_TIME_BETWEEN_SAMPLE else { return }
         lastSampledColorsTime = now
 
         let sampleH: CGFloat = 6

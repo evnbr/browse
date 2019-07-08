@@ -109,8 +109,8 @@ extension WebViewManager: WKScriptMessageHandler {
 }
 
 struct FixedNavResult {
-    let top: Bool
-    let bottom: Bool
+    let hasTopNav: Bool
+    let hasBottomNav: Bool
 }
 extension WKWebView {
     func evaluateFixedNav(_ completionHandler: @escaping (FixedNavResult) -> Void) {
@@ -118,7 +118,9 @@ extension WKWebView {
             if let dict = result as? [String: Bool],
                 let top = dict["top"],
                 let bottom = dict["bottom"] {
-                completionHandler(FixedNavResult(top: top, bottom: bottom))
+                completionHandler(FixedNavResult(
+                    hasTopNav: top,
+                    hasBottomNav: bottom))
             }
         }
     }

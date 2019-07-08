@@ -24,12 +24,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     var topConstraint: NSLayoutConstraint!
     var accessoryHeightConstraint: NSLayoutConstraint!
     var statusHeightConstraint: NSLayoutConstraint!
+    var overscrollCoverHeightConstraint: NSLayoutConstraint!
 
     let colorSampler = WebviewColorSampler()
 
     lazy var searchVC = SearchViewController()
 
     var statusBar: ColorStatusBarView!
+    let overscrollCover = UIView(frame: .zero)
 
     var toolbar: BrowserToolbarView!
     var toolbarPlaceholder = UIView()
@@ -38,8 +40,6 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     var errorView: UIView!
     var cardView: UIView!
     var contentView: UIView!
-    var overlay: UIView!
-    var gradientOverlay: GradientView!
 
     var overflowController: UIAlertController!
     var onePasswordExtensionItem: NSExtensionItem!
@@ -146,7 +146,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         webView.uiDelegate = self
         webView.scrollView.isScrollEnabled = true
 
-        contentView.insertSubview(webView, belowSubview: statusBar)
+        contentView.insertSubview(webView, belowSubview: overscrollCover)
         topConstraint = webView.topAnchor.constraint(equalTo: statusBar.bottomAnchor)
         topConstraint.isActive = true
 
@@ -213,31 +213,17 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         cardView = UIView(frame: cardViewDefaultFrame)
         cardView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 
-        let shadowView = UIView(frame: view.bounds)
-        shadowView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        shadowView.layer.shadowRadius = Const.shadowRadius
-        shadowView.layer.shadowOpacity = 1
-//        shadowView.layer.shouldRasterize = true
-        let path = UIBezierPath(roundedRect: view.bounds, cornerRadius: Const.thumbRadius)
-        shadowView.layer.shadowPath = path.cgPath
-
         contentView = UIView(frame: cardViewDefaultFrame)
         contentView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         contentView.radius = Const.cardRadius
         contentView.layer.masksToBounds = true
         contentView.backgroundColor = .black
 
-        overlay = UIView(frame: view.bounds)
-        overlay.backgroundColor = UIColor.black
-        overlay.alpha = 0
-
-        gradientOverlay = GradientView(frame: view.bounds.insetBy(dx: -60, dy: -60) )
-        gradientOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        gradientOverlay.alpha = 0
-
         view.addSubview(cardView)
-        cardView.addSubview(shadowView)
         cardView.addSubview(contentView)
+        
+        overscrollCover.backgroundColor = .red
+        overscrollCover.translatesAutoresizingMaskIntoConstraints = false
 
         statusBar = ColorStatusBarView()
         toolbar = setUpToolbar()
@@ -248,23 +234,24 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         toolbarPlaceholder.addGestureRecognizer(tap)
 
         contentView.addSubview(toolbarPlaceholder)
-
         contentView.addSubview(toolbar)
         contentView.addSubview(statusBar)
+        contentView.addSubview(overscrollCover)
+
         contentView.bringSubview(toFront: statusBar)
         contentView.bringSubview(toFront: toolbar)
 
-        contentView.addSubview(overlay)
-        constrain4(contentView, overlay)
-
-        cardView.addSubview(gradientOverlay)
-
+        constrainTop3(overscrollCover, contentView)
         constrainTop3(statusBar, contentView)
+        
         statusHeightConstraint = statusBar.heightAnchor.constraint(equalToConstant: Const.statusHeight)
+        
+        overscrollCoverHeightConstraint = overscrollCover.heightAnchor.constraint(equalToConstant: Const.statusHeight)
 
         
         NSLayoutConstraint.activate([
             statusHeightConstraint,
+            overscrollCoverHeightConstraint,
             toolbar.centerXAnchor.constraint(equalTo: cardView.centerXAnchor),
             toolbar.widthAnchor.constraint(equalTo: cardView.widthAnchor),
             toolbar.bottomAnchor.constraint(equalTo: toolbarPlaceholder.bottomAnchor),
@@ -306,12 +293,21 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     func hideToolbar(animated: Bool = true) {
 //        return
         
-        if !webView.scrollView.isScrollableY { return }
-        if webView.isLoading { return }
-//        if toolbar.heightConstraint.constant == 0 { return }
+        if !webView.scrollView.isScrollableY {
+            return
+        }
+        if webView.isLoading {
+            return
+        }
+        if colorSampler.lastFixedResult?.hasBottomNav == true {
+            return
+        }
+        if toolbar.heightConstraint.constant == 0 {
+            return
+        }
 
         toolbar.heightConstraint.constant = 0
-        webviewBottomConstraint.constant = 20
+//        webviewBottomConstraint.constant = 20
 
         UIView.animate(
             withDuration: 0.2,
@@ -376,8 +372,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         searchVC.setBackground(toolbar.backgroundColor)
         searchVC.browserVC = self
         searchVC.transition.direction = .present
-//        cardView.addSubview(searchVC.view)
-        cardView.insertSubview(searchVC.view, belowSubview: gradientOverlay)
+        cardView.addSubview(searchVC.view)
     }
 
     var isDisplayingSearch: Bool {
@@ -452,8 +447,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
     override func viewWillAppear(_ animated: Bool) {
         showToolbar(animated: false)
-        statusBar.backgroundView.alpha = 0.9
-        toolbar.backgroundView.alpha = 0.9
+        statusBar.backgroundView.alpha = 1
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -713,10 +707,14 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
     }
 
     func topColorChange(_ newColor: UIColor, offset: CGPoint) {
-//        if webView.scrollView.isOverScrolledTop {
-//            return
-//        }
+        if webView.scrollView.isOverScrolledTop {
+            return
+        }
 
+        if webView.scrollView.contentOffset.y == 0 {
+            overscrollCover.backgroundColor = newColor
+        }
+        
         if shouldUpdateSample {
             currentTab?.currentVisit?.topColor = newColor
             statusBar.transitionBackground(to: newColor, from: .bottomToTop)
@@ -724,12 +722,18 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
                 self.setNeedsStatusBarAppearanceUpdate()
             })
         }
-        
-        webView.evaluateFixedNav { (result) in
-            self.statusBar.backgroundView.alpha = result.top ? 1 : 0
-//            self.toolbar.backgroundView.alpha = result.bottom ? 1 : 0
+    }
+    
+    func fixedPositionDidChange(_ result: FixedNavResult) {
+        UIView.animate(withDuration: 0.3) {
+            self.statusBar.backgroundView.alpha = result.hasTopNav ? 1 : 0
+            self.overscrollCover.alpha = result.hasTopNav ? 0 : 1
+        }
+        if result.hasBottomNav && !isShowingToolbar {
+            showToolbar()
         }
     }
+
 
     func bottomColorChange(_ newColor: UIColor, offset: CGPoint) {
         if shouldUpdateSample {
