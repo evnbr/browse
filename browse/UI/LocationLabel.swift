@@ -54,21 +54,29 @@ class LocationLabel: UIView {
     
     init() {
         super.init(frame: .zero)
-        let lockImage = UIImage(named: "lock")!.withRenderingMode(.alwaysTemplate)
-        lockIcon = UIImageView(image: lockImage)
+        //        let magnifyImage = UIImage(named: "magnify")!.withRenderingMode(.alwaysTemplate)
+//        let lockImage = UIImage(named: "lock")!.withRenderingMode(.alwaysTemplate)
         
-        let magnifyImage = UIImage(named: "magnify")!.withRenderingMode(.alwaysTemplate)
+        let lockImage = UIImage(systemName: "lock.fill")
+        let magnifyImage = UIImage(systemName: "magnifyingglass")
+
+        let weight = UIImage.SymbolConfiguration(weight: .medium)
+        lockIcon = UIImageView(image: lockImage)
+        lockIcon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(scale: .small)
+        
+
         searchIcon = UIImageView(image: magnifyImage)
+        searchIcon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(scale: .small)
         
         label.text = "Where to?"
         label.font = Const.thumbTitleFont
         label.adjustsFontSizeToFitWidth = false
-        label.setContentHuggingPriority(UILayoutPriority(rawValue: 0), for: .horizontal)
+        label.setContentHuggingPriority(.required, for: .horizontal)
         
         let labelContent = UIStackView()
         labelContent.axis = .horizontal
         labelContent.distribution = .fill
-        labelContent.alignment = .center
+        labelContent.alignment = .firstBaseline
         labelContent.spacing = 4.0
         
         labelContent.addArrangedSubview(lockIcon)

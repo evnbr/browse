@@ -1,5 +1,5 @@
 //
-//  ToolbarManager.swift
+//  ToolbarScrollawayManager.swift
 //  browse
 //
 //  Created by Evan Brooks on 7/7/19.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ToolbarManager: NSObject, UIScrollViewDelegate {
+class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
     var vc: BrowserViewController
 
     init(for vc: BrowserViewController) {
@@ -24,8 +24,13 @@ class ToolbarManager: NSObject, UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         updateToolbar(scrollView)
         
-        let blockerH = max(0, Const.statusHeight - scrollView.contentOffset.y)
-        vc.overscrollCoverHeightConstraint.constant = blockerH
+        let topBlockerH = max(0, Const.statusHeight - scrollView.contentOffset.y)
+        vc.topOverscrollCoverHeightConstraint.constant = topBlockerH
+        
+        let amountOverBottom = scrollView.contentOffset.y - scrollView.maxScrollY
+        let bottomBlockerH = max(0, Const.toolbarHeight + amountOverBottom)
+        vc.bottomOverscrollCoverHeightConstraint.constant = bottomBlockerH
+
     }
     
     var shouldUpdateToolbar: Bool {
@@ -67,9 +72,9 @@ class ToolbarManager: NSObject, UIScrollViewDelegate {
         prevScrollY = scrollView.contentOffset.y
         
         // only reshow toolbar after swipe up
-//        if vc.toolbar.heightConstraint.constant == 0 {
-//            return
-//        }
+        if vc.toolbar.heightConstraint.constant == 0 {
+            return
+        }
         
         if self.shouldUpdateToolbar {
             var newH: CGFloat
@@ -79,7 +84,7 @@ class ToolbarManager: NSObject, UIScrollViewDelegate {
                 newH = Const.toolbarHeight - amtOver
             } else {
                 // Hide on scroll down / show on scroll up
-                newH = vc.toolbar.bounds.height - scrollDelta * 2
+                newH = vc.toolbar.bounds.height - scrollDelta
                 if scrollView.contentOffset.y + Const.toolbarHeight > scrollView.maxScrollY {
                     // print("wouldn't be able to hide in time")
                 }
@@ -88,6 +93,7 @@ class ToolbarManager: NSObject, UIScrollViewDelegate {
             let toolbarH = newH.limit(min: 0, max: Const.toolbarHeight)
             let pct = toolbarH / Const.toolbarHeight
             vc.toolbar.heightConstraint.constant = toolbarH
+            vc.webviewBottomConstraint.constant = max(0, toolbarH)
 //            let inset = -Const.toolbarHeight + toolbarH
 //            scrollView.contentInset.bottom = inset + 100
 //            print(scrollView.contentInset.bottom)

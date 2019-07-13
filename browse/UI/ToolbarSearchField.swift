@@ -65,7 +65,6 @@ class ToolbarSearchField: ToolbarTouchView {
         addSubview(stopButton)
         stopButton.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
         stopButton.frame.origin.x = frame.width - stopButton.frame.width
-
         
         labelHolder.addSubview(locationLabel, constraints: [
             labelHolder.centerYAnchor.constraint(equalTo: centerYAnchor),
@@ -101,22 +100,23 @@ class ToolbarSearchField: ToolbarTouchView {
     }
     
     func renderProgress(animated: Bool) {
+        
         maskLayer.frame = labelHolder.bounds
-        
-        let val = _progress as NSNumber
-        let val2 = (_progress + 0.005) as NSNumber
-        
-        if animated {
-            UIView.animate(withDuration: 0.2) {
-                self.maskLayer.locations = [val, val2]
-            }
-        }
-        else {
-            CATransaction.begin()
-            CATransaction.disableActions()
-            maskLayer.locations = [val, val2]
-            CATransaction.commit()
-        }
+//
+//        let val = _progress as NSNumber
+//        let val2 = (_progress + 0.005) as NSNumber
+//
+//        if animated {
+//            UIView.animate(withDuration: 0.2) {
+//                self.maskLayer.locations = [val, val2]
+//            }
+//        }
+//        else {
+//            CATransaction.begin()
+//            CATransaction.disableActions()
+//            maskLayer.locations = [val, val2]
+//            CATransaction.commit()
+//        }
     }
     
     required init?(coder aDecoder: NSCoder) {

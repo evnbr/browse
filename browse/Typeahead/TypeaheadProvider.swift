@@ -18,10 +18,6 @@ struct TypeaheadSuggestion: Hashable {
     let detail: String?
     let url: URL?
 
-    var hashValue: Int {
-        return url?.hashValue ?? 0
-    }
-
     static func == (lhs: TypeaheadSuggestion, rhs: TypeaheadSuggestion) -> Bool {
         return lhs.url == rhs.url
     }
@@ -75,6 +71,7 @@ class TypeaheadProvider: NSObject {
                     return false
                 }
             }
+            assert(sorted.count > 0, "Sorted has no members")
             let suggestions = Array(sorted[..<min(sorted.count, maxCount)])
             DispatchQueue.main.async { completion(suggestions) }
         }

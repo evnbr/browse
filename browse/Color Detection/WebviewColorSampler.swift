@@ -84,10 +84,10 @@ class WebviewColorSampler: NSObject {
         guard (now - lastSampledFixedTime) > MIN_TIME_BETWEEN_FIXED else { return }
         lastSampledFixedTime = now
 
-        delegate.sampledWebView.evaluateFixedNav { (result) in
-            self.lastFixedResult = result
-            self.delegate.fixedPositionDidChange(result)
-        }
+//        delegate.sampledWebView.evaluateFixedNav { (result) in
+//            self.lastFixedResult = result
+//            self.delegate.fixedPositionDidChange(result)
+//        }
     }
 
     @objc func updateColors() {
