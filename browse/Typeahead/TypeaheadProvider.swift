@@ -64,16 +64,25 @@ class TypeaheadProvider: NSObject {
 
         let maybeCompletion = {
             guard isHistoryLoaded && isSuggestionLoaded else { return }
-            let sorted = (searchSuggestions + historySuggestions).sorted {
+            let allSuggestions = searchSuggestions + historySuggestions
+            guard allSuggestions.count > 0 else {
+                DispatchQueue.main.async {
+                    completion([])
+                }
+                return
+            }
+            let sortedSuggestions = allSuggestions.sorted {
                 if let scoreA = suggestionScore[$0], let scoreB = suggestionScore[$1] {
                     return scoreA > scoreB
                 } else {
                     return false
                 }
             }
-            assert(sorted.count > 0, "Sorted has no members")
-            let suggestions = Array(sorted[..<min(sorted.count, maxCount)])
-            DispatchQueue.main.async { completion(suggestions) }
+            
+            let topSuggestions = sortedSuggestions[..<min(sortedSuggestions.count, maxCount)]
+            DispatchQueue.main.async {
+                completion(Array(topSuggestions))
+            }
         }
 
         HistoryManager.shared.findItemsMatching(text) { visits in
