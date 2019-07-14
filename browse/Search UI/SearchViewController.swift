@@ -190,7 +190,7 @@ class SearchViewController: UIViewController {
 
         setBackground(defaultBackground)
         updateTextViewSize()
-        view.layoutIfNeeded()
+//        view.layoutIfNeeded()
     }
 
     func setupActions() {

@@ -622,7 +622,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         if newValue == 1 {
             UIView.animate(withDuration: 0.2, delay: 0.3, options: .curveEaseInOut, animations: {
                 self.progressView.alpha = 0
-            }, completion: nil)
+            }, completion: { _ in
+                self.progressView.setProgress(0, animated: false)
+            })
         }
         
         lastProgress = newValue
@@ -757,9 +759,9 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
         if shouldUpdateSample {
             currentTab?.currentVisit?.topColor = newColor
             statusBar.transitionBackground(to: newColor, from: .bottomToTop)
-            UIView.animate(withDuration: 0.6, delay: 0, options: [.beginFromCurrentState], animations: {
+//            UIView.animate(withDuration: 0.3, delay: 0, options: [.beginFromCurrentState], animations: {
                 self.setNeedsStatusBarAppearanceUpdate()
-            })
+//            })
             progressView.tintColor = newColor.isLight ? .white : .darkText
         }
     }
