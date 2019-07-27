@@ -344,13 +344,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         showToolbar(adjustScroll: true)
     }
     func showToolbar(animated: Bool = true, adjustScroll: Bool = false) {
-//        return
-        
-//        if toolbar.heightConstraint.constant == Const.toolbarHeight { return }
-
         let dist = Const.toolbarHeight - toolbar.heightConstraint.constant
 
-        webviewBottomConstraint.constant = Const.toolbarHeight
         toolbar.heightConstraint.constant = Const.toolbarHeight
 
         if animated {
@@ -360,8 +355,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
                 options: [.curveEaseInOut, .allowAnimatedContent],
                 animations: {
                     self.cardView.layoutIfNeeded()
-//                    self.webView.scrollView.scrollIndicatorInsets.bottom = 0
                     self.toolbar.contentsAlpha = 1
+            }, completion: { _ in
+                self.webviewBottomConstraint.constant = Const.toolbarHeight
             })
             if adjustScroll {
                 let scroll = webView.scrollView
