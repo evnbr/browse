@@ -508,10 +508,20 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     // MARK: - Share ActivityViewController and 1Password
 
     @objc func displayShareSheet() {
-        self.resignFirstResponder() // without this, action sheet dismiss animation won't go all the way
-        makeShareSheet { avc in
-            self.present(avc, animated: true, completion: nil)
-        }
+        let avc = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        avc.view.tintColor = UIColor.label
+        
+        avc.addAction(UIAlertAction.init(title: "Copy URL", style: .default, handler: { _ in
+            self.copyURL()
+        }))
+        avc.addAction(UIAlertAction.init(title: "Share", style: .default, handler: { _ in
+//            self.resignFirstResponder() // without this, action sheet dismiss animation won't go all the way
+            self.makeShareSheet { avc in
+                self.present(avc, animated: true, completion: nil)
+            }
+        }))
+        avc.addAction(UIAlertAction.init(title: "Cancel", style: .cancel, handler: nil))
+        present(avc, animated: true, completion: nil)
     }
 
     // MARK: - Webview State
