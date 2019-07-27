@@ -18,7 +18,7 @@ let textFieldInnerMargin: CGFloat = 12
 let textFieldRoomForIcons: CGFloat = 56
 
 let SHEET_TOP_HANDLE_MARGIN: CGFloat = 28
-let SHEET_TOP_MARGIN: CGFloat = 8
+let SHEET_TOP_MARGIN: CGFloat = 4
 
 
 // https://medium.com/@nguyenminhphuc/how-to-pass-ui-events-through-views-in-ios-c1be9ab1626b
@@ -663,8 +663,19 @@ extension SearchViewController: UIGestureRecognizerDelegate {
         isTransitioning = true
         
         sheetHeight.constant = baseSheetHeight
-        isTransitioning = false
-        focusTextView()
+        UIView.animate(
+            withDuration: 0.5,
+            delay: 0.0,
+            usingSpringWithDamping: 1,
+            initialSpringVelocity: 0.0,
+            options: [.curveLinear],
+            animations: {
+                self.view.layoutIfNeeded()
+                self.textView.becomeFirstResponder()
+        }, completion: { _ in
+            self.isTransitioning = false
+            self.focusTextView()
+        });
     }
     
     @objc func animateToSheetHidden() {

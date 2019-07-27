@@ -102,7 +102,6 @@ class SearchTransitionController: NSObject {
         
         browserVC.toolbar.backgroundView.alpha = 1
         browserVC.toolbar.contentsAlpha = 0
-//        searchVC.scrim.alpha = isExpanding ? 0 : 1
         if !self.isPreExpanded {
             searchVC.shadowView.alpha = isExpanding ? 0 : 1
         }
@@ -115,22 +114,11 @@ class SearchTransitionController: NSObject {
         let pct = searchVC.textTopMarginConstraint.constant.progress(
                 SHEET_TOP_MARGIN,
                 SHEET_TOP_HANDLE_MARGIN)
-        searchVC.iconEntranceProgress = pct
-        searchVC.dragHandle.alpha = pct
-        searchVC.suggestionTable.alpha = pct
-            
+        
         searchVC.bottomAttachment.constant = pct.lerp(SHEET_TOP_HANDLE_MARGIN, 0)
-            
         searchVC.labelCenterConstraint.constant = pct.lerp(0, -titleHorizontalShift)
-        searchVC.locationLabel.scale = pct.lerp(1, self.fontScaledUp)
-        searchVC.locationLabel.alpha = pct.lerp(1, 0)
-
         searchVC.textCenterConstraint.constant = pct.lerp(titleHorizontalShift, 0)
-        searchVC.textView.setScale(
-                pct.lerp(self.fontScaledDown, 1),
-                anchorPoint: offsets.anchor)
-        searchVC.textView.alpha = pct.lerp(0, 1)
-
+        
         if showKeyboard && isExpanding {
             searchVC.focusTextView()
         }
@@ -160,18 +148,26 @@ class SearchTransitionController: NSObject {
             initialSpringVelocity: 0.0,
             options: [.curveLinear],
             animations: {
-//                searchVC.view.layoutIfNeeded()
+                searchVC.textView.alpha = pct.lerp(0, 1)
+                searchVC.locationLabel.alpha = pct.lerp(1, 0)
+                searchVC.iconEntranceProgress = pct
+                searchVC.dragHandle.alpha = pct
+                searchVC.suggestionTable.alpha = pct
+                
+                searchVC.locationLabel.scale = pct.lerp(1, self.fontScaledUp)
+                searchVC.textView.setScale(
+                    pct.lerp(self.fontScaledDown, 1),
+                    anchorPoint: offsets.anchor)
+                
                 searchVC.pageActionView.alpha = self.isExpanding ? 1 : 0
                 searchVC.shadowView.alpha = self.isExpanding ? 1 : 0
                 
                 searchVC.textViewFill.backgroundColor = self.isExpanding ? fieldColor : .clear
                 searchVC.scrim.alpha = self.isExpanding ? 1 : 0
-//                searchVC.textView.alpha = self.isExpanding ? 1 : 0
-//                searchVC.locationLabel.alpha = self.isExpanding ? 0 : 1
-//                searchVC.locationLabel.scale = self.isExpanding ? self.fontScaledUp : 1
-//                searchVC.textView.scale = self.isExpanding ? 1 : self.fontScaledDown
 
                 searchVC.textView.mask?.frame = self.isExpanding ? maskEndFrame : maskStartFrame
+
+                searchVC.view.layoutIfNeeded()
 
                 if self.isDismissing {
                     searchVC.textView.resignFirstResponder()
