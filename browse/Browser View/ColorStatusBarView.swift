@@ -11,7 +11,6 @@ import UIKit
 
 class ColorStatusBarView: GradientColorChangeView {
     var blurView: UIVisualEffectView!
-    var label: UILabel!
 
     init() {
         let rect = CGRect(
@@ -26,26 +25,12 @@ class ColorStatusBarView: GradientColorChangeView {
 
         let blur = PlainBlurView(frame: bounds)
         blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        addSubview(blur)
-        sendSubview(toBack: blur)
-
-        label = UILabel(frame: CGRect(
-            x: 24 ,
-            y: 12,
-            width: frame.width - 48,
-            height: 24
-        ))
-        label.text = "Blank"
-        label.alpha = 0
-        label.font = Const.thumbTitleFont
-        label.textColor = .darkText
-        label.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
-        self.addSubview(label)
+//        addSubview(blur)
+//        sendSubview(toBack: blur)
     }
 
     override func tintColorDidChange() {
         super.tintColorDidChange()
-        label.textColor = tintColor
     }
 
     required init?(coder aDecoder: NSCoder) {

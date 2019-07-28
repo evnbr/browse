@@ -15,14 +15,10 @@ class BrowserToolbarView: ColorToolbarView {
     var stopButton: ToolbarIconButton!
     var tabButton: ToolbarIconButton!
     var searchField: ToolbarSearchField!
-
+    
     var text: String? {
         get { return searchField.text }
         set { searchField.text = newValue }
-    }
-    var progress: CGFloat {
-        get { return searchField.progress }
-        set { searchField.progress = newValue }
     }
 
     var contentsAlpha: CGFloat {
@@ -51,7 +47,7 @@ class BrowserToolbarView: ColorToolbarView {
             isStopVisible = newValue
         }
     }
-
+    
     private var isStopVisible: Bool {
         get { return self.stopButton.isEnabled }
         set {
@@ -66,11 +62,6 @@ class BrowserToolbarView: ColorToolbarView {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-//        let blur = PlainBlurView(frame: bounds)
-//        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-//        addSubview(blur)
-//        sendSubview(toBack: blur)
-
         translatesAutoresizingMaskIntoConstraints = false
         heightConstraint = heightAnchor.constraint(equalToConstant: Const.toolbarHeight)
         heightConstraint.isActive = true
@@ -81,19 +72,16 @@ class BrowserToolbarView: ColorToolbarView {
 
         stopButton = searchField.stopButton
         toolbarItems = [backButton, searchField, tabButton]
-
+        
         // Initial values
         isLoading = false
-        progress = 1
     }
 
     override func tintColorDidChange() {
         super.tintColorDidChange()
-        subviews.forEach { (v) in
-            v.tintColor = tintColor
-        }
+        subviews.forEach { $0.tintColor = tintColor }
     }
-
+    
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

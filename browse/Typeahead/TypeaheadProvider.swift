@@ -18,10 +18,6 @@ struct TypeaheadSuggestion: Hashable {
     let detail: String?
     let url: URL?
 
-    var hashValue: Int {
-        return url?.hashValue ?? 0
-    }
-
     static func == (lhs: TypeaheadSuggestion, rhs: TypeaheadSuggestion) -> Bool {
         return lhs.url == rhs.url
     }
@@ -68,15 +64,25 @@ class TypeaheadProvider: NSObject {
 
         let maybeCompletion = {
             guard isHistoryLoaded && isSuggestionLoaded else { return }
-            let sorted = (searchSuggestions + historySuggestions).sorted {
+            let allSuggestions = searchSuggestions + historySuggestions
+            guard allSuggestions.count > 0 else {
+                DispatchQueue.main.async {
+                    completion([])
+                }
+                return
+            }
+            let sortedSuggestions = allSuggestions.sorted {
                 if let scoreA = suggestionScore[$0], let scoreB = suggestionScore[$1] {
                     return scoreA > scoreB
                 } else {
                     return false
                 }
             }
-            let suggestions = Array(sorted[..<min(sorted.count, maxCount)])
-            DispatchQueue.main.async { completion(suggestions) }
+            
+            let topSuggestions = sortedSuggestions[..<min(sortedSuggestions.count, maxCount)]
+            DispatchQueue.main.async {
+                completion(Array(topSuggestions))
+            }
         }
 
         HistoryManager.shared.findItemsMatching(text) { visits in

@@ -18,17 +18,17 @@ extension BrowserViewController: WKUIDelegate {
         windowFeatures: WKWindowFeatures) -> WKWebView? {
 
         if navigationAction.targetFrame == nil {
-            let newTab = tabSwitcher.createTab()
+            let newTab = tabManager.createTab()
             newTab.parentTab = currentTab
             let newWebView = webViewManager.addWebView(for: newTab, with: configuration)
             DispatchQueue.main.async {
-                self.gestureController.swapTo(childTab: newTab)
+                self.setTab(newTab)
             }
             return newWebView
         }
         return nil
     }
-
+    
     func webViewDidClose(_ webView: WKWebView) {
         print("Tried to close window")
     }

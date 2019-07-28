@@ -5,6 +5,5 @@
 // need to import coregraphics first for some reason per https://stackoverflow.com/questions/45600451/wkwebviews-beta-takesnapshot-method-how-to-implement
 @import CoreGraphics;
 
-#import <UITextView_Placeholder/UITextView+Placeholder.h>
 #import <WebKit/WKSnapshotConfiguration.h>
 

@@ -86,10 +86,11 @@ class WebViewManager: NSObject {
     private func createWebView(with config: WKWebViewConfiguration) -> WKWebView {
         let webView = WKWebView(frame: UIScreen.main.bounds, configuration: config)
         webView.translatesAutoresizingMaskIntoConstraints = false
+        webView.allowsBackForwardNavigationGestures = true
         webView.scrollView.contentInset = .zero
         webView.scrollView.contentInsetAdjustmentBehavior = .never
-//        webView.scrollView.clipsToBounds = false
-        webView.scrollView.alwaysBounceHorizontal = true
+        webView.scrollView.clipsToBounds = false
+//        webView.scrollView.alwaysBounceHorizontal = true
         webView.allowsLinkPreview = false
         webView.customUserAgent = USER_AGENT
 
@@ -108,8 +109,8 @@ extension WebViewManager: WKScriptMessageHandler {
 }
 
 struct FixedNavResult {
-    let top: Bool
-    let bottom: Bool
+    let hasTopNav: Bool
+    let hasBottomNav: Bool
 }
 extension WKWebView {
     func evaluateFixedNav(_ completionHandler: @escaping (FixedNavResult) -> Void) {
@@ -117,7 +118,9 @@ extension WKWebView {
             if let dict = result as? [String: Bool],
                 let top = dict["top"],
                 let bottom = dict["bottom"] {
-                completionHandler(FixedNavResult(top: top, bottom: bottom))
+                completionHandler(FixedNavResult(
+                    hasTopNav: top,
+                    hasBottomNav: bottom))
             }
         }
     }

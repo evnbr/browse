@@ -95,7 +95,6 @@ class PlaceholderView: UIView {
         setSnapshot(page.snapshot)
         if let color = page.topColor { statusBar.backgroundColor = color }
         if let color = page.bottomColor { toolbarView.backgroundColor = color }
-        statusBar.label.text = page.title
         toolbarView.text = page.url?.displayHost
     }
 
