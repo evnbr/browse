@@ -208,6 +208,16 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         dragStartScrollY = scrollView.contentOffset.y
     }
     
+    func updateStatusBarColor() {
+        UIView.animate(withDuration: 0.3, delay: 0, options: [.beginFromCurrentState], animations: {
+            self.vc.setNeedsStatusBarAppearanceUpdate()
+        })
+    }
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        updateStatusBarColor()
+    }
+    
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         guard !scrollView.isOverScrolledTop else { return }
         
@@ -233,6 +243,10 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
             hideToolbar()
         } else if dragAmount < -1 {
             showToolbar()
+        }
+        
+        if !decelerate {
+            updateStatusBarColor()
         }
     }
 }

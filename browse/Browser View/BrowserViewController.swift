@@ -721,7 +721,7 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
 //            toolbar.transitionBackground(to: newColor, from: .bottomToTop)
             statusBar.transitionBackground(to: newColor, from: .bottomToTop)
 //            UIView.animate(withDuration: 0.3, delay: 0, options: [.beginFromCurrentState], animations: {
-                self.setNeedsStatusBarAppearanceUpdate()
+//                self.setNeedsStatusBarAppearanceUpdate()
 //            })
             progressView.tintColor = newColor.isLight ? .white : .darkText
         }
