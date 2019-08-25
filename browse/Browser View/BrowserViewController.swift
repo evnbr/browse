@@ -724,6 +724,9 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
 //                self.setNeedsStatusBarAppearanceUpdate()
 //            })
             progressView.tintColor = newColor.isLight ? .white : .darkText
+            if !webView.scrollView.isTracking && !webView.scrollView.isDecelerating {
+                toolbarManager.updateStatusBarColor()
+            }
         }
     }
 

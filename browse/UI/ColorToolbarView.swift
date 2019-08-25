@@ -40,7 +40,7 @@ class ColorToolbarView: GradientColorChangeView {
             stackView.trailingAnchor.constraint(
                 equalTo: guide.trailingAnchor,
                 constant: -toolbarInset),
-            stackView.topAnchor.constraint(equalTo: self.topAnchor, constant: 4)
+            stackView.topAnchor.constraint(equalTo: self.topAnchor, constant: 8)
         ])
     }
 

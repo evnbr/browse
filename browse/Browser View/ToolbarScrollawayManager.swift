@@ -63,7 +63,6 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
             && scrollView.isTracking
             && scrollView.isScrollableY
             && !scrollView.isOverScrolledTop
-//            && !vc.webView.isLoading
             && !vc.isDisplayingSearch
     }
     
@@ -84,8 +83,9 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         }
         
         vc.toolbar.heightConstraint.constant = 0
-        //        webviewBottomConstraint.constant = 0
-        
+        vc.topConstraint.constant = 0
+//        vc.additionalSafeAreaInsets.top = 0
+
         UIView.animate(
             withDuration: 0.2,
             delay: 0,
@@ -94,8 +94,9 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
                 self.vc.cardView.layoutIfNeeded()
                 self.vc.webView.scrollView.horizontalScrollIndicatorInsets.bottom = -Const.toolbarHeight
                 self.vc.toolbar.contentsAlpha = 0
-        }
-        )
+        }, completion: { _ in
+            self.vc.additionalSafeAreaInsets.top = 0
+        })
         
         //        webView.scrollView.springBottomInset(to: Const.toolbarHeight)
     }
@@ -106,9 +107,8 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         let dist = Const.toolbarHeight - vc.toolbar.heightConstraint.constant
         
         vc.toolbar.heightConstraint.constant = Const.toolbarHeight
-        
         vc.topConstraint.constant = -Const.toolbarHeight
-        self.vc.additionalSafeAreaInsets.top = Const.toolbarHeight
+//        vc.additionalSafeAreaInsets.top = Const.toolbarHeight
 
         if animated {
             UIView.animate(
@@ -122,6 +122,7 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
                     self.vc.toolbar.contentsAlpha = 1
 
             }, completion: { _ in
+                self.vc.additionalSafeAreaInsets.top = Const.toolbarHeight
             })
             if adjustScroll {
                 let scroll = vc.webView.scrollView
