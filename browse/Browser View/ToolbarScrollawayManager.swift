@@ -10,11 +10,15 @@ import UIKit
 
 extension UIScrollView {
     func setContentOffsetWithoutDelegate(_ newContentOffset: CGPoint) {
-        
+//        print("set without delegate: \(newContentOffset)")
+
         let lastDelegate = delegate;
         delegate = nil;
-        contentOffset = newContentOffset;
+        setContentOffset(newContentOffset, animated: false);
         delegate = lastDelegate;
+//        var rect = bounds;
+//        rect.origin = newContentOffset;
+//        bounds = rect;
     }
 }
 
@@ -120,9 +124,12 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         }
     }
 
-    
+    var isUpdating = false;
     func updateToolbar(_ scrollView: UIScrollView) {
 //        return
+        
+//        print("delegate called: \(scrollView.contentOffset)")
+
         
         // Navigated to page that is not scrollable
         if scrollView.contentOffset.y == 0
@@ -168,6 +175,7 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
                 }
             }
             
+            let currentH = vc.toolbar.heightConstraint.constant
             let toolbarH = newH.limit(min: 0, max: Const.toolbarHeight)
             let pct = toolbarH / Const.toolbarHeight
             vc.toolbar.heightConstraint.constant = toolbarH
@@ -176,12 +184,15 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
             vc.topConstraint.constant = -toolbarH
             vc.additionalSafeAreaInsets.top = 0 + toolbarH
             
-//        scrollView.setContentOffsetWithoutDelegate(
-//            CGPoint(
-//                x: scrollView.contentOffset.x,
-//                y: scrollView.contentOffset.y - scrollDelta
-//            )
-//        )
+            let hDelta = currentH - toolbarH
+            
+            scrollView.setContentOffsetWithoutDelegate(
+                CGPoint(
+                    x: scrollView.contentOffset.x,
+                    y: scrollView.contentOffset.y + hDelta
+                )
+            )
+            prevScrollY += hDelta
 //            scrollView.contentInset.bottom = inset + 100
 //            print(scrollView.contentInset.bottom)
 //            scrollView.verticalScrollIndicatorInsets.bottom = inset
