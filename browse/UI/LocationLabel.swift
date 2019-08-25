@@ -60,7 +60,7 @@ class LocationLabel: UIView {
         let lockImage = UIImage(systemName: "lock.fill")
         let magnifyImage = UIImage(systemName: "magnifyingglass")
 
-        let weight = UIImage.SymbolConfiguration(weight: .medium)
+//        let weight = UIImage.SymbolConfiguration(weight: .medium)
         lockIcon = UIImageView(image: lockImage)
         lockIcon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(scale: .small)
         
@@ -76,7 +76,7 @@ class LocationLabel: UIView {
         let labelContent = UIStackView()
         labelContent.axis = .horizontal
         labelContent.distribution = .fill
-        labelContent.alignment = .firstBaseline
+        labelContent.alignment = .center //.firstBaseline
         labelContent.spacing = 4.0
         
         labelContent.addArrangedSubview(lockIcon)

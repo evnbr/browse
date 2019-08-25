@@ -15,7 +15,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
     let tabManager = TabManager()
     var toolbarManager: ToolbarScrollawayManager!
-    var webviewBottomConstraint: NSLayoutConstraint!
+//    var webviewBottomConstraint: NSLayoutConstraint!
     let webViewManager = WebViewManager()
     
     var webView: WKWebView!
@@ -152,15 +152,17 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         webView.scrollView.isScrollEnabled = true
 
         contentView.insertSubview(webView, belowSubview: statusBar)
-        topConstraint = webView.topAnchor.constraint(equalTo: statusBar.bottomAnchor)
+//        topConstraint = webView.topAnchor.constraint(equalTo: statusBar.bottomAnchor, constant: 0)
+        topConstraint = webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 0)
         topConstraint.isActive = true
 
         webView.leftAnchor.constraint(equalTo: cardView.leftAnchor).isActive = true
         webView.rightAnchor.constraint(equalTo: cardView.rightAnchor).isActive = true
 //        webView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -Const.toolbarHeight).isActive = true
-        webviewBottomConstraint = cardView.bottomAnchor.constraint(equalTo: webView.bottomAnchor, constant: 20)
-        webviewBottomConstraint.isActive = true
-//        webView.bottomAnchor.constraint(equalTo: toolbar.topAnchor, constant: 0).isActive = true
+//        webviewBottomConstraint = cardView.bottomAnchor.constraint(equalTo: webView.bottomAnchor, constant: 0)
+//        webviewBottomConstraint.isActive = true
+//
+        webView.heightAnchor.constraint(equalTo: cardView.heightAnchor, constant: 0).isActive = true
         toolbarPlaceholder.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
 
 //        webView.addInputAccessory(toolbar: accessoryView)
@@ -168,7 +170,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         observeLoadingChanges(for: webView)
         updateLoadingState()
 
-        showToolbar(animated: true)
+        toolbarManager.showToolbar(animated: true)
 
         if let startLocation = currentTab?.currentVisit?.url, self.isBlank {
             navigateTo(startLocation)
@@ -254,6 +256,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         constrainTop3(statusBar, contentView)
         
         progressView.trackTintColor = .clear
+        progressView.layer.sublayers![1].cornerRadius = 2
+        progressView.subviews[1].clipsToBounds = true
+
         progressView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(progressView)
         
@@ -262,6 +267,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         topOverscrollCoverHeightConstraint = topOverscrollCover.heightAnchor.constraint(equalToConstant: Const.statusHeight)
         bottomOverscrollCoverHeightConstraint = bottomOverscrollCover.heightAnchor.constraint(equalToConstant: Const.toolbarHeight)
 
+//        toolbar.heightConstraint.constant = 40
+        
+        additionalSafeAreaInsets.top = 20
+//        additionalSafeAreaInsets.bottom = 60
         
         NSLayoutConstraint.activate([
             statusHeightConstraint,
@@ -270,12 +279,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             toolbar.centerXAnchor.constraint(equalTo: cardView.centerXAnchor),
             toolbar.widthAnchor.constraint(equalTo: cardView.widthAnchor),
             toolbar.bottomAnchor.constraint(equalTo: toolbarPlaceholder.bottomAnchor),
+            toolbarPlaceholder.bottomAnchor.constraint(equalTo: cardView.bottomAnchor),
             toolbarPlaceholder.leftAnchor.constraint(equalTo: cardView.leftAnchor),
             toolbarPlaceholder.rightAnchor.constraint(equalTo: cardView.rightAnchor),
             toolbarPlaceholder.heightAnchor.constraint(equalToConstant: Const.toolbarHeight),
-            progressView.topAnchor.constraint(equalTo: statusBar.bottomAnchor),
-            progressView.leadingAnchor.constraint(equalTo: statusBar.leadingAnchor),
-            progressView.trailingAnchor.constraint(equalTo: statusBar.trailingAnchor),
+            progressView.topAnchor.constraint(equalTo: statusBar.bottomAnchor, constant: -2),
+            progressView.centerXAnchor.constraint(equalTo: statusBar.centerXAnchor),
+            progressView.widthAnchor.constraint(equalToConstant: 120),
+//            progressView.leadingAnchor.constraint(equalTo: statusBar.leadingAnchor, constant: 16),
+//            progressView.trailingAnchor.constraint(equalTo: statusBar.trailingAnchor, constant: -16),
         ])
 
         accessoryView = setupAccessoryView()
@@ -308,66 +320,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         )
     }
 
-    func hideToolbar(animated: Bool = true) {
-//        return
-        
-        if !webView.scrollView.isScrollableY {
-            return
-        }
-        if webView.isLoading {
-            return
-        }
-        if colorSampler.lastFixedResult?.hasBottomNav == true {
-            return
-        }
-        if toolbar.heightConstraint.constant == 0 {
-            return
-        }
-
-        toolbar.heightConstraint.constant = 0
-        webviewBottomConstraint.constant = 0
-
-        UIView.animate(
-            withDuration: 0.2,
-            delay: 0,
-            options: .curveEaseInOut,
-            animations: {
-                self.cardView.layoutIfNeeded()
-//                self.webView.scrollView.scrollIndicatorInsets.bottom = -Const.toolbarHeight
-                self.toolbar.contentsAlpha = 0
-            }
-        )
-
-//        webView.scrollView.springBottomInset(to: Const.toolbarHeight)
-    }
     @objc func tapToolbarPlaceholder() {
-        showToolbar(adjustScroll: true)
-    }
-    func showToolbar(animated: Bool = true, adjustScroll: Bool = false) {
-        let dist = Const.toolbarHeight - toolbar.heightConstraint.constant
-
-        toolbar.heightConstraint.constant = Const.toolbarHeight
-
-        if animated {
-            UIView.animate(
-                withDuration: animated ? 0.2 : 0,
-                delay: 0,
-                options: [.curveEaseInOut, .allowAnimatedContent],
-                animations: {
-                    self.cardView.layoutIfNeeded()
-                    self.toolbar.contentsAlpha = 1
-            }, completion: { _ in
-                self.webviewBottomConstraint.constant = Const.toolbarHeight
-            })
-            if adjustScroll {
-                let scroll = webView.scrollView
-                var newOffset = scroll.contentOffset
-                newOffset.y = min(scroll.maxScrollY, scroll.contentOffset.y + dist)
-                scroll.setContentOffset(newOffset, animated: true)
-            }
-        } else {
-            toolbar.contentsAlpha = 1
-        }
+        toolbarManager.showToolbar(adjustScroll: true)
     }
 
     func setUpToolbar() -> BrowserToolbarView {
@@ -462,12 +416,12 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
     }
 
     override func viewWillAppear(_ animated: Bool) {
-        showToolbar(animated: false)
+        toolbarManager.showToolbar(animated: false)
         statusBar.backgroundView.alpha = 1
     }
 
     override func viewWillDisappear(_ animated: Bool) {
-        hideToolbar()
+        toolbarManager.hideToolbar()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -594,7 +548,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         toolbar.text = self.displayLocation
 
         if self.webView.isLoading {
-            showToolbar()
+            toolbarManager.showToolbar()
         }
         
         if let progress = estimatedProgress {
@@ -764,6 +718,7 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
         
         if shouldUpdateSample {
             currentTab?.currentVisit?.topColor = newColor
+//            toolbar.transitionBackground(to: newColor, from: .bottomToTop)
             statusBar.transitionBackground(to: newColor, from: .bottomToTop)
 //            UIView.animate(withDuration: 0.3, delay: 0, options: [.beginFromCurrentState], animations: {
                 self.setNeedsStatusBarAppearanceUpdate()
@@ -797,7 +752,7 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
 //            self.bottomOverscrollCover.alpha = result.hasBottomNav ? 0 : 1
         }
         if result.hasBottomNav && !isShowingToolbar {
-            showToolbar()
+            toolbarManager.showToolbar()
         }
     }
 

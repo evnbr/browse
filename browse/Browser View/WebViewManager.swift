@@ -88,10 +88,10 @@ class WebViewManager: NSObject {
         webView.translatesAutoresizingMaskIntoConstraints = false
         webView.allowsBackForwardNavigationGestures = true
         webView.scrollView.contentInset = .zero
-        webView.scrollView.contentInsetAdjustmentBehavior = .never
-        webView.scrollView.clipsToBounds = false
+        webView.scrollView.contentInsetAdjustmentBehavior = .always //never
+//        webView.scrollView.clipsToBounds = false
 //        webView.scrollView.alwaysBounceHorizontal = true
-        webView.allowsLinkPreview = false
+//        webView.allowsLinkPreview = false
         webView.customUserAgent = USER_AGENT
 
         return webView

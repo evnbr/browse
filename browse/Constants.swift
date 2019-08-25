@@ -25,8 +25,8 @@ class Constants: NSObject {
 
     var thumbRadius: CGFloat
     let textFieldFont: UIFont = .systemFont(ofSize: 17)
-    let thumbTitleFont: UIFont = .systemFont(ofSize: 17)
-//    let thumbTitleFont : UIFont = .systemFont(ofSize: 14.0, weight: .medium)
+//    let thumbTitleFont: UIFont = .systemFont(ofSize: 17)
+    let thumbTitleFont : UIFont = .systemFont(ofSize: 16.0, weight: .medium)
 
     var cardRadius: CGFloat
 
@@ -36,7 +36,7 @@ class Constants: NSObject {
     override init() {
         let topInset = UIApplication.shared.keyWindow?.safeAreaInsets.top
         let isX = topInset != nil && topInset! > CGFloat(0.0)
-        toolbarHeight = 70//isX ? 80 : 40
+        toolbarHeight = 86//isX ? 80 : 40
         statusHeight = 44//isX ? 44 : 22
         thumbRadius = isX ? 38 : 16
         cardRadius = isX ? 38 : 4

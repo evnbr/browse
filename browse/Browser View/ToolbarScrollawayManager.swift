@@ -8,6 +8,16 @@
 
 import UIKit
 
+extension UIScrollView {
+    func setContentOffsetWithoutDelegate(_ newContentOffset: CGPoint) {
+        
+        let lastDelegate = delegate;
+        delegate = nil;
+        contentOffset = newContentOffset;
+        delegate = lastDelegate;
+    }
+}
+
 class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
     var vc: BrowserViewController
 
@@ -17,7 +27,7 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
     }
     
     func scrollViewDidScrollToTop(_ scrollView: UIScrollView) {
-        vc.showToolbar()
+        showToolbar()
     }
     var prevScrollY: CGFloat = 0
     var scrollDelta: CGFloat = 0
@@ -43,6 +53,74 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
             && !vc.isDisplayingSearch
     }
     
+    func hideToolbar(animated: Bool = true) {
+        //        return
+        
+        if !vc.webView.scrollView.isScrollableY {
+            return
+        }
+        if vc.webView.isLoading {
+            return
+        }
+        if vc.colorSampler.lastFixedResult?.hasBottomNav == true {
+            return
+        }
+        if vc.toolbar.heightConstraint.constant == 0 {
+            return
+        }
+        
+        vc.toolbar.heightConstraint.constant = 0
+        //        webviewBottomConstraint.constant = 0
+        
+        UIView.animate(
+            withDuration: 0.2,
+            delay: 0,
+            options: .curveEaseInOut,
+            animations: {
+                self.vc.cardView.layoutIfNeeded()
+                self.vc.webView.scrollView.horizontalScrollIndicatorInsets.bottom = -Const.toolbarHeight
+                self.vc.toolbar.contentsAlpha = 0
+        }
+        )
+        
+        //        webView.scrollView.springBottomInset(to: Const.toolbarHeight)
+    }
+    
+    func showToolbar(animated: Bool = true, adjustScroll: Bool = false) {
+        //        return
+        
+        let dist = Const.toolbarHeight - vc.toolbar.heightConstraint.constant
+        
+        vc.toolbar.heightConstraint.constant = Const.toolbarHeight
+        
+        vc.topConstraint.constant = -Const.toolbarHeight
+
+        if animated {
+            UIView.animate(
+                withDuration: animated ? 0.2 : 0,
+                delay: 0,
+                options: [.curveEaseInOut, .allowAnimatedContent],
+                animations: {
+                    self.vc.cardView.layoutIfNeeded()
+                    self.vc.webView.scrollView.horizontalScrollIndicatorInsets.bottom = 0
+                    self.vc.toolbar.contentsAlpha = 1
+                    self.vc.additionalSafeAreaInsets.top = Const.toolbarHeight
+
+            }, completion: { _ in
+
+            })
+            if adjustScroll {
+                let scroll = vc.webView.scrollView
+                var newOffset = scroll.contentOffset
+                newOffset.y = min(scroll.maxScrollY, scroll.contentOffset.y + dist)
+                scroll.setContentOffset(newOffset, animated: true)
+            }
+        } else {
+            vc.toolbar.contentsAlpha = 1
+        }
+    }
+
+    
     func updateToolbar(_ scrollView: UIScrollView) {
 //        return
         
@@ -50,21 +128,21 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         if scrollView.contentOffset.y == 0
             && !scrollView.isScrollableY
             && !vc.isShowingToolbar {
-            vc.showToolbar(animated: false)
+            showToolbar(animated: false)
             return
         }
         
         // don't leave a gap below bottom nav
         if vc.colorSampler.lastFixedResult?.hasBottomNav == true
-            && !vc.isShowingToolbar{
-            vc.showToolbar(animated: false)
+            && !vc.isShowingToolbar {
+            showToolbar(animated: false)
             return
         }
         
         if vc.isDisplayingSearch {
             scrollDelta = 0
             prevScrollY = scrollView.contentOffset.y
-            if !vc.isShowingToolbar { vc.showToolbar(animated: false) }
+            if !vc.isShowingToolbar { showToolbar(animated: false) }
             return
         }
         
@@ -73,7 +151,7 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         
         // only reshow toolbar after swipe up
         if vc.toolbar.heightConstraint.constant == 0 {
-            return
+//            return
         }
         
         if self.shouldUpdateToolbar {
@@ -84,7 +162,7 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
                 newH = Const.toolbarHeight - amtOver
             } else {
                 // Hide on scroll down / show on scroll up
-                newH = vc.toolbar.bounds.height - scrollDelta
+                newH = vc.toolbar.bounds.height - scrollDelta * 1.7
                 if scrollView.contentOffset.y + Const.toolbarHeight > scrollView.maxScrollY {
                     // print("wouldn't be able to hide in time")
                 }
@@ -93,12 +171,22 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
             let toolbarH = newH.limit(min: 0, max: Const.toolbarHeight)
             let pct = toolbarH / Const.toolbarHeight
             vc.toolbar.heightConstraint.constant = toolbarH
-            vc.webviewBottomConstraint.constant = max(0, toolbarH)
-//            let inset = -Const.toolbarHeight + toolbarH
+//            vc.webviewBottomConstraint.constant = max(0, toolbarH)
+            let inset = -Const.toolbarHeight + toolbarH
+            vc.topConstraint.constant = -toolbarH
+            vc.additionalSafeAreaInsets.top = 0 + toolbarH
+            
+//        scrollView.setContentOffsetWithoutDelegate(
+//            CGPoint(
+//                x: scrollView.contentOffset.x,
+//                y: scrollView.contentOffset.y - scrollDelta
+//            )
+//        )
 //            scrollView.contentInset.bottom = inset + 100
 //            print(scrollView.contentInset.bottom)
 //            scrollView.verticalScrollIndicatorInsets.bottom = inset
-            
+            scrollView.horizontalScrollIndicatorInsets.bottom = inset
+
             let alpha = pct * 3 - 2
             vc.toolbar.contentsAlpha = alpha
         }
@@ -112,26 +200,28 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         guard !scrollView.isOverScrolledTop else { return }
         
+//        return
+        
         if scrollView.isOverScrolledBottom || scrollView.contentOffset.y == scrollView.maxScrollYWithInset {
-            vc.showToolbar(animated: true, adjustScroll: true)
+            showToolbar(animated: true, adjustScroll: true)
             return
         }
         
         if vc.isDisplayingSearch {
-            vc.showToolbar(animated: false, adjustScroll: false)
+            showToolbar(animated: false, adjustScroll: false)
             return
         }
         
         let dragAmount = scrollView.contentOffset.y - dragStartScrollY
         
         if scrollDelta > 1 {
-            vc.hideToolbar()
+            hideToolbar()
         } else if scrollDelta < -1 {
-            vc.showToolbar()
+            showToolbar()
         } else if dragAmount > 1 {
-            vc.hideToolbar()
+            hideToolbar()
         } else if dragAmount < -1 {
-            vc.showToolbar()
+            showToolbar()
         }
     }
 }

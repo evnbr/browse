@@ -14,7 +14,7 @@ enum GradientColorChangeDirection {
 }
 
 class GradientColorChangeView: UIView, CAAnimationDelegate {
-    let duration: CFTimeInterval = 0.6
+    let duration: CFTimeInterval = 0.2//6
 
     var backgroundView: UIView!
 
