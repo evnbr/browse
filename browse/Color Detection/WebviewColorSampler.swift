@@ -16,7 +16,6 @@ protocol WebviewColorSamplerDelegate: class {
     var sampledWebView: WKWebView { get }
 
     var shouldUpdateSample: Bool { get }
-    var bottomSamplePosition: CGFloat { get }
 
     func topColorChange(_ newColor: UIColor, offset: CGPoint)
     func bottomColorChange(_ newColor: UIColor, offset: CGPoint)
@@ -110,7 +109,7 @@ class WebviewColorSampler: NSObject {
         let bottomConfig = WKSnapshotConfiguration()
         bottomConfig.rect = CGRect(
             x: 0,
-            y: delegate.bottomSamplePosition - sampleH,
+            y: delegate.sampledWebView.bounds.height - sampleH,
             width: sampleW,
             height: sampleH
         )

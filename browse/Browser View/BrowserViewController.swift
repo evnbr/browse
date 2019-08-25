@@ -687,10 +687,6 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
             && webView != nil
     }
 
-    var bottomSamplePosition: CGFloat {
-        return cardView.bounds.height - Const.statusHeight - toolbar.heightConstraint.constant
-    }
-
     @objc func keyboardWillShow(notification: NSNotification) {
         let userInfo: NSDictionary = notification.userInfo! as NSDictionary
         guard let keyboardFrame: NSValue = userInfo.value(
