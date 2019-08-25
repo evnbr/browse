@@ -376,7 +376,7 @@ class SearchViewController: UIViewController {
             textView.text = browser.editableLocation
             
             locationLabel.text = browser.displayLocation
-            locationLabel.showLock = browser.toolbar.searchField.isSecure
+            locationLabel.showBrokenLock = !browser.toolbar.searchField.isSecure
             locationLabel.showSearch = browser.toolbar.searchField.isSearch
 
             pageActionView.title = browser.webView.title
@@ -502,7 +502,7 @@ extension SearchViewController: UITextViewDelegate {
             locationLabel.text = text
             locationLabel.showSearch = true
         }
-        locationLabel.showLock = false
+        locationLabel.showBrokenLock = false
         locationLabel.layoutIfNeeded()
         let shift = calculateHorizontalOffset().shift
         labelCenterConstraint.constant = -shift
@@ -519,7 +519,7 @@ extension SearchViewController: UITextViewDelegate {
         let prefixWidth: CGFloat = prefixSize?.width ?? 0
         
         let hasSearch = locationLabel.showSearch
-        let hasLock = locationLabel.showLock && !hasSearch
+        let hasLock = locationLabel.showBrokenLock && !hasSearch
         
         let labelWidthScaledUp = locationLabel.bounds.width * transition.fontScaledUp
         let textFieldWidth = textView.bounds.width

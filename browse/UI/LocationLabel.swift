@@ -39,7 +39,7 @@ class LocationLabel: UIView {
         }
     }
     
-    var showLock : Bool {
+    var showBrokenLock : Bool {
         get { return shouldShowLock }
         set {
             shouldShowLock = newValue
