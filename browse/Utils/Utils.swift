@@ -114,8 +114,11 @@ extension UIScrollView {
     var isScrollableX: Bool {
         return contentSize.width > bounds.width
     }
+    var isAtTop: Bool {
+        return contentOffset.y == minScrollY
+    }
     var isOverScrolledTop: Bool {
-        return contentOffset.y < 0
+        return contentOffset.y < minScrollY
     }
     var isOverScrolledLeft: Bool {
         return contentOffset.x < 0
@@ -131,6 +134,9 @@ extension UIScrollView {
     }
     var maxScrollX: CGFloat {
         return contentSize.width - bounds.size.width
+    }
+    var minScrollY: CGFloat {
+        return -safeAreaInsets.top
     }
     var maxScrollYWithInset: CGFloat {
         // handle negative content inset used on webview

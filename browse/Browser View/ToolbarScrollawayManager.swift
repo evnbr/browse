@@ -30,8 +30,17 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         super.init()
     }
     
-    func scrollViewDidScrollToTop(_ scrollView: UIScrollView) {
+    
+    func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool {
         showToolbar()
+        return true
+    }
+    
+    func scrollViewDidScrollToTop(_ scrollView: UIScrollView) {
+//        showToolbar()
+        if !scrollView.isDragging && !scrollView.isDecelerating {
+            updateStatusBarColor()
+        }
     }
     var prevScrollY: CGFloat = 0
     var scrollDelta: CGFloat = 0
@@ -49,6 +58,7 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
     
     var shouldUpdateToolbar: Bool {
         let scrollView = vc.webView.scrollView
+        
         return scrollView.isDragging
             && scrollView.isTracking
             && scrollView.isScrollableY
@@ -98,6 +108,7 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         vc.toolbar.heightConstraint.constant = Const.toolbarHeight
         
         vc.topConstraint.constant = -Const.toolbarHeight
+        self.vc.additionalSafeAreaInsets.top = Const.toolbarHeight
 
         if animated {
             UIView.animate(
@@ -105,13 +116,12 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
                 delay: 0,
                 options: [.curveEaseInOut, .allowAnimatedContent],
                 animations: {
+
                     self.vc.cardView.layoutIfNeeded()
                     self.vc.webView.scrollView.horizontalScrollIndicatorInsets.bottom = 0
                     self.vc.toolbar.contentsAlpha = 1
-                    self.vc.additionalSafeAreaInsets.top = Const.toolbarHeight
 
             }, completion: { _ in
-
             })
             if adjustScroll {
                 let scroll = vc.webView.scrollView

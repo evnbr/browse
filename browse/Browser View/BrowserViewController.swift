@@ -712,7 +712,7 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
             return
         }
 
-        if webView.scrollView.contentOffset.y == 0 {
+        if webView.scrollView.isAtTop {
             topOverscrollCover.backgroundColor = newColor
         }
         
