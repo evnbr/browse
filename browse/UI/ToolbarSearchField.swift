@@ -25,8 +25,8 @@ class ToolbarSearchField: ToolbarTouchView {
     }
     
     var isSecure : Bool {
-        get { return locationLabel.showLock }
-        set { locationLabel.showLock = newValue }
+        get { return !locationLabel.showLock }
+        set { locationLabel.showLock = !newValue }
     }
     
     var isSearch : Bool {

@@ -57,7 +57,7 @@ class LocationLabel: UIView {
         //        let magnifyImage = UIImage(named: "magnify")!.withRenderingMode(.alwaysTemplate)
 //        let lockImage = UIImage(named: "lock")!.withRenderingMode(.alwaysTemplate)
         
-        let lockImage = UIImage(systemName: "lock.fill")
+        let lockImage = UIImage(systemName: "lock.slash.fill")
         let magnifyImage = UIImage(systemName: "magnifyingglass")
 
 //        let weight = UIImage.SymbolConfiguration(weight: .medium)
