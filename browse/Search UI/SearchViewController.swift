@@ -44,9 +44,11 @@ class SearchViewController: UIViewController {
     var dragHandle: UIView!
     var pageActionView: PageActionView!
     var keyboard = KeyboardManager()
+    
+    var isFakeSelected: Bool = false
 
     var baseSheetHeight: CGFloat {
-        return min(UIScreen.main.bounds.height - 20, keyboard.height + 280)
+        return min(UIScreen.main.bounds.height - 20, keyboard.height + 400)
     }
     var minSheetHeight: CGFloat {
         return Const.toolbarHeight + SHEET_TOP_HANDLE_MARGIN
@@ -191,6 +193,8 @@ class SearchViewController: UIViewController {
         setBackground(defaultBackground)
         updateTextViewSize()
 //        view.layoutIfNeeded()
+        
+        
     }
 
     func setupActions() {
@@ -389,12 +393,16 @@ class SearchViewController: UIViewController {
             updateTextViewSize()
             updateHighlight(textView)
             updateSuggestion(for: textView.text)
+            suggestionTable.reloadData()
         }
     }
 
     func focusTextView() {
+        textView.tintColor = .clear
         textView.becomeFirstResponder()
-        textView.selectAll(nil) // if not nil, will show actions
+        textView.selectAll(nil)
+
+//        textView.selectAll(nil) // if not nil, will show actions
     }
 
     override func didReceiveMemoryWarning() {
@@ -418,11 +426,22 @@ class SearchViewController: UIViewController {
 }
 
 extension SearchViewController: UITextViewDelegate {
+    
+    // When editing starts, select all and then make handles (and cursor) invisible
+
     func textViewDidChange(_ textView: UITextView) {
         updateFieldForNewText()
         updateSuggestion(for: textView.text)
 //        updateBrowserOffset()
+        
+        if textView.tintColor == .clear {
+            DispatchQueue.main.async {
+                textView.tintColor = self.view.tintColor
+            }
+        }
     }
+    
+    
     
     func updateFieldForNewText() {
         updateHighlight(textView)
@@ -485,6 +504,10 @@ extension SearchViewController: UITextViewDelegate {
     }
 
     func renderSuggestions() {
+        if view.window == nil {
+//            fatalError("Rendering before window")
+            return
+        }
         suggestionTable.reloadData()
         suggestionTable.layoutIfNeeded()
     }
@@ -596,6 +619,9 @@ extension SearchViewController: UITableViewDelegate {
         } else if row.title == "Copy" {
             UIPasteboard.general.string = browserVC?.editableLocation
             tableView.deselectRow(at: indexPath, animated: true)
+            if let cell = tableView.cellForRow(at: indexPath) {
+                cell.textLabel?.text = "Copied ✓"
+            }
         } else if row.title == "Paste" {
             if let str = UIPasteboard.general.string {
                 textView.text = str
@@ -606,7 +632,9 @@ extension SearchViewController: UITableViewDelegate {
             if let str = UIPasteboard.general.string {
                 textView.text = str
                 updateFieldForNewText()
-                navigateToSearchOrSite(str)
+                DispatchQueue.main.async {
+                    self.navigateToSearchOrSite(str)
+                }
             }
             tableView.deselectRow(at: indexPath, animated: true)
         }
@@ -671,7 +699,8 @@ extension SearchViewController: UIGestureRecognizerDelegate {
                 let elastic = 1 * elasticLimit(-dist.y)
                 sheetHeight.constant = baseSheetHeight + elastic
             } else {
-                sheetHeight.constant = max(baseSheetHeight - dist.y, minSheetHeight)
+                let elastic = elasticLimit(dist.y)
+                sheetHeight.constant = max(baseSheetHeight - elastic, minSheetHeight)
             }
         } else if gesture.state == .ended || gesture.state == .cancelled {
             isSwiping = false
@@ -696,7 +725,7 @@ extension SearchViewController: UIGestureRecognizerDelegate {
             options: [.curveLinear],
             animations: {
                 self.view.layoutIfNeeded()
-                self.textView.becomeFirstResponder()
+//                self.textView.becomeFirstResponder()
         }, completion: { _ in
             self.isTransitioning = false
             self.focusTextView()
