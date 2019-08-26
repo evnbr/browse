@@ -453,7 +453,17 @@ extension SearchViewController: UITextViewDelegate {
 
     func updateSuggestion(for text: String) {
         if shouldShowActions || text == "" {
-            suggestions = []
+            if UIPasteboard.general.hasStrings {
+                suggestions = [
+                    TypeaheadSuggestion(title: "Copy", detail: nil, url: nil),
+                    TypeaheadSuggestion(title: "Paste", detail: nil, url: nil),
+                    TypeaheadSuggestion(title: "Paste and go", detail: nil, url: nil),
+                ]
+            } else {
+                suggestions = [
+                    TypeaheadSuggestion(title: "Copy", detail: nil, url: nil),
+                ]
+            }
             self.renderSuggestions()
             return
         }
@@ -545,15 +555,19 @@ extension SearchViewController: UITextViewDelegate {
     
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
         if text == "\n", let entry = textView.text {
-            if let url = URL.coercedFrom(entry) {
-                navigateTo(url)
-                return false
-            }
-            let url = TypeaheadProvider.shared.serpURLfor(entry)!
-            navigateTo(url)
+            navigateToSearchOrSite(entry)
             return false
         }
         return true
+    }
+    
+    func navigateToSearchOrSite(_ entry: String) {
+        if let url = URL.coercedFrom(entry) {
+            navigateTo(url)
+            return
+        }
+        let url = TypeaheadProvider.shared.serpURLfor(entry)!
+        navigateTo(url)
     }
 
     func navigateTo(_ url: URL) {
@@ -579,12 +593,23 @@ extension SearchViewController: UITableViewDelegate {
             textView.text = row.url?.absoluteString
             updateFieldForNewText()
             navigateTo(url)
+        } else if row.title == "Copy" {
+            UIPasteboard.general.string = browserVC?.editableLocation
+            tableView.deselectRow(at: indexPath, animated: true)
+        } else if row.title == "Paste" {
+            if let str = UIPasteboard.general.string {
+                textView.text = str
+                updateFieldForNewText()
+            }
+            tableView.deselectRow(at: indexPath, animated: true)
+        } else if row.title == "Paste and go" {
+            if let str = UIPasteboard.general.string {
+                textView.text = str
+                updateFieldForNewText()
+                navigateToSearchOrSite(str)
+            }
+            tableView.deselectRow(at: indexPath, animated: true)
         }
-    }
-
-    func tableView(_ tableView: UITableView, shouldHighlightRowAt indexPath: IndexPath) -> Bool {
-        let row = suggestions[indexPath.item]
-        return row.url != nil
     }
 }
 
