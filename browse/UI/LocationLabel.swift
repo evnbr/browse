@@ -18,6 +18,7 @@ class LocationLabel: UIView {
     private var lockIcon: UIImageView!
     private var searchIcon: UIImageView!
     private var label = UILabel()
+    private var spinner = UIActivityIndicatorView(activityIndicatorStyle: .medium)
     
     private var shouldShowLock : Bool = false
     
@@ -52,6 +53,19 @@ class LocationLabel: UIView {
         set { searchIcon.isHidden = !newValue }
     }
     
+    var showSpinner: Bool {
+        get { return !spinner.isHidden }
+        set {
+            if newValue {
+                spinner.isHidden = false
+                spinner.startAnimating()
+            } else {
+                spinner.stopAnimating()
+                spinner.isHidden = true
+            }
+        }
+    }
+    
     init() {
         super.init(frame: .zero)
         //        let magnifyImage = UIImage(named: "magnify")!.withRenderingMode(.alwaysTemplate)
@@ -79,6 +93,7 @@ class LocationLabel: UIView {
         labelContent.alignment = .center //.firstBaseline
         labelContent.spacing = 4.0
         
+        labelContent.addArrangedSubview(spinner)
         labelContent.addArrangedSubview(lockIcon)
         labelContent.addArrangedSubview(searchIcon)
         labelContent.addArrangedSubview(label)

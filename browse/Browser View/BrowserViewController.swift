@@ -558,6 +558,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         toolbar.isLoading = webView.isLoading
         toolbar.isSecure = webView.hasOnlySecureContent
         toolbar.isSearch = isSearching || isBlank
+        toolbar.isLoading = webView.isLoading
         
         if !webView.isLoading && progressView.alpha > 0 {
             setProgressView(1)
