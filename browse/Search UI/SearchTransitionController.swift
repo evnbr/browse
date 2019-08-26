@@ -107,12 +107,12 @@ class SearchTransitionController: NSObject {
         }
 
         searchVC.sheetHeight.constant = isExpanding ? searchVC.baseSheetHeight : searchVC.minSheetHeight
-        searchVC.textTopMarginConstraint.constant = isExpanding ? SHEET_TOP_HANDLE_MARGIN : SHEET_TOP_MARGIN
+        searchVC.textTopMarginConstraint.constant = isExpanding ? SHEET_TOP_HANDLE_MARGIN : TOOLBAR_TOP_MARGIN
         searchVC.textViewContainerHeightConstraint.constant =
             isExpanding ? searchVC.textHeight: BUTTON_HEIGHT
 
         let pct = searchVC.textTopMarginConstraint.constant.progress(
-                SHEET_TOP_MARGIN,
+                TOOLBAR_TOP_MARGIN,
                 SHEET_TOP_HANDLE_MARGIN)
         
         searchVC.bottomAttachment.constant = pct.lerp(SHEET_TOP_HANDLE_MARGIN, 0)
@@ -162,7 +162,7 @@ class SearchTransitionController: NSObject {
                 searchVC.pageActionView.alpha = self.isExpanding ? 1 : 0
                 searchVC.shadowView.alpha = self.isExpanding ? 1 : 0
                 
-                searchVC.textViewFill.backgroundColor = self.isExpanding ? fieldColor : .clear
+//                searchVC.textViewFill.backgroundColor = self.isExpanding ? fieldColor : .clear
                 searchVC.scrim.alpha = self.isExpanding ? 1 : 0
 
                 searchVC.textView.mask?.frame = self.isExpanding ? maskEndFrame : maskStartFrame

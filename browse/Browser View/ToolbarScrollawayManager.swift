@@ -66,7 +66,7 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
             && !vc.isDisplayingSearch
     }
     
-    func hideToolbar(animated: Bool = true) {
+    func hideToolbar(animated: Bool = false) {
         //        return
         
         if !vc.webView.scrollView.isScrollableY {
@@ -101,7 +101,7 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         //        webView.scrollView.springBottomInset(to: Const.toolbarHeight)
     }
     
-    func showToolbar(animated: Bool = true, adjustScroll: Bool = false) {
+    func showToolbar(animated: Bool = false, adjustScroll: Bool = false) {
         //        return
         
         let dist = Const.toolbarHeight - vc.toolbar.heightConstraint.constant
@@ -172,6 +172,8 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
 //            return
         }
         
+        let toolbarHideRatio: CGFloat = 2
+        
         if self.shouldUpdateToolbar {
             var newH: CGFloat
             if scrollView.isOverScrolledBottomWithInset {
@@ -180,7 +182,7 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
                 newH = Const.toolbarHeight - amtOver
             } else {
                 // Hide on scroll down / show on scroll up
-                newH = vc.toolbar.bounds.height - scrollDelta * 1.7
+                newH = vc.toolbar.bounds.height - scrollDelta * toolbarHideRatio
                 if scrollView.contentOffset.y + Const.toolbarHeight > scrollView.maxScrollY {
                     // print("wouldn't be able to hide in time")
                 }

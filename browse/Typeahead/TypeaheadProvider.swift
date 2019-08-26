@@ -21,6 +21,7 @@ struct TypeaheadSuggestion: Hashable {
     static func == (lhs: TypeaheadSuggestion, rhs: TypeaheadSuggestion) -> Bool {
         return lhs.url == rhs.url
     }
+    
 }
 
 class TypeaheadProvider: NSObject {

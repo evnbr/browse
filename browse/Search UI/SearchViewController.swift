@@ -18,7 +18,7 @@ let textFieldInnerMargin: CGFloat = 12
 let textFieldRoomForIcons: CGFloat = 56
 
 let SHEET_TOP_HANDLE_MARGIN: CGFloat = 28
-let SHEET_TOP_MARGIN: CGFloat = 4
+let TOOLBAR_TOP_MARGIN: CGFloat = 6
 
 
 // https://medium.com/@nguyenminhphuc/how-to-pass-ui-events-through-views-in-ios-c1be9ab1626b
@@ -133,7 +133,7 @@ class SearchViewController: UIViewController {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.tintColor = .darkText
         contentView.clipsToBounds = true
-        contentView.radius = 8
+        contentView.radius = 16
         view.addSubview(contentView)
         
         shadowView = UIView(frame: view.bounds)
@@ -255,7 +255,7 @@ class SearchViewController: UIViewController {
         
         textViewFill.addSubview(locationLabel, constraints: [
             labelCenterConstraint,
-            locationLabel.topAnchor.constraint(equalTo: textViewFill.topAnchor, constant: 12),
+            locationLabel.topAnchor.constraint(equalTo: textViewFill.topAnchor, constant: 14),
             locationLabel.widthAnchor.constraint(lessThanOrEqualTo: textViewFill.widthAnchor, constant: -24)
         ])
         locationLabel.isUserInteractionEnabled = false
@@ -285,7 +285,7 @@ class SearchViewController: UIViewController {
         let view = UIView()
         
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .darkTouch
+//        view.backgroundColor = .darkTouch
         view.radius = 24
         view.clipsToBounds = true
         
@@ -355,9 +355,9 @@ class SearchViewController: UIViewController {
 //            ? UIColor.black.withAlphaComponent(0.4)
 //            : UIColor.white.withAlphaComponent(0.4)
         
-        textViewFill.backgroundColor = isBackgroundLight
-            ? .darkField
-            : .lightField
+//        textViewFill.backgroundColor = isBackgroundLight
+//            ? .darkField
+//            : .lightField
 
         textView.keyboardAppearance = isBackgroundLight ? .light : .dark
     }
