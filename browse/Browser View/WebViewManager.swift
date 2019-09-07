@@ -168,10 +168,19 @@ private let highlightLinkClassName = "__BROWSE_ACTIVE_LINK__"
 private let getLinkFunc = """
     (function() {
         window.\(findLinkFuncName) = (x, y) => {
-            const el = document.elementFromPoint(x, y);
+            let el = document.elementFromPoint(x, y);
             if (!el) {
                 return "No el";
             }
+            // Walk up to find parent with href
+            while (
+                typeof el === 'object'
+                && el.nodeName.toLowerCase() !== 'body'
+                && !el.hasAttribute('href')
+            ) {
+                el = el.parentElement;
+            }
+
             const href = el.getAttribute('href');
             if (!href) {
                 return "No href for " + el.tagName;
@@ -213,10 +222,11 @@ struct LinkInfo {
 }
 
 extension WKWebView {
-    func linkAt(_ pt: CGPoint, completionHandler: @escaping ((LinkInfo?) -> ()) ) {
+    func linkAt(_ position: CGPoint, completionHandler: @escaping ((LinkInfo?) -> ()) ) {
         
-        // TODO: Need to translate point into the coordinate system
-        // of the page in order to handle zooming in.
+        // Translate gesture point into the coordinate system of the zoomed page
+        let scaleFactor = 1 / scrollView.zoomScale
+        let pt = CGPoint(x: position.x * scaleFactor, y: position.y * scaleFactor)
         
         self.evaluateJavaScript("window.\(findLinkFuncName)(\(pt.x), \(pt.y))") { (val, err) in
             if let err = err {
