@@ -42,6 +42,8 @@ class ColorToolbarView: GradientColorChangeView {
                 constant: -toolbarInset),
             stackView.topAnchor.constraint(equalTo: self.topAnchor, constant: TOOLBAR_TOP_MARGIN)
         ])
+        
+        backgroundView.alpha = 0.96
     }
 
     var toolbarItems: [ UIView ] {

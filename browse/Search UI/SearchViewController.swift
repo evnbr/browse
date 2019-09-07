@@ -48,7 +48,7 @@ class SearchViewController: UIViewController {
     var isFakeSelected: Bool = false
 
     var baseSheetHeight: CGFloat {
-        return min(UIScreen.main.bounds.height - 20, keyboard.height + 400)
+        return min(UIScreen.main.bounds.height - 20, 640)
     }
     var minSheetHeight: CGFloat {
         return Const.toolbarHeight + SHEET_TOP_HANDLE_MARGIN

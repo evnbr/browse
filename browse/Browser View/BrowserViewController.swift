@@ -15,7 +15,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
     let tabManager = TabManager()
     var toolbarManager: ToolbarScrollawayManager!
-//    var webviewBottomConstraint: NSLayoutConstraint!
+    var webviewBottomConstraint: NSLayoutConstraint!
     let webViewManager = WebViewManager()
     
     var webView: WKWebView!
@@ -152,17 +152,17 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         webView.scrollView.isScrollEnabled = true
 
         contentView.insertSubview(webView, belowSubview: statusBar)
-//        topConstraint = webView.topAnchor.constraint(equalTo: statusBar.bottomAnchor, constant: 0)
-        topConstraint = webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 0)
+        topConstraint = webView.topAnchor.constraint(equalTo: statusBar.bottomAnchor, constant: 0)
+//        topConstraint = webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 0)
         topConstraint.isActive = true
 
         webView.leftAnchor.constraint(equalTo: cardView.leftAnchor).isActive = true
         webView.rightAnchor.constraint(equalTo: cardView.rightAnchor).isActive = true
 //        webView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -Const.toolbarHeight).isActive = true
-//        webviewBottomConstraint = cardView.bottomAnchor.constraint(equalTo: webView.bottomAnchor, constant: 0)
-//        webviewBottomConstraint.isActive = true
+        webviewBottomConstraint = toolbar.topAnchor.constraint(equalTo: webView.bottomAnchor, constant: 0)
+        webviewBottomConstraint.isActive = true
 //
-        webView.heightAnchor.constraint(equalTo: cardView.heightAnchor, constant: 0).isActive = true
+//        webView.heightAnchor.constraint(equalTo: cardView.heightAnchor, constant: 0).isActive = true
         toolbarPlaceholder.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
 
 //        webView.addInputAccessory(toolbar: accessoryView)
@@ -467,7 +467,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
     override func viewWillAppear(_ animated: Bool) {
         toolbarManager.showToolbar(animated: false)
-        statusBar.backgroundView.alpha = 1
+        statusBar.backgroundView.alpha = 0.96
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -619,6 +619,14 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             with: webView.backForwardList
         )
         
+//        webView.scrollView.setContentOffset(
+//            CGPoint(
+//                x: 0,
+//                y: webView.scrollView.minScrollY
+//            ),
+//            animated: false
+//        )
+
         colorSampler.updateColors()
     }
     

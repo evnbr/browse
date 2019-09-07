@@ -67,7 +67,7 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
     }
     
     func hideToolbar(animated: Bool = false) {
-        //        return
+        return
         
         if !vc.webView.scrollView.isScrollableY {
             return
@@ -84,60 +84,65 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         
         vc.toolbar.heightConstraint.constant = 0
         vc.topConstraint.constant = 0
-//        vc.additionalSafeAreaInsets.top = 0
+        vc.additionalSafeAreaInsets.top = 0
 
-        UIView.animate(
-            withDuration: 0.2,
-            delay: 0,
-            options: .curveEaseInOut,
-            animations: {
+//        UIView.animate(
+//            withDuration: 0.2,
+//            delay: 0,
+//            options: .curveEaseInOut,
+//            animations: {
                 self.vc.cardView.layoutIfNeeded()
                 self.vc.webView.scrollView.horizontalScrollIndicatorInsets.bottom = -Const.toolbarHeight
                 self.vc.toolbar.contentsAlpha = 0
-        }, completion: { _ in
-            self.vc.additionalSafeAreaInsets.top = 0
-        })
+//        }, completion: { _ in
+//            self.vc.additionalSafeAreaInsets.top = 0
+//        })
         
         //        webView.scrollView.springBottomInset(to: Const.toolbarHeight)
     }
     
     func showToolbar(animated: Bool = false, adjustScroll: Bool = false) {
-        //        return
+                return
         
         let dist = Const.toolbarHeight - vc.toolbar.heightConstraint.constant
         
         vc.toolbar.heightConstraint.constant = Const.toolbarHeight
         vc.topConstraint.constant = -Const.toolbarHeight
-//        vc.additionalSafeAreaInsets.top = Const.toolbarHeight
+        vc.additionalSafeAreaInsets.top = Const.toolbarHeight
 
-        if animated {
-            UIView.animate(
-                withDuration: animated ? 0.2 : 0,
-                delay: 0,
-                options: [.curveEaseInOut, .allowAnimatedContent],
-                animations: {
+//        if animated {
+//            UIView.animate(
+//                withDuration: animated ? 0.2 : 0,
+//                delay: 0,
+//                options: [.curveEaseInOut, .allowAnimatedContent],
+//                animations: {
 
                     self.vc.cardView.layoutIfNeeded()
                     self.vc.webView.scrollView.horizontalScrollIndicatorInsets.bottom = 0
                     self.vc.toolbar.contentsAlpha = 1
 
-            }, completion: { _ in
-                self.vc.additionalSafeAreaInsets.top = Const.toolbarHeight
-            })
+//            }, completion: { _ in
+//                self.vc.additionalSafeAreaInsets.top = Const.toolbarHeight
+//            })
             if adjustScroll {
                 let scroll = vc.webView.scrollView
                 var newOffset = scroll.contentOffset
                 newOffset.y = min(scroll.maxScrollY, scroll.contentOffset.y + dist)
                 scroll.setContentOffset(newOffset, animated: true)
             }
-        } else {
-            vc.toolbar.contentsAlpha = 1
-        }
+//        } else {
+//            vc.toolbar.contentsAlpha = 1
+//        }
     }
 
     var isUpdating = false;
+    
+    func setAdjustmentsFor(toolbarHeight: CGFloat) {
+        
+    }
+    
     func updateToolbar(_ scrollView: UIScrollView) {
-//        return
+        return
         
 //        print("delegate called: \(scrollView.contentOffset)")
 
@@ -192,7 +197,6 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
             let toolbarH = newH.limit(min: 0, max: Const.toolbarHeight)
             let pct = toolbarH / Const.toolbarHeight
             vc.toolbar.heightConstraint.constant = toolbarH
-//            vc.webviewBottomConstraint.constant = max(0, toolbarH)
             let inset = -Const.toolbarHeight + toolbarH
             vc.topConstraint.constant = -toolbarH
             vc.additionalSafeAreaInsets.top = 0 + toolbarH
@@ -248,15 +252,15 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         
         let dragAmount = scrollView.contentOffset.y - dragStartScrollY
         
-        if scrollDelta > 1 {
-            hideToolbar()
-        } else if scrollDelta < -1 {
-            showToolbar()
-        } else if dragAmount > 1 {
-            hideToolbar()
-        } else if dragAmount < -1 {
-            showToolbar()
-        }
+//        if scrollDelta > 1 {
+//            hideToolbar()
+//        } else if scrollDelta < -1 {
+//            showToolbar()
+//        } else if dragAmount > 1 {
+//            hideToolbar()
+//        } else if dragAmount < -1 {
+//            showToolbar()
+//        }
         
         if !decelerate {
             updateStatusBarColor()

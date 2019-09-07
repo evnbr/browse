@@ -74,7 +74,7 @@ class SearchTransitionController: NSObject {
             searchVC.hasDraftLocation = false
         }
         
-        browserVC.toolbar.backgroundView.alpha = 1
+//        browserVC.toolbar.backgroundView.alpha = 1
         // TODO snapshot doesnt work if hidden
         
         searchVC.isTransitioning = true
@@ -100,7 +100,7 @@ class SearchTransitionController: NSObject {
         let titleHorizontalShift = offsets.shift
         titleEndCenter.x -= titleHorizontalShift
         
-        browserVC.toolbar.backgroundView.alpha = 1
+//        browserVC.toolbar.backgroundView.alpha = 1
         browserVC.toolbar.contentsAlpha = 0
         if !self.isPreExpanded {
             searchVC.shadowView.alpha = isExpanding ? 0 : 1
@@ -130,7 +130,7 @@ class SearchTransitionController: NSObject {
             }
             searchVC.isTransitioning = false
             browserVC.toolbar.contentsAlpha = 1
-            browserVC.toolbar.backgroundView.alpha = 1
+//            browserVC.toolbar.backgroundView.alpha = 1
             completion?()
         }
 

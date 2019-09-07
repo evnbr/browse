@@ -18,7 +18,7 @@ class ToolbarIconButton: ToolbarTouchView {
     }
 
     override var intrinsicContentSize: CGSize {
-        return CGSize(width: 48, height: BUTTON_HEIGHT)
+        return CGSize(width: 60, height: BUTTON_HEIGHT)
     }
 
     init(icon: UIImage?, onTap: ToolbarButtonAction? = nil) {

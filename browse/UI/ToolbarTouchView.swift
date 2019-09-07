@@ -26,7 +26,7 @@ class ToolbarTouchView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        radius = frame.height / 2
+        radius = 12 //frame.height / 2
     }
 
     init(frame: CGRect, onTap: ToolbarButtonAction? ) {
