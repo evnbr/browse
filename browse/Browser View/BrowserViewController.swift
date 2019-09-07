@@ -287,9 +287,9 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             toolbarPlaceholder.leftAnchor.constraint(equalTo: cardView.leftAnchor),
             toolbarPlaceholder.rightAnchor.constraint(equalTo: cardView.rightAnchor),
             toolbarPlaceholder.heightAnchor.constraint(equalToConstant: Const.toolbarHeight),
-            progressView.topAnchor.constraint(equalTo: statusBar.bottomAnchor, constant: -2),
+            progressView.topAnchor.constraint(equalTo: statusBar.bottomAnchor, constant: -8),
             progressView.centerXAnchor.constraint(equalTo: statusBar.centerXAnchor),
-            progressView.widthAnchor.constraint(equalToConstant: 120),
+            progressView.widthAnchor.constraint(equalToConstant: 180),
 //            progressView.leadingAnchor.constraint(equalTo: statusBar.leadingAnchor, constant: 16),
 //            progressView.trailingAnchor.constraint(equalTo: statusBar.trailingAnchor, constant: -16),
         ])
@@ -387,7 +387,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             
             webView.linkAt(location) { (info) in
                 guard let info = info else { return }
-                let url = URL(string: info.href)
+//                let url = URL(string: info.href)
+                let url = URL(string: info.href, relativeTo: self.webView.url)
                 
                 let ac = UIAlertController(
                     title: info.href,
@@ -535,11 +536,11 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         toolbar.text = url.displayHost
         setProgressView(0)
 
-        let nav = webView.load(URLRequest(url: url))
+        webView.load(URLRequest(url: url))
         
-        toolbar.backgroundColor = .black
-        statusBar.backgroundColor = .black
-        setNeedsStatusBarAppearanceUpdate()
+//        toolbar.backgroundColor = .black
+//        statusBar.backgroundColor = .black
+//        setNeedsStatusBarAppearanceUpdate()
     }
 
     @objc func hideError() {

@@ -15,7 +15,7 @@ let textFieldInsets = UIEdgeInsets(top: 11, left: 14, bottom: 12, right: 14)
 let pageActionHeight: CGFloat = 100 //100
 
 let textFieldInnerMargin: CGFloat = 12
-let textFieldRoomForIcons: CGFloat = 56
+let textFieldRoomForIcons: CGFloat = 68
 
 let SHEET_TOP_HANDLE_MARGIN: CGFloat = 28
 let TOOLBAR_TOP_MARGIN: CGFloat = 6

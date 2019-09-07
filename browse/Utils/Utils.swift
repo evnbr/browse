@@ -136,7 +136,7 @@ extension UIScrollView {
         return contentSize.width - bounds.size.width
     }
     var minScrollY: CGFloat {
-        return -safeAreaInsets.top
+        return 0 //-safeAreaInsets.top
     }
     var maxScrollYWithInset: CGFloat {
         // handle negative content inset used on webview

@@ -22,7 +22,7 @@ class ToolbarIconButton: ToolbarTouchView {
     }
 
     init(icon: UIImage?, onTap: ToolbarButtonAction? = nil) {
-        super.init(frame: CGRect(x: 0, y: 0, width: 48, height: BUTTON_HEIGHT), onTap: onTap)
+        super.init(frame: CGRect(x: 0, y: 0, width: 60, height: BUTTON_HEIGHT), onTap: onTap)
 
         let iconTemplate = icon?.withRenderingMode(.alwaysTemplate)
         iconView = UIImageView(image: iconTemplate)

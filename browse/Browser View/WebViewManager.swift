@@ -209,7 +209,9 @@ private let preventTextSelection = """
             -webkit-touch-callout: none;
         }
         .\(highlightLinkClassName) {
-            background-color: cyan;
+            transition: all 0.3s;
+            background: rgba(0,0,0,0.1);
+            transform: scale(1.08);
         }
     `;
     const head = document.getElementsByTagName('head')[0];
