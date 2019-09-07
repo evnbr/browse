@@ -41,14 +41,26 @@ class WebViewManager: NSObject {
         configuration.websiteDataStore = .nonPersistent()
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
         configuration.userContentController.addUserScript(
-            WKUserScript(source: checkFixedFunc, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+            WKUserScript(
+                source: checkFixedFunc,
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: false
+            )
         )
-        let loadAlerterStr = """
-            document.addEventListener("DOMContentLoaded", () => {
-                console.log("hey")
-                window.webkit.messageHandlers["\(browseLoadHandlerName)"].postMessage("DOMContentLoaded");
-            });
-        """
+        configuration.userContentController.addUserScript(
+            WKUserScript(
+                source: getLinkFunc,
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: false
+            )
+        )
+        configuration.userContentController.addUserScript(
+            WKUserScript(
+                source: preventTextSelection,
+                injectionTime: .atDocumentEnd,
+                forMainFrameOnly: false
+            )
+        )
         let readyStateStr = """
             document.onreadystatechange = () => {
                 if (document.readyState === "interactive") {
@@ -89,10 +101,10 @@ class WebViewManager: NSObject {
         webView.translatesAutoresizingMaskIntoConstraints = false
         webView.allowsBackForwardNavigationGestures = true
         webView.scrollView.contentInset = .zero
-        webView.scrollView.contentInsetAdjustmentBehavior = .always //never
-//        webView.scrollView.clipsToBounds = false
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
+        webView.scrollView.clipsToBounds = false
 //        webView.scrollView.alwaysBounceHorizontal = true
-//        webView.allowsLinkPreview = false
+        webView.allowsLinkPreview = false
         webView.customUserAgent = USER_AGENT
 
         return webView
@@ -128,6 +140,7 @@ extension WKWebView {
 }
 
 private let checkFixedFuncName = "__BROWSE_HAS_FIXED_NAV__"
+
 private let checkFixedFunc = """
     (function() {
         const isFixed = (elm) => {
@@ -147,3 +160,85 @@ private let checkFixedFunc = """
         };
     })();
 """
+
+private let findLinkFuncName = "__BROWSE_GET_LINK__"
+private let clearLinkFuncName = "__BROWSE__CLEAR_ACTIVE_LINK__"
+private let highlightLinkClassName = "__BROWSE_ACTIVE_LINK__"
+
+private let getLinkFunc = """
+    (function() {
+        window.\(findLinkFuncName) = (x, y) => {
+            const el = document.elementFromPoint(x, y);
+            if (!el) {
+                return "No el";
+            }
+            const href = el.getAttribute('href');
+            if (!href) {
+                return "No href for " + el.tagName;
+            }
+            el.classList.add('__BROWSE_ACTIVE_LINK__');
+            return {
+                href: href,
+                title: el.getAttribute('title')
+            };
+        };
+        window.\(clearLinkFuncName) = () => {
+            const els = document.querySelectorAll('.\(highlightLinkClassName)');
+            for (const el of els) {
+                el.classList.remove('\(highlightLinkClassName)');
+            }
+        };
+    })();
+"""
+
+private let preventTextSelection = """
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.innerText = `
+        *:not(input):not(textarea) {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        .\(highlightLinkClassName) {
+            background-color: cyan;
+        }
+    `;
+    const head = document.getElementsByTagName('head')[0];
+    head.appendChild(style);
+"""
+
+struct LinkInfo {
+    let href: String
+    let title: String?
+}
+
+extension WKWebView {
+    func linkAt(_ pt: CGPoint, completionHandler: @escaping ((LinkInfo?) -> ()) ) {
+        
+        // TODO: Need to translate point into the coordinate system
+        // of the page in order to handle zooming in.
+        
+        self.evaluateJavaScript("window.\(findLinkFuncName)(\(pt.x), \(pt.y))") { (val, err) in
+            if let err = err {
+                print(err)
+            }
+            if let dict = val as? [String: String?],
+                let href = dict["href"], href != nil,
+                let title = dict["title"] {
+                completionHandler(LinkInfo(href: href!, title: title))
+                return
+            }
+            
+            print("no link info: \(val ?? "Missing val")")
+            completionHandler(nil)
+        }
+    }
+    
+    func clearHighlightedLinks() {
+        self.evaluateJavaScript("window.\(clearLinkFuncName)()") { (val, err) in
+            if let err = err {
+                print(err)
+            }
+        }
+    }
+}

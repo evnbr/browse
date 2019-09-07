@@ -167,6 +167,10 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
 //        webView.addInputAccessory(toolbar: accessoryView)
 
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
+        longPress.delegate = self
+        webView.addGestureRecognizer(longPress)
+        
         observeLoadingChanges(for: webView)
         updateLoadingState()
 
@@ -368,6 +372,52 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         searchVC.handleEntrancePan(gesture)
     }
 
+    var feedbackGen: UIImpactFeedbackGenerator?
+    
+    @objc func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        if gesture.state == .began {
+            
+            feedbackGen = UIImpactFeedbackGenerator(style: .light)
+            feedbackGen?.prepare()
+            
+            // Set the location of the menu in the view.
+            let location = gesture.location(in: webView)
+            print("long begin at \(location)")
+
+            
+            webView.linkAt(location) { (info) in
+                guard let info = info else { return }
+                let url = URL(string: info.href)
+                
+                let ac = UIAlertController(
+                    title: info.href,
+                    message: info.title,
+                    preferredStyle: .actionSheet)
+                if let url = url {
+                    ac.addAction(UIAlertAction(title: "Go", style: .default, handler: { _ in
+                        self.webView.clearHighlightedLinks()
+                        self.navigateTo(url)
+                    }))
+                    ac.addAction(UIAlertAction(title: "Copy URL", style: .default, handler: { _ in
+                        self.webView.clearHighlightedLinks()
+                        UIPasteboard.general.string = url.absoluteString
+                    }))
+                }
+                ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { _ in
+                    self.webView.clearHighlightedLinks()
+                }))
+    
+                self.feedbackGen?.impactOccurred()
+                self.present(ac, animated: true, completion: nil)
+            }
+        }
+        else if gesture.state == .ended {
+            print("long end")
+            feedbackGen = nil
+        }
+    }
+
+    
     func stop() {
         webView.stopLoading()
     }
