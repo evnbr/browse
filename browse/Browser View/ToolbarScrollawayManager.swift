@@ -10,19 +10,40 @@ import UIKit
 
 let SCROLLAWAY_ENABLED = true
 
+/*
+This has an unintuitive implementation to work around limitations
+of WKWebview. The standard way to implement a hideable toolbar
+would be with a bottom content inset. However, WKWebview only seems to respect
+safeAreaInsets, and only top safeAreaInsets at that.
+
+ We don't want to resize the frame of the webview like the Firefox or Brave
+iOS implementations, because the web site may by using the height of the
+screen to size elements. Changing the size of those elements during
+a scroll interaction is janky and undesireable.
+
+Therefore, the webview is a constant height, and is constrained to the
+bottom of the toolbar. As the user scrolls, we shift the webview downward
+to hide the toolbar, but reduce the contentinset at the top to keep fixed
+navigation elements in a constant position.
+
+We compensate for that shift by adjusting the contentoffset in parallel,
+so the webview scroll position still tracks the user's touch.
+
+TODO:
+Because this implementation is so involved, animating
+the remanining distance when the toolbar is partially visible
+doesns't work correctly, so we just leave it partically visible.
+*/
+
 extension UIScrollView {
     func setContentOffsetWithoutDelegate(_ newContentOffset: CGPoint) {
-//        print("set without delegate: \(newContentOffset)")
-
         let lastDelegate = delegate;
         delegate = nil;
         setContentOffset(newContentOffset, animated: false);
         delegate = lastDelegate;
-//        var rect = bounds;
-//        rect.origin = newContentOffset;
-//        bounds = rect;
     }
 }
+
 
 class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
     var vc: BrowserViewController
