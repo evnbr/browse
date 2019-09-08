@@ -152,13 +152,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         webView.scrollView.isScrollEnabled = true
 
         contentView.insertSubview(webView, belowSubview: statusBar)
-        topConstraint = webView.topAnchor.constraint(equalTo: statusBar.bottomAnchor, constant: 0)
-//        topConstraint = webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 0)
+//        topConstraint = webView.topAnchor.constraint(equalTo: statusBar.bottomAnchor, constant: 0)
+        topConstraint = webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 0)
         topConstraint.isActive = true
 
         webView.leftAnchor.constraint(equalTo: cardView.leftAnchor).isActive = true
         webView.rightAnchor.constraint(equalTo: cardView.rightAnchor).isActive = true
-//        webView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -Const.toolbarHeight).isActive = true
+//        webviewBottomConstraint = webView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -Const.toolbarHeight)
         webviewBottomConstraint = toolbar.topAnchor.constraint(equalTo: webView.bottomAnchor, constant: 0)
         webviewBottomConstraint.isActive = true
 //
@@ -274,7 +274,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
 //        toolbar.heightConstraint.constant = 40
         
-        additionalSafeAreaInsets.top = 20
+//        additionalSafeAreaInsets.top = 20
 //        additionalSafeAreaInsets.bottom = 60
         
         NSLayoutConstraint.activate([
@@ -654,7 +654,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         searchVC.hasDraftLocation = false
         toolbar.text = self.displayLocation
 
-        if self.webView.isLoading {
+        if webView.isLoading && !toolbarManager.isShowingToolbar {
             toolbarManager.showToolbar()
         }
         
@@ -676,13 +676,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             with: webView.backForwardList
         )
         
-//        webView.scrollView.setContentOffset(
-//            CGPoint(
-//                x: 0,
-//                y: webView.scrollView.minScrollY
-//            ),
-//            animated: false
-//        )
+        webView.scrollView.setContentOffset(
+            CGPoint(
+                x: 0,
+                y: webView.scrollView.minScrollY
+            ),
+            animated: false
+        )
 
         colorSampler.updateColors()
     }

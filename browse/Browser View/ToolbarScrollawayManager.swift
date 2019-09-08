@@ -8,6 +8,8 @@
 
 import UIKit
 
+let SCROLLAWAY_ENABLED = true
+
 extension UIScrollView {
     func setContentOffsetWithoutDelegate(_ newContentOffset: CGPoint) {
 //        print("set without delegate: \(newContentOffset)")
@@ -30,6 +32,9 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         super.init()
     }
     
+    func scrollViewDidChangeAdjustedContentInset(_ scrollView: UIScrollView) {
+        print(scrollView.contentInset)
+    }
     
     func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool {
         showToolbar()
@@ -66,8 +71,12 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
             && !vc.isDisplayingSearch
     }
     
+    var isShowingToolbar: Bool {
+        return vc.toolbar.heightConstraint.constant > 0
+    }
+    
     func hideToolbar(animated: Bool = false) {
-        return
+        guard SCROLLAWAY_ENABLED else { return }
         
         if !vc.webView.scrollView.isScrollableY {
             return
@@ -78,13 +87,14 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         if vc.colorSampler.lastFixedResult?.hasBottomNav == true {
             return
         }
-        if vc.toolbar.heightConstraint.constant == 0 {
+        if !isShowingToolbar {
             return
         }
         
         vc.toolbar.heightConstraint.constant = 0
         vc.topConstraint.constant = 0
         vc.additionalSafeAreaInsets.top = 0
+//        vc.webView.scrollView.contentInset.top = 0
 
 //        UIView.animate(
 //            withDuration: 0.2,
@@ -102,13 +112,14 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
     }
     
     func showToolbar(animated: Bool = false, adjustScroll: Bool = false) {
-                return
-        
+        guard SCROLLAWAY_ENABLED else { return }
+
         let dist = Const.toolbarHeight - vc.toolbar.heightConstraint.constant
         
         vc.toolbar.heightConstraint.constant = Const.toolbarHeight
         vc.topConstraint.constant = -Const.toolbarHeight
         vc.additionalSafeAreaInsets.top = Const.toolbarHeight
+//        vc.webView.scrollView.contentInset.top = Const.toolbarHeight
 
 //        if animated {
 //            UIView.animate(
@@ -142,8 +153,8 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
     }
     
     func updateToolbar(_ scrollView: UIScrollView) {
-        return
-        
+        guard SCROLLAWAY_ENABLED else { return }
+
 //        print("delegate called: \(scrollView.contentOffset)")
 
         
@@ -200,6 +211,7 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
             let inset = -Const.toolbarHeight + toolbarH
             vc.topConstraint.constant = -toolbarH
             vc.additionalSafeAreaInsets.top = 0 + toolbarH
+//            scrollView.contentInset.top = toolbarH
             
             let hDelta = currentH - toolbarH
             

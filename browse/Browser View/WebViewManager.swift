@@ -40,27 +40,26 @@ class WebViewManager: NSObject {
         configuration.allowsInlineMediaPlayback = true
         configuration.websiteDataStore = .nonPersistent()
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
-        configuration.userContentController.addUserScript(
-            WKUserScript(
+        configuration.userContentController.addUserScript(WKUserScript(
                 source: Scripts.checkFixed,
                 injectionTime: .atDocumentStart,
                 forMainFrameOnly: false
-            )
-        )
-        configuration.userContentController.addUserScript(
-            WKUserScript(
+        ))
+        configuration.userContentController.addUserScript(WKUserScript(
                 source: Scripts.findAttributesAtPoint,
                 injectionTime: .atDocumentStart,
                 forMainFrameOnly: false
-            )
-        )
-        configuration.userContentController.addUserScript(
-            WKUserScript(
-                source: Scripts.customStyle,
-                injectionTime: .atDocumentEnd,
-                forMainFrameOnly: false
-            )
-        )
+        ))
+        configuration.userContentController.addUserScript(WKUserScript(
+            source: Scripts.customStyle,
+            injectionTime: .atDocumentEnd,
+            forMainFrameOnly: false
+        ))
+        configuration.userContentController.addUserScript(WKUserScript(
+            source: Scripts.viewportRemover,
+            injectionTime: .atDocumentEnd,
+            forMainFrameOnly: false
+        ))
         let readyStateStr = """
             document.onreadystatechange = () => {
                 if (document.readyState === "interactive") {
@@ -101,7 +100,7 @@ class WebViewManager: NSObject {
         webView.translatesAutoresizingMaskIntoConstraints = false
         webView.allowsBackForwardNavigationGestures = true
         webView.scrollView.contentInset = .zero
-        webView.scrollView.contentInsetAdjustmentBehavior = .never
+        webView.scrollView.contentInsetAdjustmentBehavior = .automatic
         webView.scrollView.clipsToBounds = false
 //        webView.scrollView.alwaysBounceHorizontal = true
         webView.allowsLinkPreview = false

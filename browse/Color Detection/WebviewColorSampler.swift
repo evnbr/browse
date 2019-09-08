@@ -128,7 +128,7 @@ class WebviewColorSampler: NSObject {
         let topConfig = WKSnapshotConfiguration()
         topConfig.rect = CGRect(
             x: 0,
-            y: 0, //delegate.sampledWebView.safeAreaInsets.top,
+            y: delegate.sampledWebView.safeAreaInsets.top,
             width: sampleW,
             height: sampleH
         )

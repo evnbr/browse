@@ -12,6 +12,7 @@ struct Scripts {
     static let checkFixed = checkFixedScript
     static let findAttributesAtPoint = findAttributesAtPointScript
     static let customStyle = customStyleScript
+    static let viewportRemover = viewportRemoverScript
 }
 
 
@@ -117,11 +118,11 @@ private let preventSelectionClassName = "__BROWSE_PREVENT_SELECTION__"
 private let findAttributesAtPointScript = """
     (function() {
         const isLink = (el) => {
-            return el.nodeName.toLowerCase() == 'a'
+            return el && el.nodeName && el.nodeName.toLowerCase() == 'a'
                 && el.hasAttribute('href')
         };
         const isImage = (el) => {
-            return el.nodeName.toLowerCase() == 'img'
+            return el && el.nodeName && el.nodeName.toLowerCase() == 'img'
                 && el.hasAttribute('src')
         };
 
@@ -202,4 +203,15 @@ private let customStyleScript = """
     const head = document.getElementsByTagName('head')[0];
     head.appendChild(style);
 """
+
+private let viewportRemoverScript = """
+    // viewport-fit: cover breaks our implementation of hiding toolbar
+    const metaTag = document.querySelector("meta[name=viewport]")
+    if (metaTag) {
+        const prev = metaTag.getAttribute('content');
+        const newContent = prev.replace('viewport-fit=cover', '');
+        metaTag.setAttribute('content', newContent);
+    }
+"""
+
 
