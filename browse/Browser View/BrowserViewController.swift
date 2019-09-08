@@ -419,8 +419,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         
         if let url = url {
             avc.addAction(UIAlertAction(title: "Save to Photos", style: .default, handler: { _ in
-                // TODO
-                self.downloadImageFrom(url: url) { img in
+                ImageDownloader.downloadImageFrom(url: url) { img in
                     if let img = img {
                         UIImageWriteToSavedPhotosAlbum(img, self, #selector(self.image(_:didFinishSavingWithError:contextInfo:)), nil)
                     }
@@ -428,11 +427,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
                 self.webView.clearHighlightedElements()
             }))
             avc.addAction(UIAlertAction(title: "Copy Image", style: .default, handler: { _ in
-                // TODO
+                ImageDownloader.downloadImageFrom(url: url) { img in
+                    if let img = img {
+                        UIPasteboard.general.image = img
+                    }
+                }
                 self.webView.clearHighlightedElements()
             }))
             avc.addAction(UIAlertAction(title: "Copy Image URL", style: .default, handler: { _ in
-                // TODO
+                UIPasteboard.general.string = url.absoluteString
                 self.webView.clearHighlightedElements()
             }))
         }
@@ -875,34 +878,6 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
 }
 
 extension BrowserViewController {
-    func downloadImageFrom(url: URL, completionHandler: @escaping ((UIImage?) -> ())) {
-        let session = URLSession(configuration: .default)
-        
-        // Define a download task. The download task will download the contents of the URL as a Data object and then you can do what you wish with that data.
-        let downloadTask = session.dataTask(with: url) { (data, response, error) in
-            // The download has finished.
-            if let e = error {
-                print("Error downloading picture: \(e)")
-                completionHandler(nil)
-                return
-            }
-            guard let res = response as? HTTPURLResponse else {
-                print("Couldn't get response code for some reason")
-                completionHandler(nil)
-                return
-            }
-            print("Downloaded cat picture with response code \(res.statusCode)")
-            guard let imageData = data else {
-                print("Couldn't get image: Image is nil")
-                completionHandler(nil)
-                return
-            }
-            let image = UIImage(data: imageData)
-            completionHandler(image)
-        }
-        downloadTask.resume()
-    }
-    
     @objc func image(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
         if let error = error {
             // we got back an error!
@@ -910,7 +885,7 @@ extension BrowserViewController {
             ac.addAction(UIAlertAction(title: "OK", style: .default))
             present(ac, animated: true)
         } else {
-            let ac = UIAlertController(title: "Saved!", message: "Saved to photos.", preferredStyle: .alert)
+            let ac = UIAlertController(title: "Image saved to Photos", message: nil, preferredStyle: .alert)
             ac.addAction(UIAlertAction(title: "OK", style: .default))
             present(ac, animated: true)
         }
