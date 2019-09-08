@@ -152,20 +152,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         webView.scrollView.isScrollEnabled = true
 
         contentView.insertSubview(webView, belowSubview: statusBar)
-//        topConstraint = webView.topAnchor.constraint(equalTo: statusBar.bottomAnchor, constant: 0)
         topConstraint = webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 0)
         topConstraint.isActive = true
 
         webView.leftAnchor.constraint(equalTo: cardView.leftAnchor).isActive = true
         webView.rightAnchor.constraint(equalTo: cardView.rightAnchor).isActive = true
-//        webviewBottomConstraint = webView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -Const.toolbarHeight)
         webviewBottomConstraint = toolbar.topAnchor.constraint(equalTo: webView.bottomAnchor, constant: 0)
         webviewBottomConstraint.isActive = true
-//
-//        webView.heightAnchor.constraint(equalTo: cardView.heightAnchor, constant: 0).isActive = true
-        toolbarPlaceholder.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
 
-//        webView.addInputAccessory(toolbar: accessoryView)
+        toolbarPlaceholder.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
 
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
         longPress.minimumPressDuration = 0.3

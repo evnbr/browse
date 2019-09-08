@@ -53,10 +53,6 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         super.init()
     }
     
-    func scrollViewDidChangeAdjustedContentInset(_ scrollView: UIScrollView) {
-        print(scrollView.contentInset)
-    }
-    
     func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool {
         showToolbar()
         return true
