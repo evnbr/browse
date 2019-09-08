@@ -49,7 +49,7 @@ class WebViewManager: NSObject {
         )
         configuration.userContentController.addUserScript(
             WKUserScript(
-                source: Scripts.findLinkAtPoint,
+                source: Scripts.findAttributesAtPoint,
                 injectionTime: .atDocumentStart,
                 forMainFrameOnly: false
             )

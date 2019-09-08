@@ -10,7 +10,7 @@ import UIKit
 
 struct Scripts {
     static let checkFixed = checkFixedScript
-    static let findLinkAtPoint = findLinkAtPointScript
+    static let findAttributesAtPoint = findAttributesAtPointScript
     static let customStyle = customStyleScript
 }
 
@@ -20,36 +20,51 @@ struct FixedNavResult {
     let hasBottomNav: Bool
 }
 
-struct LinkInfo {
-    let href: String
+struct DomAttributes {
+    let href: String?
     let title: String?
+    let src: String?
+    
+    init(href: String? = nil, src: String? = nil, title: String? = nil) {
+        self.href = href
+        self.title = title
+        self.src = src
+    }
 }
 
 extension WKWebView {
-    func linkAt(_ position: CGPoint, completionHandler: @escaping ((LinkInfo?) -> ()) ) {
+    func attributesAt(_ position: CGPoint, completionHandler: @escaping ((DomAttributes?) -> ()) ) {
         
         // Translate gesture point into the coordinate system of the zoomed page
         let scaleFactor = 1 / scrollView.zoomScale
         let pt = CGPoint(x: position.x * scaleFactor, y: position.y * scaleFactor)
         
-        self.evaluateJavaScript("window.\(findLinkAtPointFuncName)(\(pt.x), \(pt.y))") { (val, err) in
+        self.evaluateJavaScript("window.\(findAttributesAtPointFuncName)(\(pt.x), \(pt.y))") { (val, err) in
             if let err = err {
                 print(err)
             }
             if let dict = val as? [String: String?],
                 let href = dict["href"], href != nil,
                 let title = dict["title"] {
-                completionHandler(LinkInfo(href: href!, title: title))
+                // This is a link
+                completionHandler(DomAttributes(href: href!, title: title))
                 return
             }
-            
-            print("no link info: \(val ?? "Missing val")")
+            if let dict = val as? [String: String?],
+                let src = dict["src"], src != nil,
+                let title = dict["title"] {
+                // This is an image
+                completionHandler(DomAttributes(src: src!, title: title))
+                return
+            }
+
+            print("no info: \(val ?? "Missing val")")
             completionHandler(nil)
         }
     }
     
-    func clearHighlightedLinks() {
-        self.evaluateJavaScript("window.\(clearHighlightedLinksFuncName)()") { (val, err) in
+    func clearHighlightedElements() {
+        self.evaluateJavaScript("window.\(clearHighlightedElementsFuncName)()") { (val, err) in
             if let err = err {
                 print(err)
             }
@@ -94,14 +109,24 @@ private let checkFixedScript = """
     })();
 """
 
-private let findLinkAtPointFuncName = "__BROWSE_GET_LINK__"
-private let clearHighlightedLinksFuncName = "__BROWSE__CLEAR_ACTIVE_LINK__"
-private let highlightLinkClassName = "__BROWSE_ACTIVE_LINK__"
+private let findAttributesAtPointFuncName = "__BROWSE_GET_LINK__"
+private let clearHighlightedElementsFuncName = "__BROWSE__CLEAR_ACTIVE_LINK__"
+private let elementShowingMenuClassName = "__BROWSE_ACTIVE_LINK__"
 private let preventSelectionClassName = "__BROWSE_PREVENT_SELECTION__"
 
-private let findLinkAtPointScript = """
+private let findAttributesAtPointScript = """
     (function() {
-        window.\(findLinkAtPointFuncName) = (x, y) => {
+        const isLink = (el) => {
+            return el.nodeName.toLowerCase() == 'a'
+                && el.hasAttribute('href')
+        };
+        const isImage = (el) => {
+            return el.nodeName.toLowerCase() == 'img'
+                && el.hasAttribute('src')
+        };
+
+
+        window.\(findAttributesAtPointFuncName) = (x, y) => {
             let el = document.elementFromPoint(x, y);
             if (!el) {
                 return "No el";
@@ -110,27 +135,49 @@ private let findLinkAtPointScript = """
             while (
                 typeof el === 'object'
                 && el.nodeName.toLowerCase() !== 'body'
-                && !el.hasAttribute('href')
+                && !isImage(el) && !isLink(el)
             ) {
                 el = el.parentElement;
             }
 
-            const href = el.getAttribute('href');
-            if (!href) {
-                return "No href for " + el.tagName;
+            if (isLink(el)) {
+                const href = el.getAttribute('href');
+                if (!href) {
+                    return "No href for link";
+                }
+                document.body.classList.add('\(preventSelectionClassName)');
+                el.classList.add('\(elementShowingMenuClassName)');
+                let title = el.getAttribute('title');
+                if (!title) {
+                    const linkContent = el.textContent.trim();
+                    if (linkContent.length > 0) {
+                        title = linkContent;
+                    }
+                }
+                return {
+                    href: href,
+                    title: title
+                };
             }
-            document.body.classList.add('\(preventSelectionClassName)');
-            el.classList.add('\(highlightLinkClassName)');
-            return {
-                href: href,
-                title: el.getAttribute('title')
-            };
+            if (isImage(el)) {
+                const src = el.getAttribute('src');
+                if (!src) {
+                    return "No src for image";
+                }
+                document.body.classList.add('\(preventSelectionClassName)');
+                el.classList.add('\(elementShowingMenuClassName)');
+                return {
+                    src: src,
+                    title: el.getAttribute('title')
+                };
+            }
+            return "No relevant attributes for " + el.tagName;
         };
-        window.\(clearHighlightedLinksFuncName) = () => {
-            const els = document.querySelectorAll('.\(highlightLinkClassName)');
+        window.\(clearHighlightedElementsFuncName) = () => {
+            const els = document.querySelectorAll('.\(elementShowingMenuClassName)');
             document.body.classList.remove('\(preventSelectionClassName)');
             for (const el of els) {
-                el.classList.remove('\(highlightLinkClassName)');
+                el.classList.remove('\(elementShowingMenuClassName)');
             }
         };
     })();
@@ -140,15 +187,17 @@ private let customStyleScript = """
     const style = document.createElement('style');
     style.type = 'text/css';
     style.innerText = `
-        .__BROWSE_PREVENT_SELECTION__ *:not(input):not(textarea) {
-        -webkit-user-select: none;
-        -webkit-touch-callout: none;
-    }
-    .\(highlightLinkClassName) {
-        transition: all 0.3s;
-        background: rgba(0,0,0,0.1);
-        transform: scale(1.08);
-    }
+        .\(preventSelectionClassName) *:not(input):not(textarea) {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        a.\(elementShowingMenuClassName) {
+//            transition: all 0.3s;
+            background: rgba(0,0,0,0.1);
+        }
+        img.\(elementShowingMenuClassName) {
+            outline: 4px blue !important;
+        }
     `;
     const head = document.getElementsByTagName('head')[0];
     head.appendChild(style);

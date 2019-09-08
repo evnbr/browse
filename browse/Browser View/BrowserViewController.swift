@@ -386,37 +386,89 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             print("long begin at \(location)")
 
             
-            webView.linkAt(location) { (info) in
-                guard let info = info else { return }
-                let url = URL(string: info.href, relativeTo: self.webView.url)
+            webView.attributesAt(location) { (attrs) in
+                guard let attrs = attrs else { return }
                 
-                let avc = UIAlertController(
-                    title: info.href,
-                    message: info.title,
-                    preferredStyle: .actionSheet)
-                avc.view.tintColor = UIColor.label
-                if let url = url {
-                    avc.addAction(UIAlertAction(title: "Go", style: .default, handler: { _ in
-                        self.webView.clearHighlightedLinks()
-                        self.navigateTo(url)
-                    }))
-                    avc.addAction(UIAlertAction(title: "Copy URL", style: .default, handler: { _ in
-                        self.webView.clearHighlightedLinks()
-                        UIPasteboard.general.string = url.absoluteString
-                    }))
+                var avc: UIAlertController?
+                if let href = attrs.href {
+                    avc = self.createMenuForLink(href: href, title: attrs.title)
+                } else if let src = attrs.src {
+                    avc = self.createMenuForImage(src: src, title: attrs.title)
+                } else {
+                    return
                 }
-                avc.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { _ in
-                    self.webView.clearHighlightedLinks()
-                }))
-                
-                self.feedbackGen?.impactOccurred()
-                self.present(avc, animated: true, completion: nil)
+                if let avc = avc {
+                    self.feedbackGen?.impactOccurred()
+                    self.present(avc, animated: true, completion: nil)
+                }
             }
         }
         else if gesture.state == .ended {
             print("long end")
             feedbackGen = nil
         }
+    }
+    func createMenuForImage(src: String, title: String?) -> UIAlertController {
+        let url = URL(string: src, relativeTo: self.webView.url)
+
+        let avc = UIAlertController(
+            title: title,
+            message: nil,
+            preferredStyle: .actionSheet)
+        avc.view.tintColor = UIColor.label
+        
+        if let url = url {
+            avc.addAction(UIAlertAction(title: "Save to Photos", style: .default, handler: { _ in
+                // TODO
+                self.downloadImageFrom(url: url) { img in
+                    if let img = img {
+                        UIImageWriteToSavedPhotosAlbum(img, self, #selector(self.image(_:didFinishSavingWithError:contextInfo:)), nil)
+                    }
+                }
+                self.webView.clearHighlightedElements()
+            }))
+            avc.addAction(UIAlertAction(title: "Copy Image", style: .default, handler: { _ in
+                // TODO
+                self.webView.clearHighlightedElements()
+            }))
+            avc.addAction(UIAlertAction(title: "Copy Image URL", style: .default, handler: { _ in
+                // TODO
+                self.webView.clearHighlightedElements()
+            }))
+        }
+        avc.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { _ in
+            self.webView.clearHighlightedElements()
+        }))
+        
+        return avc
+
+    }
+
+    func createMenuForLink(href: String, title: String?) -> UIAlertController {
+        let url = URL(string: href, relativeTo: self.webView.url)
+        
+        let avc = UIAlertController(
+            title: title,
+            message: href,
+            preferredStyle: .actionSheet)
+        avc.view.tintColor = UIColor.label
+        
+        if let url = url {
+            avc.addAction(UIAlertAction(title: "Go", style: .default, handler: { _ in
+                self.webView.clearHighlightedElements()
+                self.navigateTo(url)
+            }))
+            avc.addAction(UIAlertAction(title: "Copy URL", style: .default, handler: { _ in
+                self.webView.clearHighlightedElements()
+                UIPasteboard.general.string = url.absoluteString
+            }))
+        }
+        
+        avc.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { _ in
+            self.webView.clearHighlightedElements()
+        }))
+        
+        return avc
     }
 
     
@@ -819,5 +871,48 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
     func cancelColorChange() {
         statusBar.cancelColorChange()
         toolbar.cancelColorChange()
+    }
+}
+
+extension BrowserViewController {
+    func downloadImageFrom(url: URL, completionHandler: @escaping ((UIImage?) -> ())) {
+        let session = URLSession(configuration: .default)
+        
+        // Define a download task. The download task will download the contents of the URL as a Data object and then you can do what you wish with that data.
+        let downloadTask = session.dataTask(with: url) { (data, response, error) in
+            // The download has finished.
+            if let e = error {
+                print("Error downloading picture: \(e)")
+                completionHandler(nil)
+                return
+            }
+            guard let res = response as? HTTPURLResponse else {
+                print("Couldn't get response code for some reason")
+                completionHandler(nil)
+                return
+            }
+            print("Downloaded cat picture with response code \(res.statusCode)")
+            guard let imageData = data else {
+                print("Couldn't get image: Image is nil")
+                completionHandler(nil)
+                return
+            }
+            let image = UIImage(data: imageData)
+            completionHandler(image)
+        }
+        downloadTask.resume()
+    }
+    
+    @objc func image(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
+        if let error = error {
+            // we got back an error!
+            let ac = UIAlertController(title: "Save error", message: error.localizedDescription, preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "OK", style: .default))
+            present(ac, animated: true)
+        } else {
+            let ac = UIAlertController(title: "Saved!", message: "Saved to photos.", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "OK", style: .default))
+            present(ac, animated: true)
+        }
     }
 }
