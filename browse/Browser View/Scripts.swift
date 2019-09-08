@@ -36,7 +36,7 @@ struct DomAttributes {
 extension WKWebView {
     func attributesAt(_ position: CGPoint, completionHandler: @escaping ((DomAttributes?) -> ()) ) {
         
-        // Translate gesture point into the coordinate system of the zoomed page
+        // Translate from view coordinates into zoomed page coordinates
         let scaleFactor = 1 / scrollView.zoomScale
         let pt = CGPoint(x: position.x * scaleFactor, y: position.y * scaleFactor)
         
@@ -85,11 +85,10 @@ extension WKWebView {
     }
 }
 
-
-
-
+// Check if the element contains a fixed bar at top or bottom,
+// by walking up the DOM and checking computed styles. Potentially used
+// to suppress browser bar transparency if needed
 private let checkFixedFuncName = "__BROWSE_HAS_FIXED_NAV__"
-
 private let checkFixedScript = """
     (function() {
         const isFixed = (elm) => {
@@ -115,6 +114,9 @@ private let clearHighlightedElementsFuncName = "__BROWSE__CLEAR_ACTIVE_LINK__"
 private let elementShowingMenuClassName = "__BROWSE_ACTIVE_LINK__"
 private let preventSelectionClassName = "__BROWSE_PREVENT_SELECTION__"
 
+
+// The script that powers our custom long-press menu. Extracts information
+// about the nearest image or link element, walking up the DOM if necessary.
 private let findAttributesAtPointScript = """
     (function() {
         const isLink = (el) => {
@@ -184,6 +186,8 @@ private let findAttributesAtPointScript = """
     })();
 """
 
+// CSS for the custom-long press: suppress text-selection
+// to avoid triggering the system gesture. Style the selected element.
 private let customStyleScript = """
     const style = document.createElement('style');
     style.type = 'text/css';
@@ -193,7 +197,6 @@ private let customStyleScript = """
             -webkit-touch-callout: none;
         }
         a.\(elementShowingMenuClassName) {
-//            transition: all 0.3s;
             background: rgba(0,0,0,0.1);
         }
         img.\(elementShowingMenuClassName) {
@@ -204,8 +207,9 @@ private let customStyleScript = """
     head.appendChild(style);
 """
 
+// viewport-fit: cover breaks our implementation of hiding toolbar.
+// without this, fixed-position elements like top bars scoot around
 private let viewportRemoverScript = """
-    // viewport-fit: cover breaks our implementation of hiding toolbar
     const metaTag = document.querySelector("meta[name=viewport]")
     if (metaTag) {
         const prev = metaTag.getAttribute('content');
