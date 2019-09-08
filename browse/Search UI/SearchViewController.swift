@@ -290,7 +290,7 @@ class SearchViewController: UIViewController {
         
         view.translatesAutoresizingMaskIntoConstraints = false
 //        view.backgroundColor = .darkTouch
-        view.radius = 24
+        view.radius = 12
         view.clipsToBounds = true
         
         return view
@@ -359,9 +359,12 @@ class SearchViewController: UIViewController {
 //            ? UIColor.black.withAlphaComponent(0.4)
 //            : UIColor.white.withAlphaComponent(0.4)
         
+        textViewFill.backgroundColor = isBackgroundLight
+            ? .darkField
+            : .lightField
 //        textViewFill.backgroundColor = isBackgroundLight
-//            ? .darkField
-//            : .lightField
+//            ? .darkTouch
+//            : .lightTouch
 
         textView.keyboardAppearance = isBackgroundLight ? .light : .dark
     }

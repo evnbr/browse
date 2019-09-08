@@ -387,29 +387,29 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             
             webView.linkAt(location) { (info) in
                 guard let info = info else { return }
-//                let url = URL(string: info.href)
                 let url = URL(string: info.href, relativeTo: self.webView.url)
                 
-                let ac = UIAlertController(
+                let avc = UIAlertController(
                     title: info.href,
                     message: info.title,
                     preferredStyle: .actionSheet)
+                avc.view.tintColor = UIColor.label
                 if let url = url {
-                    ac.addAction(UIAlertAction(title: "Go", style: .default, handler: { _ in
+                    avc.addAction(UIAlertAction(title: "Go", style: .default, handler: { _ in
                         self.webView.clearHighlightedLinks()
                         self.navigateTo(url)
                     }))
-                    ac.addAction(UIAlertAction(title: "Copy URL", style: .default, handler: { _ in
+                    avc.addAction(UIAlertAction(title: "Copy URL", style: .default, handler: { _ in
                         self.webView.clearHighlightedLinks()
                         UIPasteboard.general.string = url.absoluteString
                     }))
                 }
-                ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { _ in
+                avc.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { _ in
                     self.webView.clearHighlightedLinks()
                 }))
-    
+                
                 self.feedbackGen?.impactOccurred()
-                self.present(ac, animated: true, completion: nil)
+                self.present(avc, animated: true, completion: nil)
             }
         }
         else if gesture.state == .ended {

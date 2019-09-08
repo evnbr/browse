@@ -162,7 +162,7 @@ class SearchTransitionController: NSObject {
                 searchVC.pageActionView.alpha = self.isExpanding ? 1 : 0
                 searchVC.shadowView.alpha = self.isExpanding ? 1 : 0
                 
-//                searchVC.textViewFill.backgroundColor = self.isExpanding ? fieldColor : .clear
+                searchVC.textViewFill.backgroundColor = self.isExpanding ? fieldColor : .clear
                 searchVC.scrim.alpha = self.isExpanding ? 1 : 0
 
                 searchVC.textView.mask?.frame = self.isExpanding ? maskEndFrame : maskStartFrame

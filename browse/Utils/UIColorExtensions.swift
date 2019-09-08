@@ -16,8 +16,8 @@ public extension UIColor {
     static let darkTouch = UIColor.black.withAlphaComponent(0.1)
     static let lightTouch = UIColor.white.withAlphaComponent(0.25)
     
-    static let darkField = UIColor.black.withAlphaComponent(0.05)
-    static let lightField = UIColor.white.withAlphaComponent(0.08)
+    static let darkField = UIColor.black.withAlphaComponent(0.08)
+    static let lightField = UIColor.white.withAlphaComponent(0.12)
 
     convenience init(r: CGFloat, g: CGFloat, b: CGFloat) {
         self.init(red: r, green: g, blue: b, alpha: 1)
