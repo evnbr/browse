@@ -168,6 +168,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 //        webView.addInputAccessory(toolbar: accessoryView)
 
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
+        longPress.minimumPressDuration = 0.3
         longPress.delegate = self
         webView.addGestureRecognizer(longPress)
         

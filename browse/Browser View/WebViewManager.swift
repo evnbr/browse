@@ -49,14 +49,14 @@ class WebViewManager: NSObject {
         )
         configuration.userContentController.addUserScript(
             WKUserScript(
-                source: getLinkFunc,
+                source: findLinkAtPointScript,
                 injectionTime: .atDocumentStart,
                 forMainFrameOnly: false
             )
         )
         configuration.userContentController.addUserScript(
             WKUserScript(
-                source: preventTextSelection,
+                source: customStyleScript,
                 injectionTime: .atDocumentEnd,
                 forMainFrameOnly: false
             )
@@ -161,13 +161,14 @@ private let checkFixedFunc = """
     })();
 """
 
-private let findLinkFuncName = "__BROWSE_GET_LINK__"
-private let clearLinkFuncName = "__BROWSE__CLEAR_ACTIVE_LINK__"
+private let findLinkAtPointFuncName = "__BROWSE_GET_LINK__"
+private let clearHighlightedLinksFuncName = "__BROWSE__CLEAR_ACTIVE_LINK__"
 private let highlightLinkClassName = "__BROWSE_ACTIVE_LINK__"
+private let preventSelectionClassName = "__BROWSE_PREVENT_SELECTION__"
 
-private let getLinkFunc = """
+private let findLinkAtPointScript = """
     (function() {
-        window.\(findLinkFuncName) = (x, y) => {
+        window.\(findLinkAtPointFuncName) = (x, y) => {
             let el = document.elementFromPoint(x, y);
             if (!el) {
                 return "No el";
@@ -185,14 +186,16 @@ private let getLinkFunc = """
             if (!href) {
                 return "No href for " + el.tagName;
             }
-            el.classList.add('__BROWSE_ACTIVE_LINK__');
+            document.body.classList.add('\(preventSelectionClassName)');
+            el.classList.add('\(highlightLinkClassName)');
             return {
                 href: href,
                 title: el.getAttribute('title')
             };
         };
-        window.\(clearLinkFuncName) = () => {
+        window.\(clearHighlightedLinksFuncName) = () => {
             const els = document.querySelectorAll('.\(highlightLinkClassName)');
+            document.body.classList.remove('\(preventSelectionClassName)');
             for (const el of els) {
                 el.classList.remove('\(highlightLinkClassName)');
             }
@@ -200,11 +203,11 @@ private let getLinkFunc = """
     })();
 """
 
-private let preventTextSelection = """
+private let customStyleScript = """
     const style = document.createElement('style');
     style.type = 'text/css';
     style.innerText = `
-        *:not(input):not(textarea) {
+        .__BROWSE_PREVENT_SELECTION__ *:not(input):not(textarea) {
             -webkit-user-select: none;
             -webkit-touch-callout: none;
         }
@@ -230,7 +233,7 @@ extension WKWebView {
         let scaleFactor = 1 / scrollView.zoomScale
         let pt = CGPoint(x: position.x * scaleFactor, y: position.y * scaleFactor)
         
-        self.evaluateJavaScript("window.\(findLinkFuncName)(\(pt.x), \(pt.y))") { (val, err) in
+        self.evaluateJavaScript("window.\(findLinkAtPointFuncName)(\(pt.x), \(pt.y))") { (val, err) in
             if let err = err {
                 print(err)
             }
@@ -247,7 +250,7 @@ extension WKWebView {
     }
     
     func clearHighlightedLinks() {
-        self.evaluateJavaScript("window.\(clearLinkFuncName)()") { (val, err) in
+        self.evaluateJavaScript("window.\(clearHighlightedLinksFuncName)()") { (val, err) in
             if let err = err {
                 print(err)
             }
