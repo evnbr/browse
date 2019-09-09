@@ -23,8 +23,11 @@ a scroll interaction is janky and undesireable.
 
 Therefore, the webview is a constant height, and is constrained to the
 bottom of the toolbar. As the user scrolls, we shift the webview downward
-to hide the toolbar, but reduce the contentinset at the top to keep fixed
+to hide the toolbar, but reduce the safe area inset at the top to keep fixed
 navigation elements in a constant position.
+ 
+ See chrome inset: https://github.com/chromium/chromium/blob/211bf84eb2d998410bcb2625c890117f2e16f282/ios/chrome/browser/ui/browser_view/browser_view_controller.mm#L3919
+ and frame alignment: https://github.com/chromium/chromium/blob/211bf84eb2d998410bcb2625c890117f2e16f282/ios/chrome/browser/ui/browser_view/browser_view_controller.mm#L3899
 
 We compensate for that shift by adjusting the contentoffset in parallel,
 so the webview scroll position still tracks the user's touch.
@@ -44,6 +47,7 @@ extension UIScrollView {
     }
 }
 
+let toolbarHideRatio: CGFloat = 1.2
 
 class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
     var vc: BrowserViewController
@@ -204,8 +208,6 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         if vc.toolbar.heightConstraint.constant == 0 {
 //            return
         }
-        
-        let toolbarHideRatio: CGFloat = 2
         
         if self.shouldUpdateToolbar {
             var newH: CGFloat
