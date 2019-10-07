@@ -14,7 +14,7 @@ let maxTextFieldHeight: CGFloat = 240.0
 let textFieldInsets = UIEdgeInsets(top: 11, left: 14, bottom: 12, right: 14)
 let pageActionHeight: CGFloat = 100 //100
 
-let textFieldInnerMargin: CGFloat = 12
+let textFieldInnerMargin: CGFloat = 20
 let textFieldRoomForIcons: CGFloat = 68
 
 let SHEET_TOP_HANDLE_MARGIN: CGFloat = 28
@@ -135,7 +135,7 @@ class SearchViewController: UIViewController {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.tintColor = .darkText
         contentView.clipsToBounds = true
-        contentView.radius = 16
+        contentView.radius = 20
         view.addSubview(contentView)
         
         shadowView = UIView(frame: view.bounds)
@@ -192,9 +192,7 @@ class SearchViewController: UIViewController {
 
         setBackground(defaultBackground)
         updateTextViewSize()
-//        view.layoutIfNeeded()
-        
-        
+//        view.layoutIfNeeded()        
     }
 
     func setupActions() {

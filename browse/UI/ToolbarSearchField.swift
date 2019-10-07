@@ -39,7 +39,7 @@ class ToolbarSearchField: ToolbarTouchView {
             return labelHolder.layer.mask == nil
         }
         set {
-            locationLabel.showSpinner = newValue
+//            locationLabel.showSpinner = newValue
 //            labelHolder.layer.mask = newValue ? maskLayer : nil
         }
     }

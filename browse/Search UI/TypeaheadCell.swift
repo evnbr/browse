@@ -20,7 +20,7 @@ class TypeaheadCell: UITableViewCell {
         backgroundColor = .clear
         contentView.backgroundColor = .clear
         
-        let bg = UIView(frame: bounds)
+        let bg = UIView(frame: bounds.insetBy(dx: 12, dy: 0))
         bg.backgroundColor = .darkTouch
         selectedBackgroundView = bg
         
