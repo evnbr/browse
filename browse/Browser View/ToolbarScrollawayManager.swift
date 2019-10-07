@@ -208,7 +208,8 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         if vc.toolbar.heightConstraint.constant == 0 {
 //            return
         }
-        
+        updateStatusBarColor()
+
         if self.shouldUpdateToolbar {
             var newH: CGFloat
             if scrollView.isOverScrolledBottomWithInset {
@@ -222,6 +223,7 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
                     // print("wouldn't be able to hide in time")
                 }
             }
+            
             
             let currentH = vc.toolbar.heightConstraint.constant
             let toolbarH = newH.limit(min: 0, max: Const.toolbarHeight)
@@ -248,6 +250,7 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
 
             let alpha = pct * 3 - 2
             vc.toolbar.contentsAlpha = alpha
+            
         }
     }
     
