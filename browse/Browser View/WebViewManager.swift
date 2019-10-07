@@ -38,17 +38,18 @@ class WebViewManager: NSObject {
         let configuration = WKWebViewConfiguration()
         configuration.processPool = WKProcessPool()
         configuration.allowsInlineMediaPlayback = true
-        configuration.websiteDataStore = .nonPersistent()
+//        configuration.websiteDataStore = .nonPersistent()
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
+        
         configuration.userContentController.addUserScript(WKUserScript(
-                source: Scripts.checkFixed,
-                injectionTime: .atDocumentStart,
-                forMainFrameOnly: false
+            source: Scripts.checkFixed,
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: false
         ))
         configuration.userContentController.addUserScript(WKUserScript(
-                source: Scripts.findAttributesAtPoint,
-                injectionTime: .atDocumentStart,
-                forMainFrameOnly: false
+            source: Scripts.findAttributesAtPoint,
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: false
         ))
         configuration.userContentController.addUserScript(WKUserScript(
             source: Scripts.customStyle,
@@ -60,6 +61,7 @@ class WebViewManager: NSObject {
             injectionTime: .atDocumentEnd,
             forMainFrameOnly: false
         ))
+        
         let readyStateStr = """
             document.onreadystatechange = () => {
                 if (document.readyState === "interactive") {

@@ -186,21 +186,25 @@ private let findAttributesAtPointScript = """
     })();
 """
 
+// html, body { overflow: hidden } breaks our content insets.
+// without this, the content is stuck behind the top bar
+//
 // CSS for the custom-long press: suppress text-selection
 // to avoid triggering the system gesture. Style the selected element.
+
 private let customStyleScript = """
     const style = document.createElement('style');
     style.type = 'text/css';
     style.innerText = `
+        html, body {
+            overflow: unset !important;
+        }
         .\(preventSelectionClassName) *:not(input):not(textarea) {
             -webkit-user-select: none;
             -webkit-touch-callout: none;
         }
         a.\(elementShowingMenuClassName) {
             background: rgba(0,0,0,0.1);
-        }
-        img.\(elementShowingMenuClassName) {
-            outline: 4px blue !important;
         }
     `;
     const head = document.getElementsByTagName('head')[0];
