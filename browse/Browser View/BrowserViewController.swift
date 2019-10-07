@@ -653,6 +653,16 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             toolbarManager.showToolbar()
         }
         
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            if self.webView.scrollView.contentSize.height < self.webView.bounds.height
+                && toolbarManager.isShowingToolbar {
+                // if there was a javascript navigation
+                // and the new view is not scrollable,
+                // ensure the toolbar is accessibl
+                self.toolbarManager.showToolbar()
+            }
+        }
+        
         if let progress = estimatedProgress {
             setProgressView(Float(progress))
         }
@@ -671,13 +681,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             with: webView.backForwardList
         )
         
-        webView.scrollView.setContentOffset(
-            CGPoint(
-                x: 0,
-                y: webView.scrollView.minScrollY
-            ),
-            animated: false
-        )
+//        webView.scrollView.setContentOffset(
+//            CGPoint(
+//                x: 0,
+//                y: webView.scrollView.minScrollY
+//            ),
+//            animated: false
+//        )
 
         colorSampler.updateColors()
     }
