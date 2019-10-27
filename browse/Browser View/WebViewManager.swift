@@ -12,7 +12,7 @@ import WebKit
 
 typealias BrowseLoadingHandler = (WKScriptMessage) -> Void
 
-let USER_AGENT = "Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/602.1.38 (KHTML, like Gecko) Version/12.7.7 Mobile/14A5297c Safari/602.1"
+let USER_AGENT = "Mozilla/5.0 (iPhone; CPU iPhone OS 13_0 like Mac OS X) AppleWebKit/602.1.38 (KHTML, like Gecko) Version/66.6 Mobile/14A5297c Safari/602.1"
 
 class WebViewManager: NSObject {
     private var webViewMap: [ Tab: WKWebView ] = [:]
