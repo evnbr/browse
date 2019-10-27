@@ -152,12 +152,13 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         webView.scrollView.isScrollEnabled = true
 
         contentView.insertSubview(webView, belowSubview: statusBar)
-        topConstraint = webView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 0)
+        topConstraint = webView.topAnchor.constraint(equalTo: toolbar.bottomAnchor, constant: 0)
         topConstraint.isActive = true
 
         webView.leftAnchor.constraint(equalTo: cardView.leftAnchor).isActive = true
         webView.rightAnchor.constraint(equalTo: cardView.rightAnchor).isActive = true
-        webviewBottomConstraint = toolbar.topAnchor.constraint(equalTo: webView.bottomAnchor, constant: 0)
+//        webviewBottomConstraint = toolbar.topAnchor.constraint(equalTo: webView.bottomAnchor, constant: 0)
+        webviewBottomConstraint = webView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor)
         webviewBottomConstraint.isActive = true
 
         toolbarPlaceholder.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
@@ -167,6 +168,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         longPress.delegate = self
         webView.addGestureRecognizer(longPress)
         
+        let backSwipe = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(handleEdgePan))
+        backSwipe.delegate = self
+        backSwipe.edges = .left
+        let fwdSwipe = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(handleEdgePan))
+        fwdSwipe.delegate = self
+        fwdSwipe.edges = .right
+        webView.addGestureRecognizer(fwdSwipe)
+        webView.addGestureRecognizer(backSwipe)
+
         observeLoadingChanges(for: webView)
         updateLoadingState()
 
@@ -201,7 +211,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         }
         canGoBackObserver = webView.observe(\.canGoBack) { _, _ in
             UIView.animate(withDuration: 0.25) {
-                self.toolbar.backButton.isEnabled = self.webView.canGoBack || self.currentTab!.hasParent
+                self.toolbar.backButton.isEnabled = self.webView.canGoBack // || self.currentTab!.hasParent
             }
         }
     }
@@ -222,7 +232,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
 
         contentView = UIView(frame: cardViewDefaultFrame)
         contentView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        contentView.radius = Const.cardRadius
+        contentView.radius = 40 //Const.cardRadius
         contentView.layer.masksToBounds = true
         contentView.backgroundColor = .clear
 
@@ -278,7 +288,8 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             bottomOverscrollCoverHeightConstraint,
             toolbar.centerXAnchor.constraint(equalTo: cardView.centerXAnchor),
             toolbar.widthAnchor.constraint(equalTo: cardView.widthAnchor),
-            toolbar.bottomAnchor.constraint(equalTo: toolbarPlaceholder.bottomAnchor),
+//            toolbar.bottomAnchor.constraint(equalTo: toolbarPlaceholder.bottomAnchor),
+            toolbar.topAnchor.constraint(equalTo: statusBar.bottomAnchor),
             toolbarPlaceholder.bottomAnchor.constraint(equalTo: cardView.bottomAnchor),
             toolbarPlaceholder.leftAnchor.constraint(equalTo: cardView.leftAnchor),
             toolbarPlaceholder.rightAnchor.constraint(equalTo: cardView.rightAnchor),
@@ -368,6 +379,59 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         searchVC.handleEntrancePan(gesture)
     }
 
+    var prevBackGestureDist: CGFloat = 0
+    
+    @objc func handleEdgePan(_ gesture: UIScreenEdgePanGestureRecognizer) {
+        let dist = gesture.translation(in: view)
+        let vel = gesture.velocity(in: view)
+
+        if gesture.state == .began {
+            print("back swipe start")
+            feedbackGen = UIImpactFeedbackGenerator(style: .light)
+            feedbackGen?.prepare()
+        }
+        else if gesture.state == .changed {
+            feedbackGen?.prepare()
+            
+            print("back swipe change: \(dist.x)")
+            let pct = dist.x.progress(0, 400)
+            if gesture.edges == .right {
+                if webView.canGoForward {
+                    cardView.scale = (pct * -1).lerp(1, 0.8)
+                    if dist.x < -100 && prevBackGestureDist > -100
+                    || dist.x > -100 && prevBackGestureDist < -100 {
+                        feedbackGen?.impactOccurred()
+                    }
+                }
+            } else {
+                if webView.canGoBack {
+                    cardView.scale = pct.lerp(1, 0.8)
+                    if dist.x > 100 && prevBackGestureDist < 100
+                    || dist.x < 100 && prevBackGestureDist > 100{
+                        feedbackGen?.impactOccurred()
+                    }
+                }
+            }
+            prevBackGestureDist = dist.x
+        }
+        else if gesture.state == .ended {
+//            print("back swipe end")
+            UIView.animate(withDuration: 0.2) {
+                self.cardView.scale = 1
+            }
+            if dist.x > 100 {
+                webView.goBack()
+            }
+            if dist.x < -100 {
+                webView.goForward()
+            }
+            feedbackGen = nil
+            prevBackGestureDist = 0
+        }
+    }
+
+    
+    
     var feedbackGen: UIImpactFeedbackGenerator?
     
     @objc func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
@@ -655,7 +719,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             if self.webView.scrollView.contentSize.height < self.webView.bounds.height
-                && toolbarManager.isShowingToolbar {
+                && self.toolbarManager.isShowingToolbar {
                 // if there was a javascript navigation
                 // and the new view is not scrollable,
                 // ensure the toolbar is accessibl
@@ -837,6 +901,8 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
             currentTab?.currentVisit?.topColor = newColor
 //            toolbar.transitionBackground(to: newColor, from: .bottomToTop)
             statusBar.transitionBackground(to: newColor, from: .bottomToTop)
+            toolbar.transitionBackground(to: newColor, from: .topToBottom)
+
 //            UIView.animate(withDuration: 0.3, delay: 0, options: [.beginFromCurrentState], animations: {
 //                self.setNeedsStatusBarAppearanceUpdate()
 //            })
@@ -856,7 +922,7 @@ extension BrowserViewController: WebviewColorSamplerDelegate {
         
         if shouldUpdateSample {
             currentTab?.currentVisit?.bottomColor = newColor
-            toolbar.transitionBackground(to: newColor, from: .topToBottom)
+//            toolbar.transitionBackground(to: newColor, from: .topToBottom)
             
 //            toolbar.searchField.backgroundColor = newColor
             webView.backgroundColor = .clear

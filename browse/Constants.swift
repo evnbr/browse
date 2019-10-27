@@ -16,7 +16,7 @@ let PRESENT_TAB_BACK_SCALE: CGFloat = 1//0.97
 
 let TAP_SCALE: CGFloat = 1.0 //0.97
 
-let BUTTON_HEIGHT: CGFloat = 48
+let BUTTON_HEIGHT: CGFloat = 24
 
 class Constants: NSObject {
 
@@ -36,7 +36,7 @@ class Constants: NSObject {
     override init() {
         let topInset = UIApplication.shared.keyWindow?.safeAreaInsets.top
         let isX = topInset != nil && topInset! > CGFloat(0.0)
-        toolbarHeight = 80//isX ? 80 : 40
+        toolbarHeight = 0//isX ? 80 : 40
         statusHeight = 44//isX ? 44 : 22
         thumbRadius = isX ? 38 : 16
         cardRadius = isX ? 38 : 4

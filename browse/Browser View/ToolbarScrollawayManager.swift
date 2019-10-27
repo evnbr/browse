@@ -8,7 +8,7 @@
 
 import UIKit
 
-let SCROLLAWAY_ENABLED = true
+let SCROLLAWAY_ENABLED = false
 
 /*
 This has an unintuitive implementation to work around limitations
@@ -80,6 +80,9 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         let bottomBlockerH = max(0, Const.toolbarHeight + amountOverBottom)
         vc.bottomOverscrollCoverHeightConstraint.constant = bottomBlockerH
 
+        if topBlockerH > 120 && !scrollView.isDecelerating {
+            vc.displaySearch()
+        }
     }
     
     var shouldUpdateToolbar: Bool {

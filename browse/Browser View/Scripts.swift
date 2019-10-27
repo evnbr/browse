@@ -196,9 +196,11 @@ private let customStyleScript = """
     const style = document.createElement('style');
     style.type = 'text/css';
     style.innerText = `
+        /*
         html, body {
             overflow: unset !important;
         }
+        */
         .\(preventSelectionClassName) *:not(input):not(textarea) {
             -webkit-user-select: none;
             -webkit-touch-callout: none;
