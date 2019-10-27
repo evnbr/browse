@@ -397,19 +397,23 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
             let pct = dist.x.progress(0, 400)
             if gesture.edges == .right {
                 if webView.canGoForward {
-                    cardView.scale = (pct * -1).lerp(1, 0.8)
+                    cardView.scale = (pct * -1).lerp(1, 0.7)
                     if dist.x < -100 && prevBackGestureDist > -100
                     || dist.x > -100 && prevBackGestureDist < -100 {
                         feedbackGen?.impactOccurred()
                     }
+                } else {
+                    cardView.scale = (pct * -1).lerp(1, 0.9)
                 }
             } else {
                 if webView.canGoBack {
-                    cardView.scale = pct.lerp(1, 0.8)
+                    cardView.scale = pct.lerp(1, 0.7)
                     if dist.x > 100 && prevBackGestureDist < 100
                     || dist.x < 100 && prevBackGestureDist > 100{
                         feedbackGen?.impactOccurred()
                     }
+                } else {
+                    cardView.scale = pct.lerp(1, 0.9)
                 }
             }
             prevBackGestureDist = dist.x
