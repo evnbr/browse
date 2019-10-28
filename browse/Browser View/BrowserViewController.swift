@@ -167,15 +167,15 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         longPress.minimumPressDuration = 0.3
         longPress.delegate = self
         webView.addGestureRecognizer(longPress)
-        
-        let backSwipe = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(handleEdgePan))
-        backSwipe.delegate = self
-        backSwipe.edges = .left
-        let fwdSwipe = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(handleEdgePan))
-        fwdSwipe.delegate = self
-        fwdSwipe.edges = .right
-        webView.addGestureRecognizer(fwdSwipe)
-        webView.addGestureRecognizer(backSwipe)
+//        
+//        let backSwipe = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(handleEdgePan))
+//        backSwipe.delegate = self
+//        backSwipe.edges = .left
+//        let fwdSwipe = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(handleEdgePan))
+//        fwdSwipe.delegate = self
+//        fwdSwipe.edges = .right
+//        webView.addGestureRecognizer(fwdSwipe)
+//        webView.addGestureRecognizer(backSwipe)
 
         observeLoadingChanges(for: webView)
         updateLoadingState()
