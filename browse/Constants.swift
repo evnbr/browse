@@ -16,7 +16,7 @@ let PRESENT_TAB_BACK_SCALE: CGFloat = 1//0.97
 
 let TAP_SCALE: CGFloat = 1.0 //0.97
 
-let BUTTON_HEIGHT: CGFloat = 24
+let BUTTON_HEIGHT: CGFloat = 16
 
 class Constants: NSObject {
 
@@ -26,7 +26,7 @@ class Constants: NSObject {
     var thumbRadius: CGFloat
     let textFieldFont: UIFont = .systemFont(ofSize: 17)
 //    let thumbTitleFont: UIFont = .systemFont(ofSize: 17)
-    let thumbTitleFont : UIFont = .systemFont(ofSize: 16.0, weight: .medium)
+    let thumbTitleFont : UIFont = .systemFont(ofSize: 12.0, weight: .medium)
 
     var cardRadius: CGFloat
 

@@ -164,7 +164,7 @@ class BrowserViewController: UIViewController, UIGestureRecognizerDelegate {
         toolbarPlaceholder.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
 
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
-        longPress.minimumPressDuration = 0.3
+        longPress.minimumPressDuration = 0.45
         longPress.delegate = self
         webView.addGestureRecognizer(longPress)
 //        

@@ -30,7 +30,7 @@ class ColorToolbarView: GradientColorChangeView {
 
         addSubview(stackView)
 
-        let toolbarInset: CGFloat = 8.0
+        let toolbarInset: CGFloat = 0 //8.0
         
         let guide = self.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
@@ -43,7 +43,7 @@ class ColorToolbarView: GradientColorChangeView {
             stackView.topAnchor.constraint(equalTo: self.topAnchor, constant: TOOLBAR_TOP_MARGIN)
         ])
         
-        backgroundView.alpha = 0.96
+//        backgroundView.alpha = 0.96
     }
 
     var toolbarItems: [ UIView ] {

@@ -83,6 +83,7 @@ class ToolbarScrollawayManager: NSObject, UIScrollViewDelegate {
         if topBlockerH > 120 && !scrollView.isDecelerating {
             vc.displaySearch()
         }
+        updateStatusBarColor()
     }
     
     var shouldUpdateToolbar: Bool {
